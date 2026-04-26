@@ -3,7 +3,7 @@ app/__init__.py  –  Application Factory (GUA SPORT 2026 Edition)
 """
 import logging
 from flask import Flask, session, redirect, render_template_string
-from flask_session import Session
+# from flask_session import Session # 🛑 ĐÃ ẨN: Không dùng Flask-Session trên Vercel để tránh lỗi Read-only OS
 from flask_wtf.csrf import CSRFProtect, CSRFError
 from config.settings import get_config
 
@@ -12,7 +12,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 # Khởi tạo các Extensions ngoài factory
-sess = Session()
+# sess = Session() # 🛑 ĐÃ ẨN: Ép Flask dùng cơ chế Cookie Session mặc định
 csrf = CSRFProtect()
 
 
@@ -23,7 +23,7 @@ def create_app() -> Flask:
     app.config.from_object(get_config())
 
     # 2. Khởi tạo Extensions
-    sess.init_app(app)
+    # sess.init_app(app) # 🛑 ĐÃ ẨN: Bỏ qua bước tạo thư mục flask_session trên máy chủ
     csrf.init_app(app)  # Kích hoạt bảo vệ CSRF toàn cục
 
     # 3. Đăng ký Blueprints
@@ -33,7 +33,7 @@ def create_app() -> Flask:
     from app.controllers.admin_controller   import admin_bp
     from app.controllers.profile_controller import profile_bp
     from app.controllers.debug_controller   import debug_bp
-    from app.controllers.chat_controller    import chat_bp # Đã thêm Chatbot Blueprint
+    from app.controllers.chat_controller    import chat_bp  # Đã thêm Chatbot Blueprint
 
     blueprints = [
         (auth_bp, None),
@@ -42,7 +42,7 @@ def create_app() -> Flask:
         (admin_bp, None),
         (profile_bp, None),
         (debug_bp, None),
-        (chat_bp, None) # Đã đăng ký Chatbot vào mảng
+        (chat_bp, None)  # Đã đăng ký Chatbot vào mảng
     ]
 
     for bp, prefix in blueprints:
