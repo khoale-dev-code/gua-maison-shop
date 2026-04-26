@@ -1,0 +1,173 @@
+{% extends "base.html" %}
+{% block title %}{{ product.name }} | GUA Luxury Heritage{% endblock %}
+
+{% block content %}
+<div class="bg-white min-h-screen">
+  
+  <nav class="max-w-[1800px] mx-auto px-6 py-6 text-[10px] font-black uppercase tracking-[0.3em] text-stone-400 flex items-center gap-4">
+    <a href="/" class="hover:text-black transition-colors">Home</a>
+    <span class="w-8 h-px bg-stone-200"></span>
+    <a href="/shop" class="hover:text-black transition-colors">Archive</a>
+    {% if product.categories %}
+    <span class="w-8 h-px bg-stone-200"></span>
+    <a href="/shop?category={{ product.categories.slug }}" class="hover:text-black transition-colors text-black">{{ product.categories.name }}</a>
+    {% endif %}
+  </nav>
+
+  <div class="max-w-[1800px] mx-auto border-t border-stone-100">
+    <div class="grid grid-cols-1 lg:grid-cols-2 min-h-[calc(100vh-120px)]">
+      
+      <div class="relative bg-[#f6f6f6] border-r border-stone-100 overflow-hidden group">
+        <div class="sticky top-24 p-8 md:p-16 h-full flex items-center justify-center">
+          {% if product.thumbnail_url %}
+          <div class="relative z-10 w-full h-full flex items-center justify-center">
+             <img src="{{ product.thumbnail_url }}" alt="{{ product.name }}" 
+                  class="max-w-full max-h-[70vh] object-contain mix-blend-multiply transition-transform duration-[2s] group-hover:scale-110" />
+             
+             <div class="absolute inset-0 flex items-center justify-center select-none pointer-events-none">
+                <span class="text-[20vw] font-black text-black/[0.03] uppercase tracking-tighter">HERITAGE</span>
+             </div>
+          </div>
+          {% else %}
+          <div class="text-stone-300 font-black text-8xl opacity-20">GUA</div>
+          {% endif %}
+        </div>
+
+        {% if product.is_featured %}
+        <div class="absolute top-10 left-10 transform -rotate-90 origin-left">
+          <span class="text-[10px] font-black uppercase tracking-[0.5em] bg-black text-white px-6 py-2">
+            Limited Edition / 2026
+          </span>
+        </div>
+        {% endif %}
+      </div>
+
+      <div class="p-8 md:p-16 lg:p-24 flex flex-col justify-center">
+        
+        <header class="mb-12">
+          <div class="flex items-center gap-4 mb-6">
+            <span class="h-px w-12 bg-black"></span>
+            <p class="text-[12px] font-black text-stone-500 uppercase tracking-widest">
+              {{ product.categories.name if product.categories else 'GUA MAISON' }}
+            </p>
+          </div>
+          
+          <h1 class="text-5xl md:text-7xl font-black uppercase tracking-tighter leading-[0.9] mb-8 transform -skew-x-6">
+            {{ product.name }}
+          </h1>
+
+          <div class="flex items-end gap-6">
+            <span class="text-3xl md:text-4xl font-black tracking-tighter text-black">
+              {{ "{:,.0f}".format(product.price) }} <span class="text-sm font-medium">VND</span>
+            </span>
+            {% if product.stock > 0 %}
+            <span class="mb-2 text-[10px] font-bold text-green-600 uppercase tracking-widest flex items-center gap-2">
+              <span class="w-2 h-2 bg-green-600 rounded-full animate-pulse"></span> Sẵn sàng giao ngay
+            </span>
+            {% endif %}
+          </div>
+        </header>
+
+        {% if product.description %}
+        <div class="mb-12 max-w-lg">
+          <p class="text-stone-500 text-lg leading-relaxed font-medium italic border-l-4 border-stone-100 pl-6">
+            "{{ product.description }}"
+          </p>
+        </div>
+        {% endif %}
+
+        {% if product.stock > 0 %}
+        <form action="/cart/add" method="POST" class="space-y-12">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <input type="hidden" name="product_id" value="{{ product.id }}" />
+
+          <div class="space-y-6">
+            <div class="flex justify-between items-end border-b border-stone-100 pb-2">
+              <label class="text-[12px] font-black uppercase tracking-widest">Kích cỡ / Size</label>
+              <button type="button" class="text-[10px] font-bold text-stone-400 uppercase underline hover:text-black">Bảng quy đổi</button>
+            </div>
+            <div class="grid grid-cols-5 gap-px bg-stone-200 border border-stone-200">
+              {% for size in ['XS', 'S', 'M', 'L', 'XL'] %}
+              <label class="cursor-pointer group bg-white">
+                <input type="radio" name="size" value="{{ size }}" class="sr-only peer" {% if size == 'M' %}checked{% endif %} />
+                <span class="flex items-center justify-center h-16 text-[13px] font-black transition-all 
+                             peer-checked:bg-black peer-checked:text-white 
+                             group-hover:bg-stone-50 group-hover:text-black">
+                  {{ size }}
+                </span>
+              </label>
+              {% endfor %}
+            </div>
+          </div>
+
+          <div class="flex flex-col gap-4">
+            <div class="flex gap-4 h-20">
+              <div class="flex items-center border-2 border-black w-40">
+                <button type="button" onclick="changeQty(-1)" class="flex-1 h-full text-2xl font-light hover:bg-stone-100 transition-colors">-</button>
+                <input type="number" name="quantity" id="qty" value="1" min="1" max="{{ product.stock }}" readonly
+                       class="w-12 text-center text-lg font-black bg-transparent outline-none pointer-events-none" />
+                <button type="button" onclick="changeQty(1)" class="flex-1 h-full text-2xl font-light hover:bg-stone-100 transition-colors">+</button>
+              </div>
+
+              <button type="submit" name="action" value="add_to_cart" 
+                      class="flex-1 bg-black text-white text-[13px] font-black uppercase tracking-[0.3em] hover:bg-stone-800 active:scale-[0.98] transition-all">
+                Thêm vào túi hàng +
+              </button>
+            </div>
+
+            <button type="submit" name="action" value="buy_now"
+                    class="w-full h-20 bg-stone-100 text-black border-2 border-black text-[13px] font-black uppercase tracking-[0.3em] hover:bg-black hover:text-white transition-all">
+              Thanh toán ngay
+            </button>
+          </div>
+        </form>
+        {% else %}
+        <div class="py-10 border-2 border-dashed border-stone-200 text-center">
+          <p class="text-stone-400 font-black uppercase tracking-widest">Sản phẩm hiện đã cháy hàng</p>
+        </div>
+        {% endif %}
+
+        <div class="mt-20 grid grid-cols-1 md:grid-cols-2 gap-10 border-t border-stone-100 pt-10">
+          <div class="space-y-2">
+            <h4 class="text-[11px] font-black uppercase tracking-widest">Giao hàng ưu tiên</h4>
+            <p class="text-[12px] text-stone-500 font-medium">Miễn phí cho mọi đơn hàng cao cấp. Đóng gói thủ công tại xưởng GUA.</p>
+          </div>
+          <div class="space-y-2">
+            <h4 class="text-[11px] font-black uppercase tracking-widest">Bảo hành di sản</h4>
+            <p class="text-[12px] text-stone-500 font-medium">Hỗ trợ làm mới sản phẩm trọn đời cho thành viên Maison Club.</p>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// Giữ nguyên logic JS của bạn nhưng thêm hiệu ứng UI mượt mà hơn
+function changeQty(delta) {
+  const input = document.getElementById('qty');
+  let val = parseInt(input.value) + delta;
+  const max = parseInt(input.max);
+  if (val >= 1 && val <= max) {
+    input.value = val;
+  }
+}
+</script>
+
+<style>
+  /* Import fonts Puma style */
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@900&display=swap');
+  
+  h1 {
+    font-family: 'Inter', sans-serif;
+  }
+
+  /* Khử spin của input number */
+  input::-webkit-outer-spin-button,
+  input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+</style>
+{% endblock %}

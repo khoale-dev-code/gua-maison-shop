@@ -1,0 +1,145 @@
+{% extends "base.html" %}
+
+{% block title %}GUA | Heritage & Excellence{% endblock %}
+
+{% block content %}
+
+<section class="relative h-[90vh] w-full bg-black overflow-hidden group">
+  <div class="absolute inset-0">
+    <img src="https://images.unsplash.com/photo-1556821840-3a63f95609a7?q=80&w=2000" 
+         alt="GUA Campaign" 
+         class="w-full h-full object-cover opacity-80 transition-transform duration-[10s] group-hover:scale-110">
+  </div>
+  
+  <div class="absolute inset-0 bg-linear-to-t from-black/80 via-transparent to-transparent"></div>
+
+  <div class="absolute inset-0 flex flex-col items-center justify-center text-center z-20 px-6">
+    <span class="text-white text-[12px] font-black uppercase tracking-[0.5em] mb-4 bg-black/50 px-4 py-1 backdrop-blur-sm">
+      New Season 2026
+    </span>
+    <h1 class="text-white text-[60px] md:text-[100px] lg:text-[130px] font-black uppercase leading-[0.9] tracking-tighter mb-8 transform -skew-x-6">
+      Nghệ Thuật <br> 
+      <span class="text-transparent stroke-white stroke-1" style="-webkit-text-stroke: 1px white;">Sống Đẳng Cấp</span>
+    </h1>
+    
+    <div class="flex flex-col sm:flex-row gap-4 mt-4">
+      <a href="/shop" class="bg-white text-black px-12 py-5 text-[13px] font-black uppercase tracking-widest hover:bg-black hover:text-white transition-all duration-300 transform hover:-translate-y-1">
+        Khám phá ngay
+      </a>
+      <a href="/shop?category=new" class="bg-transparent border-2 border-white text-white px-12 py-5 text-[13px] font-black uppercase tracking-widest hover:bg-white hover:text-black transition-all duration-300">
+        Hàng mới về
+      </a>
+    </div>
+  </div>
+</section>
+
+<div class="bg-black text-white py-3 border-y border-white/10 overflow-hidden flex whitespace-nowrap select-none">
+  <div class="animate-marquee flex gap-12 text-[11px] font-black uppercase tracking-widest items-center">
+    <span>Free Shipping Worldwide</span> <span>•</span>
+    <span>GUA Maison Exclusive</span> <span>•</span>
+    <span>24/7 Premium Support</span> <span>•</span>
+    <span>Free Shipping Worldwide</span> <span>•</span>
+    <span>GUA Maison Exclusive</span>
+  </div>
+</div>
+
+<section class="reveal">
+  <div class="grid grid-cols-1 md:grid-cols-3">
+    {% for cat in [
+      ('Thời trang Nữ', 'women', 'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=800'),
+      ('Thời trang Nam', 'men', 'https://images.unsplash.com/photo-1488161628813-04466f872be2?w=800'),
+      ('Phụ kiện', 'accessories', 'https://images.unsplash.com/photo-1608248543803-ba4f8c70ae0b?w=800')
+    ] %}
+    <a href="/shop?category={{ cat[1] }}" class="group relative aspect-[4/5] overflow-hidden block border-r border-b border-stone-100">
+      <img src="{{ cat[2] }}" alt="{{ cat[0] }}" class="absolute inset-0 w-full h-full object-cover transition-transform duration-[1.5s] group-hover:scale-105">
+      <div class="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-all duration-500"></div>
+      
+      <div class="absolute bottom-10 left-10 overflow-hidden">
+        <h3 class="text-white text-4xl font-black uppercase tracking-tighter translate-y-full group-hover:translate-y-0 transition-transform duration-500">{{ cat[0] }}</h3>
+        <p class="text-white/80 text-[10px] font-bold uppercase tracking-widest mt-2 opacity-0 group-hover:opacity-100 transition-opacity delay-200">Shop Collection +</p>
+      </div>
+    </a>
+    {% endfor %}
+  </div>
+</section>
+
+{% if featured %}
+<section class="py-24 px-6 md:px-12 reveal">
+  <div class="max-w-[1800px] mx-auto">
+    <div class="flex items-end justify-between mb-12">
+      <div>
+        <h2 class="text-5xl md:text-7xl font-black uppercase tracking-tighter leading-none">Hot Drops</h2>
+        <p class="text-stone-400 mt-4 font-bold uppercase tracking-widest text-xs">Xu hướng dẫn đầu 2026</p>
+      </div>
+      <a href="/shop" class="hidden md:block text-[12px] font-black uppercase tracking-widest border-b-2 border-black pb-1 hover:text-stone-500 transition-colors">
+        Tất cả sản phẩm
+      </a>
+    </div>
+
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-2 md:gap-4">
+      {% for product in featured %}
+      <a href="/product/{{ product.id }}" class="group block bg-[#f9f9f9] p-2 hover:bg-white transition-colors duration-300">
+        <div class="aspect-[1/1] overflow-hidden relative mb-4 bg-white">
+          {% if product.thumbnail_url %}
+          <img src="{{ product.thumbnail_url }}" alt="{{ product.name }}" class="w-full h-full object-contain mix-blend-multiply group-hover:scale-105 transition-transform duration-500" loading="lazy" />
+          {% endif %}
+          <div class="absolute top-4 right-4">
+             <button class="bg-white/80 hover:bg-black hover:text-white p-2 rounded-full transition-all shadow-sm">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 21l-8.242-8.242a5.5 5.5 0 117.778-7.778L12 5.5l.464-.464a5.5 5.5 0 117.778 7.778L12 21z"/></svg>
+             </button>
+          </div>
+        </div>
+        
+        <div class="px-2 pb-4">
+          <h3 class="text-[14px] font-black text-black uppercase tracking-tight mb-1 truncate">{{ product.name }}</h3>
+          <p class="text-stone-600 text-[13px] font-medium tracking-tight">{{ "{:,.0f}".format(product.price) }} VNĐ</p>
+        </div>
+      </a>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endif %}
+
+<section class="bg-black py-24 px-6 md:px-12 reveal">
+  <div class="max-w-[1440px] mx-auto grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+    <div class="order-2 lg:order-1">
+      <h2 class="text-white text-5xl md:text-8xl font-black uppercase tracking-tighter leading-[0.85] mb-8">
+        GIA NHẬP <br> <span class="text-stone-600">GUA CLUB</span>
+      </h2>
+      <p class="text-stone-400 text-lg mb-10 max-w-md font-medium">
+        Nhận ngay ưu đãi 15% cho đơn hàng đầu tiên và đặc quyền trải nghiệm các bộ sưu tập giới hạn trước mọi người.
+      </p>
+      <div class="flex flex-col sm:flex-row gap-4">
+        <a href="/auth/register" class="bg-white text-black px-10 py-4 text-sm font-black uppercase tracking-widest hover:bg-stone-200 transition-all text-center">Đăng ký ngay</a>
+        <a href="/auth/login" class="border border-stone-700 text-white px-10 py-4 text-sm font-black uppercase tracking-widest hover:bg-stone-900 transition-all text-center">Đăng nhập</a>
+      </div>
+    </div>
+    <div class="order-1 lg:order-2 relative aspect-video lg:aspect-square overflow-hidden">
+        <img src="https://images.unsplash.com/photo-1549298916-b41d501d3772?q=80&w=2000" class="w-full h-full object-cover grayscale hover:grayscale-0 transition-all duration-700" alt="Join us">
+    </div>
+  </div>
+</section>
+
+<style>
+  @keyframes marquee {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-50%); }
+  }
+  .animate-marquee {
+    animation: marquee 20s linear infinite;
+  }
+  
+  /* Puma-style Fonts: Thay phông chữ Serif cũ bằng phông mạnh mẽ hơn */
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=Playfair+Display:ital,wght@0,900;1,900&display=swap');
+  
+  h1, h2, h3, .font-display {
+    font-family: 'Inter', sans-serif;
+  }
+  
+  .italic-heading {
+    font-family: 'Playfair Display', serif;
+  }
+</style>
+
+{% endblock %}

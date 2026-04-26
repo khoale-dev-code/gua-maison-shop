@@ -1,0 +1,131 @@
+{% extends "base.html" %}
+{% block title %}Order Archive | GUA Maison{% endblock %}
+
+{% block content %}
+<div class="bg-white min-h-screen pb-32 pt-8 sm:pt-12">
+  <div class="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8">
+
+    <a href="/profile/" class="inline-flex items-center gap-3 text-[10px] font-black text-stone-400 uppercase tracking-[0.3em] hover:text-black transition-colors mb-12 group reveal">
+      <svg class="w-4 h-4 group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5"/>
+      </svg>
+      Back to Client Archive
+    </a>
+
+    <div class="mb-16 pb-8 border-b-2 border-black flex flex-col md:flex-row md:items-end justify-between gap-6 reveal">
+      <div>
+        <div class="flex items-center gap-3 mb-2">
+            <span class="w-2 h-2 bg-black"></span>
+            <span class="text-[10px] font-black uppercase tracking-[0.4em] text-stone-400">Database / Transactions</span>
+        </div>
+        <h1 class="text-5xl md:text-7xl font-black text-black uppercase tracking-tighter leading-none transform -skew-x-6">
+          Order <span class="text-transparent" style="-webkit-text-stroke: 1.5px black;">Archive</span>
+        </h1>
+      </div>
+      {% if orders %}
+      <div class="text-left md:text-right">
+        <p class="text-[24px] font-black tracking-tighter leading-none">{{ orders|length }}</p>
+        <p class="text-[10px] font-black text-stone-400 uppercase tracking-widest mt-1">Total Records Found</p>
+      </div>
+      {% endif %}
+    </div>
+
+    {% if orders %}
+    <div class="space-y-10 reveal">
+      {% for order in orders %}
+      <div class="bg-white border-2 border-stone-100 hover:border-black transition-all group overflow-hidden">
+        
+        <div class="bg-[#f9f9f9] px-6 sm:px-10 py-6 border-b border-stone-100 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+          <div class="flex flex-wrap items-center gap-4 sm:gap-10">
+            <div>
+              <p class="text-[9px] font-black text-stone-400 uppercase tracking-widest mb-1">Transaction ID</p>
+              <span class="font-mono text-[16px] font-black text-black uppercase tracking-tight">#{{ order.id[:12].upper() }}</span>
+            </div>
+            
+            <div>
+              <p class="text-[9px] font-black text-stone-400 uppercase tracking-widest mb-1">Status</p>
+              <span class="text-[10px] font-black uppercase tracking-widest px-3 py-1 border-2 
+                {% if order.status=='pending' %} border-yellow-400 text-yellow-600
+                {% elif order.status=='delivered' %} border-black bg-black text-white
+                {% elif order.status=='cancelled' %} border-red-500 text-red-500
+                {% else %} border-stone-200 text-stone-500 {% endif %}">
+                {{ order.status }}
+              </span>
+            </div>
+
+            <div>
+              <p class="text-[9px] font-black text-stone-400 uppercase tracking-widest mb-1">Timestamp</p>
+              <span class="text-[11px] font-bold text-stone-600 uppercase font-mono">{{ order.created_at[:16].replace('T', ' ') if order.created_at else 'SYSTEM_RECORD' }}</span>
+            </div>
+          </div>
+          
+          <div class="flex items-center justify-between lg:justify-end gap-10 border-t lg:border-t-0 pt-4 lg:pt-0 border-stone-200">
+            <div class="text-left lg:text-right">
+              <p class="text-[9px] font-black text-stone-400 uppercase tracking-widest mb-1">Total Value</p>
+              <p class="text-[22px] font-black text-black tracking-tighter leading-none">{{ '{:,.0f}'.format(order.total_amount) }} <span class="text-[10px] text-stone-400">VND</span></p>
+            </div>
+            <a href="/profile/orders/{{ order.id }}" class="inline-flex items-center justify-center bg-black text-white px-8 py-4 text-[10px] font-black uppercase tracking-[0.2em] hover:bg-stone-800 active:scale-95 transition-all">
+              Details +
+            </a>
+          </div>
+        </div>
+
+        {% if order.order_items %}
+        <div class="px-6 sm:px-10 py-8 overflow-x-auto no-scrollbar bg-white">
+          <div class="flex gap-10 min-w-max">
+            {% for item in order.order_items %}
+            <div class="flex items-center gap-6 group/item">
+              <div class="w-16 aspect-[3/4] bg-stone-50 border border-stone-100 relative overflow-hidden shrink-0 group-hover:border-black transition-colors">
+                {% if item.products and item.products.thumbnail_url %}
+                  <img src="{{ item.products.thumbnail_url }}" class="w-full h-full object-cover mix-blend-multiply transition-transform duration-700 group-hover/item:scale-110" loading="lazy" alt="Product" />
+                {% else %}
+                  <div class="w-full h-full flex items-center justify-center text-stone-200 text-[8px] font-black">GUA</div>
+                {% endif %}
+                <div class="absolute top-0 right-0 bg-black text-white text-[9px] font-black px-1.5 py-0.5">
+                  x{{ item.quantity }}
+                </div>
+              </div>
+              
+              <div class="flex flex-col justify-center">
+                <p class="text-[11px] font-black text-black uppercase max-w-[140px] truncate leading-tight group-hover/item:underline">{{ item.products.name if item.products else 'Archived Item' }}</p>
+                <div class="flex items-center gap-3 mt-1.5">
+                  {% if item.size %}
+                  <span class="text-[9px] font-black text-stone-400 border border-stone-200 px-1.5 py-0.5 uppercase">Size {{ item.size }}</span>
+                  {% endif %}
+                  <span class="text-[10px] font-mono font-bold text-stone-300 tracking-tighter">{{ '{:,.0f}'.format(item.unit_price) }}</span>
+                </div>
+              </div>
+            </div>
+            
+            {% if not loop.last %}
+            <div class="w-px h-12 bg-stone-100 self-center"></div>
+            {% endif %}
+            {% endfor %}
+          </div>
+        </div>
+        {% endif %}
+
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="border-2 border-dashed border-stone-200 py-32 flex flex-col items-center justify-center text-center mt-8 reveal">
+      <div class="w-20 h-20 border-2 border-stone-100 flex items-center justify-center mb-8">
+          <svg class="w-10 h-10 text-stone-200" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M20.25 7.5-.625 10.632a2.25 2.25 0 0 1-2.247 2.118H6.622a2.25 2.25 0 0 1-2.247-2.118L3.75 7.5m8.25 3v6.75m0 0-3-3m3 3 3-3"/></svg>
+      </div>
+      <h3 class="text-[24px] font-black text-stone-300 uppercase tracking-[0.3em] mb-4">No Transaction Records</h3>
+      <p class="text-stone-400 text-[10px] font-black uppercase tracking-[0.4em] mb-10 max-w-xs mx-auto">Database is currently empty. Initiate your first drop to populate logs.</p>
+      <a href="/shop" class="bg-black text-white px-12 py-5 font-black text-[11px] uppercase tracking-[0.3em] hover:bg-stone-800 active:scale-95 transition-all">
+        Start Shopping +
+      </a>
+    </div>
+    {% endif %}
+
+  </div>
+</div>
+
+<style>
+  .no-scrollbar::-webkit-scrollbar { display: none; }
+  .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+</style>
+{% endblock %}

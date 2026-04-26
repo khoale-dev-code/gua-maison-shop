@@ -1,0 +1,167 @@
+{% extends "base.html" %}
+{% block title %}Receipt #{{ order.id[:8].upper() }} | GUA Maison{% endblock %}
+
+{% block content %}
+{% set status_map = {
+    'pending': ('Chờ xác nhận', 'border-yellow-400 text-yellow-600'),
+    'processing': ('Đang xử lý', 'border-black text-black bg-stone-50'),
+    'shipped': ('Đang giao hàng', 'border-stone-400 text-stone-500'),
+    'delivered': ('Đã hoàn thành', 'bg-black text-white border-black'),
+    'cancelled': ('Đã hủy đơn', 'border-red-500 text-red-500')
+} %}
+{% set current_status = status_map.get(order.status, ('Hệ thống', 'border-stone-200 text-stone-400')) %}
+
+<div class="bg-white min-h-screen pb-32 pt-12">
+  <div class="max-w-[1200px] mx-auto px-6">
+
+    <a href="/profile/orders" class="inline-flex items-center gap-3 text-[10px] font-black text-stone-400 uppercase tracking-[0.3em] hover:text-black transition-colors mb-12 group reveal">
+      <svg class="w-4 h-4 group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24">
+        <path d="M15 19l-7-7 7-7"/>
+      </svg>
+      Back to Order Archive
+    </a>
+
+    <div class="flex flex-col md:flex-row md:items-end justify-between gap-8 mb-16 pb-8 border-b-2 border-black reveal">
+      <div>
+        <div class="flex items-center gap-4 mb-4">
+          <span class="px-4 py-1 text-[9px] font-black uppercase tracking-widest border-2 {{ current_status[1] }}">
+            {{ current_status[0] }}
+          </span>
+          <span class="text-[10px] font-mono font-bold text-stone-400 uppercase tracking-widest">
+            LOG_TIME: {{ order.created_at[:16].replace('T', ' ') if order.created_at else 'N/A' }}
+          </span>
+        </div>
+        <h1 class="text-4xl md:text-6xl font-black uppercase tracking-tighter transform -skew-x-6 leading-none">
+          Receipt <span class="text-transparent" style="-webkit-text-stroke: 1.5px black;">#{{ order.id[:12].upper() }}</span>
+        </h1>
+      </div>
+      
+      <div class="flex gap-4">
+        <button onclick="window.print()" class="px-6 py-3 border border-stone-200 text-[10px] font-black uppercase tracking-widest hover:border-black transition-all">
+          Print PDF_
+        </button>
+      </div>
+    </div>
+
+    <div class="mb-16 reveal" style="transition-delay: 100ms;">
+      <div class="bg-stone-50 border border-stone-100 p-8 md:p-12">
+        <h3 class="text-[11px] font-black uppercase tracking-[0.4em] text-stone-400 mb-10 text-center">Logistics Progression</h3>
+        
+        <div class="relative flex flex-col md:flex-row justify-between items-center gap-8 md:gap-0">
+          <div class="absolute top-1/2 left-0 w-full h-[1px] bg-stone-200 -translate-y-1/2 hidden md:block"></div>
+          
+          {% set steps = [('pending','AUTHORIZED'),('processing','PACKAGING'),('shipped','TRANSIT'),('delivered','SECURED')] %}
+          {% set status_order = {'pending':0,'processing':1,'shipped':2,'delivered':3, 'cancelled': -1} %}
+          {% set cur_idx = status_order.get(order.status, 0) %}
+
+          {% for slug, label in steps %}
+            {% set i = loop.index0 %}
+            <div class="relative z-10 flex flex-col items-center group w-full md:w-auto">
+              <div class="w-10 h-10 flex items-center justify-center transition-all duration-500
+                {% if i <= cur_idx and order.status != 'cancelled' %}
+                  bg-black text-white scale-110 shadow-lg
+                {% else %}
+                  bg-white border-2 border-stone-200 text-stone-300
+                {% endif %}">
+                {% if i < cur_idx and order.status != 'cancelled' %}
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"/></svg>
+                {% else %}
+                  <span class="font-mono text-[12px] font-black">{{ "0%d"|format(i+1) }}</span>
+                {% endif %}
+              </div>
+              <span class="mt-4 text-[10px] font-black uppercase tracking-[0.2em] 
+                {% if i <= cur_idx and order.status != 'cancelled' %} text-black {% else %} text-stone-300 {% endif %}">
+                {{ label }}
+              </span>
+            </div>
+          {% endfor %}
+        </div>
+
+        {% if order.status == 'cancelled' %}
+        <div class="mt-12 py-4 border-2 border-red-100 bg-red-50 text-center">
+            <p class="text-red-500 text-[11px] font-black uppercase tracking-[0.3em]">Transaction Terminated / Order Cancelled</p>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-px bg-stone-200 border border-stone-200 mb-16 reveal" style="transition-delay: 200ms;">
+      <div class="bg-white p-8 md:p-12">
+        <h3 class="text-[11px] font-black uppercase tracking-[0.3em] mb-8 flex items-center gap-3">
+          <span class="w-4 h-[2px] bg-black"></span> Destination Logistics
+        </h3>
+        {% if order.shipping_address %}
+        <div class="space-y-2">
+          <p class="text-xl font-black uppercase tracking-tight">{{ order.shipping_address.get('full_name','') }}</p>
+          <p class="text-[14px] font-bold text-stone-600 font-mono">{{ order.shipping_address.get('phone','') }}</p>
+          <div class="h-px w-12 bg-stone-100 my-4"></div>
+          <p class="text-[12px] font-bold text-stone-400 uppercase leading-relaxed tracking-widest">
+            {{ order.shipping_address.get('address','') }}<br>
+            {{ order.shipping_address.get('city','') }}
+          </p>
+        </div>
+        {% endif %}
+      </div>
+
+      <div class="bg-white p-8 md:p-12">
+        <h3 class="text-[11px] font-black uppercase tracking-[0.3em] mb-8 flex items-center gap-3">
+          <span class="w-4 h-[2px] bg-black"></span> Transaction Data
+        </h3>
+        <div class="space-y-4">
+          <div class="flex justify-between items-center border-b border-stone-50 pb-3">
+            <span class="text-[10px] font-black text-stone-400 uppercase tracking-widest">Payment Method</span>
+            <span class="text-[12px] font-black uppercase tracking-widest">COD / On Delivery</span>
+          </div>
+          <div class="flex justify-between items-center border-b border-stone-50 pb-3">
+            <span class="text-[10px] font-black text-stone-400 uppercase tracking-widest">Courier</span>
+            <span class="text-[12px] font-black uppercase tracking-widest">Maison Standard</span>
+          </div>
+          <div class="flex justify-between items-end pt-4">
+            <span class="text-[10px] font-black text-black uppercase tracking-widest">Total Value</span>
+            <span class="text-3xl font-black tracking-tighter leading-none text-black">{{ '{:,.0f}'.format(order.total_amount) }} <span class="text-sm">VND</span></span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="border border-stone-200 reveal" style="transition-delay: 300ms;">
+      <div class="px-8 py-5 bg-black text-white flex justify-between items-center">
+        <span class="text-[10px] font-black uppercase tracking-[0.3em]">Item Manifest</span>
+        <span class="text-[10px] font-mono">{{ order.order_items|length }} UNITS</span>
+      </div>
+      
+      <div class="divide-y divide-stone-100">
+        {% for item in order.order_items %}
+        <div class="p-8 flex flex-col sm:flex-row items-center gap-8 bg-white group hover:bg-stone-50 transition-colors">
+          <div class="w-20 aspect-[3/4] bg-stone-50 border border-stone-100 overflow-hidden shrink-0">
+            {% if item.products and item.products.thumbnail_url %}
+              <img src="{{ item.products.thumbnail_url }}" class="w-full h-full object-cover mix-blend-multiply group-hover:scale-110 transition-transform duration-700" loading="lazy"/>
+            {% endif %}
+          </div>
+          
+          <div class="flex-1 text-center sm:text-left">
+            <h4 class="text-[16px] font-black uppercase tracking-tight text-black group-hover:underline decoration-2 underline-offset-4 mb-2">
+              {{ item.products.name if item.products else 'Archived Item' }}
+            </h4>
+            <div class="flex flex-wrap justify-center sm:justify-start gap-4">
+              {% if item.size %}
+                <span class="text-[10px] font-black text-stone-400 border border-stone-200 px-2 py-1 uppercase">Size {{ item.size }}</span>
+              {% endif %}
+              <span class="text-[10px] font-black text-stone-400 px-2 py-1 uppercase">Qty: {{ item.quantity }}</span>
+            </div>
+          </div>
+          
+          <div class="text-center sm:text-right">
+            <p class="text-lg font-black tracking-tighter text-black">{{ '{:,.0f}'.format(item.unit_price * item.quantity) }} VND</p>
+            <p class="text-[10px] font-bold text-stone-400 uppercase tracking-widest mt-1">{{ '{:,.0f}'.format(item.unit_price) }} / UNIT</p>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+
+  </div>
+</div>
+
+ 
+{% endblock %}

@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+{% block title %}System Login | GUA Maison{% endblock %}
+
+{% block content %}
+<div class="min-h-screen flex items-center justify-center px-6 py-24 bg-white relative overflow-hidden">
+  
+  <div class="absolute inset-0 flex items-center justify-center opacity-[0.02] pointer-events-none select-none">
+    <span class="text-[40vw] font-black uppercase tracking-tighter">GUA</span>
+  </div>
+
+  <div class="w-full max-w-[450px] relative z-10">
+    
+    <div class="mb-12 text-left md:text-center">
+      <h1 class="text-6xl md:text-7xl font-black uppercase tracking-tighter leading-none transform -skew-x-6 mb-4">
+        SIGN <span class="text-transparent stroke-black" style="-webkit-text-stroke: 1.5px black;">IN</span>
+      </h1>
+      <p class="text-[11px] font-black text-stone-400 uppercase tracking-[0.4em] ml-1">Secure Matrix Access</p>
+    </div>
+
+    {% if errors.general %}
+    <div class="mb-8 p-4 bg-red-600 text-white text-[11px] font-black uppercase tracking-widest flex items-center gap-3 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-width="2.5" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+      {{ errors.general }}
+    </div>
+    {% endif %}
+
+    <form method="post" action="{{ url_for('auth.login') }}" class="space-y-8">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      
+      <div style="display:none;" aria-hidden="true">
+          <input type="text" name="b_email_trap" tabindex="-1" autocomplete="off">
+      </div>
+
+      <div class="group">
+        <label for="email" class="block text-[11px] font-black text-black uppercase tracking-widest mb-2 ml-1">Email / ID</label>
+        <input type="email" name="email" id="email" value="{{ form.email or '' }}" placeholder="username@gua.com"
+          required autocomplete="username"
+          class="w-full bg-transparent border-b-2 border-stone-200 py-4 px-1 text-[16px] font-bold outline-none transition-all 
+          focus:border-black placeholder:text-stone-300
+          {% if errors.email %} border-red-500 {% endif %}" />
+        {% if errors.email %}
+        <p class="text-red-600 text-[10px] font-black uppercase tracking-tight mt-2">{{ errors.email }}</p>
+        {% endif %}
+      </div>
+
+      <div class="group">
+        <div class="flex justify-between items-center mb-2">
+            <label for="pwd" class="text-[11px] font-black text-black uppercase tracking-widest ml-1">Passcode</label>
+            <a href="#" class="text-[9px] font-bold text-stone-400 uppercase hover:text-black transition-colors" tabindex="-1">Quên mật khẩu?</a>
+        </div>
+        <div class="relative">
+          <input type="password" name="password" id="pwd" placeholder="••••••••"
+            required autocomplete="current-password"
+            class="w-full bg-transparent border-b-2 border-stone-200 py-4 px-1 text-[16px] font-bold outline-none transition-all
+            focus:border-black placeholder:text-stone-300 pr-10
+            {% if errors.password %} border-red-500 {% endif %}" />
+          
+          <button type="button" onclick="togglePwd('pwd')" aria-label="Toggle Password Visibility"
+            class="absolute right-2 top-1/2 -translate-y-1/2 text-stone-400 hover:text-black transition-colors focus:outline-none">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+          </button>
+        </div>
+        {% if errors.password %}
+        <p class="text-red-600 text-[10px] font-black uppercase tracking-tight mt-2">{{ errors.password }}</p>
+        {% endif %}
+      </div>
+
+      <button type="submit"
+        class="w-full bg-black text-white border-2 border-black py-5 mt-4 text-[13px] font-black uppercase tracking-[0.3em] hover:bg-white hover:text-black active:translate-y-1 transition-all shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] hover:shadow-none">
+        Authenticate System
+      </button>
+    </form>
+
+    <div class="mt-12 text-center border-t-2 border-black pt-8">
+      <p class="text-[10px] text-stone-500 font-black uppercase tracking-[0.2em]">
+        Chưa là thành viên Node? 
+        <br class="md:hidden mt-2">
+        <a href="/auth/register" class="text-black border-b-2 border-black ml-2 hover:text-stone-500 hover:border-stone-500 transition-all inline-block mt-2 md:mt-0 pb-1">Khởi tạo ID mới</a>
+      </p>
+    </div>
+
+  </div>
+</div>
+
+<script>
+// Giữ lại tính năng toggle password an toàn
+function togglePwd(id) {
+  const input = document.getElementById(id);
+  input.type = input.type === 'password' ? 'text' : 'password';
+}
+</script>
+{% endblock %}

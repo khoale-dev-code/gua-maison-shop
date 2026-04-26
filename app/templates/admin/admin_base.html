@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="vi" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{% block title %}GUA ADMIN | Command Center{% endblock %}</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
+  
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: { sans: ['Inter', 'sans-serif'] },
+          colors: { 'gua-black': '#000000', 'gua-stone': '#f1f1f1' }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    body { -webkit-font-smoothing: antialiased; letter-spacing: -0.01em; }
+    .reveal { opacity: 0; transform: translateY(20px); transition: all 0.6s cubic-bezier(0.22, 1, 0.36, 1); }
+    .reveal.active { opacity: 1; transform: translateY(0); }
+    /* Industrial Scrollbar */
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-thumb { background: #000; }
+  </style>
+  {% block extra_head %}{% endblock %}
+</head>
+
+<body class="bg-white text-gua-black flex flex-col min-h-screen">
+
+  {% include "admin/admin_navbar.html" %}
+
+  <div class="fixed top-24 right-6 z-[200] space-y-3">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="bg-black text-white border-l-4 {% if category == 'success' %}border-green-500{% else %}border-red-500{% endif %} px-6 py-4 text-[11px] font-black uppercase tracking-widest shadow-2xl flex items-center justify-between min-w-[300px] animate-slide-in">
+            <span>{{ message }}</span>
+            <button onclick="this.parentElement.remove()" class="ml-4 opacity-50 hover:opacity-100">&times;</button>
+          </div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+  </div>
+
+  <main class="flex-1">
+    {% block content %}{% endblock %}
+  </main>
+
+  <footer class="bg-stone-50 border-t border-stone-200 py-10 px-6">
+    <div class="max-w-[1800px] mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
+      <div class="flex items-center gap-4">
+        <span class="text-[10px] font-black uppercase tracking-widest text-black">GUA System Status:</span>
+        <span class="flex items-center gap-2 text-[10px] font-bold text-green-600 uppercase">
+          <span class="w-2 h-2 bg-green-600 rounded-full animate-pulse"></span> Operational
+        </span>
+      </div>
+      <p class="text-[10px] font-bold text-stone-400 uppercase tracking-widest">
+        © 2026 Admin Matrix — Powered by Khoa Le
+      </p>
+    </div>
+  </footer>
+
+  <script>
+    // System Reveal Logic
+    const revealObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => { if (entry.isIntersecting) entry.target.classList.add('active'); });
+    }, { threshold: 0.1 });
+    document.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
+  </script>
+</body>
+</html>

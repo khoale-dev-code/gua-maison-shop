@@ -1,0 +1,163 @@
+{% extends "admin/admin_base.html" %}
+{% block title %}Quản lý sản phẩm{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50 py-8 px-6">
+
+    <!-- HEADER -->
+    <div class="max-w-7xl mx-auto mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+            <h1 class="text-3xl font-bold text-gray-800">Quản lý sản phẩm</h1>
+            <p class="text-sm text-gray-500 mt-1">Tổng số: {{ total }} sản phẩm</p>
+        </div>
+
+        <a href="/admin/products/add"
+           class="bg-black text-white px-5 py-2 rounded-lg text-sm font-semibold hover:bg-gray-800 transition">
+            + Thêm sản phẩm
+        </a>
+    </div>
+
+    <!-- SEARCH -->
+    <form method="get" class="max-w-7xl mx-auto mb-6">
+        <div class="flex">
+            <input type="text" name="q" value="{{ keyword }}"
+                   placeholder="Tìm theo tên hoặc SKU..."
+                   class="flex-1 border border-gray-300 px-4 py-2 rounded-l-lg focus:outline-none focus:ring-2 focus:ring-black">
+            <button type="submit"
+                    class="bg-black text-white px-6 rounded-r-lg hover:bg-gray-800">
+                Tìm
+            </button>
+        </div>
+    </form>
+
+    <!-- TABLE -->
+    <div class="max-w-7xl mx-auto bg-white shadow rounded-lg overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="w-full text-sm text-left">
+                
+                <!-- HEAD -->
+                <thead class="bg-gray-100 text-gray-600 uppercase text-xs">
+                    <tr>
+                        <th class="px-4 py-3">Sản phẩm</th>
+                        <th class="px-4 py-3">Danh mục</th>
+                        <th class="px-4 py-3">Giá</th>
+                        <th class="px-4 py-3">Tồn kho</th>
+                        <th class="px-4 py-3">Trạng thái</th>
+                        <th class="px-4 py-3 text-right">Hành động</th>
+                    </tr>
+                </thead>
+
+                <!-- BODY -->
+                <tbody class="divide-y">
+
+                    {% for p in products %}
+                    <tr class="hover:bg-gray-50 {% if not p.is_active %}opacity-50{% endif %}">
+                        
+                        <!-- TÊN -->
+                        <td class="px-4 py-4 flex items-center gap-4">
+                            <div class="w-14 h-16 bg-gray-100 border overflow-hidden">
+                                {% if p.thumbnail_url %}
+                                <img src="{{ p.thumbnail_url }}" class="w-full h-full object-cover">
+                                {% endif %}
+                            </div>
+
+                            <div>
+                                <p class="font-semibold text-gray-800">{{ p.name }}</p>
+                                <p class="text-xs text-gray-400">ID: {{ p.id[:8] }}</p>
+                            </div>
+                        </td>
+
+                        <!-- DANH MỤC -->
+                        <td class="px-4 py-4">
+                            {{ p.categories.name if p.categories else 'Chung' }}
+                        </td>
+
+                        <!-- GIÁ -->
+                        <td class="px-4 py-4 font-semibold">
+                            {{ "{:,.0f}".format(p.price) }} ₫
+                        </td>
+
+                        <!-- TỒN KHO -->
+                        <td class="px-4 py-4">
+                            <span class="
+                                {% if p.stock == 0 %} text-red-500
+                                {% elif p.stock < 5 %} text-orange-500
+                                {% else %} text-green-600
+                                {% endif %}
+                                font-semibold">
+                                {{ p.stock }}
+                            </span>
+                        </td>
+
+                        <!-- TRẠNG THÁI -->
+                        <td class="px-4 py-4">
+                            {% if p.is_active %}
+                                <span class="text-green-600 font-semibold">Đang bán</span>
+                            {% else %}
+                                <span class="text-gray-400">Ẩn</span>
+                            {% endif %}
+                        </td>
+
+                        <!-- ACTION -->
+                        <td class="px-4 py-4 text-right">
+                            <div class="flex justify-end gap-2">
+
+                                <!-- EDIT -->
+                                <a href="/admin/products/edit/{{ p.id }}"
+                                   class="px-3 py-1 text-xs bg-blue-500 text-white rounded hover:bg-blue-600">
+                                    Sửa
+                                </a>
+
+                                <!-- TOGGLE -->
+                                <form action="/admin/products/toggle/{{ p.id }}" method="post">
+                                    <button type="submit"
+                                            class="px-3 py-1 text-xs bg-yellow-500 text-white rounded hover:bg-yellow-600">
+                                        {% if p.is_active %}Ẩn{% else %}Hiện{% endif %}
+                                    </button>
+                                </form>
+
+                                <!-- DELETE -->
+                                <form action="/admin/products/delete/{{ p.id }}" method="post"
+                                      onsubmit="return confirm('Xóa sản phẩm này?')">
+                                    <button type="submit"
+                                            class="px-3 py-1 text-xs bg-red-500 text-white rounded hover:bg-red-600">
+                                        Xóa
+                                    </button>
+                                </form>
+
+                            </div>
+                        </td>
+
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="6" class="text-center py-10 text-gray-400">
+                            Không có sản phẩm nào
+                        </td>
+                    </tr>
+                    {% endfor %}
+
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- PAGINATION -->
+    {% if total_pages > 1 %}
+    <div class="flex justify-center mt-8 gap-2">
+        {% for p in range(1, total_pages + 1) %}
+        <a href="/admin/products?page={{ p }}{% if keyword %}&q={{ keyword }}{% endif %}"
+           class="px-4 py-2 border rounded 
+           {% if p == page %}
+                bg-black text-white
+           {% else %}
+                bg-white hover:bg-gray-100
+           {% endif %}">
+           {{ p }}
+        </a>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+</div>
+{% endblock %}

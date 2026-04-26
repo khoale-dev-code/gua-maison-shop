@@ -1,0 +1,62 @@
+{% extends "admin/admin_base.html" %}
+{% block title %}Modify Category | GUA Admin{% endblock %}
+{% block content %}
+<div class="min-h-[85vh] bg-white text-black flex items-center justify-center py-12 px-6">
+  
+  <div class="w-full max-w-[600px]">
+    
+    <a href="/admin/categories" class="inline-flex items-center gap-3 text-[10px] font-black uppercase tracking-[0.3em] text-stone-400 hover:text-black transition-colors mb-12 group">
+      <svg class="w-4 h-4 group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/>
+      </svg>
+      Back to Architecture
+    </a>
+
+    <div class="mb-12">
+      <h1 class="text-5xl md:text-6xl font-black uppercase tracking-tighter transform -skew-x-6 mb-2">
+        Modify <span class="text-transparent stroke-black" style="-webkit-text-stroke: 1.5px black;">Node</span>
+      </h1>
+      <p class="text-[11px] font-bold text-stone-400 uppercase tracking-widest flex items-center gap-2">
+        <span class="w-2 h-2 bg-yellow-400 rounded-full animate-pulse"></span>
+        Đang chỉnh sửa: {{ cat.name }}
+      </p>
+    </div>
+
+    <div class="bg-[#f9f9f9] p-8 md:p-12 border border-stone-100">
+      <form method="post" class="space-y-8">
+        
+        <div class="group">
+          <label class="block text-[11px] font-black text-black uppercase tracking-[0.2em] mb-2">Category Name <span class="text-red-500">*</span></label>
+          <input type="text" name="name" required value="{{ cat.name }}"
+            class="w-full bg-transparent border-b-2 border-stone-200 py-3 text-[16px] font-bold outline-none transition-all focus:border-black placeholder:text-stone-300 uppercase" />
+        </div>
+
+        <div class="group">
+          <div class="flex justify-between items-end mb-2">
+            <label class="block text-[11px] font-black text-black uppercase tracking-[0.2em]">URL Slug <span class="text-red-500">*</span></label>
+            <span class="text-[9px] text-stone-400 font-bold uppercase tracking-widest">Auto-formatted</span>
+          </div>
+          <input type="text" name="slug" required value="{{ cat.slug }}"
+            oninput="this.value=this.value.toLowerCase().replace(/[^a-z0-9-]/g,'-')"
+            class="w-full bg-transparent border-b-2 border-stone-200 py-3 text-[14px] font-mono outline-none transition-all focus:border-black placeholder:text-stone-300" />
+          <p class="text-[10px] font-medium text-stone-500 mt-3 italic border-l-2 border-stone-300 pl-3">
+            Đường dẫn tĩnh. VD: gua.com/shop?category=<span class="font-bold text-black">{{ cat.slug }}</span>
+          </p>
+        </div>
+
+        <div class="flex flex-col sm:flex-row gap-4 pt-6">
+          <button type="submit" 
+            class="flex-[2] bg-black text-white py-5 text-[11px] font-black uppercase tracking-[0.3em] hover:bg-stone-800 active:scale-[0.98] transition-all">
+            Lưu cấu hình +
+          </button>
+          <a href="/admin/categories" 
+            class="flex-1 flex items-center justify-center border border-stone-200 py-5 text-[11px] font-black text-stone-500 uppercase tracking-[0.2em] hover:bg-stone-50 hover:text-black hover:border-black transition-all">
+            Hủy bỏ
+          </a>
+        </div>
+      </form>
+    </div>
+    
+  </div>
+</div>
+{% endblock %}
