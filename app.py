@@ -1,12 +1,4 @@
-"""
-run.py
-======
-Entry point (Trạm khởi động chính) của hệ thống GUA Maison.
-
-[CƠ CHẾ HOẠT ĐỘNG]
-- Local Development: Chạy bằng lệnh `python run.py`.
-- Production (Vercel): Hạ tầng Serverless sẽ tự động đọc file này và nạp biến `app`.
-"""
+ 
 
 import os
 from app import create_app

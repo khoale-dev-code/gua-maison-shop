@@ -303,6 +303,6 @@ Dự án này được phát hành dưới giấy phép [MIT](./LICENSE).
 
 <div align="center">
 
-Made with ❤️ by **Khoa** · GUA Fashion Store © 2025
+Made with ❤️ by **Khoa** · GUA Fashion Store © 2026
 
 </div>
