@@ -1,9 +1,8 @@
 """
-app/__init__.py  –  Application Factory (GUA SPORT 2026 Edition)
+app/__init__.py  –  Application Factory (GUA MAISON 2026 Edition)
 """
 import logging
 from flask import Flask, session, redirect, render_template_string
-# from flask_session import Session # 🛑 ĐÃ ẨN: Không dùng Flask-Session trên Vercel để tránh lỗi Read-only OS
 from flask_wtf.csrf import CSRFProtect, CSRFError
 from config.settings import get_config
 
@@ -11,8 +10,7 @@ from config.settings import get_config
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Khởi tạo các Extensions ngoài factory
-# sess = Session() # 🛑 ĐÃ ẨN: Ép Flask dùng cơ chế Cookie Session mặc định
+# Khởi tạo CSRF Protect
 csrf = CSRFProtect()
 
 
@@ -23,7 +21,6 @@ def create_app() -> Flask:
     app.config.from_object(get_config())
 
     # 2. Khởi tạo Extensions
-    # sess.init_app(app) # 🛑 ĐÃ ẨN: Bỏ qua bước tạo thư mục flask_session trên máy chủ
     csrf.init_app(app)  # Kích hoạt bảo vệ CSRF toàn cục
 
     # 3. Đăng ký Blueprints
@@ -33,7 +30,8 @@ def create_app() -> Flask:
     from app.controllers.admin_controller   import admin_bp
     from app.controllers.profile_controller import profile_bp
     from app.controllers.debug_controller   import debug_bp
-    from app.controllers.chat_controller    import chat_bp  # Đã thêm Chatbot Blueprint
+    from app.controllers.chat_controller    import chat_bp
+    from app.controllers.ai_controller      import ai_bp  # <-- Đăng ký thêm AI Styling Lab
 
     blueprints = [
         (auth_bp, None),
@@ -42,7 +40,8 @@ def create_app() -> Flask:
         (admin_bp, None),
         (profile_bp, None),
         (debug_bp, None),
-        (chat_bp, None)  # Đã đăng ký Chatbot vào mảng
+        (chat_bp, None),
+        (ai_bp, None)  # <-- Đăng ký ai_bp vào hệ thống
     ]
 
     for bp, prefix in blueprints:
@@ -86,11 +85,11 @@ def create_app() -> Flask:
     
     @app.errorhandler(404)
     def not_found(e):
-        """Giao diện 404 phong cách Sport-Luxe mạnh mẽ."""
+        """Giao diện 404 phong cách Minimalist Sport-Luxe."""
         return render_template_string(ERROR_TEMPLATE,
             code=404,
             title="Không tìm thấy trang",
-            desc="Đường dẫn này không tồn tại hoặc đã bị xóa khỏi hệ thống."), 404
+            desc="Đường dẫn này không tồn tại hoặc đã bị gỡ khỏi hệ thống GUA Maison."), 404
 
     @app.errorhandler(CSRFError)
     def handle_csrf_error(e):
@@ -98,7 +97,7 @@ def create_app() -> Flask:
         return render_template_string(ERROR_TEMPLATE,
             code=403,
             title="Từ chối truy cập",
-            desc="Phiên làm việc đã hết hạn hoặc thiếu mã bảo mật. Vui lòng tải lại trang."), 403
+            desc="Phiên làm việc đã hết hạn do bảo mật. Vui lòng tải lại trang và thử lại."), 403
 
     @app.errorhandler(500)
     def server_error(e):
@@ -107,13 +106,13 @@ def create_app() -> Flask:
         return render_template_string(ERROR_TEMPLATE,
             code=500,
             title="Lỗi máy chủ",
-            desc="Hệ thống đang gặp sự cố kỹ thuật. Vui lòng quay lại sau ít phút."), 500
+            desc="Hệ thống đang gặp sự cố kỹ thuật. Đội ngũ kỹ sư của chúng tôi đang xử lý."), 500
 
     return app
 
 
 # ═══════════════════════════════════════════════════════════════
-# TEMPLATE LỖI CHUẨN SPORT-LUXE (STREETWEAR VIBE)
+# TEMPLATE LỖI CHUẨN MINIMALIST SPORT-LUXE 2026
 # ═══════════════════════════════════════════════════════════════
 ERROR_TEMPLATE = """
 <!DOCTYPE html>
@@ -121,36 +120,53 @@ ERROR_TEMPLATE = """
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ code }} - GUA SPORT</title>
+    <title>{{ code }} - GUA Maison</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;700;900&display=swap" rel="stylesheet">
-    <style>body { font-family: 'DM Sans', sans-serif; }</style>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700;900&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'DM Sans', sans-serif; }
+        .reveal { animation: revealUp 0.8s cubic-bezier(0.22, 1, 0.36, 1) forwards; opacity: 0; }
+        @keyframes revealUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
 </head>
-<body class="bg-white flex items-center justify-center min-h-screen px-4 py-12">
-    <div class="max-w-2xl w-full bg-stone-50 border-[4px] border-black p-10 md:p-20 text-center shadow-[16px_16px_0px_0px_rgba(0,0,0,1)]">
+<body class="bg-stone-50 flex items-center justify-center min-h-screen px-4 py-12 relative overflow-hidden">
+    
+    <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-stone-200 rounded-full blur-[100px] pointer-events-none z-0"></div>
+
+    <div class="max-w-2xl w-full bg-white/80 backdrop-blur-xl border border-stone-200/60 rounded-3xl p-10 md:p-20 text-center shadow-[0_20px_60px_-15px_rgba(0,0,0,0.1)] relative z-10 reveal">
         
-        <h1 class="text-[80px] md:text-[140px] font-black text-black leading-none tracking-tighter mb-2">
+        <div class="flex justify-center mb-6">
+            <div class="w-16 h-16 bg-stone-100 rounded-full flex items-center justify-center text-stone-400">
+                {% if code == 404 %}
+                <svg class="w-8 h-8" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"/></svg>
+                {% elif code == 403 %}
+                <svg class="w-8 h-8" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z"/></svg>
+                {% else %}
+                <svg class="w-8 h-8" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                {% endif %}
+            </div>
+        </div>
+
+        <h1 class="text-7xl md:text-9xl font-black text-stone-900 leading-none tracking-tighter mb-4 drop-shadow-sm">
             {{ code }}
         </h1>
         
-        <div class="h-2 w-20 bg-black mx-auto mb-8"></div>
-        
-        <h2 class="text-[28px] md:text-[36px] font-black text-black uppercase tracking-tight mb-4">
+        <h2 class="text-xl md:text-3xl font-bold text-stone-900 tracking-tight mb-4">
             {{ title }}
         </h2>
         
-        <p class="text-stone-500 text-[14px] font-bold uppercase tracking-widest mb-12 max-w-md mx-auto leading-relaxed">
+        <p class="text-stone-500 text-sm font-medium mb-10 max-w-md mx-auto leading-relaxed">
             {{ desc }}
         </p>
         
-        <div class="flex flex-col items-center gap-6">
-            <a href="/" class="block w-full sm:w-auto bg-black text-white px-12 py-5 font-black uppercase tracking-[0.1em] text-[15px] hover:bg-stone-800 active:scale-95 transition-all">
-                Về trang chủ
+        <div class="flex flex-col items-center gap-4">
+            <a href="/" class="block w-full sm:w-auto bg-stone-900 text-white px-10 py-4 rounded-xl text-sm font-bold shadow-lg hover:bg-stone-700 hover:-translate-y-1 active:scale-95 transition-all duration-300">
+                Trở về Trang chủ
             </a>
             
             {% if code == 500 %}
-            <a href="/debug/test-db" class="inline-block text-[12px] text-stone-400 font-black uppercase tracking-widest hover:text-black border-b-2 border-transparent hover:border-black transition-all">
-                KIỂM TRA DATABASE
+            <a href="/debug/test-db" class="inline-block text-xs text-stone-400 font-bold hover:text-stone-900 underline underline-offset-4 transition-colors mt-4">
+                Chạy trình kiểm tra CSDL
             </a>
             {% endif %}
         </div>
