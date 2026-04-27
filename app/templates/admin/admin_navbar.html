@@ -1,85 +1,95 @@
 <nav class="fixed top-0 w-full z-[100] bg-white border-b-2 border-black h-20">
-    <div class="max-w-[1800px] mx-auto h-full px-6 flex items-center justify-between">
-        
-        <div class="flex items-center gap-10">
-            <a href="/admin/" class="flex flex-col items-start group">
-                <span class="text-3xl font-black uppercase tracking-tighter leading-none transform -skew-x-6 group-hover:text-stone-600 transition-colors">
-                    GUA <span class="text-transparent" style="-webkit-text-stroke: 1.5px black;">ADMIN</span>
-                </span>
-                <span class="text-[8px] font-black uppercase tracking-[0.6em] text-stone-400 mt-1">Operational Matrix v1.0</span>
-            </a>
+  <div class="max-w-[1800px] mx-auto h-full px-6 flex items-center justify-between">
 
-            <div class="hidden lg:flex items-center gap-2 bg-stone-100 p-1 border border-stone-200">
-                {% for label, endpoint in [
-                    ('Matrix', 'admin.dashboard'),
-                    ('Products', 'admin.products'),
-                    ('Categories', 'admin.categories'),
-                    ('Orders', 'admin.orders'),
-                    ('Reports', 'admin.reports')
-                ] %}
-                <a href="{{ url_for(endpoint) }}" 
-                   class="px-6 py-2 text-[10px] font-black uppercase tracking-widest transition-all
-                   {% if request.endpoint == endpoint %} 
-                        bg-black text-white shadow-[4px_4px_0px_0px_rgba(0,0,0,0.2)]
-                   {% else %} 
-                        text-stone-500 hover:text-black hover:bg-white 
-                   {% endif %}">
-                    {{ label }}
-                </a>
-                {% endfor %}
-            </div>
-        </div>
+    {# ── LOGO ── #}
+    <div class="flex items-center gap-10">
+      <a href="/admin/" class="flex flex-col items-start group">
+        <span class="text-3xl font-black uppercase tracking-tighter leading-none transform -skew-x-6 group-hover:text-stone-600 transition-colors">
+          GUA <span class="text-transparent" style="-webkit-text-stroke: 1.5px black;">ADMIN</span>
+        </span>
+        <span class="text-[8px] font-black uppercase tracking-[0.6em] text-stone-400 mt-1">Hệ thống quản trị v1.0</span>
+      </a>
 
-        <div class="flex items-center gap-6">
-            
-            <a href="/" class="hidden md:flex items-center gap-3 group border-r border-stone-200 pr-6">
-                <span class="text-[10px] font-black uppercase tracking-widest text-stone-400 group-hover:text-black transition-colors">View Storefront</span>
-                <div class="w-8 h-8 flex items-center justify-center border-2 border-stone-200 group-hover:border-black group-hover:bg-black group-hover:text-white transition-all">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25"/>
-                    </svg>
-                </div>
-            </a>
-
-            <div class="relative group">
-                <button class="flex items-center gap-4 focus:outline-none cursor-pointer">
-                    <div class="text-right hidden sm:block">
-                        <p class="text-[11px] font-black uppercase tracking-tight leading-none">{{ current_user.full_name }}</p>
-                        <p class="text-[9px] font-bold text-green-500 uppercase tracking-widest mt-1 italic animate-pulse">Active_Session</p>
-                    </div>
-                    <div class="w-10 h-10 bg-black text-white flex items-center justify-center font-black text-sm relative group-hover:translate-x-[-2px] group-hover:translate-y-[-2px] group-hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-all">
-                        {{ current_user.full_name[0]|upper if current_user.full_name else 'A' }}
-                        <div class="absolute -top-1 -right-1 w-3 h-3 bg-green-500 border-2 border-white"></div>
-                    </div>
-                </button>
-
-                <div class="absolute right-0 mt-4 w-64 bg-white border-2 border-black opacity-0 invisible group-hover:opacity-100 group-hover:visible group-hover:translate-y-0 translate-y-2 transition-all duration-300 z-50 shadow-[12px_12px_0px_0px_rgba(0,0,0,1)]">
-                    <div class="p-5 border-b-2 border-black bg-stone-50">
-                        <p class="text-[10px] font-black text-stone-400 uppercase tracking-widest mb-1">Authenticated Node</p>
-                        <p class="text-[12px] font-black uppercase truncate text-black">{{ current_user.email }}</p>
-                    </div>
-                    <div class="py-2">
-                        <a href="/profile/" class="flex items-center px-6 py-4 text-[10px] font-black uppercase tracking-widest hover:bg-black hover:text-white transition-colors">
-                            Personal Profile
-                        </a>
-                        <div class="h-px bg-stone-200 mx-4 my-1"></div>
-                        <form action="/auth/logout" method="POST" class="m-0">
-                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                            <button type="submit" class="w-full text-left px-6 py-4 text-[10px] font-black uppercase tracking-widest text-red-500 hover:bg-red-500 hover:text-white transition-colors cursor-pointer">
-                                Terminate Session_
-                            </button>
-                        </form>
-                    </div>
-                </div>
-            </div>
-
-            <button class="lg:hidden w-10 h-10 border-2 border-black flex flex-col items-center justify-center gap-1 group">
-                <span class="w-5 h-0.5 bg-black transition-all group-hover:w-6"></span>
-                <span class="w-6 h-0.5 bg-black"></span>
-                <span class="w-4 h-0.5 bg-black transition-all group-hover:w-6"></span>
-            </button>
-        </div>
+      {# ── DESKTOP NAV ── #}
+      <div class="hidden lg:flex items-center gap-2 bg-stone-100 p-1 border border-stone-200">
+        {% for label, endpoint in [
+          ('Tổng quan',  'admin.dashboard'),
+          ('Sản phẩm',   'admin.products'),
+          ('Danh mục',   'admin.categories'),
+          ('Đơn hàng',   'admin.orders'),
+          ('Báo cáo',    'admin.reports')
+        ] %}
+        <a href="{{ url_for(endpoint) }}"
+           class="px-6 py-2 text-[10px] font-black uppercase tracking-widest transition-all
+           {% if request.endpoint == endpoint %}
+             bg-black text-white shadow-[4px_4px_0px_0px_rgba(0,0,0,0.2)]
+           {% else %}
+             text-stone-500 hover:text-black hover:bg-white
+           {% endif %}">
+          {{ label }}
+        </a>
+        {% endfor %}
+      </div>
     </div>
+
+    {# ── RIGHT SECTION ── #}
+    <div class="flex items-center gap-6">
+
+      {# Xem cửa hàng #}
+      <a href="/" class="hidden md:flex items-center gap-3 group border-r border-stone-200 pr-6">
+        <span class="text-[10px] font-black uppercase tracking-widest text-stone-400 group-hover:text-black transition-colors">Xem cửa hàng</span>
+        <div class="w-8 h-8 flex items-center justify-center border-2 border-stone-200 group-hover:border-black group-hover:bg-black group-hover:text-white transition-all">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25"/>
+          </svg>
+        </div>
+      </a>
+
+      {# User Dropdown #}
+      <div class="relative group">
+        <button class="flex items-center gap-4 focus:outline-none cursor-pointer">
+          <div class="text-right hidden sm:block">
+            <p class="text-[11px] font-black uppercase tracking-tight leading-none">{{ current_user.full_name }}</p>
+            <p class="text-[9px] font-bold text-green-500 uppercase tracking-widest mt-1 italic animate-pulse">Đang hoạt động</p>
+          </div>
+          <div class="w-10 h-10 bg-black text-white flex items-center justify-center font-black text-sm relative group-hover:translate-x-[-2px] group-hover:translate-y-[-2px] group-hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-all">
+            {{ current_user.full_name[0]|upper if current_user.full_name else 'A' }}
+            <div class="absolute -top-1 -right-1 w-3 h-3 bg-green-500 border-2 border-white"></div>
+          </div>
+        </button>
+
+        {# Dropdown menu #}
+        <div class="absolute right-0 mt-4 w-64 bg-white border-2 border-black opacity-0 invisible group-hover:opacity-100 group-hover:visible group-hover:translate-y-0 translate-y-2 transition-all duration-300 z-50 shadow-[12px_12px_0px_0px_rgba(0,0,0,1)]">
+          <div class="p-5 border-b-2 border-black bg-stone-50">
+            <p class="text-[10px] font-black text-stone-400 uppercase tracking-widest mb-1">Tài khoản</p>
+            <p class="text-[12px] font-black uppercase truncate text-black">{{ current_user.email }}</p>
+          </div>
+          <div class="py-2">
+            <a href="/profile/"
+               class="flex items-center px-6 py-4 text-[10px] font-black uppercase tracking-widest hover:bg-black hover:text-white transition-colors">
+              Hồ sơ cá nhân
+            </a>
+            <div class="h-px bg-stone-200 mx-4 my-1"></div>
+            <form action="/auth/logout" method="POST" class="m-0">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <button type="submit"
+                      class="w-full text-left px-6 py-4 text-[10px] font-black uppercase tracking-widest text-red-500 hover:bg-red-500 hover:text-white transition-colors cursor-pointer">
+                Đăng xuất
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+
+      {# Mobile menu button #}
+      <button class="lg:hidden w-10 h-10 border-2 border-black flex flex-col items-center justify-center gap-1 group" aria-label="Mở menu">
+        <span class="w-5 h-0.5 bg-black transition-all group-hover:w-6"></span>
+        <span class="w-6 h-0.5 bg-black"></span>
+        <span class="w-4 h-0.5 bg-black transition-all group-hover:w-6"></span>
+      </button>
+    </div>
+
+  </div>
 </nav>
 
 <div class="h-20"></div>

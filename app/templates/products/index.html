@@ -1,145 +1,220 @@
 {% extends "base.html" %}
-
-{% block title %}GUA | Heritage & Excellence{% endblock %}
+{% block title %}GUA — Thời trang kiến trúc 2026{% endblock %}
 
 {% block content %}
 
-<section class="relative h-[90vh] w-full bg-black overflow-hidden group">
-  <div class="absolute inset-0">
-    <img src="https://images.unsplash.com/photo-1556821840-3a63f95609a7?q=80&w=2000" 
-         alt="GUA Campaign" 
-         class="w-full h-full object-cover opacity-80 transition-transform duration-[10s] group-hover:scale-110">
-  </div>
-  
-  <div class="absolute inset-0 bg-linear-to-t from-black/80 via-transparent to-transparent"></div>
+{# ══════════════════════════════
+    HERO — Ảnh nền toàn màn hình
+   ══════════════════════════════ #}
+<section class="relative h-[88vh] min-h-[540px] w-full bg-stone-900 overflow-hidden">
+  <img src="https://images.unsplash.com/photo-1556821840-3a63f95609a7?q=80&w=2000"
+       alt="GUA Campaign 2026"
+       class="absolute inset-0 w-full h-full object-cover opacity-75 transition-transform duration-[8s] hover:scale-105"
+       loading="eager" />
+  <div class="absolute inset-0 bg-gradient-to-t from-stone-900/80 via-stone-900/20 to-transparent"></div>
 
-  <div class="absolute inset-0 flex flex-col items-center justify-center text-center z-20 px-6">
-    <span class="text-white text-[12px] font-black uppercase tracking-[0.5em] mb-4 bg-black/50 px-4 py-1 backdrop-blur-sm">
-      New Season 2026
+  <div class="relative z-10 h-full flex flex-col items-center justify-end pb-16 md:pb-24 text-center px-6">
+    <span class="inline-block text-white/70 text-[11px] font-semibold uppercase tracking-widest mb-5
+                 border border-white/20 bg-white/10 backdrop-blur-sm px-4 py-1.5 rounded-full">
+      Bộ sưu tập 2026
     </span>
-    <h1 class="text-white text-[60px] md:text-[100px] lg:text-[130px] font-black uppercase leading-[0.9] tracking-tighter mb-8 transform -skew-x-6">
-      Nghệ Thuật <br> 
-      <span class="text-transparent stroke-white stroke-1" style="-webkit-text-stroke: 1px white;">Sống Đẳng Cấp</span>
+    <h1 class="text-white text-5xl md:text-7xl lg:text-8xl font-bold tracking-tight leading-tight mb-8 max-w-4xl">
+      Kiến trúc<br>
+      <span class="italic font-normal text-stone-300">thời trang</span>
     </h1>
-    
-    <div class="flex flex-col sm:flex-row gap-4 mt-4">
-      <a href="/shop" class="bg-white text-black px-12 py-5 text-[13px] font-black uppercase tracking-widest hover:bg-black hover:text-white transition-all duration-300 transform hover:-translate-y-1">
+    <div class="flex flex-col sm:flex-row gap-3">
+      <a href="/shop"
+         class="bg-white text-stone-900 px-8 py-3.5 text-sm font-semibold rounded-md
+                hover:bg-stone-100 transition-colors">
         Khám phá ngay
       </a>
-      <a href="/shop?category=new" class="bg-transparent border-2 border-white text-white px-12 py-5 text-[13px] font-black uppercase tracking-widest hover:bg-white hover:text-black transition-all duration-300">
+      <a href="/shop?category=new"
+         class="border border-white/40 text-white px-8 py-3.5 text-sm font-semibold rounded-md
+                hover:bg-white/10 transition-colors backdrop-blur-sm">
         Hàng mới về
       </a>
     </div>
   </div>
 </section>
 
-<div class="bg-black text-white py-3 border-y border-white/10 overflow-hidden flex whitespace-nowrap select-none">
-  <div class="animate-marquee flex gap-12 text-[11px] font-black uppercase tracking-widest items-center">
-    <span>Free Shipping Worldwide</span> <span>•</span>
-    <span>GUA Maison Exclusive</span> <span>•</span>
-    <span>24/7 Premium Support</span> <span>•</span>
-    <span>Free Shipping Worldwide</span> <span>•</span>
-    <span>GUA Maison Exclusive</span>
+{# ══════════════════════════════
+    MARQUEE — Thông tin nhanh
+   ══════════════════════════════ #}
+<div class="bg-stone-900 text-stone-400 py-3 overflow-hidden border-y border-stone-800" aria-hidden="true">
+  <div class="animate-marquee flex gap-10 text-[11px] font-medium uppercase tracking-widest whitespace-nowrap select-none">
+    <span>Miễn phí vận chuyển toàn quốc</span>
+    <span class="text-stone-600">·</span>
+    <span>Đổi trả trong 7 ngày</span>
+    <span class="text-stone-600">·</span>
+    <span>Thanh toán bảo mật</span>
+    <span class="text-stone-600">·</span>
+    <span>Hỗ trợ 24/7</span>
+    <span class="text-stone-600">·</span>
+    <span>Miễn phí vận chuyển toàn quốc</span>
+    <span class="text-stone-600">·</span>
+    <span>Đổi trả trong 7 ngày</span>
+    <span class="text-stone-600">·</span>
+    <span>Thanh toán bảo mật</span>
+    <span class="text-stone-600">·</span>
+    <span>Hỗ trợ 24/7</span>
   </div>
 </div>
 
-<section class="reveal">
+{# ══════════════════════════════
+    DANH MỤC — 3 cột ảnh
+   ══════════════════════════════ #}
+<section aria-labelledby="heading-categories" class="border-b border-stone-100">
+  <h2 id="heading-categories" class="sr-only">Danh mục sản phẩm</h2>
   <div class="grid grid-cols-1 md:grid-cols-3">
     {% for cat in [
-      ('Thời trang Nữ', 'women', 'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=800'),
-      ('Thời trang Nam', 'men', 'https://images.unsplash.com/photo-1488161628813-04466f872be2?w=800'),
-      ('Phụ kiện', 'accessories', 'https://images.unsplash.com/photo-1608248543803-ba4f8c70ae0b?w=800')
+      ('Thời trang nữ',   'women',       'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=800'),
+      ('Thời trang nam',  'men',         'https://images.unsplash.com/photo-1488161628813-04466f872be2?w=800'),
+      ('Phụ kiện',        'accessories', 'https://images.unsplash.com/photo-1608248543803-ba4f8c70ae0b?w=800')
     ] %}
-    <a href="/shop?category={{ cat[1] }}" class="group relative aspect-[4/5] overflow-hidden block border-r border-b border-stone-100">
-      <img src="{{ cat[2] }}" alt="{{ cat[0] }}" class="absolute inset-0 w-full h-full object-cover transition-transform duration-[1.5s] group-hover:scale-105">
-      <div class="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-all duration-500"></div>
-      
-      <div class="absolute bottom-10 left-10 overflow-hidden">
-        <h3 class="text-white text-4xl font-black uppercase tracking-tighter translate-y-full group-hover:translate-y-0 transition-transform duration-500">{{ cat[0] }}</h3>
-        <p class="text-white/80 text-[10px] font-bold uppercase tracking-widest mt-2 opacity-0 group-hover:opacity-100 transition-opacity delay-200">Shop Collection +</p>
+    <a href="/shop?category={{ cat[1] }}"
+       class="group relative aspect-[4/5] overflow-hidden block border-r border-stone-100 last:border-r-0">
+      <img src="{{ cat[2] }}"
+           alt="{{ cat[0] }}"
+           class="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+           loading="lazy" />
+      <div class="absolute inset-0 bg-stone-900/30 group-hover:bg-stone-900/50 transition-colors duration-400"></div>
+
+      <div class="absolute bottom-0 left-0 right-0 p-6 md:p-8 translate-y-2 group-hover:translate-y-0 transition-transform duration-300">
+        <h3 class="text-white text-2xl md:text-3xl font-bold tracking-tight mb-1">{{ cat[0] }}</h3>
+        <span class="text-white/70 text-xs font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-300 delay-75">
+          Khám phá →
+        </span>
       </div>
     </a>
     {% endfor %}
   </div>
 </section>
 
+{# ══════════════════════════════
+    SẢN PHẨM NỔI BẬT
+   ══════════════════════════════ #}
 {% if featured %}
-<section class="py-24 px-6 md:px-12 reveal">
-  <div class="max-w-[1800px] mx-auto">
-    <div class="flex items-end justify-between mb-12">
+<section aria-labelledby="heading-featured" class="py-16 md:py-20 bg-stone-50">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+
+    <div class="flex items-end justify-between mb-10">
       <div>
-        <h2 class="text-5xl md:text-7xl font-black uppercase tracking-tighter leading-none">Hot Drops</h2>
-        <p class="text-stone-400 mt-4 font-bold uppercase tracking-widest text-xs">Xu hướng dẫn đầu 2026</p>
+        <p class="text-xs font-semibold uppercase tracking-wider text-stone-400 mb-2">Được yêu thích nhất</p>
+        <h2 id="heading-featured" class="text-3xl md:text-4xl font-bold tracking-tight text-stone-900">
+          Sản phẩm nổi bật
+        </h2>
       </div>
-      <a href="/shop" class="hidden md:block text-[12px] font-black uppercase tracking-widest border-b-2 border-black pb-1 hover:text-stone-500 transition-colors">
-        Tất cả sản phẩm
+      <a href="/shop"
+         class="hidden md:inline-flex items-center gap-1.5 text-xs font-semibold text-stone-600
+                hover:text-stone-900 transition-colors underline underline-offset-4">
+        Xem tất cả
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M9 5l7 7-7 7"/>
+        </svg>
       </a>
     </div>
 
-    <div class="grid grid-cols-2 lg:grid-cols-4 gap-2 md:gap-4">
+    <ul class="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6" role="list">
       {% for product in featured %}
-      <a href="/product/{{ product.id }}" class="group block bg-[#f9f9f9] p-2 hover:bg-white transition-colors duration-300">
-        <div class="aspect-[1/1] overflow-hidden relative mb-4 bg-white">
-          {% if product.thumbnail_url %}
-          <img src="{{ product.thumbnail_url }}" alt="{{ product.name }}" class="w-full h-full object-contain mix-blend-multiply group-hover:scale-105 transition-transform duration-500" loading="lazy" />
-          {% endif %}
-          <div class="absolute top-4 right-4">
-             <button class="bg-white/80 hover:bg-black hover:text-white p-2 rounded-full transition-all shadow-sm">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 21l-8.242-8.242a5.5 5.5 0 117.778-7.778L12 5.5l.464-.464a5.5 5.5 0 117.778 7.778L12 21z"/></svg>
-             </button>
+      <li class="group">
+        <a href="/product/{{ product.id }}"
+           class="block bg-white rounded-lg border border-stone-100 overflow-hidden
+                  hover:border-stone-300 hover:shadow-md transition-all duration-200">
+
+          <div class="aspect-[3/4] bg-stone-50 overflow-hidden relative">
+            {% if product.thumbnail_url %}
+            <img src="{{ product.thumbnail_url }}"
+                 alt="{{ product.name }}"
+                 class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.04]"
+                 loading="lazy" />
+            {% else %}
+            <div class="w-full h-full flex items-center justify-center text-stone-300 text-sm font-semibold select-none">
+              Chưa có ảnh
+            </div>
+            {% endif %}
+
+            {# Nút yêu thích — hiện khi hover #}
+            <button aria-label="Thêm vào yêu thích"
+                    class="absolute top-3 right-3 w-8 h-8 bg-white rounded-full border border-stone-200
+                           flex items-center justify-center shadow-sm
+                           opacity-0 group-hover:opacity-100 transition-opacity duration-200
+                           hover:bg-stone-900 hover:text-white hover:border-stone-900">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M12 21l-8.242-8.242a5.5 5.5 0 117.778-7.778L12 5.5l.464-.464a5.5 5.5 0 117.778 7.778L12 21z"/>
+              </svg>
+            </button>
           </div>
-        </div>
-        
-        <div class="px-2 pb-4">
-          <h3 class="text-[14px] font-black text-black uppercase tracking-tight mb-1 truncate">{{ product.name }}</h3>
-          <p class="text-stone-600 text-[13px] font-medium tracking-tight">{{ "{:,.0f}".format(product.price) }} VNĐ</p>
-        </div>
-      </a>
+
+          <div class="p-3 md:p-4">
+            <h3 class="text-sm font-semibold text-stone-900 leading-snug mb-1.5 line-clamp-2
+                       group-hover:text-stone-600 transition-colors">
+              {{ product.name }}
+            </h3>
+            <p class="text-sm font-bold text-stone-900 tabular-nums">
+              {{ "{:,.0f}".format(product.price) }}<span class="text-xs font-normal text-stone-400 ml-0.5">₫</span>
+            </p>
+          </div>
+        </a>
+      </li>
       {% endfor %}
+    </ul>
+
+    <div class="mt-8 text-center md:hidden">
+      <a href="/shop"
+         class="text-xs font-semibold text-stone-900 underline underline-offset-4 hover:opacity-70 transition-opacity">
+        Xem tất cả sản phẩm
+      </a>
     </div>
   </div>
 </section>
 {% endif %}
 
-<section class="bg-black py-24 px-6 md:px-12 reveal">
-  <div class="max-w-[1440px] mx-auto grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
-    <div class="order-2 lg:order-1">
-      <h2 class="text-white text-5xl md:text-8xl font-black uppercase tracking-tighter leading-[0.85] mb-8">
-        GIA NHẬP <br> <span class="text-stone-600">GUA CLUB</span>
+{# ══════════════════════════════
+    CTA — Đăng ký tài khoản
+   ══════════════════════════════ #}
+<section aria-labelledby="heading-cta" class="bg-stone-900 py-16 md:py-24">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 lg:grid-cols-2 gap-10 items-center">
+
+    <div>
+      <p class="text-stone-400 text-xs font-semibold uppercase tracking-wider mb-4">Thành viên GUA</p>
+      <h2 id="heading-cta" class="text-white text-4xl md:text-5xl font-bold tracking-tight leading-tight mb-5">
+        Đăng ký để nhận<br>
+        <span class="text-stone-400">ưu đãi riêng</span>
       </h2>
-      <p class="text-stone-400 text-lg mb-10 max-w-md font-medium">
-        Nhận ngay ưu đãi 15% cho đơn hàng đầu tiên và đặc quyền trải nghiệm các bộ sưu tập giới hạn trước mọi người.
+      <p class="text-stone-400 text-sm leading-relaxed mb-8 max-w-md">
+        Thành viên mới nhận ngay mã giảm 15% cho đơn hàng đầu tiên và được thông báo sớm về các bộ sưu tập mới.
       </p>
-      <div class="flex flex-col sm:flex-row gap-4">
-        <a href="/auth/register" class="bg-white text-black px-10 py-4 text-sm font-black uppercase tracking-widest hover:bg-stone-200 transition-all text-center">Đăng ký ngay</a>
-        <a href="/auth/login" class="border border-stone-700 text-white px-10 py-4 text-sm font-black uppercase tracking-widest hover:bg-stone-900 transition-all text-center">Đăng nhập</a>
+      <div class="flex flex-col sm:flex-row gap-3">
+        <a href="/auth/register"
+           class="bg-white text-stone-900 px-7 py-3 text-sm font-semibold rounded-md
+                  hover:bg-stone-100 transition-colors text-center">
+          Tạo tài khoản
+        </a>
+        <a href="/auth/login"
+           class="border border-stone-700 text-stone-300 px-7 py-3 text-sm font-semibold rounded-md
+                  hover:border-stone-500 hover:text-white transition-colors text-center">
+          Đã có tài khoản
+        </a>
       </div>
     </div>
-    <div class="order-1 lg:order-2 relative aspect-video lg:aspect-square overflow-hidden">
-        <img src="https://images.unsplash.com/photo-1549298916-b41d501d3772?q=80&w=2000" class="w-full h-full object-cover grayscale hover:grayscale-0 transition-all duration-700" alt="Join us">
+
+    <div class="relative aspect-video lg:aspect-square overflow-hidden rounded-xl border border-stone-800">
+      <img src="https://images.unsplash.com/photo-1549298916-b41d501d3772?q=80&w=2000"
+           alt="GUA lifestyle"
+           class="w-full h-full object-cover grayscale opacity-60 hover:opacity-80 hover:grayscale-0 transition-all duration-700"
+           loading="lazy" />
     </div>
+
   </div>
 </section>
 
 <style>
   @keyframes marquee {
-    0% { transform: translateX(0); }
+    0%   { transform: translateX(0); }
     100% { transform: translateX(-50%); }
   }
-  .animate-marquee {
-    animation: marquee 20s linear infinite;
-  }
-  
-  /* Puma-style Fonts: Thay phông chữ Serif cũ bằng phông mạnh mẽ hơn */
-  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=Playfair+Display:ital,wght@0,900;1,900&display=swap');
-  
-  h1, h2, h3, .font-display {
-    font-family: 'Inter', sans-serif;
-  }
-  
-  .italic-heading {
-    font-family: 'Playfair Display', serif;
-  }
+  .animate-marquee { animation: marquee 22s linear infinite; }
+  .line-clamp-2 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 </style>
 
 {% endblock %}

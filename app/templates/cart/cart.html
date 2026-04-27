@@ -1,142 +1,206 @@
 {% extends "base.html" %}
-{% block title %}Client Cart | GUA Maison{% endblock %}
+{% block title %}Giỏ Hàng | GUA Maison{% endblock %}
 
 {% block content %}
-<div class="min-h-screen bg-white text-black pb-32">
-  <div class="max-w-[1500px] mx-auto px-6">
-    
-    <div class="pt-12 pb-16 border-b-2 border-black reveal">
-      <div class="flex items-center gap-3 mb-4">
-        <span class="w-2 h-2 bg-black animate-pulse"></span>
-        <span class="text-[10px] font-black uppercase tracking-[0.4em] text-stone-400">Operation: Checkout</span>
+<div class="min-h-screen bg-[#fafaf8] text-black pb-32">
+  <div class="max-w-[1400px] mx-auto px-4 md:px-8">
+
+    {# ── Tiêu đề trang ── #}
+    <header class="pt-10 pb-8 border-b border-stone-200 reveal">
+      <div class="flex flex-col md:flex-row md:items-end justify-between gap-4">
+        <div>
+          <p class="text-[10px] font-bold uppercase tracking-[0.35em] text-stone-400 mb-2">
+            Bước 01 / 03
+          </p>
+          <h1 class="text-4xl md:text-6xl font-black uppercase tracking-tight leading-none">
+            Giỏ Hàng
+          </h1>
+        </div>
+
+        {# Breadcrumb bước #}
+        <nav class="flex items-center gap-3 text-[10px] font-bold uppercase tracking-widest">
+          <span class="text-black border-b-2 border-black pb-0.5">Giỏ hàng</span>
+          <span class="text-stone-300">›</span>
+          <span class="text-stone-400">Thông tin</span>
+          <span class="text-stone-300">›</span>
+          <span class="text-stone-400">Hoàn tất</span>
+        </nav>
       </div>
-      <h1 class="text-5xl md:text-7xl font-black uppercase tracking-tighter transform -skew-x-6 leading-none">
-        Maison <span class="text-transparent" style="-webkit-text-stroke: 1.5px black;">Cart</span>
-      </h1>
-    </div>
+    </header>
 
     {% if items %}
-    <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 mt-12">
-      
-      <div class="lg:col-span-8 space-y-0 border border-stone-200 bg-[#f9f9f9] reveal" style="transition-delay: 100ms;">
-        <div class="px-8 py-5 border-b border-stone-200 bg-black text-white flex justify-between">
-          <span class="text-[10px] font-black uppercase tracking-[0.3em]">Item Manifest</span>
-          <span class="text-[10px] font-black uppercase tracking-[0.3em]">{{ items|length }} Entries</span>
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-10 mt-10">
+
+      {# ── Danh sách sản phẩm ── #}
+      <section class="lg:col-span-8 reveal" style="transition-delay: 80ms;">
+
+        {# Header bảng – ẩn trên mobile #}
+        <div class="hidden md:grid grid-cols-12 px-6 py-3 text-[9px] font-black uppercase tracking-[0.3em] text-stone-400 border-b border-stone-200">
+          <span class="col-span-6">Sản phẩm</span>
+          <span class="col-span-2 text-center">Kích cỡ</span>
+          <span class="col-span-2 text-center">Số lượng</span>
+          <span class="col-span-2 text-right">Thành tiền</span>
         </div>
 
-        <div class="divide-y divide-stone-200 bg-white">
+        <div class="divide-y divide-stone-100">
           {% for item in items %}
-          <div class="p-8 flex flex-col sm:flex-row gap-8 group hover:bg-stone-50 transition-colors relative">
-            
-            <div class="w-32 aspect-[3/4] bg-stone-100 border border-stone-100 overflow-hidden shrink-0 relative">
-              {% if item.products and item.products.thumbnail_url %}
-                <img src="{{ item.products.thumbnail_url }}" alt="{{ item.products.name }}" class="w-full h-full object-cover mix-blend-multiply group-hover:scale-110 transition-transform duration-700" loading="lazy">
+          <article class="grid grid-cols-1 md:grid-cols-12 gap-4 md:gap-0 items-center py-6 px-0 md:px-6 group">
+
+            {# Ảnh + tên #}
+            <div class="col-span-6 flex gap-4 items-center">
+              <a href="#" class="w-20 md:w-24 aspect-[3/4] bg-stone-100 border border-stone-100 overflow-hidden shrink-0 block">
+                {% if item.products and item.products.thumbnail_url %}
+                  <img src="{{ item.products.thumbnail_url }}"
+                       alt="{{ item.products.name }}"
+                       class="w-full h-full object-cover mix-blend-multiply group-hover:scale-105 transition-transform duration-500"
+                       loading="lazy">
+                {% else %}
+                  <div class="w-full h-full flex items-center justify-center text-[9px] font-black text-stone-300">GUA</div>
+                {% endif %}
+              </a>
+
+              <div>
+                <h3 class="text-[13px] font-black uppercase tracking-tight leading-tight mb-1">
+                  {{ item.products.name if item.products else 'Sản phẩm' }}
+                </h3>
+                <p class="text-[9px] font-mono text-stone-400 uppercase">
+                  SKU: {{ item.products.id[:8].upper() if item.products else 'N/A' }}
+                </p>
+                <p class="text-[12px] font-black mt-2 md:hidden">
+                  {{ '{:,.0f}'.format(item.products.price) }}&nbsp;<span class="text-[9px] font-bold text-stone-400">₫</span>
+                </p>
+              </div>
+            </div>
+
+            {# Kích cỡ #}
+            <div class="col-span-2 text-center hidden md:block">
+              {% if item.size %}
+                <span class="text-[11px] font-black uppercase border border-stone-300 px-2 py-1">{{ item.size }}</span>
               {% else %}
-                <div class="w-full h-full flex items-center justify-center text-[10px] font-black text-stone-300">GUA</div>
+                <span class="text-stone-300 text-[11px]">—</span>
               {% endif %}
             </div>
-            
-            <div class="flex-1 flex flex-col justify-between">
-              
-              <div class="flex justify-between items-start">
-                <div>
-                  <h3 class="text-xl font-black uppercase tracking-tighter text-black mb-1 group-hover:underline decoration-2 underline-offset-4">
-                    {{ item.products.name if item.products else 'Archived Item' }}
-                  </h3>
-                  <p class="text-[10px] font-mono font-bold text-stone-400 uppercase tracking-widest">SKU: {{ item.products.id[:8] if item.products else 'N/A' }}</p>
-                  
-                  {% if item.size %}
-                  <div class="mt-4 inline-block border-l-2 border-black pl-3">
-                    <p class="text-[9px] font-black uppercase tracking-widest text-stone-400">Selected Size</p>
-                    <p class="text-[14px] font-black uppercase">{{ item.size }}</p>
-                  </div>
-                  {% endif %}
-                </div>
-                
-                <div class="text-right">
-                  <p class="text-xl font-black tracking-tighter">{{ '{:,.0f}'.format(item.products.price) }} <span class="text-[10px] text-stone-400">VND</span></p>
-                </div>
-              </div>
 
-              <div class="flex items-end justify-between mt-8">
-                
-                <form action="/cart/update/{{ item.id }}" method="post" class="flex items-center border-2 border-stone-200 focus-within:border-black transition-colors w-max bg-white">
-                  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                  
-                  <button type="button" onclick="updateQty(this, -1)" class="w-10 h-10 flex items-center justify-center text-stone-400 hover:text-black hover:bg-stone-100 transition-colors font-black">
-                    -
-                  </button>
-                  
-                  <input type="number" name="quantity" value="{{ item.quantity }}" min="0" class="w-12 h-10 bg-transparent text-center text-[14px] font-black outline-none appearance-none" onchange="this.form.submit()">
-                  
-                  <button type="button" onclick="updateQty(this, 1)" class="w-10 h-10 flex items-center justify-center text-stone-400 hover:text-black hover:bg-stone-100 transition-colors font-black">
-                    +
-                  </button>
-                </form>
+            {# Số lượng #}
+            <div class="col-span-2 flex justify-start md:justify-center">
+              <form action="/cart/update/{{ item.id }}" method="post"
+                    class="flex items-center border border-stone-200 bg-white w-max">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 
-                <form action="/cart/update/{{ item.id }}" method="post" class="m-0">
-                  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                  <input type="hidden" name="quantity" value="0">
-                  <button type="submit" class="text-[10px] font-black uppercase tracking-widest text-stone-400 hover:text-red-500 border-b border-transparent hover:border-red-500 transition-all">
-                    Remove
-                  </button>
-                </form>
+                <button type="button"
+                        onclick="thayDoiSoLuong(this, -1)"
+                        class="w-9 h-9 text-stone-400 hover:text-black hover:bg-stone-50 transition-colors font-black text-lg">
+                  −
+                </button>
 
-              </div>
+                <input type="number"
+                       name="quantity"
+                       value="{{ item.quantity }}"
+                       min="0"
+                       class="w-10 h-9 bg-transparent text-center text-[13px] font-black outline-none appearance-none"
+                       onchange="this.form.submit()">
+
+                <button type="button"
+                        onclick="thayDoiSoLuong(this, 1)"
+                        class="w-9 h-9 text-stone-400 hover:text-black hover:bg-stone-50 transition-colors font-black text-lg">
+                  +
+                </button>
+              </form>
             </div>
 
-          </div>
+            {# Giá + xóa #}
+            <div class="col-span-2 flex flex-col items-start md:items-end gap-2">
+              <p class="text-[13px] font-black hidden md:block">
+                {{ '{:,.0f}'.format(item.products.price * item.quantity) }}&nbsp;<span class="text-[9px] font-bold text-stone-400">₫</span>
+              </p>
+
+              <form action="/cart/update/{{ item.id }}" method="post" class="m-0">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <input type="hidden" name="quantity" value="0">
+                <button type="submit"
+                        class="text-[9px] font-black uppercase tracking-widest text-stone-400 hover:text-red-500 transition-colors underline underline-offset-2 decoration-transparent hover:decoration-red-500">
+                  Xóa
+                </button>
+              </form>
+            </div>
+
+          </article>
           {% endfor %}
         </div>
-      </div>
 
-      <div class="lg:col-span-4 reveal" style="transition-delay: 200ms;">
-        <div class="sticky top-28 border-2 border-black bg-white p-8 md:p-10 shadow-[12px_12px_0px_0px_rgba(0,0,0,1)]">
-          
-          <div class="border-b-2 border-dashed border-stone-300 pb-6 mb-6">
-            <h2 class="text-2xl font-black uppercase tracking-tighter mb-1">Transaction Summary</h2>
-            <p class="text-[10px] font-mono text-stone-400 uppercase tracking-widest">Receipt Estimate</p>
+        {# Link quay lại shop #}
+        <div class="pt-6 border-t border-stone-200">
+          <a href="/shop"
+             class="inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-stone-400 hover:text-black transition-colors">
+            <span>←</span>
+            <span>Tiếp tục mua sắm</span>
+          </a>
+        </div>
+
+      </section>
+
+      {# ── Tóm tắt đơn hàng ── #}
+      <aside class="lg:col-span-4 reveal" style="transition-delay: 160ms;">
+        <div class="sticky top-24 bg-white border-2 border-black p-8 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
+
+          <h2 class="text-lg font-black uppercase tracking-tight mb-6 pb-4 border-b border-stone-200">
+            Tóm tắt đơn hàng
+          </h2>
+
+          <div class="space-y-3 mb-6">
+            <div class="flex justify-between items-center text-[12px]">
+              <span class="text-stone-500 font-medium">Tạm tính ({{ items|length }} sản phẩm)</span>
+              <span class="font-black">{{ '{:,.0f}'.format(total) }}&nbsp;₫</span>
+            </div>
+            <div class="flex justify-between items-center text-[12px]">
+              <span class="text-stone-500 font-medium">Phí vận chuyển</span>
+              <span class="font-black text-stone-400">Tính khi thanh toán</span>
+            </div>
           </div>
 
-          <div class="space-y-4 mb-8">
-            <div class="flex justify-between items-center text-[12px] font-black uppercase tracking-widest">
-              <span class="text-stone-500">Subtotal</span>
-              <span>{{ '{:,.0f}'.format(total) }} VND</span>
-            </div>
-            <div class="flex justify-between items-center text-[12px] font-black uppercase tracking-widest">
-              <span class="text-stone-500">Shipping</span>
-              <span class="text-black">Calculated at Checkout</span>
+          <div class="border-t-2 border-black pt-5 mb-8">
+            <div class="flex justify-between items-center">
+              <span class="text-[13px] font-black uppercase tracking-wider">Tổng cộng</span>
+              <span class="text-3xl font-black tracking-tight">
+                {{ '{:,.0f}'.format(total) }}&nbsp;<span class="text-[11px] text-stone-400">₫</span>
+              </span>
             </div>
           </div>
 
-          <div class="border-t-2 border-black pt-6 mb-10">
-            <div class="flex justify-between items-end">
-              <span class="text-[14px] font-black uppercase tracking-widest">Total Value</span>
-              <span class="text-3xl font-black tracking-tighter text-black leading-none">{{ '{:,.0f}'.format(total) }} <span class="text-[12px] text-stone-400">VND</span></span>
-            </div>
-          </div>
-
-          <a href="/cart/checkout" class="group relative flex items-center justify-center w-full bg-black text-white py-5 overflow-hidden transition-all active:scale-95 cursor-pointer">
-            <span class="text-[12px] font-black uppercase tracking-[0.3em] relative z-10 group-hover:-translate-x-4 transition-transform">Initiate Checkout</span>
-            <svg class="w-5 h-5 absolute right-6 opacity-0 group-hover:opacity-100 group-hover:translate-x-2 transition-all duration-300 z-10" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg>
+          <a href="/cart/checkout"
+             class="group relative flex items-center justify-center w-full bg-black text-white py-4 overflow-hidden transition-all active:scale-[0.98]">
+            <span class="text-[11px] font-black uppercase tracking-[0.25em] relative z-10 group-hover:-translate-x-3 transition-transform duration-200">
+              Tiến hành thanh toán
+            </span>
+            <svg class="w-4 h-4 absolute right-5 opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all duration-200 z-10"
+                 fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24">
+              <path d="M9 5l7 7-7 7"/>
+            </svg>
             <div class="absolute inset-0 bg-stone-800 scale-x-0 origin-left group-hover:scale-x-100 transition-transform duration-300 ease-out"></div>
           </a>
-          
-          <div class="mt-6 flex items-center justify-center gap-4 opacity-50">
-            <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 15v-4H8l4-7v4h3l-4 7z"/></svg>
-            <span class="text-[9px] font-black uppercase tracking-[0.2em]">Secure SSL Encrypted</span>
-          </div>
+
+          <p class="mt-4 text-center text-[9px] font-bold text-stone-400 uppercase tracking-widest">
+            🔒 Thanh toán được mã hóa SSL
+          </p>
 
         </div>
-      </div>
+      </aside>
 
     </div>
-    
+
     {% else %}
-    <div class="border-2 border-dashed border-stone-200 mt-12 py-32 flex flex-col items-center justify-center reveal text-center">
-      <p class="text-[14px] font-black text-stone-300 uppercase tracking-[0.5em] mb-8">Cart is currently empty</p>
-      <a href="/shop" class="bg-black text-white px-10 py-5 text-[11px] font-black uppercase tracking-[0.3em] hover:bg-stone-800 transition-colors">
-        Return to Archive +
+    {# ── Giỏ hàng trống ── #}
+    <div class="mt-20 py-32 flex flex-col items-center justify-center text-center reveal">
+      <div class="w-16 h-16 border-2 border-stone-200 flex items-center justify-center mb-6">
+        <svg class="w-7 h-7 text-stone-300" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+          <path d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/>
+        </svg>
+      </div>
+      <p class="text-[13px] font-black uppercase tracking-[0.4em] text-stone-400 mb-2">Giỏ hàng trống</p>
+      <p class="text-[11px] text-stone-400 mb-8">Hãy khám phá bộ sưu tập của chúng tôi</p>
+      <a href="/shop"
+         class="bg-black text-white px-10 py-4 text-[10px] font-black uppercase tracking-[0.25em] hover:bg-stone-800 transition-colors">
+        Xem bộ sưu tập
       </a>
     </div>
     {% endif %}
@@ -145,28 +209,23 @@
 </div>
 
 <script>
-// Script hỗ trợ UI tăng giảm số lượng (tự động submit form khi nhấn)
-function updateQty(btn, change) {
-  const form = btn.closest('form');
+function thayDoiSoLuong(nut, thayDoi) {
+  const form = nut.closest('form');
   const input = form.querySelector('input[name="quantity"]');
-  let currentVal = parseInt(input.value) || 0;
-  let newVal = currentVal + change;
-  
-  if (newVal >= 0) {
-    input.value = newVal;
-    form.submit(); // Tự động gửi request lên server để cập nhật DB
+  const giaTriMoi = (parseInt(input.value) || 0) + thayDoi;
+
+  if (giaTriMoi >= 0) {
+    input.value = giaTriMoi;
+    form.submit();
   }
 }
 
-// Ẩn mũi tên spinner mặc định của input type="number"
-document.addEventListener("DOMContentLoaded", function() {
+document.addEventListener('DOMContentLoaded', function () {
   const style = document.createElement('style');
-  style.innerHTML = `
-    input[type=number]::-webkit-inner-spin-button, 
-    input[type=number]::-webkit-outer-spin-button { 
-      -webkit-appearance: none; 
-      margin: 0; 
-    }
+  style.textContent = `
+    input[type=number]::-webkit-inner-spin-button,
+    input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+    input[type=number] { -moz-appearance: textfield; }
   `;
   document.head.appendChild(style);
 });

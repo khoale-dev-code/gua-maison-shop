@@ -1,173 +1,327 @@
 {% extends "base.html" %}
-{% block title %}{{ product.name }} | GUA Luxury Heritage{% endblock %}
+{% block title %}{{ product.name }} | GUA 2026{% endblock %}
 
 {% block content %}
-<div class="bg-white min-h-screen">
-  
-  <nav class="max-w-[1800px] mx-auto px-6 py-6 text-[10px] font-black uppercase tracking-[0.3em] text-stone-400 flex items-center gap-4">
-    <a href="/" class="hover:text-black transition-colors">Home</a>
-    <span class="w-8 h-px bg-stone-200"></span>
-    <a href="/shop" class="hover:text-black transition-colors">Archive</a>
+
+{# ── Chuẩn bị danh sách ảnh ── #}
+{% set images = product.images if (product.images and product.images|length > 0)
+   else ([{'url': product.thumbnail_url, 'is_primary': true}] if product.thumbnail_url else []) %}
+
+<div class="min-h-screen bg-white">
+
+  {# ── Breadcrumb ── #}
+  <nav aria-label="Đường dẫn" class="max-w-7xl mx-auto px-6 py-4 flex items-center gap-2 text-xs text-stone-400">
+    <a href="/" class="hover:text-stone-900 transition-colors">Trang chủ</a>
+    <span aria-hidden="true">/</span>
+    <a href="/shop" class="hover:text-stone-900 transition-colors">Cửa hàng</a>
     {% if product.categories %}
-    <span class="w-8 h-px bg-stone-200"></span>
-    <a href="/shop?category={{ product.categories.slug }}" class="hover:text-black transition-colors text-black">{{ product.categories.name }}</a>
+    <span aria-hidden="true">/</span>
+    <span class="text-stone-600">{{ product.categories.name }}</span>
     {% endif %}
   </nav>
 
-  <div class="max-w-[1800px] mx-auto border-t border-stone-100">
-    <div class="grid grid-cols-1 lg:grid-cols-2 min-h-[calc(100vh-120px)]">
-      
-      <div class="relative bg-[#f6f6f6] border-r border-stone-100 overflow-hidden group">
-        <div class="sticky top-24 p-8 md:p-16 h-full flex items-center justify-center">
-          {% if product.thumbnail_url %}
-          <div class="relative z-10 w-full h-full flex items-center justify-center">
-             <img src="{{ product.thumbnail_url }}" alt="{{ product.name }}" 
-                  class="max-w-full max-h-[70vh] object-contain mix-blend-multiply transition-transform duration-[2s] group-hover:scale-110" />
-             
-             <div class="absolute inset-0 flex items-center justify-center select-none pointer-events-none">
-                <span class="text-[20vw] font-black text-black/[0.03] uppercase tracking-tighter">HERITAGE</span>
-             </div>
+  {# ── Nội dung chính ── #}
+  <main class="max-w-7xl mx-auto border-t border-stone-100">
+    <div class="grid grid-cols-1 lg:grid-cols-2">
+
+      {# ══════════════════════════════
+          CỘT TRÁI — Hình ảnh sản phẩm
+         ══════════════════════════════ #}
+      <section aria-label="Hình ảnh sản phẩm"
+               class="relative bg-stone-50 border-b lg:border-b-0 lg:border-r border-stone-100 group">
+
+        {# Vùng carousel #}
+        <div class="relative overflow-hidden min-h-[55vh] lg:min-h-[80vh] cursor-zoom-in">
+          <div id="carousel-track"
+               data-total="{{ images|length }}"
+               class="flex h-full w-full transition-transform duration-700 ease-in-out">
+
+            {% if images %}
+              {% for img in images %}
+              <div class="carousel-slide shrink-0 h-full flex items-center justify-center p-10 md:p-16">
+                <img src="{{ img.url }}"
+                     alt="{{ product.name }}"
+                     class="max-h-[72%] max-w-full object-contain transition-transform duration-500 group-hover:scale-[1.03]"
+                     draggable="false"
+                     loading="{% if loop.first %}eager{% else %}lazy{% endif %}">
+              </div>
+              {% endfor %}
+            {% else %}
+              <div class="flex items-center justify-center w-full h-full">
+                <p class="text-stone-300 text-sm">Chưa có hình ảnh</p>
+              </div>
+            {% endif %}
           </div>
-          {% else %}
-          <div class="text-stone-300 font-black text-8xl opacity-20">GUA</div>
+
+          {# Badge nổi bật #}
+          {% if product.is_featured %}
+          <div class="absolute top-5 left-5 z-10">
+            <span class="inline-block text-[10px] font-semibold uppercase tracking-widest bg-black text-white px-3 py-1.5 rounded-sm">
+              Nổi bật
+            </span>
+          </div>
+          {% endif %}
+
+          {# Nút điều hướng carousel #}
+          {% if images|length > 1 %}
+          <div class="absolute inset-x-4 top-1/2 -translate-y-1/2 flex justify-between z-20
+                      opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none">
+            <button onclick="slide(-1)"
+                    aria-label="Ảnh trước"
+                    class="pointer-events-auto w-9 h-9 bg-white border border-stone-200 rounded-full
+                           flex items-center justify-center hover:bg-stone-900 hover:text-white hover:border-stone-900
+                           transition-all shadow-sm">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M15 19l-7-7 7-7"/>
+              </svg>
+            </button>
+            <button onclick="slide(1)"
+                    aria-label="Ảnh tiếp"
+                    class="pointer-events-auto w-9 h-9 bg-white border border-stone-200 rounded-full
+                           flex items-center justify-center hover:bg-stone-900 hover:text-white hover:border-stone-900
+                           transition-all shadow-sm">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M9 5l7 7-7 7"/>
+              </svg>
+            </button>
+          </div>
           {% endif %}
         </div>
 
-        {% if product.is_featured %}
-        <div class="absolute top-10 left-10 transform -rotate-90 origin-left">
-          <span class="text-[10px] font-black uppercase tracking-[0.5em] bg-black text-white px-6 py-2">
-            Limited Edition / 2026
+        {# Thanh điều hướng dưới carousel #}
+        {% if images|length > 1 %}
+        <div class="flex items-center gap-4 px-6 py-3 border-t border-stone-100 bg-white">
+          <span id="slide-current" class="text-xs font-mono text-stone-500 tabular-nums min-w-[3rem]">
+            1 / {{ images|length }}
           </span>
+          <div class="flex-1 h-px bg-stone-100 relative overflow-hidden rounded-full">
+            <div id="auto-progress" class="absolute left-0 top-0 h-full bg-stone-900 w-0 rounded-full"></div>
+          </div>
+          <button id="btn-autoplay"
+                  onclick="toggleAutoplay()"
+                  aria-label="Bật/tắt tự động"
+                  class="text-stone-400 hover:text-stone-900 transition-colors p-1">
+            <svg id="icon-pause" class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+              <rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/>
+            </svg>
+            <svg id="icon-play" class="w-3.5 h-3.5 hidden" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M8 5v14l11-7z"/>
+            </svg>
+          </button>
         </div>
         {% endif %}
-      </div>
+      </section>
 
-      <div class="p-8 md:p-16 lg:p-24 flex flex-col justify-center">
-        
-        <header class="mb-12">
-          <div class="flex items-center gap-4 mb-6">
-            <span class="h-px w-12 bg-black"></span>
-            <p class="text-[12px] font-black text-stone-500 uppercase tracking-widest">
-              {{ product.categories.name if product.categories else 'GUA MAISON' }}
-            </p>
-          </div>
-          
-          <h1 class="text-5xl md:text-7xl font-black uppercase tracking-tighter leading-[0.9] mb-8 transform -skew-x-6">
-            {{ product.name }}
-          </h1>
+      {# ══════════════════════════════
+          CỘT PHẢI — Thông tin sản phẩm
+         ══════════════════════════════ #}
+      <section aria-label="Thông tin sản phẩm"
+               class="px-8 py-10 md:px-12 md:py-14 lg:px-16 lg:py-16 flex flex-col">
 
-          <div class="flex items-end gap-6">
-            <span class="text-3xl md:text-4xl font-black tracking-tighter text-black">
-              {{ "{:,.0f}".format(product.price) }} <span class="text-sm font-medium">VND</span>
-            </span>
-            {% if product.stock > 0 %}
-            <span class="mb-2 text-[10px] font-bold text-green-600 uppercase tracking-widest flex items-center gap-2">
-              <span class="w-2 h-2 bg-green-600 rounded-full animate-pulse"></span> Sẵn sàng giao ngay
-            </span>
-            {% endif %}
-          </div>
-        </header>
+        {# Meta — mã & danh mục #}
+        <div class="flex items-center gap-3 mb-5 text-[11px] text-stone-400">
+          <span class="font-mono">{{ product.id[:8] | upper }}</span>
+          <span class="text-stone-200" aria-hidden="true">·</span>
+          <span>{{ product.categories.name if product.categories else 'Chưa phân loại' }}</span>
+        </div>
 
-        {% if product.description %}
-        <div class="mb-12 max-w-lg">
-          <p class="text-stone-500 text-lg leading-relaxed font-medium italic border-l-4 border-stone-100 pl-6">
-            "{{ product.description }}"
+        {# Tên sản phẩm #}
+        <h1 class="text-3xl md:text-4xl font-bold tracking-tight text-stone-900 leading-tight mb-6">
+          {{ product.name }}
+        </h1>
+
+        {# Giá #}
+        <div class="mb-8">
+          <p class="text-2xl md:text-3xl font-bold text-stone-900 tabular-nums">
+            {{ "{:,.0f}".format(product.price) }}<span class="text-sm font-normal text-stone-400 ml-1">₫</span>
           </p>
         </div>
-        {% endif %}
 
+        {# ── Form mua hàng ── #}
         {% if product.stock > 0 %}
-        <form action="/cart/add" method="POST" class="space-y-12">
+        <form action="/cart/add" method="POST" class="space-y-7">
           <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-          <input type="hidden" name="product_id" value="{{ product.id }}" />
+          <input type="hidden" name="product_id" value="{{ product.id }}">
 
-          <div class="space-y-6">
-            <div class="flex justify-between items-end border-b border-stone-100 pb-2">
-              <label class="text-[12px] font-black uppercase tracking-widest">Kích cỡ / Size</label>
-              <button type="button" class="text-[10px] font-bold text-stone-400 uppercase underline hover:text-black">Bảng quy đổi</button>
+          {# Chọn kích thước #}
+          <fieldset>
+            <div class="flex justify-between items-center mb-3">
+              <legend class="text-xs font-semibold uppercase tracking-wider text-stone-700">Kích thước</legend>
+              <a href="#" class="text-xs text-stone-400 hover:text-stone-700 underline underline-offset-2 transition-colors">
+                Hướng dẫn chọn size
+              </a>
             </div>
-            <div class="grid grid-cols-5 gap-px bg-stone-200 border border-stone-200">
+            <div class="grid grid-cols-5 gap-2">
               {% for size in ['XS', 'S', 'M', 'L', 'XL'] %}
-              <label class="cursor-pointer group bg-white">
-                <input type="radio" name="size" value="{{ size }}" class="sr-only peer" {% if size == 'M' %}checked{% endif %} />
-                <span class="flex items-center justify-center h-16 text-[13px] font-black transition-all 
-                             peer-checked:bg-black peer-checked:text-white 
-                             group-hover:bg-stone-50 group-hover:text-black">
+              <label class="cursor-pointer">
+                <input type="radio" name="size" value="{{ size }}" class="sr-only peer"
+                       {% if size == 'M' %}checked{% endif %}>
+                <span class="flex items-center justify-center h-11 text-xs font-semibold
+                             border border-stone-200 rounded-md
+                             peer-checked:border-stone-900 peer-checked:bg-stone-900 peer-checked:text-white
+                             hover:border-stone-400 transition-all select-none">
                   {{ size }}
                 </span>
               </label>
               {% endfor %}
             </div>
-          </div>
+          </fieldset>
 
-          <div class="flex flex-col gap-4">
-            <div class="flex gap-4 h-20">
-              <div class="flex items-center border-2 border-black w-40">
-                <button type="button" onclick="changeQty(-1)" class="flex-1 h-full text-2xl font-light hover:bg-stone-100 transition-colors">-</button>
-                <input type="number" name="quantity" id="qty" value="1" min="1" max="{{ product.stock }}" readonly
-                       class="w-12 text-center text-lg font-black bg-transparent outline-none pointer-events-none" />
-                <button type="button" onclick="changeQty(1)" class="flex-1 h-full text-2xl font-light hover:bg-stone-100 transition-colors">+</button>
-              </div>
-
-              <button type="submit" name="action" value="add_to_cart" 
-                      class="flex-1 bg-black text-white text-[13px] font-black uppercase tracking-[0.3em] hover:bg-stone-800 active:scale-[0.98] transition-all">
-                Thêm vào túi hàng +
+          {# Số lượng & Thêm vào giỏ #}
+          <div class="flex gap-3">
+            {# Bộ chọn số lượng #}
+            <div class="flex items-center border border-stone-200 rounded-md overflow-hidden bg-white min-w-[110px]">
+              <button type="button"
+                      onclick="changeQty(-1)"
+                      aria-label="Giảm số lượng"
+                      class="w-10 h-11 flex items-center justify-center text-stone-500
+                             hover:bg-stone-50 hover:text-stone-900 transition-colors text-lg leading-none">
+                −
+              </button>
+              <input type="number"
+                     name="quantity"
+                     id="qty"
+                     value="1"
+                     min="1"
+                     max="{{ product.stock }}"
+                     readonly
+                     aria-label="Số lượng"
+                     class="w-full h-11 text-center text-sm font-semibold bg-transparent outline-none font-mono
+                            border-x border-stone-100">
+              <button type="button"
+                      onclick="changeQty(1)"
+                      aria-label="Tăng số lượng"
+                      class="w-10 h-11 flex items-center justify-center text-stone-500
+                             hover:bg-stone-50 hover:text-stone-900 transition-colors text-lg leading-none">
+                +
               </button>
             </div>
 
-            <button type="submit" name="action" value="buy_now"
-                    class="w-full h-20 bg-stone-100 text-black border-2 border-black text-[13px] font-black uppercase tracking-[0.3em] hover:bg-black hover:text-white transition-all">
-              Thanh toán ngay
+            {# Nút thêm vào giỏ #}
+            <button type="submit"
+                    class="flex-1 h-11 bg-stone-900 text-white text-xs font-semibold uppercase tracking-widest
+                           rounded-md hover:bg-stone-700 active:scale-[0.98]
+                           transition-all flex items-center justify-center gap-2">
+              Thêm vào giỏ
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4zM3 6h18M16 10a4 4 0 01-8 0"/>
+              </svg>
             </button>
           </div>
+
+          {# Trạng thái tồn kho #}
+          <p class="text-xs text-stone-400 flex items-center gap-1.5">
+            <span class="inline-block w-1.5 h-1.5 rounded-full bg-emerald-400 shrink-0"></span>
+            Còn hàng — {{ product.stock }} sản phẩm sẵn sàng giao
+          </p>
         </form>
+
         {% else %}
-        <div class="py-10 border-2 border-dashed border-stone-200 text-center">
-          <p class="text-stone-400 font-black uppercase tracking-widest">Sản phẩm hiện đã cháy hàng</p>
+        {# Hết hàng #}
+        <div class="py-5 border-y border-stone-100 flex items-center gap-2">
+          <span class="inline-block w-1.5 h-1.5 rounded-full bg-red-400 shrink-0"></span>
+          <p class="text-sm font-semibold text-red-500">Tạm hết hàng</p>
         </div>
         {% endif %}
 
-        <div class="mt-20 grid grid-cols-1 md:grid-cols-2 gap-10 border-t border-stone-100 pt-10">
-          <div class="space-y-2">
-            <h4 class="text-[11px] font-black uppercase tracking-widest">Giao hàng ưu tiên</h4>
-            <p class="text-[12px] text-stone-500 font-medium">Miễn phí cho mọi đơn hàng cao cấp. Đóng gói thủ công tại xưởng GUA.</p>
+        {# ── Thông tin chi tiết ── #}
+        <div class="mt-10 pt-8 border-t border-stone-100 grid grid-cols-2 gap-x-8 gap-y-6">
+          <div>
+            <h3 class="text-[11px] font-semibold uppercase tracking-wider text-stone-400 mb-1.5">Chất liệu</h3>
+            <p class="text-sm text-stone-600 leading-relaxed">Sợi kỹ thuật tổng hợp, độ bền cao, khả năng chống mài mòn tốt.</p>
           </div>
-          <div class="space-y-2">
-            <h4 class="text-[11px] font-black uppercase tracking-widest">Bảo hành di sản</h4>
-            <p class="text-[12px] text-stone-500 font-medium">Hỗ trợ làm mới sản phẩm trọn đời cho thành viên Maison Club.</p>
+          <div>
+            <h3 class="text-[11px] font-semibold uppercase tracking-wider text-stone-400 mb-1.5">Xuất xứ</h3>
+            <p class="text-sm text-stone-600 leading-relaxed">Sản xuất tại GUA Lab — Việt Nam.</p>
+          </div>
+          <div>
+            <h3 class="text-[11px] font-semibold uppercase tracking-wider text-stone-400 mb-1.5">Giao hàng</h3>
+            <p class="text-sm text-stone-600 leading-relaxed">Miễn phí toàn quốc cho đơn từ 500.000₫.</p>
+          </div>
+          <div>
+            <h3 class="text-[11px] font-semibold uppercase tracking-wider text-stone-400 mb-1.5">Đổi trả</h3>
+            <p class="text-sm text-stone-600 leading-relaxed">Hỗ trợ đổi trả trong vòng 7 ngày kể từ ngày nhận hàng.</p>
           </div>
         </div>
 
-      </div>
+      </section>
     </div>
-  </div>
+  </main>
 </div>
 
+<style>
+  input[type="number"]::-webkit-outer-spin-button,
+  input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+  input[type="number"] { -moz-appearance: textfield; }
+</style>
+
 <script>
-// Giữ nguyên logic JS của bạn nhưng thêm hiệu ứng UI mượt mà hơn
-function changeQty(delta) {
-  const input = document.getElementById('qty');
-  let val = parseInt(input.value) + delta;
-  const max = parseInt(input.max);
-  if (val >= 1 && val <= max) {
-    input.value = val;
+(function () {
+  const track = document.getElementById("carousel-track");
+  if (!track) return;
+
+  const TOTAL = parseInt(track.getAttribute("data-total")) || 0;
+  if (TOTAL <= 1) return;
+
+  const INTERVAL = 5000;
+  const counter   = document.getElementById("slide-current");
+  const progressEl = document.getElementById("auto-progress");
+
+  let current = 0;
+  let timer   = null;
+  let playing = true;
+
+  function setWidth() {
+    track.style.width = (TOTAL * 100) + "%";
+    track.querySelectorAll(".carousel-slide").forEach(s => {
+      s.style.width = (100 / TOTAL) + "%";
+    });
   }
+
+  function goTo(n) {
+    current = ((n % TOTAL) + TOTAL) % TOTAL;
+    track.style.transform = `translateX(-${current * (100 / TOTAL)}%)`;
+    if (counter) counter.textContent = `${current + 1} / ${TOTAL}`;
+    if (playing) resetProgress();
+  }
+
+  function resetProgress() {
+    if (!progressEl) return;
+    progressEl.style.transition = "none";
+    progressEl.style.width = "0%";
+    requestAnimationFrame(() => setTimeout(() => {
+      progressEl.style.transition = `width ${INTERVAL}ms linear`;
+      progressEl.style.width = "100%";
+    }, 30));
+  }
+
+  function startTimer() {
+    clearInterval(timer);
+    timer = setInterval(() => goTo(current + 1), INTERVAL);
+  }
+
+  window.slide = function(dir) {
+    goTo(current + dir);
+    if (playing) startTimer();
+  };
+
+  window.toggleAutoplay = function() {
+    playing = !playing;
+    document.getElementById("icon-pause").classList.toggle("hidden", !playing);
+    document.getElementById("icon-play").classList.toggle("hidden",  playing);
+    if (playing) { startTimer(); resetProgress(); }
+    else { clearInterval(timer); if (progressEl) progressEl.style.width = "0%"; }
+  };
+
+  setWidth();
+  goTo(0);
+  startTimer();
+})();
+
+function changeQty(delta) {
+  const el  = document.getElementById("qty");
+  const val = parseInt(el.value) + delta;
+  if (val >= 1 && val <= parseInt(el.max)) el.value = val;
 }
 </script>
-
-<style>
-  /* Import fonts Puma style */
-  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@900&display=swap');
-  
-  h1 {
-    font-family: 'Inter', sans-serif;
-  }
-
-  /* Khử spin của input number */
-  input::-webkit-outer-spin-button,
-  input::-webkit-inner-spin-button {
-    -webkit-appearance: none;
-    margin: 0;
-  }
-</style>
 {% endblock %}

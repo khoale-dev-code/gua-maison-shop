@@ -1,5 +1,5 @@
 {% extends "admin/admin_base.html" %}
-{% block title %}Performance Dashboard | GUA Admin{% endblock %}
+{% block title %}Bảng Điều Khiển | GUA Admin{% endblock %}
 {% block extra_head %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 {% endblock %}
@@ -7,21 +7,21 @@
 {% block content %}
 <div class="min-h-screen bg-white text-black pb-24">
   
-  <div class="border-b border-stone-100 mb-12 bg-white sticky top-20 z-30">
+  <div class="border-b-[3px] border-black mb-12 bg-white sticky top-20 z-30">
     <div class="max-w-[1800px] mx-auto px-6 py-6 flex items-center justify-between">
       <div class="flex items-baseline gap-6">
         <h1 class="text-4xl md:text-5xl font-black uppercase tracking-tighter transform -skew-x-6">
-          System <span class="text-transparent stroke-black" style="-webkit-text-stroke: 1px black;">Overview</span>
+          Tổng Quan <span class="text-transparent stroke-black" style="-webkit-text-stroke: 1.5px black;">Hệ Thống</span>
         </h1>
-        <p class="hidden md:block text-[10px] font-black text-stone-400 uppercase tracking-[0.4em]">Maison Operations 2026</p>
+        <p class="hidden md:block text-[10px] font-mono font-black text-stone-400 uppercase tracking-[0.4em]">Maison Operations 2026 // v1.0</p>
       </div>
       
       <div class="flex items-center gap-4">
         <div class="text-right hidden sm:block">
           <p class="text-[11px] font-black uppercase tracking-widest leading-none">{{ current_user.full_name }}</p>
-          <p class="text-[9px] font-bold text-stone-400 uppercase tracking-widest mt-1">Administrator</p>
+          <p class="text-[9px] font-bold text-red-600 uppercase tracking-widest mt-1">Quản Trị Viên Cấp Cao</p>
         </div>
-        <div class="w-12 h-12 bg-black flex items-center justify-center text-white font-black text-lg hover:scale-105 transition-transform cursor-pointer">
+        <div class="w-12 h-12 bg-black border-2 border-black flex items-center justify-center text-white font-black text-lg shadow-[4px_4px_0px_0px_rgba(200,200,200,1)] hover:shadow-none hover:translate-x-1 hover:translate-y-1 transition-all cursor-pointer">
           {{ current_user.full_name[0]|upper }}
         </div>
       </div>
@@ -30,45 +30,47 @@
 
   <div class="max-w-[1800px] mx-auto px-6">
 
-    <div class="flex mb-12 border-b border-stone-100 overflow-x-auto no-scrollbar">
-      {% for label, href, active in [('Dashboard','/admin/',True),('Products','/admin/products',False),('Categories','/admin/categories',False),('Orders','/admin/orders',False)] %}
-      <a href="{{ href }}" class="px-8 py-4 text-[11px] font-black uppercase tracking-[0.3em] transition-all relative group
-        {% if active %} text-black {% else %} text-stone-400 hover:text-black {% endif %}">
+    <div class="flex mb-12 border-b-[3px] border-stone-100 overflow-x-auto no-scrollbar bg-stone-50/50">
+      {% for label, href, active in [
+        ('Bảng Điều Khiển','/admin/',True),
+        ('Quản Lý Vật Phẩm','/admin/products',False),
+        ('Phân Khu Danh Mục','/admin/categories',False),
+        ('Nhật Ký Giao Dịch','/admin/orders',False)
+      ] %}
+      <a href="{{ href }}" class="px-10 py-5 text-[11px] font-black uppercase tracking-[0.3em] transition-all relative group
+        {% if active %} text-black bg-white border-x-[3px] border-t-[3px] border-black -mb-[3px] {% else %} text-stone-400 hover:text-black {% endif %}">
         {{ label }}
-        {% if active %}
-        <span class="absolute bottom-0 left-0 w-full h-1 bg-black"></span>
-        {% endif %}
       </a>
       {% endfor %}
     </div>
 
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-px bg-stone-100 border border-stone-100 mb-12">
-      {% for icon, label, value, sub, color in [
-        ('orders', 'Total Orders', stats.total_orders, stats.pending|string + ' PENDING', 'text-black'),
-        ('revenue', 'Revenue', '{:,.0f}'.format(stats.total_revenue) + ' VNĐ', 'TOTAL ARCHIVE', 'text-black'),
-        ('users', 'Maison Club', user_count, 'REGISTERED', 'text-black'),
-        ('stock', 'Inventory', prod_count, 'ACTIVE ITEMS', 'text-black'),
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+      {% for label, value, sub, color, pulse in [
+        ('Tổng Đơn Hàng', stats.total_orders, (stats.pending|string + ' ĐANG CHỜ'), 'text-black', false),
+        ('Tổng Doanh Thu', '{:,.0f}'.format(stats.total_revenue) + ' VNĐ', 'TRUY XUẤT TỪ CSDL', 'text-black', false),
+        ('Thành Viên Club', user_count, 'NODE ĐÃ ĐĂNG KÝ', 'text-black', false),
+        ('Kho Tài Nguyên', prod_count, 'VẬT PHẨM TRỰC TUYẾN', 'text-black', false),
       ] %}
-      <div class="bg-white p-8 group hover:bg-stone-50 transition-colors">
+      <div class="bg-white border-[3px] border-black p-8 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all">
         <div class="flex justify-between items-start mb-6">
           <span class="text-[10px] font-black uppercase tracking-[0.4em] text-stone-400">{{ label }}</span>
-          <div class="w-2 h-2 bg-black group-hover:scale-150 transition-transform"></div>
+          <div class="w-3 h-3 bg-black {% if pulse %}animate-pulse bg-red-600{% endif %}"></div>
         </div>
         <p class="text-4xl font-black tracking-tighter mb-2 {{ color }}">{{ value }}</p>
-        <p class="text-[10px] font-bold text-stone-400 uppercase tracking-widest">{{ sub }}</p>
+        <p class="text-[10px] font-mono font-bold text-stone-400 uppercase tracking-widest">> {{ sub }}</p>
       </div>
       {% endfor %}
     </div>
 
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12">
-      <div class="lg:col-span-2 border border-stone-100 p-8 reveal">
-        <div class="flex justify-between items-end mb-10">
+      <div class="lg:col-span-2 border-[3px] border-black p-8 reveal bg-white shadow-[8px_8px_0px_0px_rgba(240,240,240,1)]">
+        <div class="flex justify-between items-end mb-10 border-b-2 border-stone-100 pb-6">
           <div>
-            <h3 class="text-xl font-black uppercase tracking-tighter">Performance Matrix</h3>
-            <p class="text-[10px] font-bold text-stone-400 uppercase tracking-widest mt-1">Monthly Revenue Analysis</p>
+            <h3 class="text-xl font-black uppercase tracking-tighter">Ma Trận Hiệu Năng</h3>
+            <p class="text-[10px] font-mono font-bold text-stone-400 uppercase tracking-widest mt-1">Phân tích dòng tiền hàng tháng</p>
           </div>
           <div class="flex gap-4">
-             <span class="flex items-center gap-2 text-[10px] font-black"><span class="w-3 h-3 bg-black"></span> REVENUE</span>
+             <span class="flex items-center gap-2 text-[10px] font-black"><span class="w-3 h-3 bg-black"></span> DOANH THU</span>
           </div>
         </div>
         <div class="h-80 w-full">
@@ -76,9 +78,9 @@
         </div>
       </div>
 
-      <div class="border border-stone-100 p-8 reveal">
-        <h3 class="text-xl font-black uppercase tracking-tighter mb-2">Order Status</h3>
-        <p class="text-[10px] font-bold text-stone-400 uppercase tracking-widest mb-10">Distribution of flow</p>
+      <div class="border-[3px] border-black p-8 reveal bg-white shadow-[8px_8px_0px_0px_rgba(240,240,240,1)]">
+        <h3 class="text-xl font-black uppercase tracking-tighter mb-2">Phân Luồng Đơn Hàng</h3>
+        <p class="text-[10px] font-mono font-bold text-stone-400 uppercase tracking-widest mb-10">Trạng thái dữ liệu thời gian thực</p>
         <div class="h-64 relative flex items-center justify-center">
           <canvas id="statusChart"></canvas>
         </div>
@@ -86,42 +88,63 @@
     </div>
 
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-      <div class="border border-stone-100 p-8 reveal">
-        <h3 class="text-xl font-black uppercase tracking-tighter mb-10">Stock / Categories</h3>
+      <div class="border-[3px] border-black p-8 reveal bg-white">
+        <h3 class="text-xl font-black uppercase tracking-tighter mb-10">Tài Nguyên / Danh Mục</h3>
         <div class="h-64">
           <canvas id="catChart"></canvas>
         </div>
       </div>
 
-      <div class="lg:col-span-2 border border-stone-100 overflow-hidden reveal">
-        <div class="px-8 py-6 border-b border-stone-100 flex justify-between items-center">
-          <h3 class="text-xl font-black uppercase tracking-tighter">Recent Drop Activity</h3>
-          <a href="/admin/orders" class="text-[11px] font-black uppercase tracking-widest border-b border-black">View All Activity</a>
+      <div class="lg:col-span-2 border-[3px] border-black overflow-hidden reveal bg-white shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
+        <div class="px-8 py-6 border-b-[3px] border-black flex justify-between items-center bg-stone-50">
+          <h3 class="text-xl font-black uppercase tracking-tighter">Nhật Ký Truy Xuất Gần Đây</h3>
+          <a href="/admin/orders" class="text-[10px] font-black uppercase tracking-widest border-b-2 border-black hover:text-stone-500">Xem Tất Cả Hoạt Động</a>
         </div>
         
-        <div class="divide-y divide-stone-100">
+        <div class="divide-y-2 divide-stone-100">
           {% for order in stats.get('_orders', [])[:5] %}
-          <div class="px-8 py-5 flex items-center justify-between hover:bg-stone-50 transition-colors group">
+          <div class="px-8 py-6 flex items-center justify-between hover:bg-stone-50 transition-colors group">
             <div class="flex items-center gap-8">
-               <span class="text-[10px] font-black text-stone-300 group-hover:text-black transition-colors">0{{ loop.index }}</span>
+               <span class="text-[10px] font-mono font-black text-stone-300 group-hover:text-black transition-colors">ID_0{{ loop.index }}</span>
                <div>
-                  <p class="text-[14px] font-black uppercase tracking-tight">#{{ order.id[:8].upper() }}</p>
-                  <p class="text-[11px] font-bold text-stone-400 uppercase tracking-widest">{{ order.created_at if order.created_at else 'MAISON RECORD' }}</p>
+                  <p class="text-[15px] font-black uppercase tracking-tight">
+                    #{{ (order.id[:8].upper()) if order and order.id else 'UNKNOWN_NODE' }}
+                  </p>
+                  <p class="text-[10px] font-mono font-bold text-stone-400 uppercase tracking-widest mt-1">
+                    {{ order.created_at[:16].replace('T', ' ') if order.created_at else 'MAISON_SYSTEM_RECORD' }}
+                  </p>
                </div>
             </div>
             
             <div class="flex items-center gap-12">
-               <span class="text-[15px] font-black tracking-tighter">{{ '{:,.0f}'.format(order.total_amount) }} VND</span>
-               <span class="px-4 py-1 text-[9px] font-black uppercase tracking-widest border
-                {% if order.status=='delivered' %} bg-black text-white border-black
-                {% elif order.status=='cancelled' %} border-red-200 text-red-500
-                {% else %} border-stone-200 text-stone-500 {% endif %}">
-                {{ order.status }}
+               <span class="text-[16px] font-black tracking-tighter bg-stone-100 px-3 py-1 border-2 border-transparent group-hover:border-black transition-all">
+                {{ '{:,.0f}'.format(order.total_amount) }} <span class="text-[10px]">VNĐ</span>
                </span>
-               <svg class="w-4 h-4 text-stone-300 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg>
+               
+               <span class="px-4 py-1.5 text-[9px] font-black uppercase tracking-widest border-2 
+                {% if order.status=='delivered' %} bg-black text-white border-black
+                {% elif order.status=='cancelled' %} border-red-500 text-red-600 bg-red-50
+                {% elif order.status=='pending' %} border-yellow-400 text-yellow-600 bg-yellow-50
+                {% else %} border-stone-200 text-stone-500 {% endif %}">
+                
+                {% if order.status == 'pending' %} CHỜ XỬ LÝ
+                {% elif order.status == 'delivered' %} ĐÃ HOÀN TẤT
+                {% elif order.status == 'cancelled' %} ĐÃ HỦY BỎ
+                {% else %} {{ order.status|upper }} {% endif %}
+               </span>
+               
+               <a href="/profile/orders/{{ order.id }}" class="p-2 border-2 border-stone-100 group-hover:border-black transition-all">
+                <svg class="w-4 h-4 text-stone-300 group-hover:text-black group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg>
+               </a>
             </div>
           </div>
           {% endfor %}
+          
+          {% if not stats.get('_orders') %}
+          <div class="p-20 text-center text-stone-400 font-mono text-[11px] uppercase tracking-widest">
+            > Không tìm thấy bản ghi giao dịch nào trong hệ thống.
+          </div>
+          {% endif %}
         </div>
       </div>
     </div>
@@ -134,111 +157,120 @@
 <script id="cat-data" type="application/json">{{ cat_data | tojson | safe }}</script>
 
 <script>
-const monthly = JSON.parse(document.getElementById('monthly-data').textContent);
-const statusData = JSON.parse(document.getElementById('status-data').textContent);
-const catData = JSON.parse(document.getElementById('cat-data').textContent);
+// Logic khởi tạo Chart
+document.addEventListener('DOMContentLoaded', function() {
+    const monthly = JSON.parse(document.getElementById('monthly-data').textContent || '[]');
+    const statusData = JSON.parse(document.getElementById('status-data').textContent || '[]');
+    const catData = JSON.parse(document.getElementById('cat-data').textContent || '[]');
 
-// GUA High-Performance Color Palette
-const GUA_DARK = '#000000';
-const GUA_GOLD = '#d4af37';
-const GUA_STONE = '#e5e5e5';
-const STATUS_COLORS = {
-  pending: '#eab308', // Yellow
-  processing: '#000000', // Black
-  shipped: '#71717a', // Stone
-  delivered: '#22c55e', // Green
-  cancelled: '#ef4444' // Red
-};
+    const GUA_DARK = '#000000';
+    const GUA_STONE = '#e5e7eb';
+    
+    // Config mặc định cho Chart GUA
+    Chart.defaults.font.family = "'DM Sans', sans-serif";
+    Chart.defaults.font.weight = '900';
+    Chart.defaults.color = '#71717a';
 
-Chart.defaults.font.family = "'Inter', sans-serif";
-Chart.defaults.font.weight = '900';
-Chart.defaults.color = '#a1a1aa';
+    const chartTooltip = {
+      backgroundColor: '#000',
+      titleFont: { size: 12, weight: '900' },
+      bodyFont: { size: 12, family: 'monospace' },
+      cornerRadius: 0,
+      padding: 12,
+      displayColors: false
+    };
 
-const chartTooltip = {
-  backgroundColor: '#000',
-  titleFont: { size: 12, weight: '900' },
-  bodyFont: { size: 12 },
-  cornerRadius: 0,
-  padding: 12
-};
-
-// 1. Performance Matrix (Revenue)
-new Chart(document.getElementById('revenueChart'), {
-  type: 'line',
-  data: {
-    labels: monthly.map(d => d.month),
-    datasets: [{
-      data: monthly.map(d => d.revenue),
-      borderColor: GUA_DARK,
-      borderWidth: 4,
-      pointRadius: 4,
-      pointBackgroundColor: '#fff',
-      pointBorderWidth: 4,
-      tension: 0, // Dạng đường gãy cho cảm giác công nghiệp
-      fill: false
-    }]
-  },
-  options: {
-    responsive: true, maintainAspectRatio: false,
-    plugins: { legend: { display: false }, tooltip: chartTooltip },
-    scales: {
-      y: { grid: { color: '#f3f4f6' }, ticks: { callback: v => v.toLocaleString() + ' VNĐ' } },
-      x: { grid: { display: false } }
+    // 1. Đồ thị Doanh thu
+    if(monthly.length > 0) {
+        new Chart(document.getElementById('revenueChart'), {
+          type: 'line',
+          data: {
+            labels: monthly.map(d => d.month),
+            datasets: [{
+              data: monthly.map(d => d.revenue),
+              borderColor: GUA_DARK,
+              borderWidth: 5,
+              pointRadius: 6,
+              pointBackgroundColor: '#fff',
+              pointBorderColor: GUA_DARK,
+              pointBorderWidth: 3,
+              tension: 0, 
+              fill: false
+            }]
+          },
+          options: {
+            responsive: true, maintainAspectRatio: false,
+            plugins: { legend: { display: false }, tooltip: chartTooltip },
+            scales: {
+              y: { grid: { color: '#f3f4f6' }, border: { display: false }, ticks: { callback: v => v.toLocaleString() } },
+              x: { grid: { display: false } }
+            }
+          }
+        });
     }
-  }
-});
 
-// 2. Order Status (Doughnut)
-new Chart(document.getElementById('statusChart'), {
-  type: 'doughnut',
-  data: {
-    labels: statusData.map(d => d.status.toUpperCase()),
-    datasets: [{
-      data: statusData.map(d => d.count),
-      backgroundColor: statusData.map(d => STATUS_COLORS[d.status] || GUA_STONE),
-      borderWidth: 0,
-      hoverOffset: 10
-    }]
-  },
-  options: {
-    responsive: true, maintainAspectRatio: false,
-    plugins: {
-      legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 10 } } },
-      tooltip: chartTooltip
-    },
-    cutout: '80%'
-  }
-});
-
-// 3. Categories (Bar)
-new Chart(document.getElementById('catChart'), {
-  type: 'bar',
-  data: {
-    labels: catData.map(d => d.name.toUpperCase()),
-    datasets: [{
-      data: catData.map(d => d.count),
-      backgroundColor: GUA_DARK,
-      barThickness: 20
-    }]
-  },
-  options: {
-    responsive: true, maintainAspectRatio: false,
-    plugins: { legend: { display: false }, tooltip: chartTooltip },
-    scales: {
-      y: { beginAtZero: true, grid: { color: '#f3f4f6' } },
-      x: { grid: { display: false } }
+    // 2. Trạng thái Đơn hàng
+    if(statusData.length > 0) {
+        new Chart(document.getElementById('statusChart'), {
+          type: 'doughnut',
+          data: {
+            labels: statusData.map(d => d.status.toUpperCase()),
+            datasets: [{
+              data: statusData.map(d => d.count),
+              backgroundColor: ['#000000', '#eab308', '#22c55e', '#ef4444', '#71717a'],
+              borderWidth: 4,
+              borderColor: '#ffffff',
+              hoverOffset: 15
+            }]
+          },
+          options: {
+            responsive: true, maintainAspectRatio: false,
+            plugins: {
+              legend: { position: 'bottom', labels: { boxWidth: 12, padding: 20, font: { size: 10 } } },
+              tooltip: chartTooltip
+            },
+            cutout: '75%'
+          }
+        });
     }
-  }
+
+    // 3. Tài nguyên Danh mục
+    if(catData.length > 0) {
+        new Chart(document.getElementById('catChart'), {
+          type: 'bar',
+          data: {
+            labels: catData.map(d => d.name.toUpperCase()),
+            datasets: [{
+              data: catData.map(d => d.count),
+              backgroundColor: GUA_DARK,
+              hoverBackgroundColor: '#444',
+              barThickness: 24
+            }]
+          },
+          options: {
+            responsive: true, maintainAspectRatio: false,
+            plugins: { legend: { display: false }, tooltip: chartTooltip },
+            scales: {
+              y: { beginAtZero: true, grid: { color: '#f3f4f6' }, border: { display: false } },
+              x: { grid: { display: false } }
+            }
+          }
+        });
+    }
 });
 </script>
 
 <style>
-  /* Hiệu ứng mượt mà cho bảng */
-  .divide-stone-100 > div {
-    transition: all 0.3s ease;
-  }
-  
-  /* Khử scrollbar cho các bảng dài */
   .no-scrollbar::-webkit-scrollbar { display: none; }
+  .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+  
+  /* Hiệu ứng Reveal cho các block */
+  .reveal {
+    animation: revealUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+  @keyframes revealUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
 </style>
 {% endblock %}

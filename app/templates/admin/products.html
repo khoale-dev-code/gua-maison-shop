@@ -1,163 +1,203 @@
 {% extends "admin/admin_base.html" %}
-{% block title %}Quản lý sản phẩm{% endblock %}
+{% block title %}Kho hàng | GUA Admin{% endblock %}
 
 {% block content %}
-<div class="min-h-screen bg-gray-50 py-8 px-6">
+<div class="min-h-screen bg-white text-black pb-24">
 
-    <!-- HEADER -->
-    <div class="max-w-7xl mx-auto mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-            <h1 class="text-3xl font-bold text-gray-800">Quản lý sản phẩm</h1>
-            <p class="text-sm text-gray-500 mt-1">Tổng số: {{ total }} sản phẩm</p>
-        </div>
+  {# ── STICKY HEADER ── #}
+  <div class="border-b border-stone-100 mb-12 bg-white sticky top-20 z-30">
+    <div class="max-w-[1800px] mx-auto px-6 py-8 flex flex-col md:flex-row md:items-end justify-between gap-6">
+      <div>
+        <h1 class="text-4xl md:text-5xl font-black uppercase tracking-tighter transform -skew-x-6">
+          Kho <span class="text-transparent" style="-webkit-text-stroke: 1px black;">Hàng</span>
+        </h1>
+        <p class="text-[11px] font-black text-stone-400 uppercase tracking-[0.4em] mt-2 flex items-center gap-2">
+          <span class="w-2 h-2 bg-black"></span> {{ total }} sản phẩm trong hệ thống
+        </p>
+      </div>
+      <a href="/admin/products/add"
+         class="inline-flex items-center gap-3 bg-black text-white px-8 py-4 text-[10px] font-black uppercase tracking-[0.3em] hover:bg-stone-800 active:scale-[0.98] transition-all self-start md:self-auto">
+        + Thêm sản phẩm
+      </a>
+    </div>
+  </div>
 
-        <a href="/admin/products/add"
-           class="bg-black text-white px-5 py-2 rounded-lg text-sm font-semibold hover:bg-gray-800 transition">
-            + Thêm sản phẩm
-        </a>
+  <div class="max-w-[1800px] mx-auto px-6">
+
+    {# ── TAB NAV ── #}
+    <div class="flex mb-8 border-b border-stone-100 overflow-x-auto no-scrollbar">
+      {% for label, href, active in [
+        ('Tổng quan', '/admin/', False),
+        ('Sản phẩm',  '/admin/products', True),
+        ('Danh mục',  '/admin/categories', False),
+        ('Đơn hàng',  '/admin/orders', False)
+      ] %}
+      <a href="{{ href }}"
+         class="px-8 py-4 text-[11px] font-black uppercase tracking-[0.3em] transition-all relative whitespace-nowrap
+         {% if active %} text-black {% else %} text-stone-400 hover:text-black {% endif %}">
+        {{ label }}
+        {% if active %}<span class="absolute bottom-0 left-0 w-full h-1 bg-black"></span>{% endif %}
+      </a>
+      {% endfor %}
     </div>
 
-    <!-- SEARCH -->
-    <form method="get" class="max-w-7xl mx-auto mb-6">
-        <div class="flex">
-            <input type="text" name="q" value="{{ keyword }}"
-                   placeholder="Tìm theo tên hoặc SKU..."
-                   class="flex-1 border border-gray-300 px-4 py-2 rounded-l-lg focus:outline-none focus:ring-2 focus:ring-black">
-            <button type="submit"
-                    class="bg-black text-white px-6 rounded-r-lg hover:bg-gray-800">
-                Tìm
-            </button>
-        </div>
+    {# ── SEARCH BAR ── #}
+    <form method="get" class="flex mb-8 max-w-xl">
+      <input type="text" name="q" value="{{ keyword }}"
+             placeholder="Tìm theo tên hoặc mã SKU…"
+             class="flex-1 border-2 border-black border-r-0 px-5 py-3 text-[13px] font-bold uppercase tracking-wide outline-none placeholder:text-stone-300 placeholder:normal-case placeholder:tracking-normal focus:bg-stone-50 transition-colors" />
+      <button type="submit"
+              class="bg-black text-white px-8 py-3 text-[10px] font-black uppercase tracking-widest hover:bg-stone-800 transition-colors border-2 border-black">
+        Tìm
+      </button>
     </form>
 
-    <!-- TABLE -->
-    <div class="max-w-7xl mx-auto bg-white shadow rounded-lg overflow-hidden">
-        <div class="overflow-x-auto">
-            <table class="w-full text-sm text-left">
-                
-                <!-- HEAD -->
-                <thead class="bg-gray-100 text-gray-600 uppercase text-xs">
-                    <tr>
-                        <th class="px-4 py-3">Sản phẩm</th>
-                        <th class="px-4 py-3">Danh mục</th>
-                        <th class="px-4 py-3">Giá</th>
-                        <th class="px-4 py-3">Tồn kho</th>
-                        <th class="px-4 py-3">Trạng thái</th>
-                        <th class="px-4 py-3 text-right">Hành động</th>
-                    </tr>
-                </thead>
+    {# ── TABLE ── #}
+    <div class="border border-stone-200 bg-[#f9f9f9]">
+      <div class="overflow-x-auto">
+        <table class="w-full text-left whitespace-nowrap">
 
-                <!-- BODY -->
-                <tbody class="divide-y">
+          <thead class="bg-white border-b-2 border-black">
+            <tr>
+              <th class="px-6 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-stone-400">Sản phẩm</th>
+              <th class="px-6 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-stone-400">Danh mục</th>
+              <th class="px-6 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-stone-400">Giá bán</th>
+              <th class="px-6 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-stone-400">Tồn kho</th>
+              <th class="px-6 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-stone-400">Trạng thái</th>
+              <th class="px-6 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-stone-400 text-right">Thao tác</th>
+            </tr>
+          </thead>
 
-                    {% for p in products %}
-                    <tr class="hover:bg-gray-50 {% if not p.is_active %}opacity-50{% endif %}">
-                        
-                        <!-- TÊN -->
-                        <td class="px-4 py-4 flex items-center gap-4">
-                            <div class="w-14 h-16 bg-gray-100 border overflow-hidden">
-                                {% if p.thumbnail_url %}
-                                <img src="{{ p.thumbnail_url }}" class="w-full h-full object-cover">
-                                {% endif %}
-                            </div>
+          <tbody class="divide-y divide-stone-200 bg-white">
+            {% for p in products %}
+            <tr class="hover:bg-stone-50 transition-colors group {% if not p.is_active %}opacity-50{% endif %}">
 
-                            <div>
-                                <p class="font-semibold text-gray-800">{{ p.name }}</p>
-                                <p class="text-xs text-gray-400">ID: {{ p.id[:8] }}</p>
-                            </div>
-                        </td>
+              {# Tên sản phẩm #}
+              <td class="px-6 py-4">
+                <div class="flex items-center gap-4">
 
-                        <!-- DANH MỤC -->
-                        <td class="px-4 py-4">
-                            {{ p.categories.name if p.categories else 'Chung' }}
-                        </td>
+                  {# ── Ảnh: ưu tiên thumbnail_url → ảnh đầu trong images → placeholder ── #}
+                  {% set thumb = p.thumbnail_url
+                       or (p.images[0].url if (p.images and p.images|length > 0) else None) %}
 
-                        <!-- GIÁ -->
-                        <td class="px-4 py-4 font-semibold">
-                            {{ "{:,.0f}".format(p.price) }} ₫
-                        </td>
-
-                        <!-- TỒN KHO -->
-                        <td class="px-4 py-4">
-                            <span class="
-                                {% if p.stock == 0 %} text-red-500
-                                {% elif p.stock < 5 %} text-orange-500
-                                {% else %} text-green-600
-                                {% endif %}
-                                font-semibold">
-                                {{ p.stock }}
-                            </span>
-                        </td>
-
-                        <!-- TRẠNG THÁI -->
-                        <td class="px-4 py-4">
-                            {% if p.is_active %}
-                                <span class="text-green-600 font-semibold">Đang bán</span>
-                            {% else %}
-                                <span class="text-gray-400">Ẩn</span>
-                            {% endif %}
-                        </td>
-
-                        <!-- ACTION -->
-                        <td class="px-4 py-4 text-right">
-                            <div class="flex justify-end gap-2">
-
-                                <!-- EDIT -->
-                                <a href="/admin/products/edit/{{ p.id }}"
-                                   class="px-3 py-1 text-xs bg-blue-500 text-white rounded hover:bg-blue-600">
-                                    Sửa
-                                </a>
-
-                                <!-- TOGGLE -->
-                                <form action="/admin/products/toggle/{{ p.id }}" method="post">
-                                    <button type="submit"
-                                            class="px-3 py-1 text-xs bg-yellow-500 text-white rounded hover:bg-yellow-600">
-                                        {% if p.is_active %}Ẩn{% else %}Hiện{% endif %}
-                                    </button>
-                                </form>
-
-                                <!-- DELETE -->
-                                <form action="/admin/products/delete/{{ p.id }}" method="post"
-                                      onsubmit="return confirm('Xóa sản phẩm này?')">
-                                    <button type="submit"
-                                            class="px-3 py-1 text-xs bg-red-500 text-white rounded hover:bg-red-600">
-                                        Xóa
-                                    </button>
-                                </form>
-
-                            </div>
-                        </td>
-
-                    </tr>
+                  <div class="relative w-12 h-16 bg-stone-100 border border-stone-200 overflow-hidden shrink-0 group/thumb">
+                    {% if thumb %}
+                    <img src="{{ thumb }}" class="w-full h-full object-cover mix-blend-multiply" loading="lazy">
                     {% else %}
-                    <tr>
-                        <td colspan="6" class="text-center py-10 text-gray-400">
-                            Không có sản phẩm nào
-                        </td>
-                    </tr>
-                    {% endfor %}
+                    <div class="w-full h-full flex items-center justify-center text-[8px] font-black text-stone-300 uppercase">GUA</div>
+                    {% endif %}
 
-                </tbody>
-            </table>
-        </div>
+                    {# Badge số ảnh (hiện khi có > 1 ảnh) #}
+                    {% set img_count = p.images|length if p.images else (1 if p.thumbnail_url else 0) %}
+                    {% if img_count > 1 %}
+                    <span class="absolute bottom-0 right-0 bg-black/70 text-white text-[7px] font-black px-1 leading-4">
+                      +{{ img_count }}
+                    </span>
+                    {% endif %}
+                  </div>
+
+                  <div>
+                    <p class="text-[13px] font-black uppercase tracking-tight text-black">{{ p.name }}</p>
+                    <p class="text-[10px] font-mono text-stone-400 mt-0.5">ID: {{ p.id[:8] }}</p>
+                  </div>
+                </div>
+              </td>
+
+              {# Danh mục #}
+              <td class="px-6 py-4 text-[12px] font-bold text-stone-500 uppercase tracking-wide">
+                {{ p.categories.name if p.categories else '—' }}
+              </td>
+
+              {# Giá #}
+              <td class="px-6 py-4 text-[14px] font-black tracking-tighter">
+                {{ "{:,.0f}".format(p.price) }} <span class="text-[10px] text-stone-400">VNĐ</span>
+              </td>
+
+              {# Tồn kho #}
+              <td class="px-6 py-4">
+                <span class="text-[14px] font-black
+                  {% if p.stock == 0 %} text-red-500
+                  {% elif p.stock < 5 %} text-orange-500
+                  {% else %} text-green-600 {% endif %}">
+                  {{ p.stock }}
+                </span>
+              </td>
+
+              {# Trạng thái #}
+              <td class="px-6 py-4">
+                {% if p.is_active %}
+                <span class="px-3 py-1 text-[9px] font-black uppercase tracking-widest bg-black text-white">Đang bán</span>
+                {% else %}
+                <span class="px-3 py-1 text-[9px] font-black uppercase tracking-widest border border-stone-200 text-stone-400">Ẩn</span>
+                {% endif %}
+              </td>
+
+              {# Thao tác #}
+              <td class="px-6 py-4 text-right">
+                <div class="flex items-center justify-end gap-2">
+
+                  <a href="/admin/products/edit/{{ p.id }}"
+                     class="px-4 py-2 text-[9px] font-black uppercase tracking-[0.2em] border border-stone-200 bg-white hover:bg-black hover:text-white transition-all">
+                    Sửa
+                  </a>
+
+                  <form action="/admin/products/toggle/{{ p.id }}" method="post" class="m-0">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit"
+                            class="px-4 py-2 text-[9px] font-black uppercase tracking-[0.2em] border transition-all
+                            {% if p.is_active %}
+                              border-yellow-400 text-yellow-600 hover:bg-yellow-400 hover:text-white
+                            {% else %}
+                              border-green-400 text-green-600 hover:bg-green-400 hover:text-white
+                            {% endif %}">
+                      {% if p.is_active %}Ẩn{% else %}Hiện{% endif %}
+                    </button>
+                  </form>
+
+                  <form action="/admin/products/delete/{{ p.id }}" method="post" class="m-0"
+                        onsubmit="return confirm('Xác nhận xóa sản phẩm: {{ p.name }}?')">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit"
+                            class="px-4 py-2 text-[9px] font-black uppercase tracking-[0.2em] border border-red-200 text-red-500 hover:bg-red-500 hover:text-white transition-all">
+                      Xóa
+                    </button>
+                  </form>
+
+                </div>
+              </td>
+
+            </tr>
+            {% else %}
+            <tr>
+              <td colspan="6" class="px-6 py-20 text-center">
+                <p class="text-[12px] font-black text-stone-300 uppercase tracking-[0.4em]">Không tìm thấy sản phẩm nào</p>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+
+        </table>
+      </div>
     </div>
 
-    <!-- PAGINATION -->
+    {# ── PAGINATION ── #}
     {% if total_pages > 1 %}
-    <div class="flex justify-center mt-8 gap-2">
-        {% for p in range(1, total_pages + 1) %}
-        <a href="/admin/products?page={{ p }}{% if keyword %}&q={{ keyword }}{% endif %}"
-           class="px-4 py-2 border rounded 
-           {% if p == page %}
-                bg-black text-white
-           {% else %}
-                bg-white hover:bg-gray-100
-           {% endif %}">
-           {{ p }}
-        </a>
-        {% endfor %}
+    <div class="flex justify-center gap-2 mt-12">
+      {% for p in range(1, total_pages + 1) %}
+      <a href="/admin/products?page={{ p }}{% if keyword %}&q={{ keyword }}{% endif %}"
+         class="w-10 h-10 flex items-center justify-center border text-[12px] font-black transition-all
+         {% if p == page %} bg-black text-white border-black {% else %} bg-white text-stone-400 border-stone-200 hover:text-black hover:border-black {% endif %}">
+        {{ p }}
+      </a>
+      {% endfor %}
     </div>
     {% endif %}
 
+  </div>
 </div>
+
+<style>
+  .no-scrollbar::-webkit-scrollbar { display: none; }
+  .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+</style>
 {% endblock %}

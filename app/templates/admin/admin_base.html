@@ -3,12 +3,12 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>{% block title %}GUA ADMIN | Command Center{% endblock %}</title>
+  <title>{% block title %}GUA ADMIN | Trung tâm quản trị{% endblock %}</title>
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
-  
+
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
@@ -23,12 +23,20 @@
 
   <style>
     body { -webkit-font-smoothing: antialiased; letter-spacing: -0.01em; }
+
+    /* Hiệu ứng reveal khi scroll vào viewport */
     .reveal { opacity: 0; transform: translateY(20px); transition: all 0.6s cubic-bezier(0.22, 1, 0.36, 1); }
     .reveal.active { opacity: 1; transform: translateY(0); }
-    /* Industrial Scrollbar */
+
+    /* Scrollbar tối giản */
     ::-webkit-scrollbar { width: 4px; }
     ::-webkit-scrollbar-thumb { background: #000; }
+
+    /* Animation flash message */
+    @keyframes slideIn { from { opacity: 0; transform: translateX(100%); } to { opacity: 1; transform: translateX(0); } }
+    .animate-slide-in { animation: slideIn 0.3s ease forwards; }
   </style>
+
   {% block extra_head %}{% endblock %}
 </head>
 
@@ -36,43 +44,54 @@
 
   {% include "admin/admin_navbar.html" %}
 
+  {# ── FLASH MESSAGES ── #}
   <div class="fixed top-24 right-6 z-[200] space-y-3">
     {% with messages = get_flashed_messages(with_categories=true) %}
       {% if messages %}
         {% for category, message in messages %}
-          <div class="bg-black text-white border-l-4 {% if category == 'success' %}border-green-500{% else %}border-red-500{% endif %} px-6 py-4 text-[11px] font-black uppercase tracking-widest shadow-2xl flex items-center justify-between min-w-[300px] animate-slide-in">
-            <span>{{ message }}</span>
-            <button onclick="this.parentElement.remove()" class="ml-4 opacity-50 hover:opacity-100">&times;</button>
-          </div>
+        <div class="bg-black text-white border-l-4
+          {% if category == 'success' %} border-green-500 {% else %} border-red-500 {% endif %}
+          px-6 py-4 text-[11px] font-black uppercase tracking-widest shadow-2xl flex items-center justify-between min-w-[300px] animate-slide-in">
+          <span>{{ message }}</span>
+          <button onclick="this.parentElement.remove()" class="ml-4 opacity-50 hover:opacity-100 text-lg leading-none">&times;</button>
+        </div>
         {% endfor %}
       {% endif %}
     {% endwith %}
   </div>
 
-  <main class="flex-1">
+  {# ── MAIN CONTENT ── #}
+  <main class="flex-1 max-w-[1800px] mx-auto w-full px-6 py-10">
+    {% block admin_content %}
     {% block content %}{% endblock %}
+    {% endblock %}
   </main>
 
+  {# ── FOOTER ── #}
   <footer class="bg-stone-50 border-t border-stone-200 py-10 px-6">
     <div class="max-w-[1800px] mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
       <div class="flex items-center gap-4">
-        <span class="text-[10px] font-black uppercase tracking-widest text-black">GUA System Status:</span>
+        <span class="text-[10px] font-black uppercase tracking-widest text-black">Trạng thái hệ thống:</span>
         <span class="flex items-center gap-2 text-[10px] font-bold text-green-600 uppercase">
-          <span class="w-2 h-2 bg-green-600 rounded-full animate-pulse"></span> Operational
+          <span class="w-2 h-2 bg-green-600 rounded-full animate-pulse"></span> Hoạt động bình thường
         </span>
       </div>
       <p class="text-[10px] font-bold text-stone-400 uppercase tracking-widest">
-        © 2026 Admin Matrix — Powered by Khoa Le
+        © 2026 GUA Admin — Phát triển bởi Khoa Le
       </p>
     </div>
   </footer>
 
+  {# ── REVEAL ON SCROLL ── #}
   <script>
-    // System Reveal Logic
     const revealObserver = new IntersectionObserver((entries) => {
-      entries.forEach(entry => { if (entry.isIntersecting) entry.target.classList.add('active'); });
+      entries.forEach(entry => {
+        if (entry.isIntersecting) entry.target.classList.add('active');
+      });
     }, { threshold: 0.1 });
+
     document.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
   </script>
+
 </body>
 </html>

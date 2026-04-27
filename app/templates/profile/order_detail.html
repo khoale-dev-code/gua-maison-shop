@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}Receipt #{{ order.id[:8].upper() }} | GUA Maison{% endblock %}
+{% block title %}Hóa đơn #{{ order.id[:8].upper() }} | GUA Maison{% endblock %}
 
 {% block content %}
 {% set status_map = {
@@ -18,7 +18,7 @@
       <svg class="w-4 h-4 group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24">
         <path d="M15 19l-7-7 7-7"/>
       </svg>
-      Back to Order Archive
+      Trở về kho đơn hàng
     </a>
 
     <div class="flex flex-col md:flex-row md:items-end justify-between gap-8 mb-16 pb-8 border-b-2 border-black reveal">
@@ -32,25 +32,25 @@
           </span>
         </div>
         <h1 class="text-4xl md:text-6xl font-black uppercase tracking-tighter transform -skew-x-6 leading-none">
-          Receipt <span class="text-transparent" style="-webkit-text-stroke: 1.5px black;">#{{ order.id[:12].upper() }}</span>
+          Hóa đơn <span class="text-transparent" style="-webkit-text-stroke: 1.5px black;">#{{ order.id[:12].upper() }}</span>
         </h1>
       </div>
       
       <div class="flex gap-4">
         <button onclick="window.print()" class="px-6 py-3 border border-stone-200 text-[10px] font-black uppercase tracking-widest hover:border-black transition-all">
-          Print PDF_
+          Xuất tệp PDF_
         </button>
       </div>
     </div>
 
     <div class="mb-16 reveal" style="transition-delay: 100ms;">
       <div class="bg-stone-50 border border-stone-100 p-8 md:p-12">
-        <h3 class="text-[11px] font-black uppercase tracking-[0.4em] text-stone-400 mb-10 text-center">Logistics Progression</h3>
+        <h3 class="text-[11px] font-black uppercase tracking-[0.4em] text-stone-400 mb-10 text-center">Tiến trình vận chuyển</h3>
         
         <div class="relative flex flex-col md:flex-row justify-between items-center gap-8 md:gap-0">
           <div class="absolute top-1/2 left-0 w-full h-[1px] bg-stone-200 -translate-y-1/2 hidden md:block"></div>
           
-          {% set steps = [('pending','AUTHORIZED'),('processing','PACKAGING'),('shipped','TRANSIT'),('delivered','SECURED')] %}
+          {% set steps = [('pending','XÁC THỰC'),('processing','ĐÓNG GÓI'),('shipped','LUÂN CHUYỂN'),('delivered','GIAO NHẬN')] %}
           {% set status_order = {'pending':0,'processing':1,'shipped':2,'delivered':3, 'cancelled': -1} %}
           {% set cur_idx = status_order.get(order.status, 0) %}
 
@@ -79,7 +79,7 @@
 
         {% if order.status == 'cancelled' %}
         <div class="mt-12 py-4 border-2 border-red-100 bg-red-50 text-center">
-            <p class="text-red-500 text-[11px] font-black uppercase tracking-[0.3em]">Transaction Terminated / Order Cancelled</p>
+            <p class="text-red-500 text-[11px] font-black uppercase tracking-[0.3em]">Giao dịch chấm dứt / Đơn hàng đã hủy</p>
         </div>
         {% endif %}
       </div>
@@ -88,7 +88,7 @@
     <div class="grid grid-cols-1 md:grid-cols-2 gap-px bg-stone-200 border border-stone-200 mb-16 reveal" style="transition-delay: 200ms;">
       <div class="bg-white p-8 md:p-12">
         <h3 class="text-[11px] font-black uppercase tracking-[0.3em] mb-8 flex items-center gap-3">
-          <span class="w-4 h-[2px] bg-black"></span> Destination Logistics
+          <span class="w-4 h-[2px] bg-black"></span> Thông tin giao nhận
         </h3>
         {% if order.shipping_address %}
         <div class="space-y-2">
@@ -105,20 +105,20 @@
 
       <div class="bg-white p-8 md:p-12">
         <h3 class="text-[11px] font-black uppercase tracking-[0.3em] mb-8 flex items-center gap-3">
-          <span class="w-4 h-[2px] bg-black"></span> Transaction Data
+          <span class="w-4 h-[2px] bg-black"></span> Dữ liệu giao dịch
         </h3>
         <div class="space-y-4">
           <div class="flex justify-between items-center border-b border-stone-50 pb-3">
-            <span class="text-[10px] font-black text-stone-400 uppercase tracking-widest">Payment Method</span>
-            <span class="text-[12px] font-black uppercase tracking-widest">COD / On Delivery</span>
+            <span class="text-[10px] font-black text-stone-400 uppercase tracking-widest">Phương thức</span>
+            <span class="text-[12px] font-black uppercase tracking-widest">COD / Khi nhận hàng</span>
           </div>
           <div class="flex justify-between items-center border-b border-stone-50 pb-3">
-            <span class="text-[10px] font-black text-stone-400 uppercase tracking-widest">Courier</span>
-            <span class="text-[12px] font-black uppercase tracking-widest">Maison Standard</span>
+            <span class="text-[10px] font-black text-stone-400 uppercase tracking-widest">Vận chuyển</span>
+            <span class="text-[12px] font-black uppercase tracking-widest">GUA Standard</span>
           </div>
           <div class="flex justify-between items-end pt-4">
-            <span class="text-[10px] font-black text-black uppercase tracking-widest">Total Value</span>
-            <span class="text-3xl font-black tracking-tighter leading-none text-black">{{ '{:,.0f}'.format(order.total_amount) }} <span class="text-sm">VND</span></span>
+            <span class="text-[10px] font-black text-black uppercase tracking-widest">Tổng giá trị</span>
+            <span class="text-3xl font-black tracking-tighter leading-none text-black">{{ '{:,.0f}'.format(order.total_amount) }} <span class="text-sm">VNĐ</span></span>
           </div>
         </div>
       </div>
@@ -126,8 +126,8 @@
 
     <div class="border border-stone-200 reveal" style="transition-delay: 300ms;">
       <div class="px-8 py-5 bg-black text-white flex justify-between items-center">
-        <span class="text-[10px] font-black uppercase tracking-[0.3em]">Item Manifest</span>
-        <span class="text-[10px] font-mono">{{ order.order_items|length }} UNITS</span>
+        <span class="text-[10px] font-black uppercase tracking-[0.3em]">Danh mục sản phẩm</span>
+        <span class="text-[10px] font-mono">{{ order.order_items|length }} ĐƠN VỊ</span>
       </div>
       
       <div class="divide-y divide-stone-100">
@@ -141,19 +141,19 @@
           
           <div class="flex-1 text-center sm:text-left">
             <h4 class="text-[16px] font-black uppercase tracking-tight text-black group-hover:underline decoration-2 underline-offset-4 mb-2">
-              {{ item.products.name if item.products else 'Archived Item' }}
+              {{ item.products.name if item.products else 'Sản phẩm lưu kho' }}
             </h4>
             <div class="flex flex-wrap justify-center sm:justify-start gap-4">
               {% if item.size %}
                 <span class="text-[10px] font-black text-stone-400 border border-stone-200 px-2 py-1 uppercase">Size {{ item.size }}</span>
               {% endif %}
-              <span class="text-[10px] font-black text-stone-400 px-2 py-1 uppercase">Qty: {{ item.quantity }}</span>
+              <span class="text-[10px] font-black text-stone-400 px-2 py-1 uppercase">Số lượng: {{ item.quantity }}</span>
             </div>
           </div>
           
           <div class="text-center sm:text-right">
-            <p class="text-lg font-black tracking-tighter text-black">{{ '{:,.0f}'.format(item.unit_price * item.quantity) }} VND</p>
-            <p class="text-[10px] font-bold text-stone-400 uppercase tracking-widest mt-1">{{ '{:,.0f}'.format(item.unit_price) }} / UNIT</p>
+            <p class="text-lg font-black tracking-tighter text-black">{{ '{:,.0f}'.format(item.unit_price * item.quantity) }} VNĐ</p>
+            <p class="text-[10px] font-bold text-stone-400 uppercase tracking-widest mt-1">{{ '{:,.0f}'.format(item.unit_price) }} / ĐƠN VỊ</p>
           </div>
         </div>
         {% endfor %}
@@ -162,6 +162,4 @@
 
   </div>
 </div>
-
- 
 {% endblock %}

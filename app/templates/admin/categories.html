@@ -1,53 +1,58 @@
 {% extends "admin/admin_base.html" %}
-{% block title %}Category Architecture | GUA Admin{% endblock %}
+{% block title %}Quản lý danh mục | GUA Admin{% endblock %}
 
 {% block content %}
 <div class="min-h-screen bg-white text-black pb-24">
-  
+
+  {# ── STICKY HEADER ── #}
   <div class="border-b border-stone-100 mb-12 bg-white sticky top-20 z-30">
-    <div class="max-w-[1800px] mx-auto px-6 py-8">
-      <div class="flex items-end justify-between">
-        <div>
-          <h1 class="text-4xl md:text-5xl font-black uppercase tracking-tighter transform -skew-x-6">
-            Category <span class="text-transparent stroke-black" style="-webkit-text-stroke: 1px black;">Architecture</span>
-          </h1>
-          <p class="text-[11px] font-black text-stone-400 uppercase tracking-[0.4em] mt-2">
-            Quản lý {{ cats|length }} phân khu sản phẩm
-          </p>
-        </div>
-        <a href="/admin/products/add" class="hidden md:flex items-center gap-2 border-b-2 border-black pb-1 hover:text-stone-500 hover:border-stone-500 transition-colors">
-          <span class="text-[10px] font-black uppercase tracking-widest">+ Thêm sản phẩm mới</span>
-        </a>
+    <div class="max-w-[1800px] mx-auto px-6 py-8 flex items-end justify-between">
+      <div>
+        <h1 class="text-4xl md:text-5xl font-black uppercase tracking-tighter transform -skew-x-6">
+          Danh mục <span class="text-transparent" style="-webkit-text-stroke: 1px black;">Sản phẩm</span>
+        </h1>
+        <p class="text-[11px] font-black text-stone-400 uppercase tracking-[0.4em] mt-2">
+          {{ cats|length }} danh mục trong hệ thống
+        </p>
       </div>
+      <a href="/admin/products/add"
+         class="hidden md:flex items-center gap-2 border-b-2 border-black pb-1 hover:text-stone-500 hover:border-stone-500 transition-colors">
+        <span class="text-[10px] font-black uppercase tracking-widest">+ Thêm sản phẩm mới</span>
+      </a>
     </div>
   </div>
 
   <div class="max-w-[1800px] mx-auto px-6">
-    
+
+    {# ── TAB NAV ── #}
     <div class="flex mb-12 border-b border-stone-100 overflow-x-auto no-scrollbar">
-      {% for label, href, active in [('Dashboard','/admin/',False),('Products','/admin/products',False),('Categories','/admin/categories',True),('Orders','/admin/orders',False)] %}
-      <a href="{{ href }}" class="px-8 py-4 text-[11px] font-black uppercase tracking-[0.3em] transition-all relative group whitespace-nowrap
-        {% if active %} text-black {% else %} text-stone-400 hover:text-black {% endif %}">
+      {% for label, href, active in [
+        ('Tổng quan',  '/admin/',             False),
+        ('Sản phẩm',   '/admin/products',     False),
+        ('Danh mục',   '/admin/categories',   True),
+        ('Đơn hàng',   '/admin/orders',       False)
+      ] %}
+      <a href="{{ href }}"
+         class="px-8 py-4 text-[11px] font-black uppercase tracking-[0.3em] transition-all relative whitespace-nowrap
+         {% if active %} text-black {% else %} text-stone-400 hover:text-black {% endif %}">
         {{ label }}
-        {% if active %}
-        <span class="absolute bottom-0 left-0 w-full h-1 bg-black"></span>
-        {% endif %}
+        {% if active %}<span class="absolute bottom-0 left-0 w-full h-1 bg-black"></span>{% endif %}
       </a>
       {% endfor %}
     </div>
 
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-12">
-      
+
+      {# ── DANH SÁCH DANH MỤC ── #}
       <div class="lg:col-span-7">
         <div class="flex justify-between items-center mb-6">
-          <h2 class="text-[13px] font-black uppercase tracking-[0.3em]">Danh sách phân khu</h2>
-          <span class="text-[9px] font-bold text-stone-400 uppercase tracking-widest">Active Categories</span>
+          <h2 class="text-[13px] font-black uppercase tracking-[0.3em]">Danh sách danh mục</h2>
+          <span class="text-[9px] font-bold text-stone-400 uppercase tracking-widest">Đang hoạt động</span>
         </div>
 
         <div class="border-t border-stone-100">
           {% for cat in cats %}
           <div class="group flex flex-col sm:flex-row sm:items-center justify-between py-6 border-b border-stone-100 hover:bg-stone-50 transition-colors px-4 -mx-4">
-            
             <div class="flex items-center gap-6 mb-4 sm:mb-0">
               <span class="text-[10px] font-black text-stone-300 w-6">{{ loop.index }}</span>
               <div>
@@ -62,49 +67,56 @@
             </div>
 
             <div class="flex items-center gap-2 pl-12 sm:pl-0">
-              <a href="/admin/categories/edit/{{ cat.id }}" 
+              <a href="/admin/categories/edit/{{ cat.id }}"
                  class="px-6 py-3 border border-stone-200 text-[9px] font-black uppercase tracking-[0.2em] hover:bg-black hover:text-white transition-all">
-                Edit
+                Chỉnh sửa
               </a>
-              <form action="/admin/categories/delete/{{ cat.id }}" method="post" 
-                    onsubmit="return confirm('Cảnh báo: Xóa phân khu {{ cat.name }}? Các sản phẩm bên trong vẫn sẽ tồn tại nhưng mất phân loại.')" class="m-0">
-                <button type="submit" 
+              <form action="/admin/categories/delete/{{ cat.id }}" method="post" class="m-0"
+                    onsubmit="return confirm('Xóa danh mục {{ cat.name }}? Sản phẩm trong danh mục sẽ không bị xóa nhưng mất phân loại.')">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button type="submit"
                         class="px-6 py-3 border border-red-200 text-red-500 text-[9px] font-black uppercase tracking-[0.2em] hover:bg-red-500 hover:text-white transition-all">
-                  Delete
+                  Xóa
                 </button>
               </form>
             </div>
-
           </div>
           {% else %}
           <div class="py-20 text-center border-b border-stone-100">
-            <p class="text-[12px] font-black text-stone-400 uppercase tracking-[0.3em]">Hệ thống chưa có danh mục</p>
+            <p class="text-[12px] font-black text-stone-400 uppercase tracking-[0.3em]">Chưa có danh mục nào</p>
           </div>
           {% endfor %}
         </div>
       </div>
 
+      {# ── FORM THÊM DANH MỤC ── #}
       <div class="lg:col-span-5 relative">
         <div class="sticky top-48 bg-[#f9f9f9] p-8 md:p-12 border border-stone-100">
-          
+
           <div class="mb-10">
-            <h2 class="text-3xl font-black uppercase tracking-tighter mb-2">Deploy Category</h2>
+            <h2 class="text-3xl font-black uppercase tracking-tighter mb-2">Thêm danh mục</h2>
             <p class="text-[10px] font-bold text-stone-400 uppercase tracking-widest leading-relaxed">
-              Thiết lập cấu trúc phân loại mới cho hệ sinh thái Maison.
+              Tạo cấu trúc phân loại sản phẩm mới cho hệ thống.
             </p>
           </div>
 
           <form method="post" action="/admin/categories/add" class="space-y-8">
-            <div class="group">
-              <label class="block text-[11px] font-black text-black uppercase tracking-[0.2em] mb-2">Category Name <span class="text-red-500">*</span></label>
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+            <div>
+              <label class="block text-[11px] font-black text-black uppercase tracking-[0.2em] mb-2">
+                Tên danh mục <span class="text-red-500">*</span>
+              </label>
               <input type="text" name="name" required placeholder="VD: THỜI TRANG NỮ"
                 class="w-full bg-transparent border-b-2 border-stone-200 py-3 text-[16px] font-bold outline-none transition-all focus:border-black placeholder:text-stone-300 uppercase" />
             </div>
 
-            <div class="group">
+            <div>
               <div class="flex justify-between items-end mb-2">
-                <label class="block text-[11px] font-black text-black uppercase tracking-[0.2em]">URL Slug <span class="text-red-500">*</span></label>
-                <span class="text-[9px] text-stone-400 font-bold uppercase tracking-widest">Auto-formatted</span>
+                <label class="block text-[11px] font-black text-black uppercase tracking-[0.2em]">
+                  URL Slug <span class="text-red-500">*</span>
+                </label>
+                <span class="text-[9px] text-stone-400 font-bold uppercase tracking-widest">Tự động định dạng</span>
               </div>
               <input type="text" name="slug" required placeholder="women-collection"
                 oninput="this.value=this.value.toLowerCase().replace(/[^a-z0-9-]/g,'-')"
@@ -114,9 +126,9 @@
               </p>
             </div>
 
-            <button type="submit" 
+            <button type="submit"
                     class="w-full bg-black text-white py-5 mt-6 text-[11px] font-black uppercase tracking-[0.3em] hover:bg-stone-800 active:scale-[0.98] transition-all">
-              Tạo phân khu +
+              Tạo danh mục +
             </button>
           </form>
 
@@ -128,7 +140,6 @@
 </div>
 
 <style>
-  /* Ẩn scrollbar cho nav */
   .no-scrollbar::-webkit-scrollbar { display: none; }
   .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 </style>

@@ -1,18 +1,28 @@
 {% extends "admin/admin_base.html" %}
-{% block title %}Order Ledger | GUA Admin{% endblock %}
+{% block title %}Quản lý đơn hàng | GUA Admin{% endblock %}
 
 {% block content %}
+{# ── STATUS MAP dùng chung trong template này ── #}
+{% set status_vi = {
+  'pending':    ('Chờ xác nhận', 'border-yellow-300 text-yellow-600'),
+  'processing': ('Đang chuẩn bị', 'border-black text-black'),
+  'shipped':    ('Đang giao',     'border-stone-400 text-stone-500'),
+  'delivered':  ('Đã giao',       'bg-black text-white border-black'),
+  'cancelled':  ('Đã hủy',        'border-red-200 text-red-500')
+} %}
+
 <div class="min-h-screen bg-white text-black pb-24">
-  
+
+  {# ── STICKY HEADER ── #}
   <div class="border-b border-stone-100 mb-12 bg-white sticky top-20 z-30">
     <div class="max-w-[1800px] mx-auto px-6 py-8">
       <div class="flex items-end justify-between">
         <div>
           <h1 class="text-4xl md:text-5xl font-black uppercase tracking-tighter transform -skew-x-6">
-            Order <span class="text-transparent stroke-black" style="-webkit-text-stroke: 1px black;">Ledger</span>
+            Quản lý <span class="text-transparent" style="-webkit-text-stroke: 1px black;">Đơn hàng</span>
           </h1>
           <p class="text-[11px] font-black text-stone-400 uppercase tracking-[0.4em] mt-2 flex items-center gap-2">
-            <span class="w-2 h-2 bg-black"></span> Total Records: {{ total }}
+            <span class="w-2 h-2 bg-black"></span> Tổng {{ total }} đơn hàng
           </p>
         </div>
       </div>
@@ -20,21 +30,34 @@
   </div>
 
   <div class="max-w-[1800px] mx-auto px-6">
-    
+
+    {# ── TAB NAV ── #}
     <div class="flex mb-8 border-b border-stone-100 overflow-x-auto no-scrollbar">
-      {% for label, href, active in [('Dashboard','/admin/',False),('Products','/admin/products',False),('Categories','/admin/categories',False),('Orders','/admin/orders',True)] %}
-      <a href="{{ href }}" class="px-8 py-4 text-[11px] font-black uppercase tracking-[0.3em] transition-all relative group whitespace-nowrap
-        {% if active %} text-black {% else %} text-stone-400 hover:text-black {% endif %}">
+      {% for label, href, active in [
+        ('Tổng quan', '/admin/',           False),
+        ('Sản phẩm',  '/admin/products',   False),
+        ('Danh mục',  '/admin/categories', False),
+        ('Đơn hàng',  '/admin/orders',     True)
+      ] %}
+      <a href="{{ href }}"
+         class="px-8 py-4 text-[11px] font-black uppercase tracking-[0.3em] transition-all relative whitespace-nowrap
+         {% if active %} text-black {% else %} text-stone-400 hover:text-black {% endif %}">
         {{ label }}
-        {% if active %}
-        <span class="absolute bottom-0 left-0 w-full h-1 bg-black"></span>
-        {% endif %}
+        {% if active %}<span class="absolute bottom-0 left-0 w-full h-1 bg-black"></span>{% endif %}
       </a>
       {% endfor %}
     </div>
 
+    {# ── FILTER BUTTONS ── #}
     <div class="flex gap-2 mb-8 flex-wrap">
-      {% for slug, label in [('','All Drops'),('pending','Pending'),('processing','Processing'),('shipped','Shipped'),('delivered','Delivered'),('cancelled','Cancelled')] %}
+      {% for slug, label in [
+        ('',            'Tất cả'),
+        ('pending',     'Chờ xác nhận'),
+        ('processing',  'Đang chuẩn bị'),
+        ('shipped',     'Đang giao'),
+        ('delivered',   'Đã giao'),
+        ('cancelled',   'Đã hủy')
+      ] %}
       <a href="/admin/orders{% if slug %}?status={{ slug }}{% endif %}"
          class="px-6 py-3 text-[10px] font-black uppercase tracking-[0.2em] transition-all border
          {% if current_status == slug %} bg-black text-white border-black {% else %} bg-transparent border-stone-200 text-stone-400 hover:text-black hover:border-black {% endif %}">
@@ -43,85 +66,94 @@
       {% endfor %}
     </div>
 
+    {# ── TABLE ── #}
     <div class="border border-stone-200 bg-[#f9f9f9]">
       <div class="overflow-x-auto">
         <table class="w-full text-left whitespace-nowrap">
+
           <thead class="bg-white border-b-2 border-black">
             <tr>
-              <th class="px-6 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-stone-400">Order ID</th>
-              <th class="px-6 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-stone-400">Client / Email</th>
-              <th class="px-6 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-stone-400">Total Value</th>
-              <th class="px-6 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-stone-400">Command Status</th>
-              <th class="px-6 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-stone-400">Timestamp</th>
-              <th class="px-6 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-stone-400 text-right">Action</th>
+              <th class="px-6 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-stone-400">Mã đơn</th>
+              <th class="px-6 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-stone-400">Khách hàng</th>
+              <th class="px-6 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-stone-400">Tổng tiền</th>
+              <th class="px-6 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-stone-400">Trạng thái</th>
+              <th class="px-6 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-stone-400">Thời gian</th>
+              <th class="px-6 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-stone-400 text-right">Chi tiết</th>
             </tr>
           </thead>
+
           <tbody class="divide-y divide-stone-200 bg-white">
             {% for order in orders %}
             <tr class="hover:bg-stone-50 transition-colors group">
-              
+
               <td class="px-6 py-4 font-mono text-[13px] font-bold text-stone-500 group-hover:text-black transition-colors">
                 #{{ order.id[:8].upper() }}
               </td>
-              
+
               <td class="px-6 py-4">
-                <p class="text-[13px] font-black uppercase tracking-tight text-black">{{ order.users.full_name if order.users else 'DELETED ACCOUNT' }}</p>
-                <p class="text-[11px] font-bold text-stone-400">{{ order.users.email if order.users else 'N/A' }}</p>
+                <p class="text-[13px] font-black uppercase tracking-tight text-black">
+                  {{ order.users.full_name if order.users else 'TÀI KHOẢN ĐÃ XÓA' }}
+                </p>
+                <p class="text-[11px] font-bold text-stone-400">{{ order.users.email if order.users else '—' }}</p>
               </td>
-              
+
               <td class="px-6 py-4 text-[14px] font-black tracking-tighter">
-                {{ '{:,.0f}'.format(order.total_amount) }} <span class="text-[10px] text-stone-400">VND</span>
+                {{ '{:,.0f}'.format(order.total_amount) }} <span class="text-[10px] text-stone-400">VNĐ</span>
               </td>
-              
+
               <td class="px-6 py-4">
                 <form action="/admin/orders/{{ order.id }}/status" method="post" class="m-0 flex items-center relative w-max">
                   <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                  <input type="hidden" name="next" value="/admin/orders{% if current_status %}?status={{ current_status }}{% endif %}"/>
-                  
+                  <input type="hidden" name="next" value="/admin/orders{% if current_status %}?status={{ current_status }}{% endif %}">
                   <select name="status" onchange="this.form.submit()"
                     class="appearance-none bg-transparent border-b-2 border-stone-200 py-1.5 pr-6 text-[10px] font-black uppercase tracking-[0.2em] outline-none cursor-pointer focus:border-black transition-colors
                     {% if order.status == 'delivered' %} text-green-600 border-green-600
                     {% elif order.status == 'cancelled' %} text-red-500 border-red-500
-                    {% elif order.status == 'pending' %} text-yellow-600
+                    {% elif order.status == 'pending'   %} text-yellow-600
                     {% else %} text-black {% endif %}">
-                    {% for s in ['pending','processing','shipped','delivered','cancelled'] %}
-                    <option value="{{ s }}" {% if order.status == s %}selected{% endif %} class="uppercase text-black">{{ s }}</option>
+                    {% for key, val in status_vi.items() %}
+                    <option value="{{ key }}" {% if order.status == key %}selected{% endif %} class="text-black">{{ val[0] }}</option>
                     {% endfor %}
                   </select>
-                  <svg class="w-3 h-3 absolute right-0 top-1/2 -translate-y-1/2 pointer-events-none text-stone-400" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path d="M19 9l-7 7-7-7"/></svg>
+                  <svg class="w-3 h-3 absolute right-0 top-1/2 -translate-y-1/2 pointer-events-none text-stone-400" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24">
+                    <path d="M19 9l-7 7-7-7"/>
+                  </svg>
                 </form>
               </td>
-              
+
               <td class="px-6 py-4 text-[11px] font-bold text-stone-400 uppercase tracking-widest">
                 {{ order.created_at[:16].replace('T', ' ') if order.created_at else '–' }}
               </td>
-              
+
               <td class="px-6 py-4 text-right">
                 <a href="/admin/orders/{{ order.id }}"
                    class="inline-block border border-stone-200 bg-white text-black px-4 py-2 text-[9px] font-black uppercase tracking-[0.2em] hover:bg-black hover:text-white transition-all">
-                  Detail <span class="ml-1">+</span>
+                  Xem <span class="ml-1">+</span>
                 </a>
               </td>
+
             </tr>
             {% else %}
             <tr>
               <td colspan="6" class="px-6 py-20 text-center">
-                <p class="text-[12px] font-black text-stone-300 uppercase tracking-[0.4em]">NO TRANSACTIONS FOUND</p>
+                <p class="text-[12px] font-black text-stone-300 uppercase tracking-[0.4em]">Không tìm thấy đơn hàng nào</p>
               </td>
             </tr>
             {% endfor %}
           </tbody>
+
         </table>
       </div>
     </div>
 
+    {# ── PAGINATION ── #}
     {% if total_pages > 1 %}
     <div class="flex justify-center gap-2 mt-12">
       {% for p in range(1, total_pages + 1) %}
       <a href="/admin/orders?page={{ p }}{% if current_status %}&status={{ current_status }}{% endif %}"
          class="w-10 h-10 flex items-center justify-center border text-[12px] font-black transition-all
          {% if p == page %} bg-black text-white border-black {% else %} bg-white text-stone-400 border-stone-200 hover:text-black hover:border-black {% endif %}">
-         {{ p }}
+        {{ p }}
       </a>
       {% endfor %}
     </div>
