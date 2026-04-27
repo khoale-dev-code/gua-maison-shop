@@ -3,99 +3,115 @@
 
 {% block content %}
 {% set status_map = {
-    'pending': ('Chờ xác nhận', 'border-yellow-400 text-yellow-600'),
-    'processing': ('Đang xử lý', 'border-black text-black bg-stone-50'),
-    'shipped': ('Đang giao hàng', 'border-stone-400 text-stone-500'),
-    'delivered': ('Đã hoàn thành', 'bg-black text-white border-black'),
-    'cancelled': ('Đã hủy đơn', 'border-red-500 text-red-500')
+    'pending': ('Chờ xác nhận', 'bg-amber-100 text-amber-700 ring-1 ring-amber-200/50'),
+    'processing': ('Đang đóng gói', 'bg-blue-100 text-blue-700 ring-1 ring-blue-200/50'),
+    'shipped': ('Đang giao hàng', 'bg-indigo-100 text-indigo-700 ring-1 ring-indigo-200/50'),
+    'delivered': ('Đã hoàn thành', 'bg-emerald-100 text-emerald-700 ring-1 ring-emerald-200/50'),
+    'cancelled': ('Đã hủy đơn', 'bg-red-100 text-red-600 ring-1 ring-red-200/50')
 } %}
-{% set current_status = status_map.get(order.status, ('Hệ thống', 'border-stone-200 text-stone-400')) %}
+{% set current_status = status_map.get(order.status, ('Hệ thống', 'bg-stone-100 text-stone-600 ring-1 ring-stone-200/50')) %}
 
-<div class="bg-white min-h-screen pb-32 pt-12">
-  <div class="max-w-[1200px] mx-auto px-6">
+<div class="bg-stone-50 min-h-screen pb-24 pt-8 sm:pt-12 font-sans">
+  <div class="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8">
 
-    <a href="/profile/orders" class="inline-flex items-center gap-3 text-[10px] font-black text-stone-400 uppercase tracking-[0.3em] hover:text-black transition-colors mb-12 group reveal">
-      <svg class="w-4 h-4 group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24">
-        <path d="M15 19l-7-7 7-7"/>
+    <a href="/profile/orders" class="inline-flex items-center gap-2 text-xs font-semibold text-stone-500 hover:text-stone-900 transition-colors mb-8 group reveal">
+      <svg class="w-4 h-4 group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/>
       </svg>
-      Trở về kho đơn hàng
+      Trở về danh sách đơn hàng
     </a>
 
-    <div class="flex flex-col md:flex-row md:items-end justify-between gap-8 mb-16 pb-8 border-b-2 border-black reveal">
+    <div class="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10 reveal">
       <div>
-        <div class="flex items-center gap-4 mb-4">
-          <span class="px-4 py-1 text-[9px] font-black uppercase tracking-widest border-2 {{ current_status[1] }}">
+        <div class="flex items-center gap-3 mb-3">
+          <span class="px-3 py-1 text-[11px] font-bold uppercase tracking-wider rounded-full {{ current_status[1] }}">
             {{ current_status[0] }}
           </span>
-          <span class="text-[10px] font-mono font-bold text-stone-400 uppercase tracking-widest">
-            LOG_TIME: {{ order.created_at[:16].replace('T', ' ') if order.created_at else 'N/A' }}
+          <span class="text-xs font-medium text-stone-400 flex items-center gap-1.5">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            {{ order.created_at[:16].replace('T', ' ') if order.created_at else 'N/A' }}
           </span>
         </div>
-        <h1 class="text-4xl md:text-6xl font-black uppercase tracking-tighter transform -skew-x-6 leading-none">
-          Hóa đơn <span class="text-transparent" style="-webkit-text-stroke: 1.5px black;">#{{ order.id[:12].upper() }}</span>
+        <h1 class="text-3xl md:text-4xl font-bold tracking-tight text-stone-900">
+          Hóa đơn <span class="text-stone-400 font-medium">#{{ order.id[:8].upper() }}</span>
         </h1>
       </div>
       
-      <div class="flex gap-4">
-        <button onclick="window.print()" class="px-6 py-3 border border-stone-200 text-[10px] font-black uppercase tracking-widest hover:border-black transition-all">
-          Xuất tệp PDF_
+      <div>
+        <button onclick="window.print()" class="inline-flex items-center gap-2 px-5 py-2.5 bg-white border border-stone-200 rounded-xl text-xs font-bold text-stone-700 hover:bg-stone-50 hover:text-stone-900 transition-all shadow-sm active:scale-95">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6.728 6.75h10.544a2.25 2.25 0 012.25 2.25v5.004a2.25 2.25 0 01-2.25 2.25H17.25v2.25a2.25 2.25 0 01-2.25 2.25H9a2.25 2.25 0 01-2.25-2.25v-2.25H4.972a2.25 2.25 0 01-2.25-2.25V9a2.25 2.25 0 012.25-2.25zM10.5 6.75V4.5a2.25 2.25 0 012.25-2.25h3a2.25 2.25 0 012.25 2.25v2.25M17.25 16.5H6.75"/></svg>
+          In / Lưu PDF
         </button>
       </div>
     </div>
 
-    <div class="mb-16 reveal" style="transition-delay: 100ms;">
-      <div class="bg-stone-50 border border-stone-100 p-8 md:p-12">
-        <h3 class="text-[11px] font-black uppercase tracking-[0.4em] text-stone-400 mb-10 text-center">Tiến trình vận chuyển</h3>
+    <div class="bg-white rounded-3xl shadow-[0_4px_20px_rgb(0,0,0,0.03)] border border-stone-100 p-8 md:p-12 mb-8 reveal" style="transition-delay: 100ms;">
+      <h3 class="text-sm font-bold text-stone-900 mb-10 text-center sm:text-left">Tiến trình vận chuyển</h3>
+      
+      <div class="relative flex flex-col sm:flex-row justify-between items-center gap-8 sm:gap-0">
         
-        <div class="relative flex flex-col md:flex-row justify-between items-center gap-8 md:gap-0">
-          <div class="absolute top-1/2 left-0 w-full h-[1px] bg-stone-200 -translate-y-1/2 hidden md:block"></div>
-          
-          {% set steps = [('pending','XÁC THỰC'),('processing','ĐÓNG GÓI'),('shipped','LUÂN CHUYỂN'),('delivered','GIAO NHẬN')] %}
-          {% set status_order = {'pending':0,'processing':1,'shipped':2,'delivered':3, 'cancelled': -1} %}
-          {% set cur_idx = status_order.get(order.status, 0) %}
-
-          {% for slug, label in steps %}
-            {% set i = loop.index0 %}
-            <div class="relative z-10 flex flex-col items-center group w-full md:w-auto">
-              <div class="w-10 h-10 flex items-center justify-center transition-all duration-500
-                {% if i <= cur_idx and order.status != 'cancelled' %}
-                  bg-black text-white scale-110 shadow-lg
-                {% else %}
-                  bg-white border-2 border-stone-200 text-stone-300
-                {% endif %}">
-                {% if i < cur_idx and order.status != 'cancelled' %}
-                  <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"/></svg>
-                {% else %}
-                  <span class="font-mono text-[12px] font-black">{{ "0%d"|format(i+1) }}</span>
-                {% endif %}
-              </div>
-              <span class="mt-4 text-[10px] font-black uppercase tracking-[0.2em] 
-                {% if i <= cur_idx and order.status != 'cancelled' %} text-black {% else %} text-stone-300 {% endif %}">
-                {{ label }}
-              </span>
+        {% set status_order = {'pending':0,'processing':1,'shipped':2,'delivered':3, 'cancelled': -1} %}
+        {% set cur_idx = status_order.get(order.status, 0) %}
+        
+        <div class="absolute top-6 left-10 w-[calc(100%-5rem)] h-[3px] bg-stone-100 hidden sm:block rounded-full">
+          <div class="h-full bg-stone-900 rounded-full transition-all duration-1000" 
+               style="width: {% if cur_idx == 0 %}0%{% elif cur_idx == 1 %}33.33%{% elif cur_idx == 2 %}66.66%{% else %}100%{% endif %}; 
+                      {% if order.status == 'cancelled' %}display:none;{% endif %}">
+          </div>
+        </div>
+        
+        {% set steps = [('pending','Xác thực'),('processing','Đóng gói'),('shipped','Đang giao'),('delivered','Giao nhận')] %}
+        {% for slug, label in steps %}
+          {% set i = loop.index0 %}
+          <div class="relative z-10 flex flex-col items-center group w-full sm:w-auto">
+            <div class="w-12 h-12 rounded-full flex items-center justify-center transition-all duration-500 shadow-sm
+              {% if order.status == 'cancelled' %}
+                bg-stone-50 border-2 border-stone-200 text-stone-300
+              {% elif i < cur_idx %}
+                bg-stone-900 text-white
+              {% elif i == cur_idx %}
+                bg-stone-900 text-white ring-4 ring-stone-900/20
+              {% else %}
+                bg-white border-2 border-stone-100 text-stone-300
+              {% endif %}">
+              
+              {% if i < cur_idx and order.status != 'cancelled' %}
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>
+              {% else %}
+                <span class="font-bold text-sm">{{ i+1 }}</span>
+              {% endif %}
             </div>
-          {% endfor %}
-        </div>
-
-        {% if order.status == 'cancelled' %}
-        <div class="mt-12 py-4 border-2 border-red-100 bg-red-50 text-center">
-            <p class="text-red-500 text-[11px] font-black uppercase tracking-[0.3em]">Giao dịch chấm dứt / Đơn hàng đã hủy</p>
-        </div>
-        {% endif %}
+            <span class="mt-4 text-xs font-semibold tracking-wide
+              {% if i <= cur_idx and order.status != 'cancelled' %} text-stone-900 {% else %} text-stone-400 {% endif %}">
+              {{ label }}
+            </span>
+          </div>
+        {% endfor %}
       </div>
+
+      {% if order.status == 'cancelled' %}
+      <div class="mt-10 p-4 rounded-xl bg-red-50 border border-red-100 flex items-center justify-center gap-2 text-red-600">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+          <p class="text-sm font-semibold">Giao dịch đã bị hủy trên hệ thống.</p>
+      </div>
+      {% endif %}
     </div>
 
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-px bg-stone-200 border border-stone-200 mb-16 reveal" style="transition-delay: 200ms;">
-      <div class="bg-white p-8 md:p-12">
-        <h3 class="text-[11px] font-black uppercase tracking-[0.3em] mb-8 flex items-center gap-3">
-          <span class="w-4 h-[2px] bg-black"></span> Thông tin giao nhận
-        </h3>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8 reveal" style="transition-delay: 200ms;">
+      
+      <div class="bg-white rounded-2xl shadow-[0_4px_20px_rgb(0,0,0,0.03)] border border-stone-100 p-8 flex flex-col">
+        <div class="flex justify-between items-center mb-6">
+          <h3 class="text-sm font-bold text-stone-900">Địa chỉ nhận hàng</h3>
+          <div class="w-8 h-8 rounded-full bg-stone-50 flex items-center justify-center text-stone-400">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z"/></svg>
+          </div>
+        </div>
         {% if order.shipping_address %}
-        <div class="space-y-2">
-          <p class="text-xl font-black uppercase tracking-tight">{{ order.shipping_address.get('full_name','') }}</p>
-          <p class="text-[14px] font-bold text-stone-600 font-mono">{{ order.shipping_address.get('phone','') }}</p>
-          <div class="h-px w-12 bg-stone-100 my-4"></div>
-          <p class="text-[12px] font-bold text-stone-400 uppercase leading-relaxed tracking-widest">
+        <div class="space-y-1 mt-auto">
+          <p class="text-base font-bold text-stone-900">{{ order.shipping_address.get('full_name','') }}</p>
+          <p class="text-sm font-medium text-stone-500">{{ order.shipping_address.get('phone','') }}</p>
+          <div class="h-px w-full bg-stone-100 my-4"></div>
+          <p class="text-sm font-medium text-stone-600 leading-relaxed">
             {{ order.shipping_address.get('address','') }}<br>
             {{ order.shipping_address.get('city','') }}
           </p>
@@ -103,58 +119,69 @@
         {% endif %}
       </div>
 
-      <div class="bg-white p-8 md:p-12">
-        <h3 class="text-[11px] font-black uppercase tracking-[0.3em] mb-8 flex items-center gap-3">
-          <span class="w-4 h-[2px] bg-black"></span> Dữ liệu giao dịch
-        </h3>
-        <div class="space-y-4">
-          <div class="flex justify-between items-center border-b border-stone-50 pb-3">
-            <span class="text-[10px] font-black text-stone-400 uppercase tracking-widest">Phương thức</span>
-            <span class="text-[12px] font-black uppercase tracking-widest">COD / Khi nhận hàng</span>
+      <div class="bg-white rounded-2xl shadow-[0_4px_20px_rgb(0,0,0,0.03)] border border-stone-100 p-8 flex flex-col">
+        <div class="flex justify-between items-center mb-6">
+          <h3 class="text-sm font-bold text-stone-900">Dữ liệu giao dịch</h3>
+          <div class="w-8 h-8 rounded-full bg-stone-50 flex items-center justify-center text-stone-400">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5z"/></svg>
           </div>
-          <div class="flex justify-between items-center border-b border-stone-50 pb-3">
-            <span class="text-[10px] font-black text-stone-400 uppercase tracking-widest">Vận chuyển</span>
-            <span class="text-[12px] font-black uppercase tracking-widest">GUA Standard</span>
+        </div>
+        <div class="space-y-4 flex-1 mt-auto">
+          <div class="flex justify-between items-center pb-4 border-b border-stone-50">
+            <span class="text-sm font-medium text-stone-500">Phương thức</span>
+            <span class="text-sm font-semibold text-stone-900">Thanh toán khi nhận (COD)</span>
           </div>
-          <div class="flex justify-between items-end pt-4">
-            <span class="text-[10px] font-black text-black uppercase tracking-widest">Tổng giá trị</span>
-            <span class="text-3xl font-black tracking-tighter leading-none text-black">{{ '{:,.0f}'.format(order.total_amount) }} <span class="text-sm">VNĐ</span></span>
+          <div class="flex justify-between items-center pb-4 border-b border-stone-50">
+            <span class="text-sm font-medium text-stone-500">Vận chuyển</span>
+            <span class="text-sm font-semibold text-stone-900">GUA Standard</span>
+          </div>
+          <div class="flex justify-between items-end pt-2">
+            <span class="text-sm font-bold text-stone-900">Tổng cộng</span>
+            <span class="text-2xl font-bold tracking-tight text-stone-900">{{ '{:,.0f}'.format(order.total_amount) }} <span class="text-base font-medium text-stone-500">₫</span></span>
           </div>
         </div>
       </div>
+
     </div>
 
-    <div class="border border-stone-200 reveal" style="transition-delay: 300ms;">
-      <div class="px-8 py-5 bg-black text-white flex justify-between items-center">
-        <span class="text-[10px] font-black uppercase tracking-[0.3em]">Danh mục sản phẩm</span>
-        <span class="text-[10px] font-mono">{{ order.order_items|length }} ĐƠN VỊ</span>
+    <div class="bg-white rounded-2xl shadow-[0_4px_20px_rgb(0,0,0,0.03)] border border-stone-100 overflow-hidden reveal" style="transition-delay: 300ms;">
+      <div class="px-6 md:px-8 py-5 bg-stone-50/50 border-b border-stone-100 flex justify-between items-center">
+        <h3 class="text-sm font-bold text-stone-900">Danh sách sản phẩm</h3>
+        <span class="text-xs font-semibold text-stone-500 bg-white border border-stone-200 px-3 py-1.5 rounded-full">{{ order.order_items|length }} sản phẩm</span>
       </div>
       
       <div class="divide-y divide-stone-100">
         {% for item in order.order_items %}
-        <div class="p-8 flex flex-col sm:flex-row items-center gap-8 bg-white group hover:bg-stone-50 transition-colors">
-          <div class="w-20 aspect-[3/4] bg-stone-50 border border-stone-100 overflow-hidden shrink-0">
+        <div class="p-6 md:px-8 flex flex-col sm:flex-row items-start sm:items-center gap-6 hover:bg-stone-50/50 transition-colors">
+          
+          <div class="w-20 aspect-[3/4] bg-stone-50 border border-stone-200/60 rounded-xl overflow-hidden shrink-0">
             {% if item.products and item.products.thumbnail_url %}
-              <img src="{{ item.products.thumbnail_url }}" class="w-full h-full object-cover mix-blend-multiply group-hover:scale-110 transition-transform duration-700" loading="lazy"/>
+              <img src="{{ item.products.thumbnail_url }}" class="w-full h-full object-cover mix-blend-multiply hover:scale-105 transition-transform duration-700" loading="lazy"/>
+            {% else %}
+              <div class="w-full h-full flex items-center justify-center text-[10px] font-bold text-stone-300">N/A</div>
             {% endif %}
           </div>
           
-          <div class="flex-1 text-center sm:text-left">
-            <h4 class="text-[16px] font-black uppercase tracking-tight text-black group-hover:underline decoration-2 underline-offset-4 mb-2">
-              {{ item.products.name if item.products else 'Sản phẩm lưu kho' }}
-            </h4>
-            <div class="flex flex-wrap justify-center sm:justify-start gap-4">
+          <div class="flex-1">
+            <a href="/product/{{ item.products.id if item.products else '#' }}" class="text-base font-bold text-stone-900 hover:text-stone-600 transition-colors block mb-2">
+              {{ item.products.name if item.products else 'Sản phẩm đã gỡ khỏi kho' }}
+            </a>
+            <div class="flex flex-wrap items-center gap-3">
               {% if item.size %}
-                <span class="text-[10px] font-black text-stone-400 border border-stone-200 px-2 py-1 uppercase">Size {{ item.size }}</span>
+                <span class="text-xs font-semibold text-stone-600 bg-stone-100 border border-stone-200 px-2.5 py-1 rounded-md">Size {{ item.size }}</span>
               {% endif %}
-              <span class="text-[10px] font-black text-stone-400 px-2 py-1 uppercase">Số lượng: {{ item.quantity }}</span>
+              <span class="text-xs font-medium text-stone-500 flex items-center gap-1.5">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                Số lượng: {{ item.quantity }}
+              </span>
             </div>
           </div>
           
-          <div class="text-center sm:text-right">
-            <p class="text-lg font-black tracking-tighter text-black">{{ '{:,.0f}'.format(item.unit_price * item.quantity) }} VNĐ</p>
-            <p class="text-[10px] font-bold text-stone-400 uppercase tracking-widest mt-1">{{ '{:,.0f}'.format(item.unit_price) }} / ĐƠN VỊ</p>
+          <div class="text-left sm:text-right mt-2 sm:mt-0 w-full sm:w-auto border-t sm:border-0 border-stone-50 pt-4 sm:pt-0">
+            <p class="text-lg font-bold tracking-tight text-stone-900">{{ '{:,.0f}'.format(item.unit_price * item.quantity) }} ₫</p>
+            <p class="text-xs font-medium text-stone-400 mt-1">{{ '{:,.0f}'.format(item.unit_price) }} ₫ / SP</p>
           </div>
+
         </div>
         {% endfor %}
       </div>
@@ -162,4 +189,21 @@
 
   </div>
 </div>
+
+<style>
+  /* In hóa đơn: Ẩn các nút điều hướng và đổ màu lại cho bản in đẹp */
+  @media print {
+    body { background-color: white !important; }
+    nav, footer, button, a { display: none !important; }
+    .shadow-\\[0_4px_20px_rgb\\(0\\,0\\,0\\,0\\.03\\)\\] { box-shadow: none !important; border: 1px solid #e5e5e5 !important; }
+  }
+  
+  .reveal {
+    animation: revealUp 0.6s ease-out forwards;
+  }
+  @keyframes revealUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+</style>
 {% endblock %}

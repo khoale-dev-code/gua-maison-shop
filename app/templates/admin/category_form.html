@@ -2,65 +2,72 @@
 {% block title %}Chỉnh sửa danh mục | GUA Admin{% endblock %}
 
 {% block content %}
-<div class="min-h-[85vh] bg-white text-black flex items-center justify-center py-12 px-6">
+<div class="min-h-[calc(100vh-4rem)] bg-stone-50 text-stone-900 flex items-center justify-center py-12 px-4 sm:px-6 font-sans">
 
-  <div class="w-full max-w-[600px]">
+  <div class="w-full max-w-[600px] reveal">
 
     <a href="/admin/categories"
-       class="inline-flex items-center gap-3 text-[10px] font-black uppercase tracking-[0.3em] text-stone-400 hover:text-black transition-colors mb-12 group">
+       class="inline-flex items-center gap-2 text-xs font-semibold text-stone-500 hover:text-stone-900 transition-colors mb-8 group">
       <svg class="w-4 h-4 group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/>
       </svg>
-      Về danh sách danh mục
+      Quay lại danh sách
     </a>
 
-    <div class="mb-12">
-      <h1 class="text-5xl md:text-6xl font-black uppercase tracking-tighter transform -skew-x-6 mb-2">
-        Chỉnh sửa <span class="text-transparent" style="-webkit-text-stroke: 1.5px black;">Danh mục</span>
+    <div class="mb-8">
+      <h1 class="text-2xl md:text-3xl font-bold tracking-tight text-stone-900 mb-2">
+        Chỉnh sửa danh mục
       </h1>
-      <p class="text-[11px] font-bold text-stone-400 uppercase tracking-widest flex items-center gap-2">
-        <span class="w-2 h-2 bg-yellow-400 rounded-full animate-pulse"></span>
-        Đang chỉnh sửa: {{ cat.name }}
-      </p>
+      <div class="flex items-center gap-2">
+        <span class="w-2 h-2 bg-amber-400 rounded-full animate-pulse"></span>
+        <p class="text-sm font-medium text-stone-500">
+          Đang cập nhật: <span class="font-bold text-stone-800">{{ cat.name }}</span>
+        </p>
+      </div>
     </div>
 
-    <div class="bg-[#f9f9f9] p-8 md:p-12 border border-stone-100">
-      <form method="post" class="space-y-8">
+    <div class="bg-white rounded-2xl shadow-[0_4px_20px_rgb(0,0,0,0.03)] border border-stone-100 p-8 md:p-10 relative overflow-hidden">
+      
+      <div class="absolute -top-10 -right-10 w-40 h-40 bg-stone-50 rounded-full blur-3xl pointer-events-none"></div>
+
+      <form method="post" class="space-y-6 relative z-10">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 
         {# Tên danh mục #}
         <div>
-          <label class="block text-[11px] font-black text-black uppercase tracking-[0.2em] mb-2">
+          <label class="block text-xs font-semibold text-stone-600 mb-2 uppercase tracking-wider">
             Tên danh mục <span class="text-red-500">*</span>
           </label>
-          <input type="text" name="name" required value="{{ cat.name }}"
-            class="w-full bg-transparent border-b-2 border-stone-200 py-3 text-[16px] font-bold outline-none transition-all focus:border-black placeholder:text-stone-300 uppercase" />
+          <input type="text" name="name" required value="{{ cat.name }}" placeholder="Nhập tên danh mục"
+            class="w-full text-sm text-stone-800 border border-stone-200 rounded-lg px-4 py-3 outline-none focus:border-stone-400 focus:ring-1 focus:ring-stone-400 transition-all bg-stone-50/50 focus:bg-white placeholder:text-stone-400" />
         </div>
 
         {# URL Slug #}
         <div>
           <div class="flex justify-between items-end mb-2">
-            <label class="block text-[11px] font-black text-black uppercase tracking-[0.2em]">
-              URL Slug <span class="text-red-500">*</span>
+            <label class="block text-xs font-semibold text-stone-600 uppercase tracking-wider">
+              Đường dẫn (Slug) <span class="text-red-500">*</span>
             </label>
-            <span class="text-[9px] text-stone-400 font-bold uppercase tracking-widest">Tự động định dạng</span>
+            <span class="text-[10px] font-medium text-stone-400">Tự động định dạng</span>
           </div>
-          <input type="text" name="slug" required value="{{ cat.slug }}"
+          <input type="text" name="slug" required value="{{ cat.slug }}" placeholder="duong-dan-danh-muc"
             oninput="this.value=this.value.toLowerCase().replace(/[^a-z0-9-]/g,'-')"
-            class="w-full bg-transparent border-b-2 border-stone-200 py-3 text-[14px] font-mono outline-none transition-all focus:border-black placeholder:text-stone-300" />
-          <p class="text-[10px] font-medium text-stone-500 mt-3 italic border-l-2 border-stone-300 pl-3">
-            Đường dẫn tĩnh. VD: gua.com/shop?category=<span class="font-bold text-black">{{ cat.slug }}</span>
+            class="w-full text-sm text-stone-600 font-mono border border-stone-200 rounded-lg px-4 py-3 outline-none focus:border-stone-400 focus:ring-1 focus:ring-stone-400 transition-all bg-stone-50/50 focus:bg-white placeholder:text-stone-300" />
+          
+          <p class="text-[11px] font-medium text-stone-400 mt-2.5 flex items-start gap-1.5">
+            <svg class="w-3.5 h-3.5 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+            VD: gua.com/shop?category=<span class="font-bold text-stone-700">{{ cat.slug }}</span>
           </p>
         </div>
 
         {# Buttons #}
-        <div class="flex flex-col sm:flex-row gap-4 pt-6">
+        <div class="flex flex-col sm:flex-row gap-3 pt-4">
           <button type="submit"
-            class="flex-[2] bg-black text-white py-5 text-[11px] font-black uppercase tracking-[0.3em] hover:bg-stone-800 active:scale-[0.98] transition-all">
-            Lưu thay đổi +
+            class="flex-[2] bg-stone-900 text-white text-sm font-semibold py-3 rounded-lg hover:bg-stone-700 active:scale-[0.98] transition-all duration-200 shadow-md">
+            Lưu thay đổi
           </button>
           <a href="/admin/categories"
-            class="flex-1 flex items-center justify-center border border-stone-200 py-5 text-[11px] font-black text-stone-500 uppercase tracking-[0.2em] hover:bg-stone-50 hover:text-black hover:border-black transition-all">
+            class="flex-1 flex items-center justify-center bg-white border border-stone-200 text-stone-600 text-sm font-semibold py-3 rounded-lg hover:bg-stone-50 hover:text-stone-900 transition-all duration-200">
             Hủy bỏ
           </a>
         </div>
@@ -69,4 +76,14 @@
 
   </div>
 </div>
+
+<style>
+  .reveal {
+    animation: revealUp 0.5s ease-out forwards;
+  }
+  @keyframes revealUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+</style>
 {% endblock %}

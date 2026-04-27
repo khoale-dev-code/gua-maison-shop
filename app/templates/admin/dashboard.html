@@ -5,144 +5,155 @@
 {% endblock %}
 
 {% block content %}
-<div class="min-h-screen bg-white text-black pb-24">
+<div class="min-h-screen bg-stone-50 text-stone-900 pb-24 font-sans">
   
-  <div class="border-b-[3px] border-black mb-12 bg-white sticky top-20 z-30">
-    <div class="max-w-[1800px] mx-auto px-6 py-6 flex items-center justify-between">
-      <div class="flex items-baseline gap-6">
-        <h1 class="text-4xl md:text-5xl font-black uppercase tracking-tighter transform -skew-x-6">
-          Tổng Quan <span class="text-transparent stroke-black" style="-webkit-text-stroke: 1.5px black;">Hệ Thống</span>
+  <div class="bg-white border-b border-stone-200 mb-8 sticky top-16 z-30 shadow-sm transition-all">
+    <div class="max-w-[1600px] mx-auto px-6 lg:px-10 py-5 flex items-center justify-between">
+      <div class="flex items-center gap-4">
+        <h1 class="text-2xl md:text-3xl font-bold tracking-tight text-stone-900">
+          Tổng quan hệ thống
         </h1>
-        <p class="hidden md:block text-[10px] font-mono font-black text-stone-400 uppercase tracking-[0.4em]">Maison Operations 2026 // v1.0</p>
+        <span class="hidden md:flex items-center gap-2 px-3 py-1 bg-stone-100 rounded-full text-[10px] font-semibold text-stone-500 uppercase tracking-wider">
+          <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> v1.0.26
+        </span>
       </div>
       
       <div class="flex items-center gap-4">
         <div class="text-right hidden sm:block">
-          <p class="text-[11px] font-black uppercase tracking-widest leading-none">{{ current_user.full_name }}</p>
-          <p class="text-[9px] font-bold text-red-600 uppercase tracking-widest mt-1">Quản Trị Viên Cấp Cao</p>
+          <p class="text-sm font-semibold tracking-tight leading-none text-stone-800">{{ current_user.full_name }}</p>
+          <p class="text-[10px] font-semibold text-stone-400 uppercase tracking-widest mt-1">Quản Trị Viên</p>
         </div>
-        <div class="w-12 h-12 bg-black border-2 border-black flex items-center justify-center text-white font-black text-lg shadow-[4px_4px_0px_0px_rgba(200,200,200,1)] hover:shadow-none hover:translate-x-1 hover:translate-y-1 transition-all cursor-pointer">
+        <div class="w-10 h-10 rounded-full bg-stone-900 flex items-center justify-center text-white font-bold text-sm shadow-md hover:shadow-lg hover:-translate-y-0.5 transition-all cursor-pointer ring-2 ring-white">
           {{ current_user.full_name[0]|upper }}
         </div>
       </div>
     </div>
   </div>
 
-  <div class="max-w-[1800px] mx-auto px-6">
+  <div class="max-w-[1600px] mx-auto px-6 lg:px-10">
 
-    <div class="flex mb-12 border-b-[3px] border-stone-100 overflow-x-auto no-scrollbar bg-stone-50/50">
+    <div class="flex mb-10 overflow-x-auto no-scrollbar gap-2 bg-stone-100/50 p-1.5 rounded-xl border border-stone-200/60 max-w-fit">
       {% for label, href, active in [
-        ('Bảng Điều Khiển','/admin/',True),
-        ('Quản Lý Vật Phẩm','/admin/products',False),
-        ('Phân Khu Danh Mục','/admin/categories',False),
-        ('Nhật Ký Giao Dịch','/admin/orders',False)
+        ('Bảng điều khiển','/admin/',True),
+        ('Sản phẩm','/admin/products',False),
+        ('Danh mục','/admin/categories',False),
+        ('Đơn hàng','/admin/orders',False)
       ] %}
-      <a href="{{ href }}" class="px-10 py-5 text-[11px] font-black uppercase tracking-[0.3em] transition-all relative group
-        {% if active %} text-black bg-white border-x-[3px] border-t-[3px] border-black -mb-[3px] {% else %} text-stone-400 hover:text-black {% endif %}">
+      <a href="{{ href }}" class="px-6 py-2.5 text-xs font-semibold rounded-lg transition-all whitespace-nowrap
+        {% if active %} bg-white text-stone-900 shadow-sm ring-1 ring-stone-200/50 {% else %} text-stone-500 hover:text-stone-900 hover:bg-white/50 {% endif %}">
         {{ label }}
       </a>
       {% endfor %}
     </div>
 
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
-      {% for label, value, sub, color, pulse in [
-        ('Tổng Đơn Hàng', stats.total_orders, (stats.pending|string + ' ĐANG CHỜ'), 'text-black', false),
-        ('Tổng Doanh Thu', '{:,.0f}'.format(stats.total_revenue) + ' VNĐ', 'TRUY XUẤT TỪ CSDL', 'text-black', false),
-        ('Thành Viên Club', user_count, 'NODE ĐÃ ĐĂNG KÝ', 'text-black', false),
-        ('Kho Tài Nguyên', prod_count, 'VẬT PHẨM TRỰC TUYẾN', 'text-black', false),
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-10">
+      {% for label, value, sub, icon_path in [
+        ('Tổng Đơn Hàng', stats.total_orders, (stats.pending|string + ' đơn đang chờ'), 'M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z'),
+        ('Tổng Doanh Thu', '{:,.0f}'.format(stats.total_revenue) + ' ₫', 'Ghi nhận toàn hệ thống', 'M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z'),
+        ('Thành Viên Club', user_count, 'Tài khoản đã đăng ký', 'M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z'),
+        ('Sản Phẩm Trực Tuyến', prod_count, 'Đang hiển thị trên kho', 'M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z'),
       ] %}
-      <div class="bg-white border-[3px] border-black p-8 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all">
-        <div class="flex justify-between items-start mb-6">
-          <span class="text-[10px] font-black uppercase tracking-[0.4em] text-stone-400">{{ label }}</span>
-          <div class="w-3 h-3 bg-black {% if pulse %}animate-pulse bg-red-600{% endif %}"></div>
+      <div class="bg-white rounded-2xl p-6 shadow-[0_4px_20px_rgb(0,0,0,0.03)] border border-stone-100 hover:shadow-[0_8px_30px_rgb(0,0,0,0.06)] hover:-translate-y-1 transition-all duration-300">
+        <div class="flex justify-between items-start mb-4">
+          <span class="text-xs font-semibold text-stone-500">{{ label }}</span>
+          <div class="w-8 h-8 rounded-full bg-stone-50 flex items-center justify-center text-stone-400">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="{{ icon_path }}"/></svg>
+          </div>
         </div>
-        <p class="text-4xl font-black tracking-tighter mb-2 {{ color }}">{{ value }}</p>
-        <p class="text-[10px] font-mono font-bold text-stone-400 uppercase tracking-widest">> {{ sub }}</p>
+        <p class="text-3xl font-bold tracking-tight text-stone-900 mb-1.5">{{ value }}</p>
+        <p class="text-xs text-stone-400 font-medium">{{ sub }}</p>
       </div>
       {% endfor %}
     </div>
 
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12">
-      <div class="lg:col-span-2 border-[3px] border-black p-8 reveal bg-white shadow-[8px_8px_0px_0px_rgba(240,240,240,1)]">
-        <div class="flex justify-between items-end mb-10 border-b-2 border-stone-100 pb-6">
+    <div class="grid grid-cols-1 xl:grid-cols-3 gap-6 mb-10">
+      <div class="xl:col-span-2 bg-white rounded-2xl p-6 md:p-8 shadow-[0_4px_20px_rgb(0,0,0,0.03)] border border-stone-100 reveal">
+        <div class="flex justify-between items-end mb-8 border-b border-stone-100 pb-5">
           <div>
-            <h3 class="text-xl font-black uppercase tracking-tighter">Ma Trận Hiệu Năng</h3>
-            <p class="text-[10px] font-mono font-bold text-stone-400 uppercase tracking-widest mt-1">Phân tích dòng tiền hàng tháng</p>
-          </div>
-          <div class="flex gap-4">
-             <span class="flex items-center gap-2 text-[10px] font-black"><span class="w-3 h-3 bg-black"></span> DOANH THU</span>
+            <h3 class="text-lg font-bold tracking-tight text-stone-900">Thống kê doanh thu</h3>
+            <p class="text-xs font-medium text-stone-400 mt-1">Biến động dòng tiền 12 tháng gần nhất</p>
           </div>
         </div>
-        <div class="h-80 w-full">
+        <div class="h-[320px] w-full">
           <canvas id="revenueChart"></canvas>
         </div>
       </div>
 
-      <div class="border-[3px] border-black p-8 reveal bg-white shadow-[8px_8px_0px_0px_rgba(240,240,240,1)]">
-        <h3 class="text-xl font-black uppercase tracking-tighter mb-2">Phân Luồng Đơn Hàng</h3>
-        <p class="text-[10px] font-mono font-bold text-stone-400 uppercase tracking-widest mb-10">Trạng thái dữ liệu thời gian thực</p>
-        <div class="h-64 relative flex items-center justify-center">
+      <div class="bg-white rounded-2xl p-6 md:p-8 shadow-[0_4px_20px_rgb(0,0,0,0.03)] border border-stone-100 reveal">
+        <h3 class="text-lg font-bold tracking-tight text-stone-900 mb-1">Trạng thái đơn hàng</h3>
+        <p class="text-xs font-medium text-stone-400 mb-8">Tỉ lệ phân bổ thời gian thực</p>
+        <div class="h-[260px] relative flex items-center justify-center">
           <canvas id="statusChart"></canvas>
         </div>
       </div>
     </div>
 
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-      <div class="border-[3px] border-black p-8 reveal bg-white">
-        <h3 class="text-xl font-black uppercase tracking-tighter mb-10">Tài Nguyên / Danh Mục</h3>
-        <div class="h-64">
+    <div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
+      <div class="bg-white rounded-2xl p-6 md:p-8 shadow-[0_4px_20px_rgb(0,0,0,0.03)] border border-stone-100 reveal">
+        <h3 class="text-lg font-bold tracking-tight text-stone-900 mb-1">Cấu trúc kho hàng</h3>
+        <p class="text-xs font-medium text-stone-400 mb-8">Phân bổ sản phẩm theo danh mục</p>
+        <div class="h-[260px]">
           <canvas id="catChart"></canvas>
         </div>
       </div>
 
-      <div class="lg:col-span-2 border-[3px] border-black overflow-hidden reveal bg-white shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
-        <div class="px-8 py-6 border-b-[3px] border-black flex justify-between items-center bg-stone-50">
-          <h3 class="text-xl font-black uppercase tracking-tighter">Nhật Ký Truy Xuất Gần Đây</h3>
-          <a href="/admin/orders" class="text-[10px] font-black uppercase tracking-widest border-b-2 border-black hover:text-stone-500">Xem Tất Cả Hoạt Động</a>
+      <div class="xl:col-span-2 bg-white rounded-2xl shadow-[0_4px_20px_rgb(0,0,0,0.03)] border border-stone-100 overflow-hidden reveal flex flex-col">
+        <div class="px-6 md:px-8 py-5 border-b border-stone-100 flex justify-between items-center bg-white">
+          <div>
+            <h3 class="text-lg font-bold tracking-tight text-stone-900">Giao dịch gần đây</h3>
+            <p class="text-xs font-medium text-stone-400 mt-0.5">5 đơn hàng mới nhất trên hệ thống</p>
+          </div>
+          <a href="/admin/orders" class="text-xs font-semibold text-stone-600 hover:text-stone-900 bg-stone-50 hover:bg-stone-100 px-4 py-2 rounded-lg transition-colors">
+            Xem tất cả
+          </a>
         </div>
         
-        <div class="divide-y-2 divide-stone-100">
+        <div class="divide-y divide-stone-100 flex-1">
           {% for order in stats.get('_orders', [])[:5] %}
-          <div class="px-8 py-6 flex items-center justify-between hover:bg-stone-50 transition-colors group">
-            <div class="flex items-center gap-8">
-               <span class="text-[10px] font-mono font-black text-stone-300 group-hover:text-black transition-colors">ID_0{{ loop.index }}</span>
+          <div class="px-6 md:px-8 py-4 flex flex-col sm:flex-row sm:items-center justify-between hover:bg-stone-50/50 transition-colors group gap-4 sm:gap-0">
+            
+            <div class="flex items-center gap-4 md:gap-6">
+               <div class="w-10 h-10 rounded-full bg-stone-100 flex items-center justify-center text-stone-500 font-semibold text-xs shrink-0 group-hover:bg-white group-hover:shadow-sm transition-all">
+                 #{{ loop.index }}
+               </div>
                <div>
-                  <p class="text-[15px] font-black uppercase tracking-tight">
-                    #{{ (order.id[:8].upper()) if order and order.id else 'UNKNOWN_NODE' }}
-                  </p>
-                  <p class="text-[10px] font-mono font-bold text-stone-400 uppercase tracking-widest mt-1">
-                    {{ order.created_at[:16].replace('T', ' ') if order.created_at else 'MAISON_SYSTEM_RECORD' }}
-                  </p>
+                  <a href="/profile/orders/{{ order.id }}" class="text-sm font-bold text-stone-900 hover:text-stone-600 transition-colors uppercase tracking-tight">
+                    {{ (order.id[:8].upper()) if order and order.id else 'UNKNOWN_ID' }}
+                  </a>
+                  <div class="flex items-center gap-2 mt-1 text-xs text-stone-400 font-medium">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    {{ order.created_at[:16].replace('T', ' ') if order.created_at else 'Hệ thống ghi nhận' }}
+                  </div>
                </div>
             </div>
             
-            <div class="flex items-center gap-12">
-               <span class="text-[16px] font-black tracking-tighter bg-stone-100 px-3 py-1 border-2 border-transparent group-hover:border-black transition-all">
-                {{ '{:,.0f}'.format(order.total_amount) }} <span class="text-[10px]">VNĐ</span>
+            <div class="flex items-center justify-between sm:justify-end gap-6 sm:gap-8 ml-14 sm:ml-0">
+               <span class="text-sm font-bold tracking-tight text-stone-900">
+                {{ '{:,.0f}'.format(order.total_amount) }} ₫
                </span>
                
-               <span class="px-4 py-1.5 text-[9px] font-black uppercase tracking-widest border-2 
-                {% if order.status=='delivered' %} bg-black text-white border-black
-                {% elif order.status=='cancelled' %} border-red-500 text-red-600 bg-red-50
-                {% elif order.status=='pending' %} border-yellow-400 text-yellow-600 bg-yellow-50
-                {% else %} border-stone-200 text-stone-500 {% endif %}">
+               <span class="px-3 py-1 text-[11px] font-semibold rounded-full
+                {% if order.status=='delivered' %} bg-emerald-100 text-emerald-700
+                {% elif order.status=='cancelled' %} bg-red-100 text-red-600
+                {% elif order.status=='pending' %} bg-amber-100 text-amber-700
+                {% else %} bg-stone-100 text-stone-600 {% endif %}">
                 
-                {% if order.status == 'pending' %} CHỜ XỬ LÝ
-                {% elif order.status == 'delivered' %} ĐÃ HOÀN TẤT
-                {% elif order.status == 'cancelled' %} ĐÃ HỦY BỎ
-                {% else %} {{ order.status|upper }} {% endif %}
+                {% if order.status == 'pending' %} Đang xử lý
+                {% elif order.status == 'delivered' %} Hoàn tất
+                {% elif order.status == 'cancelled' %} Đã hủy
+                {% else %} {{ order.status|capitalize }} {% endif %}
                </span>
-               
-               <a href="/profile/orders/{{ order.id }}" class="p-2 border-2 border-stone-100 group-hover:border-black transition-all">
-                <svg class="w-4 h-4 text-stone-300 group-hover:text-black group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg>
-               </a>
             </div>
+
           </div>
           {% endfor %}
           
           {% if not stats.get('_orders') %}
-          <div class="p-20 text-center text-stone-400 font-mono text-[11px] uppercase tracking-widest">
-            > Không tìm thấy bản ghi giao dịch nào trong hệ thống.
+          <div class="flex-1 flex flex-col items-center justify-center p-12 text-center">
+            <div class="w-16 h-16 bg-stone-50 rounded-full flex items-center justify-center mb-4">
+              <svg class="w-8 h-8 text-stone-300" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z"/></svg>
+            </div>
+            <p class="text-sm font-medium text-stone-500">Chưa có giao dịch nào được ghi nhận.</p>
           </div>
           {% endif %}
         </div>
@@ -163,24 +174,27 @@ document.addEventListener('DOMContentLoaded', function() {
     const statusData = JSON.parse(document.getElementById('status-data').textContent || '[]');
     const catData = JSON.parse(document.getElementById('cat-data').textContent || '[]');
 
-    const GUA_DARK = '#000000';
-    const GUA_STONE = '#e5e7eb';
+    // Bảng màu Minimalist thanh lịch
+    const GUA_DARK = '#1c1917'; // stone-900
+    const GUA_STONE = '#e7e5e4'; // stone-200
+    const GUA_LIGHT = '#f5f5f4'; // stone-100
     
-    // Config mặc định cho Chart GUA
+    // Config mặc định cho Chart
     Chart.defaults.font.family = "'DM Sans', sans-serif";
-    Chart.defaults.font.weight = '900';
-    Chart.defaults.color = '#71717a';
+    Chart.defaults.font.weight = '500';
+    Chart.defaults.color = '#a8a29e'; // stone-400
 
     const chartTooltip = {
-      backgroundColor: '#000',
-      titleFont: { size: 12, weight: '900' },
-      bodyFont: { size: 12, family: 'monospace' },
-      cornerRadius: 0,
+      backgroundColor: '#1c1917',
+      titleFont: { size: 13, weight: '700', family: "'DM Sans', sans-serif" },
+      bodyFont: { size: 13, family: "'DM Sans', sans-serif" },
+      cornerRadius: 8,
       padding: 12,
-      displayColors: false
+      displayColors: false,
+      boxPadding: 4
     };
 
-    // 1. Đồ thị Doanh thu
+    // 1. Đồ thị Doanh thu (Đường cong mềm mại)
     if(monthly.length > 0) {
         new Chart(document.getElementById('revenueChart'), {
           type: 'line',
@@ -189,44 +203,60 @@ document.addEventListener('DOMContentLoaded', function() {
             datasets: [{
               data: monthly.map(d => d.revenue),
               borderColor: GUA_DARK,
-              borderWidth: 5,
-              pointRadius: 6,
+              borderWidth: 3,
+              pointRadius: 4,
+              pointHoverRadius: 6,
               pointBackgroundColor: '#fff',
               pointBorderColor: GUA_DARK,
-              pointBorderWidth: 3,
-              tension: 0, 
-              fill: false
+              pointBorderWidth: 2,
+              tension: 0.4, // Đường cong mềm mại thay vì gãy góc
+              fill: true,
+              backgroundColor: 'rgba(28, 25, 23, 0.03)' // Gradient mờ phía dưới
             }]
           },
           options: {
             responsive: true, maintainAspectRatio: false,
             plugins: { legend: { display: false }, tooltip: chartTooltip },
             scales: {
-              y: { grid: { color: '#f3f4f6' }, border: { display: false }, ticks: { callback: v => v.toLocaleString() } },
-              x: { grid: { display: false } }
-            }
+              y: { 
+                grid: { color: GUA_LIGHT, drawBorder: false }, 
+                border: { display: false }, 
+                ticks: { padding: 10, callback: v => v.toLocaleString() } 
+              },
+              x: { 
+                grid: { display: false }, 
+                border: { display: false },
+                ticks: { padding: 10 }
+              }
+            },
+            interaction: { intersect: false, mode: 'index' }
           }
         });
     }
 
-    // 2. Trạng thái Đơn hàng
+    // 2. Trạng thái Đơn hàng (Màu sắc dịu mắt)
     if(statusData.length > 0) {
         new Chart(document.getElementById('statusChart'), {
           type: 'doughnut',
           data: {
-            labels: statusData.map(d => d.status.toUpperCase()),
+            labels: statusData.map(d => {
+              if(d.status === 'pending') return 'Đang xử lý';
+              if(d.status === 'delivered') return 'Hoàn tất';
+              if(d.status === 'cancelled') return 'Đã hủy';
+              return d.status;
+            }),
             datasets: [{
               data: statusData.map(d => d.count),
-              backgroundColor: ['#000000', '#eab308', '#22c55e', '#ef4444', '#71717a'],
-              borderWidth: 4,
+              backgroundColor: ['#1c1917', '#fbbf24', '#34d399', '#f87171', '#a8a29e'], // Các dải màu pastel sang trọng
+              borderWidth: 3,
               borderColor: '#ffffff',
-              hoverOffset: 15
+              hoverOffset: 8
             }]
           },
           options: {
             responsive: true, maintainAspectRatio: false,
             plugins: {
-              legend: { position: 'bottom', labels: { boxWidth: 12, padding: 20, font: { size: 10 } } },
+              legend: { position: 'bottom', labels: { usePointStyle: true, padding: 20, font: { size: 11, weight: '600' } } },
               tooltip: chartTooltip
             },
             cutout: '75%'
@@ -234,25 +264,26 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // 3. Tài nguyên Danh mục
+    // 3. Tài nguyên Danh mục (Cột bo góc)
     if(catData.length > 0) {
         new Chart(document.getElementById('catChart'), {
           type: 'bar',
           data: {
-            labels: catData.map(d => d.name.toUpperCase()),
+            labels: catData.map(d => d.name),
             datasets: [{
               data: catData.map(d => d.count),
               backgroundColor: GUA_DARK,
-              hoverBackgroundColor: '#444',
-              barThickness: 24
+              hoverBackgroundColor: '#57534e',
+              barThickness: 24,
+              borderRadius: 4 // Cột bo tròn góc trên
             }]
           },
           options: {
             responsive: true, maintainAspectRatio: false,
             plugins: { legend: { display: false }, tooltip: chartTooltip },
             scales: {
-              y: { beginAtZero: true, grid: { color: '#f3f4f6' }, border: { display: false } },
-              x: { grid: { display: false } }
+              y: { beginAtZero: true, grid: { color: GUA_LIGHT, drawBorder: false }, border: { display: false }, ticks: { padding: 10, stepSize: 1 } },
+              x: { grid: { display: false }, border: { display: false }, ticks: { padding: 10 } }
             }
           }
         });
@@ -264,9 +295,9 @@ document.addEventListener('DOMContentLoaded', function() {
   .no-scrollbar::-webkit-scrollbar { display: none; }
   .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
   
-  /* Hiệu ứng Reveal cho các block */
+  /* Hiệu ứng Reveal mượt mà */
   .reveal {
-    animation: revealUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    animation: revealUp 0.7s ease-out forwards;
   }
   @keyframes revealUp {
     from { opacity: 0; transform: translateY(20px); }

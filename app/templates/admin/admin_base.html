@@ -7,91 +7,101 @@
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&display=swap" rel="stylesheet">
 
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
       theme: {
         extend: {
-          fontFamily: { sans: ['Inter', 'sans-serif'] },
-          colors: { 'gua-black': '#000000', 'gua-stone': '#f1f1f1' }
+          fontFamily: { 
+            sans: ['DM Sans', 'sans-serif'],
+            mono: ['ui-monospace', 'SFMono-Regular', 'Menlo', 'Monaco', 'Consolas', 'monospace']
+          }
         }
       }
     }
   </script>
 
   <style>
-    body { -webkit-font-smoothing: antialiased; letter-spacing: -0.01em; }
+    body { 
+      -webkit-font-smoothing: antialiased; 
+      text-rendering: optimizeLegibility; 
+    }
 
-    /* Hiệu ứng reveal khi scroll vào viewport */
-    .reveal { opacity: 0; transform: translateY(20px); transition: all 0.6s cubic-bezier(0.22, 1, 0.36, 1); }
-    .reveal.active { opacity: 1; transform: translateY(0); }
+    /* Scroll reveal mềm mại */
+    .reveal { 
+      opacity: 0; 
+      transform: translateY(28px); 
+      transition: opacity 0.7s ease, transform 0.7s ease; 
+    }
+    .reveal.active { 
+      opacity: 1; 
+      transform: translateY(0); 
+    }
 
-    /* Scrollbar tối giản */
-    ::-webkit-scrollbar { width: 4px; }
-    ::-webkit-scrollbar-thumb { background: #000; }
+    /* Scrollbar tối giản chuẩn Minimalist */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: #f5f5f4; }
+    ::-webkit-scrollbar-thumb { background: #a8a29e; border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: #57534e; }
 
-    /* Animation flash message */
-    @keyframes slideIn { from { opacity: 0; transform: translateX(100%); } to { opacity: 1; transform: translateX(0); } }
-    .animate-slide-in { animation: slideIn 0.3s ease forwards; }
+    /* Ẩn spinner của input number */
+    input[type=number]::-webkit-inner-spin-button, 
+    input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+    input[type=number] { -moz-appearance: textfield; }
   </style>
 
   {% block extra_head %}{% endblock %}
 </head>
 
-<body class="bg-white text-gua-black flex flex-col min-h-screen">
+<body class="bg-stone-50 text-stone-900 flex flex-col min-h-screen">
 
+  {# ── NAVBAR ADMIN ── #}
   {% include "admin/admin_navbar.html" %}
 
-  {# ── FLASH MESSAGES ── #}
-  <div class="fixed top-24 right-6 z-[200] space-y-3">
-    {% with messages = get_flashed_messages(with_categories=true) %}
-      {% if messages %}
-        {% for category, message in messages %}
-        <div class="bg-black text-white border-l-4
-          {% if category == 'success' %} border-green-500 {% else %} border-red-500 {% endif %}
-          px-6 py-4 text-[11px] font-black uppercase tracking-widest shadow-2xl flex items-center justify-between min-w-[300px] animate-slide-in">
-          <span>{{ message }}</span>
-          <button onclick="this.parentElement.remove()" class="ml-4 opacity-50 hover:opacity-100 text-lg leading-none">&times;</button>
-        </div>
-        {% endfor %}
-      {% endif %}
-    {% endwith %}
-  </div>
+  {# ── MODULE THÔNG BÁO DÙNG CHUNG ── #}
+  {% include 'flash.html' %}
 
   {# ── MAIN CONTENT ── #}
-  <main class="flex-1 max-w-[1800px] mx-auto w-full px-6 py-10">
-    {% block admin_content %}
-    {% block content %}{% endblock %}
+  <main class="flex-1 w-full mt-16"> {% block admin_content %}
+      {% block content %}{% endblock %}
     {% endblock %}
   </main>
 
-  {# ── FOOTER ── #}
-  <footer class="bg-stone-50 border-t border-stone-200 py-10 px-6">
+  {# ── FOOTER THANH LỊCH ── #}
+  <footer class="bg-white border-t border-stone-200 py-8 px-6 mt-auto transition-colors">
     <div class="max-w-[1800px] mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
-      <div class="flex items-center gap-4">
-        <span class="text-[10px] font-black uppercase tracking-widest text-black">Trạng thái hệ thống:</span>
-        <span class="flex items-center gap-2 text-[10px] font-bold text-green-600 uppercase">
-          <span class="w-2 h-2 bg-green-600 rounded-full animate-pulse"></span> Hoạt động bình thường
+      
+      <div class="flex items-center gap-3 bg-stone-50 border border-stone-100 px-4 py-2 rounded-full shadow-sm">
+        <span class="flex items-center justify-center w-5 h-5 rounded-full bg-emerald-100 text-emerald-500">
+          <span class="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></span>
         </span>
+        <span class="text-xs font-semibold text-stone-600 tracking-wide uppercase">Hệ thống ổn định</span>
       </div>
-      <p class="text-[10px] font-bold text-stone-400 uppercase tracking-widest">
-        © 2026 GUA Admin — Phát triển bởi Khoa Le
+
+      <p class="text-xs font-medium text-stone-400">
+        © 2026 GUA Admin. Xây dựng bởi Lê Trần Đăng Khoa.
       </p>
+      
     </div>
   </footer>
 
   {# ── REVEAL ON SCROLL ── #}
   <script>
-    const revealObserver = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) entry.target.classList.add('active');
-      });
-    }, { threshold: 0.1 });
+    document.addEventListener('DOMContentLoaded', () => {
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('active');
+            observer.unobserve(entry.target);
+          }
+        });
+      }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
 
-    document.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
+      document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+    });
   </script>
 
 </body>
-</html>
+</html> 

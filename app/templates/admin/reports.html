@@ -1,87 +1,146 @@
 {% extends "admin/admin_base.html" %}
 {% block title %}Phân tích dữ liệu | GUA Admin{% endblock %}
 
-{% block admin_content %}
-<div class="reveal">
+{% block content %}
+<div class="min-h-screen bg-stone-50 text-stone-900 pb-24 font-sans">
 
-  {# ── HEADER ── #}
-  <div class="mb-10 pb-6 border-b-2 border-black flex items-end justify-between">
-    <div>
-      <div class="flex items-center gap-3 mb-2">
-        <span class="w-3 h-3 bg-black animate-pulse"></span>
-        <span class="text-[10px] font-black uppercase tracking-[0.4em] text-stone-400">PANDAS DATA ENGINE</span>
+  {# ── STICKY HEADER ── #}
+  <div class="bg-white border-b border-stone-200 mb-8 sticky top-16 z-30 shadow-sm transition-all">
+    <div class="max-w-[1600px] mx-auto px-6 lg:px-10 py-5">
+      <div class="flex flex-col md:flex-row md:items-end justify-between gap-4">
+        
+        <div>
+          <h1 class="text-2xl md:text-3xl font-bold tracking-tight text-stone-900">
+            Phân tích dữ liệu
+          </h1>
+          <p class="text-[11px] font-medium text-stone-500 uppercase tracking-wider mt-1 flex items-center gap-2">
+            <span class="w-1.5 h-1.5 rounded-full bg-indigo-500 animate-pulse"></span> 
+            PANDAS DATA ENGINE
+          </p>
+        </div>
+
+        <div class="text-left md:text-right flex flex-col gap-1">
+          <p class="text-[10px] font-mono font-semibold text-stone-500 bg-stone-100 px-2 py-0.5 rounded w-max md:ml-auto">ENGINE: MICROSERVICE</p>
+          <p class="text-[10px] font-mono font-semibold text-stone-500 bg-stone-100 px-2 py-0.5 rounded w-max md:ml-auto">LIB: SCIKIT-LEARN / PANDAS</p>
+        </div>
+
       </div>
-      <h1 class="text-4xl font-black uppercase tracking-tighter transform -skew-x-6">
-        Phân tích <span class="text-transparent" style="-webkit-text-stroke: 1px black;">Dữ liệu</span>
-      </h1>
-    </div>
-    <div class="text-right">
-      <p class="text-[10px] font-mono font-bold text-stone-500">ENGINE: MICROSERVICE</p>
-      <p class="text-[10px] font-mono font-bold text-stone-500">LIB: SCIKIT-LEARN / PANDAS</p>
     </div>
   </div>
 
-  <div class="grid grid-cols-1 xl:grid-cols-2 gap-10">
+  <div class="max-w-[1600px] mx-auto px-6 lg:px-10">
 
-    {# ── TOP PRODUCTS ── #}
-    <div class="bg-white border-2 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] p-8">
-      <h2 class="text-[14px] font-black uppercase tracking-[0.2em] mb-8 flex items-center gap-3">
-        <span class="w-4 h-[2px] bg-black"></span>
-        Sản phẩm bán chạy
-      </h2>
+    {# ── TAB NAV ── #}
+    <div class="flex mb-10 overflow-x-auto no-scrollbar gap-2 bg-stone-100/50 p-1.5 rounded-xl border border-stone-200/60 max-w-fit reveal">
+      {% for label, href, active in [
+        ('Tổng quan',  '/admin/',          False),
+        ('Sản phẩm',   '/admin/products',  False),
+        ('Danh mục',   '/admin/categories',False),
+        ('Đơn hàng',   '/admin/orders',    False),
+        ('Báo cáo',    '/admin/reports',   True)
+      ] %}
+      <a href="{{ href }}"
+         class="px-6 py-2.5 text-xs font-semibold rounded-lg transition-all whitespace-nowrap
+         {% if active %} bg-white text-stone-900 shadow-sm ring-1 ring-stone-200/50 {% else %} text-stone-500 hover:text-stone-900 hover:bg-white/50 {% endif %}">
+        {{ label }}
+      </a>
+      {% endfor %}
+    </div>
 
-      {% if report.top_products %}
-        {% set max_qty = report.top_products[0].total_qty %}
-        <div class="space-y-6">
-          {% for item in report.top_products %}
-          {% set percentage = (item.total_qty / max_qty) * 100 %}
-          <div>
-            <div class="flex justify-between items-end mb-2">
-              <span class="text-[11px] font-black uppercase tracking-tight truncate max-w-[70%]">{{ item.product_name }}</span>
-              <span class="text-[12px] font-mono font-black">{{ item.total_qty }} đã bán</span>
-            </div>
-            <div class="w-full h-6 bg-stone-100 border border-stone-200 relative overflow-hidden">
-              {% set bar_width = percentage | round(2) | string + '%' %}
-              <div class="absolute top-0 left-0 h-full bg-black transition-all duration-1000 origin-left" style="width: {{ bar_width }}"></div>
-              <div class="absolute inset-0 flex items-center px-3 text-[9px] font-bold tracking-widest mix-blend-difference text-white">
-                Doanh thu: {{ '{:,.0f}'.format(item.total_revenue) }} VNĐ
+    <div class="grid grid-cols-1 xl:grid-cols-2 gap-8">
+
+      {# ── TOP PRODUCTS ── #}
+      <div class="bg-white rounded-2xl shadow-[0_4px_20px_rgb(0,0,0,0.03)] border border-stone-100 p-6 md:p-8 reveal">
+        <div class="flex items-center justify-between mb-8 border-b border-stone-100 pb-4">
+          <h2 class="text-sm font-bold uppercase tracking-wider text-stone-900">
+            Sản phẩm bán chạy nhất
+          </h2>
+          <div class="w-8 h-8 rounded-full bg-stone-50 flex items-center justify-center text-stone-400">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 18L9 11.25l4.306 4.307a11.95 11.95 0 015.814-5.519l2.74-1.22m0 0l-5.94-2.28m5.94 2.28l-2.28 5.941"/></svg>
+          </div>
+        </div>
+
+        {% if report.top_products %}
+          {% set max_qty = report.top_products[0].total_qty %}
+          <div class="space-y-6">
+            {% for item in report.top_products %}
+            {% set percentage = (item.total_qty / max_qty) * 100 %}
+            <div class="group">
+              <div class="flex justify-between items-end mb-2">
+                <span class="text-xs font-bold tracking-tight truncate max-w-[70%] text-stone-800 group-hover:text-stone-900 transition-colors">{{ item.product_name }}</span>
+                <span class="text-xs font-bold text-stone-600"><span class="text-stone-400 font-medium">Đã bán:</span> {{ item.total_qty }}</span>
+              </div>
+              
+              <div class="w-full h-8 bg-stone-100 rounded-lg relative overflow-hidden">
+                {% set bar_width = percentage | round(2) | string + '%' %}
+                <div class="absolute top-0 left-0 h-full bg-stone-800 rounded-lg transition-all duration-1000 origin-left" style="width: {{ bar_width }}"></div>
+                <div class="absolute inset-0 flex items-center justify-end pr-3 pointer-events-none">
+                  <span class="text-[10px] font-mono font-semibold {% if percentage > 50 %}text-white/90 mix-blend-difference{% else %}text-stone-500{% endif %}">
+                    Doanh thu: {{ '{:,.0f}'.format(item.total_revenue) }} ₫
+                  </span>
+                </div>
               </div>
             </div>
+            {% endfor %}
           </div>
-          {% endfor %}
+        {% else %}
+          <div class="py-12 flex flex-col items-center justify-center text-center border-2 border-dashed border-stone-100 rounded-xl">
+            <svg class="w-8 h-8 text-stone-300 mb-3" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5m6 4.125l2.25 2.25m0 0l2.25 2.25M12 13.875l2.25-2.25M12 13.875l-2.25 2.25M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z"/></svg>
+            <p class="text-xs font-medium text-stone-400">Hệ thống chưa có đủ dữ liệu bán hàng.</p>
+          </div>
+        {% endif %}
+      </div>
+
+      {# ── DAILY REVENUE ── #}
+      <div class="bg-white rounded-2xl shadow-[0_4px_20px_rgb(0,0,0,0.03)] border border-stone-100 p-6 md:p-8 reveal" style="animation-delay: 100ms;">
+        <div class="flex items-center justify-between mb-8 border-b border-stone-100 pb-4">
+          <h2 class="text-sm font-bold uppercase tracking-wider text-stone-900">
+            Doanh thu 7 ngày gần nhất
+          </h2>
+          <div class="w-8 h-8 rounded-full bg-emerald-50 flex items-center justify-center text-emerald-500">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          </div>
         </div>
-      {% else %}
-        <p class="text-[11px] font-mono text-stone-400 uppercase">Chưa có dữ liệu.</p>
-      {% endif %}
-    </div>
 
-    {# ── DAILY REVENUE ── #}
-    <div class="bg-stone-50 border-2 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] p-8">
-      <h2 class="text-[14px] font-black uppercase tracking-[0.2em] mb-8 flex items-center gap-3">
-        <span class="w-4 h-[2px] bg-black"></span>
-        Doanh thu 7 ngày gần nhất
-      </h2>
-
-      {% if report.daily_revenue %}
-        {% set max_rev = report.daily_revenue | map(attribute='revenue') | max %}
-        <div class="space-y-4">
-          {% for day in report.daily_revenue[-7:] %}
-          {% set percentage = (day.revenue / max_rev) * 100 %}
-          <div class="flex items-center gap-4">
-            <span class="text-[10px] font-mono font-bold w-20 shrink-0">{{ day.date }}</span>
-            <div class="flex-1 h-8 bg-stone-200 border border-stone-300 relative">
-              {% set bar_width = percentage | round(2) | string + '%' %}
-              <div class="absolute top-0 left-0 h-full bg-green-500 border-r-2 border-black transition-all duration-1000" style="width: {{ bar_width }}"></div>
+        {% if report.daily_revenue %}
+          {% set max_rev = report.daily_revenue | map(attribute='revenue') | max %}
+          {% set max_rev = max_rev if max_rev > 0 else 1 %} <div class="space-y-5">
+            {% for day in report.daily_revenue[-7:] %}
+            {% set percentage = (day.revenue / max_rev) * 100 %}
+            <div class="flex items-center gap-4 group">
+              <span class="text-xs font-mono font-medium text-stone-500 w-20 shrink-0">{{ day.date }}</span>
+              
+              <div class="flex-1 h-8 bg-stone-50 rounded-md relative border border-stone-100">
+                {% set bar_width = percentage | round(2) | string + '%' %}
+                <div class="absolute top-0 left-0 h-full bg-emerald-400 rounded-md transition-all duration-1000 group-hover:bg-emerald-500" style="width: {{ bar_width }}"></div>
+              </div>
+              
+              <span class="text-xs font-bold w-24 text-right text-stone-800">{{ '{:,.0f}'.format(day.revenue) }} ₫</span>
             </div>
-            <span class="text-[11px] font-black w-28 text-right">{{ '{:,.0f}'.format(day.revenue) }} VNĐ</span>
+            {% endfor %}
           </div>
-          {% endfor %}
-        </div>
-      {% else %}
-        <p class="text-[11px] font-mono text-stone-400 uppercase">Chưa đủ dữ liệu.</p>
-      {% endif %}
-    </div>
+        {% else %}
+          <div class="py-12 flex flex-col items-center justify-center text-center border-2 border-dashed border-stone-100 rounded-xl">
+            <svg class="w-8 h-8 text-stone-300 mb-3" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"/></svg>
+            <p class="text-xs font-medium text-stone-400">Hệ thống chưa có đủ dữ liệu doanh thu.</p>
+          </div>
+        {% endif %}
+      </div>
 
+    </div>
   </div>
 </div>
+
+<style>
+  .no-scrollbar::-webkit-scrollbar { display: none; }
+  .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+  
+  .reveal {
+    animation: revealUp 0.6s ease-out forwards;
+  }
+  @keyframes revealUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+</style>
 {% endblock %}

@@ -2,30 +2,32 @@
 {% block title %}Kho hàng | GUA Admin{% endblock %}
 
 {% block content %}
-<div class="min-h-screen bg-white text-black pb-24">
+<div class="min-h-screen bg-stone-50 text-stone-900 pb-24 font-sans">
 
   {# ── STICKY HEADER ── #}
-  <div class="border-b border-stone-100 mb-12 bg-white sticky top-20 z-30">
-    <div class="max-w-[1800px] mx-auto px-6 py-8 flex flex-col md:flex-row md:items-end justify-between gap-6">
+  <div class="bg-white border-b border-stone-200 mb-8 sticky top-16 z-30 shadow-sm transition-all">
+    <div class="max-w-[1600px] mx-auto px-6 lg:px-10 py-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
       <div>
-        <h1 class="text-4xl md:text-5xl font-black uppercase tracking-tighter transform -skew-x-6">
-          Kho <span class="text-transparent" style="-webkit-text-stroke: 1px black;">Hàng</span>
+        <h1 class="text-2xl md:text-3xl font-bold tracking-tight text-stone-900">
+          Kho sản phẩm
         </h1>
-        <p class="text-[11px] font-black text-stone-400 uppercase tracking-[0.4em] mt-2 flex items-center gap-2">
-          <span class="w-2 h-2 bg-black"></span> {{ total }} sản phẩm trong hệ thống
+        <p class="text-[11px] font-medium text-stone-500 uppercase tracking-wider mt-1 flex items-center gap-2">
+          <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> 
+          Hệ thống đang lưu trữ {{ total }} vật phẩm
         </p>
       </div>
       <a href="/admin/products/add"
-         class="inline-flex items-center gap-3 bg-black text-white px-8 py-4 text-[10px] font-black uppercase tracking-[0.3em] hover:bg-stone-800 active:scale-[0.98] transition-all self-start md:self-auto">
-        + Thêm sản phẩm
+         class="inline-flex items-center justify-center gap-2 bg-stone-900 text-white px-5 py-2.5 rounded-lg text-xs font-semibold hover:bg-stone-700 hover:shadow-md hover:-translate-y-0.5 transition-all">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
+        Sản phẩm mới
       </a>
     </div>
   </div>
 
-  <div class="max-w-[1800px] mx-auto px-6">
+  <div class="max-w-[1600px] mx-auto px-6 lg:px-10">
 
     {# ── TAB NAV ── #}
-    <div class="flex mb-8 border-b border-stone-100 overflow-x-auto no-scrollbar">
+    <div class="flex mb-8 overflow-x-auto no-scrollbar gap-2 bg-stone-100/50 p-1.5 rounded-xl border border-stone-200/60 max-w-fit">
       {% for label, href, active in [
         ('Tổng quan', '/admin/', False),
         ('Sản phẩm',  '/admin/products', True),
@@ -33,92 +35,101 @@
         ('Đơn hàng',  '/admin/orders', False)
       ] %}
       <a href="{{ href }}"
-         class="px-8 py-4 text-[11px] font-black uppercase tracking-[0.3em] transition-all relative whitespace-nowrap
-         {% if active %} text-black {% else %} text-stone-400 hover:text-black {% endif %}">
+         class="px-6 py-2.5 text-xs font-semibold rounded-lg transition-all whitespace-nowrap
+         {% if active %} bg-white text-stone-900 shadow-sm ring-1 ring-stone-200/50 {% else %} text-stone-500 hover:text-stone-900 hover:bg-white/50 {% endif %}">
         {{ label }}
-        {% if active %}<span class="absolute bottom-0 left-0 w-full h-1 bg-black"></span>{% endif %}
       </a>
       {% endfor %}
     </div>
 
     {# ── SEARCH BAR ── #}
-    <form method="get" class="flex mb-8 max-w-xl">
-      <input type="text" name="q" value="{{ keyword }}"
-             placeholder="Tìm theo tên hoặc mã SKU…"
-             class="flex-1 border-2 border-black border-r-0 px-5 py-3 text-[13px] font-bold uppercase tracking-wide outline-none placeholder:text-stone-300 placeholder:normal-case placeholder:tracking-normal focus:bg-stone-50 transition-colors" />
+    <form method="get" class="flex mb-6 max-w-xl reveal">
+      <div class="relative flex-1">
+        <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+          <svg class="w-4 h-4 text-stone-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path stroke-linecap="round" stroke-linejoin="round" d="m21 21-4.35-4.35"/></svg>
+        </div>
+        <input type="text" name="q" value="{{ keyword }}"
+               placeholder="Tìm kiếm theo tên hoặc mã sản phẩm..."
+               class="w-full bg-white border border-stone-200 rounded-l-xl pl-10 pr-4 py-2.5 text-sm font-medium text-stone-800 outline-none placeholder:text-stone-400 focus:border-stone-400 focus:ring-1 focus:ring-stone-400 transition-all shadow-sm" />
+      </div>
       <button type="submit"
-              class="bg-black text-white px-8 py-3 text-[10px] font-black uppercase tracking-widest hover:bg-stone-800 transition-colors border-2 border-black">
-        Tìm
+              class="bg-stone-900 text-white px-6 py-2.5 text-xs font-semibold rounded-r-xl hover:bg-stone-700 transition-colors shadow-sm border border-stone-900 border-l-0">
+        Tìm kiếm
       </button>
     </form>
 
     {# ── TABLE ── #}
-    <div class="border border-stone-200 bg-[#f9f9f9]">
+    <div class="bg-white rounded-2xl shadow-[0_4px_20px_rgb(0,0,0,0.03)] border border-stone-100 overflow-hidden reveal">
       <div class="overflow-x-auto">
         <table class="w-full text-left whitespace-nowrap">
 
-          <thead class="bg-white border-b-2 border-black">
+          <thead class="bg-stone-50/50 border-b border-stone-100">
             <tr>
-              <th class="px-6 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-stone-400">Sản phẩm</th>
-              <th class="px-6 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-stone-400">Danh mục</th>
-              <th class="px-6 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-stone-400">Giá bán</th>
-              <th class="px-6 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-stone-400">Tồn kho</th>
-              <th class="px-6 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-stone-400">Trạng thái</th>
-              <th class="px-6 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-stone-400 text-right">Thao tác</th>
+              <th class="px-6 py-4 text-[10px] font-semibold uppercase tracking-wider text-stone-500">Sản phẩm</th>
+              <th class="px-6 py-4 text-[10px] font-semibold uppercase tracking-wider text-stone-500">Danh mục</th>
+              <th class="px-6 py-4 text-[10px] font-semibold uppercase tracking-wider text-stone-500">Giá bán</th>
+              <th class="px-6 py-4 text-[10px] font-semibold uppercase tracking-wider text-stone-500">Tồn kho</th>
+              <th class="px-6 py-4 text-[10px] font-semibold uppercase tracking-wider text-stone-500">Trạng thái</th>
+              <th class="px-6 py-4 text-[10px] font-semibold uppercase tracking-wider text-stone-500 text-right">Thao tác</th>
             </tr>
           </thead>
 
-          <tbody class="divide-y divide-stone-200 bg-white">
+          <tbody class="divide-y divide-stone-100 bg-white">
             {% for p in products %}
-            <tr class="hover:bg-stone-50 transition-colors group {% if not p.is_active %}opacity-50{% endif %}">
+            <tr class="hover:bg-stone-50/80 transition-colors group {% if not p.is_active %}opacity-60 grayscale-[30%]{% endif %}">
 
               {# Tên sản phẩm #}
               <td class="px-6 py-4">
                 <div class="flex items-center gap-4">
-
-                  {# ── Ảnh: ưu tiên thumbnail_url → ảnh đầu trong images → placeholder ── #}
-                  {% set thumb = p.thumbnail_url
-                       or (p.images[0].url if (p.images and p.images|length > 0) else None) %}
-
-                  <div class="relative w-12 h-16 bg-stone-100 border border-stone-200 overflow-hidden shrink-0 group/thumb">
+                  {% set thumb = p.thumbnail_url or (p.images[0].url if (p.images and p.images|length > 0) else None) %}
+                  
+                  <div class="relative w-12 h-16 bg-stone-50 rounded-lg border border-stone-200/60 overflow-hidden shrink-0 group/thumb shadow-sm">
                     {% if thumb %}
-                    <img src="{{ thumb }}" class="w-full h-full object-cover mix-blend-multiply" loading="lazy">
+                    <img src="{{ thumb }}" class="w-full h-full object-cover mix-blend-multiply group-hover/thumb:scale-105 transition-transform duration-500" loading="lazy">
                     {% else %}
-                    <div class="w-full h-full flex items-center justify-center text-[8px] font-black text-stone-300 uppercase">GUA</div>
+                    <div class="w-full h-full flex items-center justify-center text-[9px] font-bold text-stone-300 uppercase">N/A</div>
                     {% endif %}
 
-                    {# Badge số ảnh (hiện khi có > 1 ảnh) #}
                     {% set img_count = p.images|length if p.images else (1 if p.thumbnail_url else 0) %}
                     {% if img_count > 1 %}
-                    <span class="absolute bottom-0 right-0 bg-black/70 text-white text-[7px] font-black px-1 leading-4">
+                    <span class="absolute bottom-1 right-1 bg-stone-900/80 text-white text-[8px] font-semibold px-1.5 py-0.5 rounded">
                       +{{ img_count }}
                     </span>
                     {% endif %}
                   </div>
 
                   <div>
-                    <p class="text-[13px] font-black uppercase tracking-tight text-black">{{ p.name }}</p>
-                    <p class="text-[10px] font-mono text-stone-400 mt-0.5">ID: {{ p.id[:8] }}</p>
+                    <a href="/admin/products/edit/{{ p.id }}" class="text-sm font-bold text-stone-900 hover:text-stone-600 transition-colors block mb-0.5">
+                      {{ p.name }}
+                    </a>
+                    <div class="flex items-center gap-1.5">
+                      <svg class="w-3 h-3 text-stone-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5.25 8.25h15m-16.5 7.5h15m-1.8-13.5l-3.9 19.5m-2.1-19.5l-3.9 19.5"/></svg>
+                      <p class="text-xs font-medium text-stone-400 font-mono">{{ p.id[:8] }}</p>
+                    </div>
                   </div>
                 </div>
               </td>
 
               {# Danh mục #}
-              <td class="px-6 py-4 text-[12px] font-bold text-stone-500 uppercase tracking-wide">
-                {{ p.categories.name if p.categories else '—' }}
+              <td class="px-6 py-4">
+                <span class="text-xs font-semibold text-stone-600 bg-stone-100 px-3 py-1.5 rounded-lg border border-stone-200/50">
+                  {{ p.categories.name if p.categories else 'Chưa phân loại' }}
+                </span>
               </td>
 
               {# Giá #}
-              <td class="px-6 py-4 text-[14px] font-black tracking-tighter">
-                {{ "{:,.0f}".format(p.price) }} <span class="text-[10px] text-stone-400">VNĐ</span>
+              <td class="px-6 py-4">
+                <p class="text-sm font-bold tracking-tight text-stone-900">
+                  {{ "{:,.0f}".format(p.price) }} <span class="text-xs font-medium text-stone-500">₫</span>
+                </p>
               </td>
 
               {# Tồn kho #}
               <td class="px-6 py-4">
-                <span class="text-[14px] font-black
-                  {% if p.stock == 0 %} text-red-500
-                  {% elif p.stock < 5 %} text-orange-500
-                  {% else %} text-green-600 {% endif %}">
+                <span class="text-sm font-bold px-2.5 py-1 rounded-md
+                  {% if p.stock == 0 %} text-red-600 bg-red-50
+                  {% elif p.stock < 5 %} text-amber-600 bg-amber-50
+                  {% else %} text-emerald-600 bg-emerald-50 {% endif %}">
                   {{ p.stock }}
                 </span>
               </td>
@@ -126,9 +137,13 @@
               {# Trạng thái #}
               <td class="px-6 py-4">
                 {% if p.is_active %}
-                <span class="px-3 py-1 text-[9px] font-black uppercase tracking-widest bg-black text-white">Đang bán</span>
+                <span class="inline-flex items-center gap-1.5 px-3 py-1 text-[10px] font-bold uppercase tracking-widest bg-emerald-100 text-emerald-700 rounded-full">
+                  <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Trực tuyến
+                </span>
                 {% else %}
-                <span class="px-3 py-1 text-[9px] font-black uppercase tracking-widest border border-stone-200 text-stone-400">Ẩn</span>
+                <span class="inline-flex items-center gap-1.5 px-3 py-1 text-[10px] font-bold uppercase tracking-widest bg-stone-100 text-stone-500 rounded-full border border-stone-200">
+                  Đã ẩn
+                </span>
                 {% endif %}
               </td>
 
@@ -137,28 +152,28 @@
                 <div class="flex items-center justify-end gap-2">
 
                   <a href="/admin/products/edit/{{ p.id }}"
-                     class="px-4 py-2 text-[9px] font-black uppercase tracking-[0.2em] border border-stone-200 bg-white hover:bg-black hover:text-white transition-all">
+                     class="inline-flex items-center justify-center bg-white border border-stone-200 text-stone-600 rounded-lg px-3 py-1.5 text-xs font-semibold hover:border-stone-900 hover:text-stone-900 transition-all shadow-sm">
                     Sửa
                   </a>
 
                   <form action="/admin/products/toggle/{{ p.id }}" method="post" class="m-0">
                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                     <button type="submit"
-                            class="px-4 py-2 text-[9px] font-black uppercase tracking-[0.2em] border transition-all
+                            class="inline-flex items-center justify-center rounded-lg px-3 py-1.5 text-xs font-semibold transition-all shadow-sm border
                             {% if p.is_active %}
-                              border-yellow-400 text-yellow-600 hover:bg-yellow-400 hover:text-white
+                              bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-100 hover:border-amber-300
                             {% else %}
-                              border-green-400 text-green-600 hover:bg-green-400 hover:text-white
+                              bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100 hover:border-emerald-300
                             {% endif %}">
                       {% if p.is_active %}Ẩn{% else %}Hiện{% endif %}
                     </button>
                   </form>
 
                   <form action="/admin/products/delete/{{ p.id }}" method="post" class="m-0"
-                        onsubmit="return confirm('Xác nhận xóa sản phẩm: {{ p.name }}?')">
+                        onsubmit="return confirm('Bạn có chắc chắn muốn xóa vĩnh viễn sản phẩm: {{ p.name }}?')">
                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                     <button type="submit"
-                            class="px-4 py-2 text-[9px] font-black uppercase tracking-[0.2em] border border-red-200 text-red-500 hover:bg-red-500 hover:text-white transition-all">
+                            class="inline-flex items-center justify-center bg-white border border-red-200 text-red-500 rounded-lg px-3 py-1.5 text-xs font-semibold hover:bg-red-50 hover:border-red-300 transition-all shadow-sm">
                       Xóa
                     </button>
                   </form>
@@ -169,8 +184,13 @@
             </tr>
             {% else %}
             <tr>
-              <td colspan="6" class="px-6 py-20 text-center">
-                <p class="text-[12px] font-black text-stone-300 uppercase tracking-[0.4em]">Không tìm thấy sản phẩm nào</p>
+              <td colspan="6" class="px-6 py-24 text-center">
+                <div class="flex flex-col items-center justify-center">
+                  <div class="w-16 h-16 bg-stone-50 rounded-full flex items-center justify-center mb-4">
+                    <svg class="w-8 h-8 text-stone-300" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 13.5h3.86a2.25 2.25 0 012.012 1.244l.256.512a2.25 2.25 0 002.013 1.244h3.218a2.25 2.25 0 002.013-1.244l.256-.512a2.25 2.25 0 012.013-1.244h3.859m-19.5.338V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18v-4.162c0-.224-.034-.447-.1-.661L19.24 5.338a2.25 2.25 0 00-2.15-1.588H6.911a2.25 2.25 0 00-2.15 1.588L2.35 13.177a2.25 2.25 0 00-.1.661z"/></svg>
+                  </div>
+                  <p class="text-sm font-medium text-stone-500">Kho hàng đang trống hoặc không tìm thấy kết quả.</p>
+                </div>
               </td>
             </tr>
             {% endfor %}
@@ -182,11 +202,11 @@
 
     {# ── PAGINATION ── #}
     {% if total_pages > 1 %}
-    <div class="flex justify-center gap-2 mt-12">
+    <div class="flex justify-center gap-2 mt-10 reveal">
       {% for p in range(1, total_pages + 1) %}
       <a href="/admin/products?page={{ p }}{% if keyword %}&q={{ keyword }}{% endif %}"
-         class="w-10 h-10 flex items-center justify-center border text-[12px] font-black transition-all
-         {% if p == page %} bg-black text-white border-black {% else %} bg-white text-stone-400 border-stone-200 hover:text-black hover:border-black {% endif %}">
+         class="w-10 h-10 flex items-center justify-center rounded-lg text-sm font-semibold transition-all
+         {% if p == page %} bg-stone-900 text-white shadow-md {% else %} bg-white text-stone-500 border border-stone-200 hover:text-stone-900 hover:border-stone-300 hover:bg-stone-50 {% endif %}">
         {{ p }}
       </a>
       {% endfor %}
@@ -199,5 +219,13 @@
 <style>
   .no-scrollbar::-webkit-scrollbar { display: none; }
   .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+  
+  .reveal {
+    animation: revealUp 0.6s ease-out forwards;
+  }
+  @keyframes revealUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
 </style>
 {% endblock %}
