@@ -1,0 +1,294 @@
+{% extends "base.html" %}
+{% block title %}Phòng Thử Đồ AI | GUA Maison{% endblock %}
+
+{% block content %}
+<div class="bg-stone-50 min-h-screen font-sans pb-24">
+  
+  {# ── HEADER & HƯỚNG DẪN ── #}
+  <div class="bg-stone-900 text-white pt-24 pb-32 relative overflow-hidden">
+    <div class="absolute inset-0 opacity-10 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iMSIgY3k9IjEiIHI9IjEiIGZpbGw9InJnYmEoMjU1LDI1NSwyNTUsMC4xKSIvPjwvc3ZnPg==')] z-0"></div>
+    <div class="absolute top-0 right-0 w-[600px] h-[600px] bg-stone-700 rounded-full blur-[120px] pointer-events-none opacity-50 z-0"></div>
+    
+    <div class="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center reveal">
+      <div class="inline-flex items-center gap-2 mb-6 bg-white/10 backdrop-blur-md px-4 py-1.5 rounded-full border border-white/20">
+        <span class="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></span>
+        <p class="text-xs font-bold uppercase tracking-widest text-white/90">GUA AI Core: Active</p>
+      </div>
+      <h1 class="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight leading-tight mb-6">
+        AI Styling <span class="italic font-medium text-stone-300">Lab</span>
+      </h1>
+      <p class="text-base font-medium text-stone-400 max-w-2xl mx-auto leading-relaxed">
+        Trải nghiệm công nghệ mua sắm của tương lai. Trí tuệ nhân tạo sẽ phân tích hình thể và phong cách của bạn để đưa ra những gợi ý phối đồ hoàn hảo nhất.
+      </p>
+    </div>
+  </div>
+
+  {# ── KHÔNG GIAN LÀM VIỆC ── #}
+  <div class="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 -mt-20 relative z-20">
+    
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8 reveal" style="transition-delay: 100ms;">
+      <div class="bg-white/90 backdrop-blur-md rounded-2xl p-6 border border-stone-200/50 shadow-[0_8px_30px_rgb(0,0,0,0.04)] flex flex-col items-center text-center">
+        <div class="w-10 h-10 bg-stone-100 text-stone-900 rounded-full flex items-center justify-center font-bold mb-4">1</div>
+        <h3 class="text-sm font-bold text-stone-900 mb-2">Cung cấp dữ liệu</h3>
+        <p class="text-xs text-stone-500 leading-relaxed">Tải ảnh toàn thân của bạn lên hoặc chọn một sản phẩm bất kỳ từ cửa hàng làm mốc.</p>
+      </div>
+      <div class="bg-white/90 backdrop-blur-md rounded-2xl p-6 border border-stone-200/50 shadow-[0_8px_30px_rgb(0,0,0,0.04)] flex flex-col items-center text-center">
+        <div class="w-10 h-10 bg-stone-100 text-stone-900 rounded-full flex items-center justify-center font-bold mb-4">2</div>
+        <h3 class="text-sm font-bold text-stone-900 mb-2">Khởi chạy Engine</h3>
+        <p class="text-xs text-stone-500 leading-relaxed">Hệ thống sẽ quét hàng ngàn sản phẩm để tìm ra các item tương thích nhất với bạn.</p>
+      </div>
+      <div class="bg-white/90 backdrop-blur-md rounded-2xl p-6 border border-stone-200/50 shadow-[0_8px_30px_rgb(0,0,0,0.04)] flex flex-col items-center text-center">
+        <div class="w-10 h-10 bg-stone-100 text-stone-900 rounded-full flex items-center justify-center font-bold mb-4">3</div>
+        <h3 class="text-sm font-bold text-stone-900 mb-2">Thử đồ & Lưu trữ</h3>
+        <p class="text-xs text-stone-500 leading-relaxed">Trải nghiệm tính năng ghép đồ ảo (Virtual Try-on) và thêm toàn bộ outfit vào giỏ hàng.</p>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8">
+
+      {# CỘT TRÁI: DỮ LIỆU ĐẦU VÀO #}
+      <div class="lg:col-span-4 flex flex-col gap-6 reveal" style="transition-delay: 200ms;">
+        
+        <div class="bg-white rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-stone-100 p-6 md:p-8">
+          <h2 class="text-base font-bold text-stone-900 mb-6 flex items-center gap-2">
+            <svg class="w-5 h-5 text-stone-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5"/></svg>
+            Dữ liệu đầu vào
+          </h2>
+          
+          <div id="upload-zone" class="border-2 border-dashed border-stone-200 rounded-2xl p-8 flex flex-col items-center justify-center text-center hover:border-stone-400 hover:bg-stone-50 transition-all cursor-pointer mb-6 relative overflow-hidden group min-h-[200px]">
+            <input type="file" id="user-image" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" accept="image/*" onchange="previewImage(this)">
+            
+            <div id="upload-placeholder" class="flex flex-col items-center">
+              <div class="w-12 h-12 bg-stone-100 rounded-full flex items-center justify-center text-stone-500 mb-3 group-hover:scale-110 transition-transform">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
+              </div>
+              <p class="text-sm font-bold text-stone-900 mb-1">Tải ảnh của bạn</p>
+              <p class="text-[11px] font-medium text-stone-400">JPG, PNG (Khuyên dùng ảnh chụp thẳng)</p>
+            </div>
+
+            <img id="image-preview" class="absolute inset-0 w-full h-full object-cover hidden" alt="User Preview">
+          </div>
+
+          <div class="flex items-center gap-4 mb-6">
+            <div class="h-px bg-stone-100 flex-1"></div>
+            <span class="text-xs font-bold text-stone-400 uppercase tracking-widest">Hoặc</span>
+            <div class="h-px bg-stone-100 flex-1"></div>
+          </div>
+
+          <div>
+            <label class="block text-[11px] font-bold text-stone-500 uppercase tracking-widest mb-3">Chọn sản phẩm định hướng</label>
+            <div class="flex items-center justify-between p-3 border border-stone-200 rounded-2xl bg-white hover:shadow-md transition-shadow cursor-pointer">
+              <div class="flex items-center gap-3">
+                <div class="w-12 h-14 bg-stone-50 rounded-xl border border-stone-100 overflow-hidden shrink-0">
+                  <img src="https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=200" class="w-full h-full object-cover mix-blend-multiply" alt="Base Item">
+                </div>
+                <div>
+                  <p class="text-xs font-bold text-stone-900 mb-0.5">GUA Over-tee Trắng</p>
+                  <p class="text-[10px] font-medium text-stone-500">Mã: 8F92A1</p>
+                </div>
+              </div>
+              <button class="text-xs font-bold text-stone-500 hover:text-stone-900 px-3">Đổi</button>
+            </div>
+          </div>
+
+        </div>
+
+        <button onclick="runAIEngine()" class="w-full bg-stone-900 text-white py-4 rounded-2xl text-sm font-bold uppercase tracking-wider hover:bg-stone-700 active:scale-[0.98] transition-all shadow-lg flex items-center justify-center gap-2 group">
+          <svg class="w-4 h-4 group-hover:rotate-180 transition-transform duration-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99"/></svg>
+          Phân tích AI
+        </button>
+      </div>
+
+      {# CỘT PHẢI: KẾT QUẢ ĐẦU RA #}
+      <div class="lg:col-span-8 flex flex-col gap-6 reveal" style="transition-delay: 300ms;">
+        
+        <div class="bg-white rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-stone-100 p-6 md:p-8 h-full flex flex-col min-h-[500px]">
+          
+          <div class="flex items-center gap-2 bg-stone-50 p-1.5 rounded-xl w-max mb-8 border border-stone-200/60">
+            <button onclick="switchTab('recommend')" id="tab-recommend" class="px-5 py-2 rounded-lg text-sm font-bold bg-white text-stone-900 shadow-sm transition-all">
+              Gợi ý phối đồ
+            </button>
+            <button onclick="switchTab('tryon')" id="tab-tryon" class="px-5 py-2 rounded-lg text-sm font-bold text-stone-500 hover:text-stone-900 transition-all">
+              Thử đồ ảo
+            </button>
+          </div>
+
+          <div id="ai-loading" class="hidden flex-1 flex-col items-center justify-center py-10">
+            <div class="relative w-16 h-16 flex items-center justify-center mb-6">
+              <div class="absolute inset-0 rounded-full border-[3px] border-stone-100"></div>
+              <div class="absolute inset-0 rounded-full border-[3px] border-emerald-500 border-t-transparent animate-spin"></div>
+            </div>
+            <p class="text-sm font-bold text-stone-900 mb-2">Đang phân tích cấu trúc...</p>
+            <p class="text-xs text-stone-500">Trí tuệ nhân tạo đang tìm kiếm các tùy chọn tối ưu.</p>
+          </div>
+
+          <div id="content-recommend" class="flex-1 flex flex-col">
+            <div class="grid grid-cols-2 md:grid-cols-3 gap-4 lg:gap-6">
+              <div id="recommendation-grid" class="contents">
+                
+                <div class="col-span-full flex flex-col items-center justify-center py-16 text-center border-2 border-dashed border-stone-100 rounded-2xl">
+                  <svg class="w-12 h-12 text-stone-300 mb-4" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 10.5l4.72-4.72a.75.75 0 011.28.53v11.38a.75.75 0 01-1.28.53l-4.72-4.72M4.5 18.75h9a2.25 2.25 0 002.25-2.25v-9a2.25 2.25 0 00-2.25-2.25h-9A2.25 2.25 0 002.25 7.5v9a2.25 2.25 0 002.25 2.25z"/></svg>
+                  <p class="text-sm font-bold text-stone-900 mb-1">Chưa có dữ liệu</p>
+                  <p class="text-xs text-stone-500">Vui lòng cung cấp dữ liệu ở cột bên trái và bấm phân tích.</p>
+                </div>
+
+              </div>
+            </div>
+            
+            <div id="add-all-btn-container" class="mt-auto pt-8 hidden">
+              <button class="w-full text-sm font-bold uppercase tracking-wider text-white bg-stone-900 py-4 rounded-xl hover:bg-stone-700 active:scale-[0.98] shadow-md transition-all">
+                Thêm toàn bộ Outfit vào giỏ
+              </button>
+            </div>
+          </div>
+
+          <div id="content-tryon" class="hidden flex-1 flex flex-col items-center justify-center text-center">
+            
+            <div id="tryon-empty" class="py-10">
+              <div class="w-20 h-20 bg-stone-50 rounded-full flex items-center justify-center mx-auto mb-6 border border-stone-200 shadow-sm">
+                <svg class="w-8 h-8 text-stone-400" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z"/></svg>
+              </div>
+              <h3 class="text-base font-bold text-stone-900 mb-2">Phòng Thử Đồ Ảo</h3>
+              <p class="text-sm text-stone-500 max-w-sm mx-auto leading-relaxed">Hãy tải lên một bức ảnh rõ toàn thân của bạn. Hệ thống AI sẽ tự động điều chỉnh trang phục để khớp với cơ thể.</p>
+            </div>
+
+            <div id="tryon-result" class="hidden w-full h-full flex flex-col items-center">
+              <div class="relative w-full max-w-sm rounded-3xl overflow-hidden border border-stone-200 shadow-xl">
+                <img src="https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=600" class="w-full h-auto object-cover" alt="Rendered Try On">
+                <div class="absolute top-4 right-4 bg-white/90 backdrop-blur-md text-stone-900 text-[10px] font-bold uppercase tracking-widest px-3 py-1.5 rounded-full shadow-sm">
+                  <span class="inline-block w-1.5 h-1.5 bg-emerald-500 rounded-full mr-1 animate-pulse"></span> AI Generated
+                </div>
+              </div>
+              <div class="flex gap-3 mt-8">
+                <button class="px-8 py-3.5 bg-white border border-stone-200 text-stone-900 text-sm font-bold rounded-xl hover:bg-stone-50 shadow-sm transition-all active:scale-95">Tải ảnh xuống</button>
+                <button class="px-8 py-3.5 bg-stone-900 text-white text-sm font-bold rounded-xl hover:bg-stone-700 shadow-md transition-all active:scale-95">Thử bộ khác</button>
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<style>
+  .reveal { animation: revealUp 0.8s cubic-bezier(0.22, 1, 0.36, 1) forwards; opacity: 0; }
+  @keyframes revealUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+</style>
+
+<script>
+  // ── SCRIPT UPLOAD ẢNH ──
+  function previewImage(input) {
+    if (input.files && input.files[0]) {
+      var reader = new FileReader();
+      reader.onload = function(e) {
+        document.getElementById('image-preview').src = e.target.result;
+        document.getElementById('image-preview').classList.remove('hidden');
+        document.getElementById('upload-placeholder').classList.add('hidden');
+      }
+      reader.readAsDataURL(input.files[0]);
+    }
+  }
+
+  // ── SCRIPT CHUYỂN TAB ──
+  function switchTab(tabName) {
+    const tabRecommendBtn = document.getElementById('tab-recommend');
+    const tabTryOnBtn = document.getElementById('tab-tryon');
+    const contentRecommend = document.getElementById('content-recommend');
+    const contentTryOn = document.getElementById('content-tryon');
+
+    const activeClass = "px-5 py-2 rounded-lg text-sm font-bold bg-white text-stone-900 shadow-sm transition-all";
+    const inactiveClass = "px-5 py-2 rounded-lg text-sm font-bold text-stone-500 hover:text-stone-900 transition-all";
+
+    if (tabName === 'recommend') {
+      tabRecommendBtn.className = activeClass;
+      tabTryOnBtn.className = inactiveClass;
+      contentRecommend.classList.remove('hidden'); contentRecommend.classList.add('flex');
+      contentTryOn.classList.add('hidden'); contentTryOn.classList.remove('flex');
+    } else {
+      tabTryOnBtn.className = activeClass;
+      tabRecommendBtn.className = inactiveClass;
+      contentTryOn.classList.remove('hidden'); contentTryOn.classList.add('flex');
+      contentRecommend.classList.add('hidden'); contentRecommend.classList.remove('flex');
+    }
+  }
+
+  // ── SCRIPT FETCH API TỪ FLASK PYTHON ──
+  async function runAIEngine() {
+    const contentRecommend = document.getElementById('content-recommend');
+    const contentTryOn = document.getElementById('content-tryon');
+    const loading = document.getElementById('ai-loading');
+    
+    // Hiện Loading
+    contentRecommend.classList.add('hidden'); contentRecommend.classList.remove('flex');
+    contentTryOn.classList.add('hidden'); contentTryOn.classList.remove('flex');
+    loading.classList.remove('hidden'); loading.classList.add('flex');
+
+    try {
+        const csrfToken = document.querySelector('input[name="csrf_token"]')?.value || '';
+
+        // Gọi Python Backend
+        const response = await fetch('/api/recommend_outfit', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrfToken
+            },
+            body: JSON.stringify({ product_id: "GUA_DUMMY_ID_01" }) 
+        });
+
+        const result = await response.json();
+
+        if (result.status === 'success') {
+            const gridContainer = document.getElementById('recommendation-grid');
+            gridContainer.innerHTML = ''; // Xóa placeholder
+
+            // Render giao diện Card sản phẩm (Chuẩn Minimalist)
+            result.data.forEach(item => {
+                let matchBadge = item.match_score >= 95 
+                  ? `<span class="bg-emerald-50 text-emerald-600 px-2 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider shadow-sm">${item.match_score}% Match</span>` 
+                  : `<span class="bg-stone-100 text-stone-600 px-2 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider shadow-sm">${item.match_score}% Phù hợp</span>`;
+                
+                gridContainer.innerHTML += `
+                <a href="/product/${item.id}" class="group block border border-stone-100 rounded-2xl overflow-hidden hover:shadow-[0_8px_20px_rgb(0,0,0,0.06)] hover:border-stone-300 transition-all bg-white pb-3">
+                  <div class="aspect-[4/5] bg-stone-50 overflow-hidden mb-3 relative">
+                    <img src="${item.image}" class="w-full h-full object-cover mix-blend-multiply group-hover:scale-105 transition-transform duration-500 ease-out" alt="${item.name}">
+                    <div class="absolute top-2 left-2">${matchBadge}</div>
+                  </div>
+                  <div class="px-3">
+                    <p class="text-sm font-bold text-stone-900 truncate mb-1 group-hover:text-stone-500 transition-colors">${item.name}</p>
+                    <p class="text-sm font-bold text-stone-900">${item.price.toLocaleString('vi-VN')} <span class="text-xs font-medium text-stone-500">₫</span></p>
+                  </div>
+                </a>
+                `;
+            });
+            
+            // Hiện nút Thêm vào giỏ
+            document.getElementById('add-all-btn-container').classList.remove('hidden');
+        } else {
+            alert("Lỗi AI Engine: " + result.message);
+        }
+
+    } catch (error) {
+        console.error("Fetch error: ", error);
+        alert("Không thể kết nối đến AI Server.");
+    } finally {
+        // Tắt Loading
+        loading.classList.add('hidden'); loading.classList.remove('flex');
+        
+        // Mở lại tab tương ứng
+        if (document.getElementById('tab-tryon').classList.contains('bg-white')) {
+            contentTryOn.classList.remove('hidden'); contentTryOn.classList.add('flex');
+            document.getElementById('tryon-empty').classList.add('hidden');
+            document.getElementById('tryon-result').classList.remove('hidden');
+            document.getElementById('tryon-result').classList.add('flex');
+        } else {
+            contentRecommend.classList.remove('hidden'); contentRecommend.classList.add('flex');
+        }
+    }
+  }
+</script>
+{% endblock %}
