@@ -2,26 +2,31 @@
 {% block title %}Phân tích dữ liệu | GUA Admin{% endblock %}
 
 {% block content %}
-<div class="min-h-screen bg-stone-50 text-stone-900 pb-24 font-sans">
+<div id="report-print-area" class="min-h-screen bg-stone-50 text-stone-900 pb-24 font-sans print:bg-white print:pb-0">
 
   {# ── STICKY HEADER ── #}
-  <div class="bg-white border-b border-stone-200 mb-8 sticky top-16 z-30 shadow-sm transition-all">
+  <div class="bg-white border-b border-stone-200 mb-8 sticky top-16 z-30 shadow-sm transition-all print:static print:shadow-none print:border-b-2 print:border-black print:mb-6">
     <div class="max-w-[1600px] mx-auto px-6 lg:px-10 py-5">
-      <div class="flex flex-col md:flex-row md:items-end justify-between gap-4">
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
         
         <div>
-          <h1 class="text-2xl md:text-3xl font-bold tracking-tight text-stone-900">
+          <h1 class="text-2xl md:text-3xl font-bold tracking-tight text-stone-900 print:text-4xl">
             Phân tích dữ liệu
           </h1>
-          <p class="text-[11px] font-medium text-stone-500 uppercase tracking-wider mt-1 flex items-center gap-2">
-            <span class="w-1.5 h-1.5 rounded-full bg-indigo-500 animate-pulse"></span> 
-            PANDAS DATA ENGINE
-          </p>
+          <p class="text-sm text-stone-500 mt-1 print:text-base">
+            Báo cáo doanh thu, sản phẩm bán chạy và xu hướng kinh doanh.
         </div>
 
-        <div class="text-left md:text-right flex flex-col gap-1">
-          <p class="text-[10px] font-mono font-semibold text-stone-500 bg-stone-100 px-2 py-0.5 rounded w-max md:ml-auto">ENGINE: MICROSERVICE</p>
-          <p class="text-[10px] font-mono font-semibold text-stone-500 bg-stone-100 px-2 py-0.5 rounded w-max md:ml-auto">LIB: SCIKIT-LEARN / PANDAS</p>
+        <div class="text-left md:text-right flex items-center md:items-end gap-4">
+          <div class="flex flex-col gap-1 print:hidden">
+            <p class="text-[10px] font-mono font-semibold text-stone-500 bg-stone-100 px-2 py-0.5 rounded w-max md:ml-auto">ENGINE: MICROSERVICE</p>
+            <p class="text-[10px] font-mono font-semibold text-stone-500 bg-stone-100 px-2 py-0.5 rounded w-max md:ml-auto">LIB: SCIKIT-LEARN / PANDAS</p>
+          </div>
+          
+          <button onclick="window.print()" class="print:hidden bg-stone-900 text-white px-5 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider hover:bg-stone-700 active:scale-95 transition-all shadow-md flex items-center gap-2">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6.72 13.829c-.24.03-.48.062-.724.092m6.524-4.31v8.286m5.4-8.286c.24.03.48.062.724.092M12 9.713v-4.31m0 4.31a9.004 9.004 0 01-6.524-4.31m13.048 0a9.004 9.004 0 00-6.524 4.31m-6.524-4.31a9.004 9.004 0 00-2.316 2.316M18.524 5.403a9.004 9.004 0 012.316 2.316M6.72 13.829a9.004 9.004 0 01-2.316-2.316m14.116 2.316a9.004 9.004 0 002.316-2.316m-16.432 0h16.432m-16.432 0a9.004 9.004 0 00-2.316 2.316m21.064-2.316a9.004 9.004 0 012.316 2.316"/></svg>
+            Xuất báo cáo
+          </button>
         </div>
 
       </div>
@@ -30,8 +35,8 @@
 
   <div class="max-w-[1600px] mx-auto px-6 lg:px-10">
 
-    {# ── TAB NAV ── #}
-    <div class="flex mb-10 overflow-x-auto no-scrollbar gap-2 bg-stone-100/50 p-1.5 rounded-xl border border-stone-200/60 max-w-fit reveal">
+    {# ── TAB NAV (Ẩn khi in) ── #}
+    <div class="flex mb-10 overflow-x-auto no-scrollbar gap-2 bg-stone-100/50 p-1.5 rounded-xl border border-stone-200/60 max-w-fit reveal print:hidden">
       {% for label, href, active in [
         ('Tổng quan',  '/admin/',          False),
         ('Sản phẩm',   '/admin/products',  False),
@@ -47,15 +52,15 @@
       {% endfor %}
     </div>
 
-    <div class="grid grid-cols-1 xl:grid-cols-2 gap-8">
+    <div class="grid grid-cols-1 xl:grid-cols-2 gap-8 print:block print:space-y-8">
 
       {# ── TOP PRODUCTS ── #}
-      <div class="bg-white rounded-2xl shadow-[0_4px_20px_rgb(0,0,0,0.03)] border border-stone-100 p-6 md:p-8 reveal">
-        <div class="flex items-center justify-between mb-8 border-b border-stone-100 pb-4">
+      <div class="bg-white rounded-2xl shadow-[0_4px_20px_rgb(0,0,0,0.03)] border border-stone-100 p-6 md:p-8 reveal print:shadow-none print:border-2 print:border-stone-200 print:break-inside-avoid">
+        <div class="flex items-center justify-between mb-8 border-b border-stone-100 pb-4 print:border-black">
           <h2 class="text-sm font-bold uppercase tracking-wider text-stone-900">
             Sản phẩm bán chạy nhất
           </h2>
-          <div class="w-8 h-8 rounded-full bg-stone-50 flex items-center justify-center text-stone-400">
+          <div class="w-8 h-8 rounded-full bg-stone-50 flex items-center justify-center text-stone-400 print:hidden">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 18L9 11.25l4.306 4.307a11.95 11.95 0 015.814-5.519l2.74-1.22m0 0l-5.94-2.28m5.94 2.28l-2.28 5.941"/></svg>
           </div>
         </div>
@@ -67,15 +72,15 @@
             {% set percentage = (item.total_qty / max_qty) * 100 %}
             <div class="group">
               <div class="flex justify-between items-end mb-2">
-                <span class="text-xs font-bold tracking-tight truncate max-w-[70%] text-stone-800 group-hover:text-stone-900 transition-colors">{{ item.product_name }}</span>
+                <span class="text-xs font-bold tracking-tight truncate max-w-[70%] text-stone-800">{{ item.product_name }}</span>
                 <span class="text-xs font-bold text-stone-600"><span class="text-stone-400 font-medium">Đã bán:</span> {{ item.total_qty }}</span>
               </div>
               
-              <div class="w-full h-8 bg-stone-100 rounded-lg relative overflow-hidden">
+              <div class="w-full h-8 bg-stone-100 rounded-lg relative overflow-hidden print:border print:border-stone-300">
                 {% set bar_width = percentage | round(2) | string + '%' %}
-                <div class="absolute top-0 left-0 h-full bg-stone-800 rounded-lg transition-all duration-1000 origin-left" style="width: {{ bar_width }}"></div>
+                <div class="absolute top-0 left-0 h-full bg-stone-800 rounded-lg transition-all duration-1000 origin-left in-color" style="width: {{ bar_width }}"></div>
                 <div class="absolute inset-0 flex items-center justify-end pr-3 pointer-events-none">
-                  <span class="text-[10px] font-mono font-semibold {% if percentage > 50 %}text-white/90 mix-blend-difference{% else %}text-stone-500{% endif %}">
+                  <span class="text-[10px] font-mono font-semibold {% if percentage > 50 %}text-white/90 mix-blend-difference print:text-black print:mix-blend-normal{% else %}text-stone-500 print:text-stone-800{% endif %}">
                     Doanh thu: {{ '{:,.0f}'.format(item.total_revenue) }} ₫
                   </span>
                 </div>
@@ -85,34 +90,34 @@
           </div>
         {% else %}
           <div class="py-12 flex flex-col items-center justify-center text-center border-2 border-dashed border-stone-100 rounded-xl">
-            <svg class="w-8 h-8 text-stone-300 mb-3" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5m6 4.125l2.25 2.25m0 0l2.25 2.25M12 13.875l2.25-2.25M12 13.875l-2.25 2.25M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z"/></svg>
             <p class="text-xs font-medium text-stone-400">Hệ thống chưa có đủ dữ liệu bán hàng.</p>
           </div>
         {% endif %}
       </div>
 
       {# ── DAILY REVENUE ── #}
-      <div class="bg-white rounded-2xl shadow-[0_4px_20px_rgb(0,0,0,0.03)] border border-stone-100 p-6 md:p-8 reveal" style="animation-delay: 100ms;">
-        <div class="flex items-center justify-between mb-8 border-b border-stone-100 pb-4">
+      <div class="bg-white rounded-2xl shadow-[0_4px_20px_rgb(0,0,0,0.03)] border border-stone-100 p-6 md:p-8 reveal print:shadow-none print:border-2 print:border-stone-200 print:break-inside-avoid" style="animation-delay: 100ms;">
+        <div class="flex items-center justify-between mb-8 border-b border-stone-100 pb-4 print:border-black">
           <h2 class="text-sm font-bold uppercase tracking-wider text-stone-900">
             Doanh thu 7 ngày gần nhất
           </h2>
-          <div class="w-8 h-8 rounded-full bg-emerald-50 flex items-center justify-center text-emerald-500">
+          <div class="w-8 h-8 rounded-full bg-emerald-50 flex items-center justify-center text-emerald-500 print:hidden">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
           </div>
         </div>
 
         {% if report.daily_revenue %}
           {% set max_rev = report.daily_revenue | map(attribute='revenue') | max %}
-          {% set max_rev = max_rev if max_rev > 0 else 1 %} <div class="space-y-5">
+          {% set max_rev = max_rev if max_rev > 0 else 1 %} 
+          <div class="space-y-5">
             {% for day in report.daily_revenue[-7:] %}
             {% set percentage = (day.revenue / max_rev) * 100 %}
             <div class="flex items-center gap-4 group">
               <span class="text-xs font-mono font-medium text-stone-500 w-20 shrink-0">{{ day.date }}</span>
               
-              <div class="flex-1 h-8 bg-stone-50 rounded-md relative border border-stone-100">
+              <div class="flex-1 h-8 bg-stone-50 rounded-md relative border border-stone-100 print:border-stone-300">
                 {% set bar_width = percentage | round(2) | string + '%' %}
-                <div class="absolute top-0 left-0 h-full bg-emerald-400 rounded-md transition-all duration-1000 group-hover:bg-emerald-500" style="width: {{ bar_width }}"></div>
+                <div class="absolute top-0 left-0 h-full bg-emerald-400 rounded-md transition-all duration-1000 group-hover:bg-emerald-500 in-color" style="width: {{ bar_width }}; background-color: #34d399 !important;"></div>
               </div>
               
               <span class="text-xs font-bold w-24 text-right text-stone-800">{{ '{:,.0f}'.format(day.revenue) }} ₫</span>
@@ -121,7 +126,6 @@
           </div>
         {% else %}
           <div class="py-12 flex flex-col items-center justify-center text-center border-2 border-dashed border-stone-100 rounded-xl">
-            <svg class="w-8 h-8 text-stone-300 mb-3" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"/></svg>
             <p class="text-xs font-medium text-stone-400">Hệ thống chưa có đủ dữ liệu doanh thu.</p>
           </div>
         {% endif %}
@@ -141,6 +145,46 @@
   @keyframes revealUp {
     from { opacity: 0; transform: translateY(20px); }
     to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ==========================================================
+     ĐỊNH DẠNG CSS DÀNH RIÊNG CHO MÁY IN (PRINT STYLESHEET)
+     ========================================================== */
+  @media print {
+    /* 1. Ẩn tất cả các Navbar/Sidebar của file base (Giả định ID hoặc Class) */
+    header, nav, aside, #mobileMenu, #mainNav, footer {
+      display: none !important;
+    }
+
+    /* 2. Ép trình duyệt phải in nền màu (Background graphics) */
+    * {
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+    }
+
+    /* 3. Định dạng trang A4 trắng tinh, không ngắt trang giữa thẻ */
+    @page {
+      size: A4 portrait;
+      margin: 1.5cm;
+    }
+    
+    body {
+      background-color: white !important;
+      color: black !important;
+    }
+
+    /* 4. Fix lỗi hiển thị thanh Bar Chart màu khi in */
+    .in-color {
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+    }
+
+    /* 5. Gỡ bỏ padding thừa của Layout gốc */
+    main, .min-h-screen {
+      padding: 0 !important;
+      margin: 0 !important;
+      background: white !important;
+    }
   }
 </style>
 {% endblock %}
