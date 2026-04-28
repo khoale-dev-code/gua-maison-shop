@@ -1,308 +1,192 @@
-# 👗 GUA Fashion Store
-
 <div align="center">
 
-**E-commerce thời trang cao cấp tích hợp AI gợi ý sản phẩm thông minh**
+<br/>
 
-![Python](https://img.shields.io/badge/Python-3.10+-3776AB?style=for-the-badge&logo=python&logoColor=white)
-![Flask](https://img.shields.io/badge/Flask-3.x-000000?style=for-the-badge&logo=flask&logoColor=white)
+# 👗 GUA Maison
+
+### Nền tảng thương mại điện tử thời trang cao cấp tích hợp AI
+
+<br/>
+
+![Python](https://img.shields.io/badge/Python_3.10+-3776AB?style=for-the-badge&logo=python&logoColor=white)
+![Flask](https://img.shields.io/badge/Flask_3.x-000000?style=for-the-badge&logo=flask&logoColor=white)
 ![Supabase](https://img.shields.io/badge/Supabase-3ECF8E?style=for-the-badge&logo=supabase&logoColor=white)
-![TailwindCSS](https://img.shields.io/badge/TailwindCSS_v4-06B6D4?style=for-the-badge&logo=tailwindcss&logoColor=white)
+![TailwindCSS](https://img.shields.io/badge/Tailwind_v4-06B6D4?style=for-the-badge&logo=tailwindcss&logoColor=white)
 ![HuggingFace](https://img.shields.io/badge/HuggingFace-FFD21E?style=for-the-badge&logo=huggingface&logoColor=black)
+![Vercel](https://img.shields.io/badge/Vercel-000000?style=for-the-badge&logo=vercel&logoColor=white)
+
+<br/>
 
 </div>
 
 ---
 
-## 📌 Tổng quan
+## Tổng quan
 
-**GUA Fashion Store** là nền tảng thương mại điện tử thời trang kết hợp AI để đem lại trải nghiệm mua sắm thông minh. Hệ thống tích hợp mô hình **Sentence Transformers** (Hugging Face) và **FAISS** để gợi ý sản phẩm tương tự dựa trên ngữ nghĩa, cùng với **Vercell** làm nền tảng triển khai và **Supabase** quản lý dữ liệu theo thời gian thực.
-
-### ✨ Tính năng nổi bật
-
-| Tính năng | Mô tả |
-|-----------|-------|
-| 🤖 AI Gợi ý sản phẩm | Sentence Transformers + FAISS vector search |
-| 🔍 Tìm kiếm ngữ nghĩa | Tìm theo mô tả, không cần đúng từ khóa |
-| 🖼️ Xử lý ảnh sản phẩm | Pillow – resize, optimize, thumbnail |
-| 🛒 Giỏ hàng & Thanh toán | Session-based, real-time với Supabase |
-| 🔐 Xác thực bảo mật | bcrypt + Flask-Session server-side |
-| 📊 Admin Dashboard | Quản lý sản phẩm, đơn hàng, người dùng |
-| 🌐 CORS hỗ trợ | Flask-CORS cho tích hợp frontend linh hoạt |
+**GUA Maison** là nền tảng mua sắm thời trang được xây dựng theo kiến trúc **MVC** với Flask, tích hợp pipeline AI hoàn chỉnh gồm phân tích hình thể người dùng, gợi ý trang phục cá nhân hoá và tìm kiếm bằng hình ảnh. Dữ liệu vận hành theo thời gian thực trên Supabase, AI microservice chạy độc lập trên Hugging Face Spaces.
 
 ---
 
-## 🛠️ Tech Stack
+## Tính năng
+
+**Mua sắm & Trải nghiệm**
+- Trang sản phẩm, tìm kiếm, lọc theo danh mục và giá
+- Giỏ hàng theo session, quy trình thanh toán đa bước
+- Trang chi tiết sản phẩm với gợi ý sản phẩm liên quan theo ngữ nghĩa
+
+**AI — Styling Lab**
+- Tải ảnh toàn thân → AI phân tích hình thể (dáng người, chiều cao, vóc dáng)
+- Gợi ý phong cách phù hợp: Streetwear · Minimalist · Techwear · Smart Casual
+- Tìm kiếm sản phẩm bằng hình ảnh (visual search) sử dụng CLIP + FAISS
+- Điểm độ phù hợp trang phục từ 0–100% dựa trên body affinity
+
+**Quản trị**
+- Dashboard thống kê doanh thu, đơn hàng, sản phẩm bán chạy
+- CRUD sản phẩm với upload ảnh và quản lý danh mục
+- Quản lý đơn hàng và tài khoản người dùng
+
+**Bảo mật**
+- Mật khẩu mã hoá bcrypt, không lưu plain-text
+- Server-side session với Flask-Session
+- Kiểm soát truy cập theo vai trò (user / admin)
+- Cookie `HttpOnly`, `SameSite=Lax`
+
+---
+
+## Thư viện Python
+
+| Thư viện | Vai trò |
+|---|---|
+| **Flask** | Web framework chính, routing, Jinja2 template engine |
+| **Flask-CORS** | Xử lý Cross-Origin request giữa Vercel và HF Spaces |
+| **Flask-Session** | Lưu session phía server (filesystem), thay thế client-side cookie |
+| **sentence-transformers** | Chạy mô hình CLIP (clip-ViT-B-32) để encode ảnh và text thành vector |
+| **faiss-cpu** | Vector database tốc độ cao — tìm kiếm cosine similarity trên embedding |
+| **scikit-learn** | TF-IDF vectorizer cho content-based recommendation, cosine similarity |
+| **Pillow** | Decode và xử lý ảnh người dùng upload trước khi đưa vào model |
+| **Pandas** | Xây dựng DataFrame cho recommendation engine và báo cáo doanh thu |
+| **Requests** | Gọi HTTP đến Supabase Storage và AI microservice trên HF Spaces |
+| **bcrypt** | Hash và verify mật khẩu người dùng |
+| **python-dotenv** | Load biến môi trường từ file `.env` |
+| **numpy** | Tính toán ma trận vector, softmax, cosine similarity trong AI pipeline |
+
+---
+
+## Kiến trúc hệ thống
 
 ```
-Backend       →  Flask + Flask-CORS
-Database      →  Supabase (PostgreSQL)
-AI / ML       →  Sentence Transformers (HuggingFace) + FAISS + scikit-learn
-Image         →  Pillow
-Data          →  Pandas + Requests
-Frontend      →  Jinja2 + TailwindCSS v4
-Deploy        →  Vercel
+Trình duyệt
+    │
+    ▼
+Vercel (Flask App)
+    ├── Controllers  →  Auth / Product / Cart / Admin / AI
+    ├── Models       →  Supabase (PostgreSQL)
+    └── Templates    →  Jinja2 + TailwindCSS v4
+         │
+         ▼ (khi có ảnh người dùng)
+Hugging Face Spaces (AI Microservice - Flask)
+    ├── /analyze-style   →  CLIP encode + body heuristic → vibe suggestion
+    ├── /search          →  FAISS visual search
+    ├── /recommend       →  TF-IDF content-based filtering
+    └── /analyze-sales   →  Pandas reporting engine
 ```
 
 ---
 
-## 🚀 Khởi động nhanh
-
-### Yêu cầu hệ thống
-
-- Python **3.10+**
-- Tài khoản [Supabase](https://supabase.com) (free tier đủ dùng)
-- Tài khoản [Vercel](https://vercel.com) (để deploy)
-
-### 1. Clone repository
-
-```bash
-git clone https://github.com/your-username/gua-fashion-store.git
-cd gua-fashion-store
-```
-
-### 2. Tạo môi trường ảo
-
-```bash
-python -m venv venv
-
-# Linux / macOS
-source venv/bin/activate
-
-# Windows
-venv\Scripts\activate
-```
-
-### 3. Cài đặt dependencies
-
-```bash
-pip install -r requirements.txt
-```
-
-> ⚠️ Lần đầu chạy, model Sentence Transformers sẽ tự động tải về (~90MB). Cần kết nối internet.
-
-### 4. Cấu hình biến môi trường
-
-```bash
-cp .env.example .env
-```
-
-Mở file `.env` và điền đầy đủ thông tin:
-
-```env
-# Flask
-SECRET_KEY=your-very-secret-key-here
-FLASK_ENV=development
-
-# Supabase
-SUPABASE_URL=https://your-project.supabase.co
-SUPABASE_KEY=your-anon-public-key
-
-# AI Model (tùy chọn, mặc định dùng all-MiniLM-L6-v2)
-EMBEDDING_MODEL=sentence-transformers/all-MiniLM-L6-v2
-```
-
-### 5. Khởi tạo Database
-
-Mở **Supabase Dashboard** → **SQL Editor** → chạy file:
-
-```
-migrations/001_init_schema.sql
-```
-
-### 6. Khởi chạy server
-
-```bash
-python run.py
-```
-
-Truy cập: **http://localhost:5000** 🎉
-
----
-
-## 📁 Cấu trúc dự án
+## Cấu trúc dự án
 
 ```
 gua-fashion-store/
 │
-├── run.py                          # 🚪 Entry point
-├── requirements.txt                # 📦 Dependencies
-├── .env                            # 🔒 Biến môi trường (KHÔNG commit)
-├── .env.example                    # 📋 Template cấu hình
-├── vercel.json                     # ☁️  Cấu hình deploy Vercel
+├── run.py                          # Entry point
+├── requirements.txt
+├── vercel.json
+├── .env.example
 │
 ├── config/
-│   └── settings.py                 # ⚙️  Config theo môi trường (dev/prod)
+│   └── settings.py                 # Cấu hình theo môi trường dev / prod
 │
 ├── migrations/
-│   └── 001_init_schema.sql         # 🗄️  Schema khởi tạo Supabase
+│   └── 001_init_schema.sql         # Schema Supabase
 │
 └── app/
-    ├── __init__.py                 # 🏭 Application Factory
+    ├── __init__.py                 # Application Factory
     │
-    ├── controllers/                # 🎮 (C) Route handlers
-    │   ├── auth_controller.py      #    Đăng ký / Đăng nhập / Đăng xuất
-    │   ├── product_controller.py   #    Danh sách, chi tiết, tìm kiếm AI
-    │   ├── cart_controller.py      #    Giỏ hàng & Checkout
-    │   └── admin_controller.py     #    Quản trị viên
+    ├── controllers/
+    │   ├── auth_controller.py
+    │   ├── product_controller.py
+    │   ├── cart_controller.py
+    │   ├── admin_controller.py
+    │   └── ai_controller.py        # Styling Lab + /api/recommend_outfit
     │
-    ├── models/                     # 🗃️  (M) Database operations
+    ├── models/
     │   ├── user_model.py
     │   ├── product_model.py
     │   ├── cart_model.py
     │   └── order_model.py
     │
-    ├── templates/                  # 🎨 (V) Jinja2 HTML Templates
+    ├── templates/
     │   ├── base.html
-    │   ├── partials/
-    │   ├── auth/
-    │   ├── products/
-    │   ├── cart/
-    │   └── admin/
+    │   ├── features/
+    │   │   └── styling_lab.html    # AI Styling Lab UI
+    │   ├── auth/ · products/ · cart/ · admin/
     │
     ├── middleware/
-    │   └── auth_required.py        # 🛡️  Decorator: login_required, admin_required
+    │   └── auth_required.py        # @login_required · @admin_required
     │
     └── utils/
-        ├── supabase_client.py      # 🔌 Singleton Supabase client
-        ├── ai_recommender.py       # 🤖 FAISS + Sentence Transformers engine
-        └── security.py             # 🔐 bcrypt hash / verify
+        ├── supabase_client.py      # Singleton Supabase client
+        └── security.py             # bcrypt helpers
 ```
 
 ---
 
-## 🤖 AI Recommendation Engine
+## Khởi động nhanh
 
-Hệ thống gợi ý sản phẩm hoạt động theo pipeline:
-
-```
-Mô tả sản phẩm
-      │
-      ▼
-Sentence Transformers (HuggingFace)
-      │  → Vector embedding (384 chiều)
-      ▼
-FAISS Index (vector database)
-      │  → cosine similarity search
-      ▼
-Top-K sản phẩm tương tự
-      │
-      ▼
-scikit-learn (re-ranking / filtering)
-      │
-      ▼
-Kết quả gợi ý cho người dùng
-```
-
-**Model mặc định:** `sentence-transformers/all-MiniLM-L6-v2`
-- Nhẹ (~90MB), tốc độ nhanh, phù hợp production
-- Hỗ trợ đa ngôn ngữ (bao gồm Tiếng Việt)
-
----
-
-## 🗺️ API Routes
-
-### 👤 Authentication
-
-| Route | Method | Mô tả |
-|-------|--------|-------|
-| `/auth/register` | GET / POST | Đăng ký tài khoản |
-| `/auth/login` | GET / POST | Đăng nhập |
-| `/auth/logout` | GET | Đăng xuất |
-
-### 🛍️ Products
-
-| Route | Method | Mô tả |
-|-------|--------|-------|
-| `/` | GET | Trang chủ |
-| `/shop` | GET | Danh sách sản phẩm |
-| `/product/<id>` | GET | Chi tiết sản phẩm |
-| `/product/<id>/similar` | GET | Gợi ý sản phẩm tương tự (AI) |
-
-### 🛒 Cart & Checkout
-
-| Route | Method | Mô tả |
-|-------|--------|-------|
-| `/cart/` | GET | Xem giỏ hàng |
-| `/cart/add` | POST | Thêm sản phẩm vào giỏ |
-| `/cart/remove` | POST | Xoá sản phẩm khỏi giỏ |
-| `/cart/checkout` | GET / POST | Thanh toán đơn hàng |
-
-### 🔧 Admin
-
-| Route | Method | Mô tả |
-|-------|--------|-------|
-| `/admin/` | GET | Dashboard tổng quan |
-| `/admin/products` | GET | Danh sách sản phẩm |
-| `/admin/products/create` | GET / POST | Thêm sản phẩm mới |
-| `/admin/orders` | GET | Quản lý đơn hàng |
-
----
-
-## 🔐 Bảo mật
-
-- 🔑 **Password hashing** – bcrypt với cost factor 12, không lưu plain-text
-- 🍪 **Server-side session** – Flask-Session lưu trên filesystem
-- 🛡️ **Access control** – Decorator `@login_required` / `@admin_required`
-- 🌐 **Cookie flags** – `HttpOnly=True`, `SameSite=Lax`
-- 🔒 **Secret key** – Cấu hình qua biến môi trường, không hardcode
-
----
-
-## 📦 Dependencies chính
-
-```
-flask                    # Web framework
-flask-cors               # Cross-Origin Resource Sharing
-sentence-transformers    # HuggingFace embedding models
-faiss-cpu                # Vector similarity search
-Pillow                   # Image processing
-requests                 # HTTP client
-pandas                   # Data manipulation
-scikit-learn             # ML utilities (re-ranking, preprocessing)
-```
-
-Xem đầy đủ: [`requirements.txt`](./requirements.txt)
-
----
-
-## ☁️ Deploy lên Vercel
+**Yêu cầu:** Python 3.10+, tài khoản Supabase, tài khoản Vercel
 
 ```bash
-# Cài Vercel CLI
+# 1. Clone & vào thư mục
+git clone https://github.com/your-username/gua-fashion-store.git
+cd gua-fashion-store
+
+# 2. Tạo môi trường ảo
+python -m venv venv
+source venv/bin/activate      # Windows: venv\Scripts\activate
+
+# 3. Cài dependencies
+pip install -r requirements.txt
+
+# 4. Cấu hình môi trường
+cp .env.example .env
+# → Điền SUPABASE_URL, SUPABASE_KEY, SECRET_KEY, AI_ENGINE_URL
+
+# 5. Khởi tạo database
+# Mở Supabase Dashboard → SQL Editor → chạy migrations/001_init_schema.sql
+
+# 6. Chạy server
+python run.py
+# → http://localhost:5000
+```
+
+> **Lưu ý:** Lần đầu khởi động, model CLIP (~600MB) sẽ được tải tự động bởi HF Spaces. Cần kết nối internet.
+
+---
+
+## Deploy
+
+```bash
 npm i -g vercel
-
-# Login
 vercel login
-
-# Deploy
 vercel --prod
 ```
 
-Đảm bảo đã thêm các biến môi trường trong **Vercel Dashboard → Settings → Environment Variables**.
+Thêm biến môi trường tại **Vercel Dashboard → Settings → Environment Variables**.
 
-> ⚠️ FAISS và Sentence Transformers tốn RAM. Nên dùng Vercel Pro hoặc tách AI service thành microservice riêng khi production.
-
----
-
-## 🤝 Đóng góp
-
-1. Fork repository
-2. Tạo branch mới: `git checkout -b feature/ten-tinh-nang`
-3. Commit changes: `git commit -m 'feat: thêm tính năng X'`
-4. Push lên branch: `git push origin feature/ten-tinh-nang`
-5. Mở Pull Request
+AI microservice được host riêng trên **Hugging Face Spaces** (Docker, port 7860) để tách biệt tài nguyên RAM/GPU khỏi Vercel.
 
 ---
 
-## 📄 License
+## License
 
-Dự án này được phát hành dưới giấy phép [MIT](./LICENSE).
-
----
-
-<div align="center">
-
-Made with ❤️ by **Khoa** · GUA Fashion Store © 2026
-
-</div>
+[MIT](./LICENSE) © 2026 **Khoa** — GUA Maison
