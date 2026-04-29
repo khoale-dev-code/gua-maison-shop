@@ -2,74 +2,75 @@
 app/__init__.py  –  Application Factory (GUA MAISON 2026 Edition)
 """
 import logging
-from flask import Flask, session, redirect, render_template_string
+from flask import Flask, session, render_template_string
 from flask_wtf.csrf import CSRFProtect, CSRFError
-from config.settings import get_config
 
-# Cấu hình Logging
+# FIX: Import validate_config để kiểm tra biến môi trường ngay khi khởi động
+from config.settings import get_config, validate_config
+
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Khởi tạo CSRF Protect
 csrf = CSRFProtect()
+
+# FIX: Import Models 1 lần ở module level thay vì import lại mỗi request
+# trong context_processor — giảm overhead đáng kể
+from app.models.cart_model     import CartModel
+from app.models.category_model import CategoryModel
 
 
 def create_app() -> Flask:
     app = Flask(__name__, template_folder="templates", static_folder="static")
-    
-    # 1. Load Cấu hình
+
+    # 1. Validate & Load Config
+    # FIX: validate_config() crash sớm nếu thiếu SECRET_KEY / SUPABASE_* 
+    # thay vì để lỗi âm thầm xuất hiện lúc runtime
+    validate_config()
     app.config.from_object(get_config())
 
-    # 2. Khởi tạo Extensions
-    csrf.init_app(app)  # Kích hoạt bảo vệ CSRF toàn cục
+    # 2. Extensions
+    csrf.init_app(app)
 
-    # 3. Đăng ký Blueprints
-    from app.controllers.auth_controller    import auth_bp
-    from app.controllers.product_controller import products_bp
-    from app.controllers.cart_controller    import cart_bp
-    from app.controllers.admin_controller   import admin_bp
-    from app.controllers.profile_controller import profile_bp
-    from app.controllers.debug_controller   import debug_bp
-    from app.controllers.chat_controller    import chat_bp
-    from app.controllers.ai_controller      import ai_bp  # <-- Đăng ký thêm AI Styling Lab
+    # 3. Blueprints
+    # FIX: Bỏ tuple (bp, None) không cần thiết — dùng thẳng register_blueprint
+    from app.controllers.auth_controller     import auth_bp
+    from app.controllers.product_controller  import products_bp
+    from app.controllers.cart_controller     import cart_bp
+    from app.controllers.admin_controller    import admin_bp
+    from app.controllers.profile_controller  import profile_bp
+    from app.controllers.chat_controller     import chat_bp
+    from app.controllers.ai_controller       import ai_bp
+    from app.controllers.favorite_controller import favorite_bp
 
-    blueprints = [
-        (auth_bp, None),
-        (products_bp, None),
-        (cart_bp, None),
-        (admin_bp, None),
-        (profile_bp, None),
-        (debug_bp, None),
-        (chat_bp, None),
-        (ai_bp, None)  # <-- Đăng ký ai_bp vào hệ thống
-    ]
+    for bp in [auth_bp, products_bp, cart_bp, admin_bp,
+               profile_bp, chat_bp, ai_bp, favorite_bp]:
+        app.register_blueprint(bp)
 
-    for bp, prefix in blueprints:
-        app.register_blueprint(bp, url_prefix=prefix)
+    # FIX: debug_bp chỉ đăng ký ở môi trường Development
+    # Tránh lộ endpoint /debug/test-db trên Production
+    if app.config.get("DEBUG"):
+        from app.controllers.debug_controller import debug_bp
+        app.register_blueprint(debug_bp)
+        logger.info("🛠️  Debug blueprint đã được kích hoạt (Development only).")
 
-    # 4. Context Processor: Truyền biến toàn cục vào Jinja2
+    # 4. Context Processor
     @app.context_processor
-    def inject_globals():
+    def inject_globals() -> dict:
         cart_count = 0
+        categories = []
         user_id = session.get("user_id")
-        
-        # Xử lý số lượng giỏ hàng
+
         if user_id:
             try:
-                from app.models.cart_model import CartModel
                 cart_count = CartModel.get_count(user_id)
             except Exception:
-                logger.error("Failed to fetch cart count in context_processor")
-                cart_count = 0
-                
-        # Xử lý Danh mục động cho toàn bộ trang (Navbar, Sidebar)
+                logger.exception("context_processor: Lỗi khi lấy cart_count.")
+
         try:
-            from app.models.category_model import CategoryModel
             categories = CategoryModel.get_all()
         except Exception:
-            logger.error("Failed to fetch categories in context_processor")
-            categories = []
-            
+            logger.exception("context_processor: Lỗi khi lấy categories.")
+
         return {
             "current_user": {
                 "id": session.get("user_id"),
@@ -78,100 +79,193 @@ def create_app() -> Flask:
                 "role": session.get("role"),
             },
             "cart_count": cart_count,
-            "global_categories": categories,  # Truyền danh mục ra toàn cục
+            "global_categories": categories,
         }
 
-    # 5. Xử lý lỗi hệ thống (Error Handlers)
-    
-    @app.errorhandler(404)
-    def not_found(e):
-        """Giao diện 404 phong cách Minimalist Sport-Luxe."""
-        return render_template_string(ERROR_TEMPLATE,
-            code=404,
-            title="Không tìm thấy trang",
-            desc="Đường dẫn này không tồn tại hoặc đã bị gỡ khỏi hệ thống GUA Maison."), 404
+    # 5. Error Handlers
+    def _error_response(code: int, title: str, desc: str):
+        """Helper dùng chung cho tất cả error handler."""
+        # FIX: Chỉ hiện debug link khi DEBUG=True — không lộ /debug trên Production
+        show_debug = app.config.get("DEBUG", False)
+        return render_template_string(
+            ERROR_TEMPLATE, code=code, title=title, desc=desc,
+            show_debug=show_debug
+        ), code
+
+    @app.errorhandler(400)
+    def bad_request(e):
+        return _error_response(400, "Yêu cầu không hợp lệ",
+                               "Dữ liệu gửi lên bị lỗi hoặc không đúng định dạng.")
+
+    @app.errorhandler(403)
+    def forbidden(e):
+        return _error_response(403, "Từ chối truy cập",
+                               "Bạn không có quyền truy cập vào trang này.")
 
     @app.errorhandler(CSRFError)
     def handle_csrf_error(e):
-        """Xử lý lỗi Token bảo mật hết hạn hoặc thiếu."""
-        return render_template_string(ERROR_TEMPLATE,
-            code=403,
-            title="Từ chối truy cập",
-            desc="Phiên làm việc đã hết hạn do bảo mật. Vui lòng tải lại trang và thử lại."), 403
+        return _error_response(403, "Phiên bảo mật hết hạn",
+                               "Token bảo mật đã hết hạn. Vui lòng tải lại trang và thử lại.")
+
+    @app.errorhandler(404)
+    def not_found(e):
+        return _error_response(404, "Không tìm thấy trang",
+                               "Đường dẫn này không tồn tại hoặc đã bị gỡ khỏi hệ thống GUA Maison.")
+
+    @app.errorhandler(405)
+    def method_not_allowed(e):
+        return _error_response(405, "Phương thức không được phép",
+                               "Hành động này không được hỗ trợ trên endpoint hiện tại.")
+
+    # FIX: Handler riêng cho 413 — file upload vượt MAX_CONTENT_LENGTH
+    @app.errorhandler(413)
+    def request_too_large(e):
+        return _error_response(413, "File quá lớn",
+                               "Kích thước file vượt quá giới hạn 10 MB. Vui lòng chọn ảnh nhỏ hơn.")
 
     @app.errorhandler(500)
     def server_error(e):
-        """Giao diện lỗi 500 chuyên nghiệp."""
         logger.exception("Internal Server Error")
-        return render_template_string(ERROR_TEMPLATE,
-            code=500,
-            title="Lỗi máy chủ",
-            desc="Hệ thống đang gặp sự cố kỹ thuật. Đội ngũ kỹ sư của chúng tôi đang xử lý."), 500
+        return _error_response(500, "Lỗi máy chủ",
+                               "Hệ thống đang gặp sự cố kỹ thuật. Đội ngũ kỹ sư đang xử lý.")
 
     return app
 
 
-# ═══════════════════════════════════════════════════════════════
-# TEMPLATE LỖI CHUẨN MINIMALIST SPORT-LUXE 2026
-# ═══════════════════════════════════════════════════════════════
-ERROR_TEMPLATE = """
-<!DOCTYPE html>
+# ── Error Page Template ──────────────────────────────────────────────────────
+# FIX: Bỏ cdn.tailwindcss.com — inline critical CSS để trang lỗi
+# hoạt động ngay cả khi mất mạng hoặc CDN down
+ERROR_TEMPLATE = """<!DOCTYPE html>
 <html lang="vi">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ code }} - GUA Maison</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700;900&display=swap" rel="stylesheet">
-    <style>
-        body { font-family: 'DM Sans', sans-serif; }
-        .reveal { animation: revealUp 0.8s cubic-bezier(0.22, 1, 0.36, 1) forwards; opacity: 0; }
-        @keyframes revealUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{ code }} – GUA Maison</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,400;0,500;0,700;0,900;1,400&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'DM Sans', system-ui, sans-serif;
+      background: #fafaf9;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 3rem 1rem;
+      overflow: hidden;
+    }
+    .blob {
+      position: fixed; top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      width: 500px; height: 500px;
+      background: #e7e5e4;
+      border-radius: 50%;
+      filter: blur(100px);
+      pointer-events: none; z-index: 0;
+    }
+    .card {
+      position: relative; z-index: 10;
+      width: 100%; max-width: 620px;
+      background: rgba(255,255,255,0.85);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(231,229,228,0.7);
+      border-radius: 1.5rem;
+      padding: clamp(2.5rem, 6vw, 5rem);
+      text-align: center;
+      box-shadow: 0 20px 60px -15px rgba(0,0,0,0.1);
+      animation: revealUp .7s cubic-bezier(.22,1,.36,1) forwards;
+      opacity: 0;
+    }
+    @keyframes revealUp {
+      from { opacity: 0; transform: translateY(28px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .icon-wrap {
+      width: 4rem; height: 4rem;
+      border-radius: 50%;
+      background: #f5f5f4;
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 1.5rem;
+      color: #a8a29e;
+    }
+    .icon-wrap svg { width: 2rem; height: 2rem; }
+    .code {
+      font-size: clamp(5rem, 18vw, 8rem);
+      font-weight: 900;
+      line-height: 1;
+      letter-spacing: -.04em;
+      color: #1c1917;
+      margin-bottom: 1rem;
+    }
+    .title {
+      font-size: clamp(1.1rem, 3vw, 1.6rem);
+      font-weight: 700;
+      color: #1c1917;
+      letter-spacing: -.02em;
+      margin-bottom: .75rem;
+    }
+    .desc {
+      color: #78716c;
+      font-size: .9rem;
+      font-weight: 500;
+      line-height: 1.7;
+      max-width: 380px;
+      margin: 0 auto 2.5rem;
+    }
+    .btn-home {
+      display: inline-block;
+      background: #1c1917;
+      color: #fff;
+      font-size: .875rem;
+      font-weight: 700;
+      padding: .9rem 2.5rem;
+      border-radius: .75rem;
+      text-decoration: none;
+      box-shadow: 0 4px 20px rgba(0,0,0,.15);
+      transition: background .2s, transform .2s;
+    }
+    .btn-home:hover  { background: #44403c; transform: translateY(-2px); }
+    .btn-home:active { transform: scale(.97); }
+    .btn-debug {
+      display: block;
+      margin-top: 1.25rem;
+      font-size: .75rem;
+      font-weight: 700;
+      color: #a8a29e;
+      text-decoration: underline;
+      text-underline-offset: 3px;
+      cursor: pointer;
+      background: none; border: none;
+      transition: color .2s;
+    }
+    .btn-debug:hover { color: #1c1917; }
+  </style>
 </head>
-<body class="bg-stone-50 flex items-center justify-center min-h-screen px-4 py-12 relative overflow-hidden">
-    
-    <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-stone-200 rounded-full blur-[100px] pointer-events-none z-0"></div>
-
-    <div class="max-w-2xl w-full bg-white/80 backdrop-blur-xl border border-stone-200/60 rounded-3xl p-10 md:p-20 text-center shadow-[0_20px_60px_-15px_rgba(0,0,0,0.1)] relative z-10 reveal">
-        
-        <div class="flex justify-center mb-6">
-            <div class="w-16 h-16 bg-stone-100 rounded-full flex items-center justify-center text-stone-400">
-                {% if code == 404 %}
-                <svg class="w-8 h-8" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"/></svg>
-                {% elif code == 403 %}
-                <svg class="w-8 h-8" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z"/></svg>
-                {% else %}
-                <svg class="w-8 h-8" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
-                {% endif %}
-            </div>
-        </div>
-
-        <h1 class="text-7xl md:text-9xl font-black text-stone-900 leading-none tracking-tighter mb-4 drop-shadow-sm">
-            {{ code }}
-        </h1>
-        
-        <h2 class="text-xl md:text-3xl font-bold text-stone-900 tracking-tight mb-4">
-            {{ title }}
-        </h2>
-        
-        <p class="text-stone-500 text-sm font-medium mb-10 max-w-md mx-auto leading-relaxed">
-            {{ desc }}
-        </p>
-        
-        <div class="flex flex-col items-center gap-4">
-            <a href="/" class="block w-full sm:w-auto bg-stone-900 text-white px-10 py-4 rounded-xl text-sm font-bold shadow-lg hover:bg-stone-700 hover:-translate-y-1 active:scale-95 transition-all duration-300">
-                Trở về Trang chủ
-            </a>
-            
-            {% if code == 500 %}
-            <a href="/debug/test-db" class="inline-block text-xs text-stone-400 font-bold hover:text-stone-900 underline underline-offset-4 transition-colors mt-4">
-                Chạy trình kiểm tra CSDL
-            </a>
-            {% endif %}
-        </div>
-        
+<body>
+  <div class="blob" aria-hidden="true"></div>
+  <div class="card">
+    <div class="icon-wrap" aria-hidden="true">
+      {% if code == 404 %}
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"/></svg>
+      {% elif code in (403, 400, 405) %}
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z"/></svg>
+      {% elif code == 413 %}
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5"/></svg>
+      {% else %}
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+      {% endif %}
     </div>
+
+    <p class="code">{{ code }}</p>
+    <h1 class="title">{{ title }}</h1>
+    <p class="desc">{{ desc }}</p>
+
+    <a href="/" class="btn-home">Trở về Trang chủ</a>
+
+    {# FIX: Link debug chỉ hiển thị khi DEBUG=True — ẩn hoàn toàn trên Production #}
+    {% if show_debug and code == 500 %}
+    <a href="/debug/test-db" class="btn-debug">Chạy trình kiểm tra CSDL</a>
+    {% endif %}
+  </div>
 </body>
-</html>
-"""
+</html>"""

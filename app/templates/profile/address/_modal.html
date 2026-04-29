@@ -1,0 +1,138 @@
+{# address/_modal.html — Add / Edit address modal (shared form) #}
+<div id="addr-modal"
+  role="dialog" aria-modal="true" aria-labelledby="modal-title" aria-hidden="true"
+  style="display:none"
+  class="fixed inset-0 z-50 flex items-end sm:items-center justify-center">
+
+  {# Backdrop #}
+  <div id="modal-backdrop"
+    class="absolute inset-0 bg-stone-900/50 opacity-0 transition-opacity duration-300"
+    aria-hidden="true"
+    onclick="GUA.modal.close()"></div>
+
+  {# Panel #}
+  <div id="modal-panel"
+    class="relative w-full sm:max-w-[560px] max-h-[92dvh] overflow-y-auto overscroll-contain
+           bg-white sm:rounded-2xl rounded-t-2xl
+           translate-y-8 opacity-0 transition-all duration-300 sm:mx-4">
+
+    {# Mobile drag handle #}
+    <div class="sm:hidden flex justify-center pt-3 pb-1">
+      <div class="w-10 h-1 bg-stone-200 rounded-full"></div>
+    </div>
+
+    {# Sticky header #}
+    <div class="sticky top-0 bg-white/95 backdrop-blur-xs z-10 flex items-center justify-between px-6 pt-4 pb-4 border-b border-stone-100">
+      <h2 id="modal-title" class="text-base font-bold text-stone-900">Thêm địa chỉ mới</h2>
+      <button type="button" onclick="GUA.modal.close()" aria-label="Đóng"
+        class="size-8 flex items-center justify-center rounded-lg text-stone-400 hover:text-stone-900 hover:bg-stone-100 transition-colors">
+        <svg class="size-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"/></svg>
+      </button>
+    </div>
+
+    {# Form body #}
+    <form id="addr-form" method="POST" novalidate class="px-6 py-5 space-y-4">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <input type="hidden" id="addr-id"    name="addr_id"       value="">
+      <input type="hidden" id="hid-prov"   name="province_name" value="">
+      <input type="hidden" id="hid-dist"   name="district_name" value="">
+      <input type="hidden" id="hid-ward"   name="ward_name"     value="">
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
+          <label for="inp-name" class="block text-xs font-semibold text-stone-500 mb-1.5">
+            Họ và tên <span class="text-red-500" aria-hidden="true">*</span>
+          </label>
+          <input id="inp-name" type="text" name="full_name" required autocomplete="name"
+            placeholder="Lê Trần Đăng Khoa" class="gua-input"/>
+        </div>
+        <div>
+          <label for="inp-phone" class="block text-xs font-semibold text-stone-500 mb-1.5">
+            Số điện thoại <span class="text-red-500" aria-hidden="true">*</span>
+          </label>
+          {# FIX: Pattern accepts both 0xxx and 84xxx formats, added clearer title #}
+          <input id="inp-phone" type="tel" name="phone" required autocomplete="tel" inputmode="numeric"
+            placeholder="0987 654 321"
+            pattern="^(84|0)(3[2-9]|5[6-9]|7[06-9]|8[1-9]|9[0-9])[0-9]{7}$"
+            title="Số điện thoại Việt Nam hợp lệ (VD: 0987654321)"
+            class="gua-input"/>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div>
+          <label for="sel-prov" class="block text-xs font-semibold text-stone-500 mb-1.5">
+            Tỉnh / Thành phố <span class="text-red-500" aria-hidden="true">*</span>
+          </label>
+          <div class="relative">
+            <select id="sel-prov" required class="gua-select">
+              <option value="" disabled selected>Đang tải…</option>
+            </select>
+            <svg class="gua-chevron" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5"/></svg>
+          </div>
+        </div>
+        <div>
+          <label for="sel-dist" class="block text-xs font-semibold text-stone-500 mb-1.5">
+            Quận / Huyện <span class="text-red-500" aria-hidden="true">*</span>
+          </label>
+          <div class="relative">
+            <select id="sel-dist" required disabled class="gua-select">
+              <option value="" disabled selected>Chọn Tỉnh trước</option>
+            </select>
+            <svg class="gua-chevron" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5"/></svg>
+          </div>
+        </div>
+        <div>
+          <label for="sel-ward" class="block text-xs font-semibold text-stone-500 mb-1.5">
+            Phường / Xã <span class="text-red-500" aria-hidden="true">*</span>
+          </label>
+          <div class="relative">
+            <select id="sel-ward" required disabled class="gua-select">
+              <option value="" disabled selected>Chọn Quận trước</option>
+            </select>
+            <svg class="gua-chevron" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5"/></svg>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <label for="inp-addr" class="block text-xs font-semibold text-stone-500 mb-1.5">
+          Số nhà, Tên đường <span class="text-red-500" aria-hidden="true">*</span>
+        </label>
+        <input id="inp-addr" type="text" name="address_line" required autocomplete="street-address"
+          placeholder="VD: 12B Nguyễn Hữu Thọ" class="gua-input"/>
+      </div>
+
+      <div>
+        <label for="inp-note" class="block text-xs font-semibold text-stone-500 mb-1.5">
+          Ghi chú <span class="font-normal text-stone-400">(tuỳ chọn)</span>
+        </label>
+        <input id="inp-note" type="text" name="note" maxlength="200" autocomplete="off"
+          placeholder="VD: Giao giờ hành chính, gọi trước khi giao" class="gua-input"/>
+      </div>
+
+      {# FIX: Removed value="1" — controller checks `== "on"` (HTML checkbox default) #}
+      <label class="inline-flex items-center gap-2.5 cursor-pointer select-none group">
+        <input id="chk-default" type="checkbox" name="is_default"
+          class="size-4 rounded border-stone-300 accent-stone-900 cursor-pointer"/>
+        <span class="text-sm font-medium text-stone-700 group-hover:text-stone-900 transition-colors">
+          Đặt làm địa chỉ mặc định
+        </span>
+      </label>
+
+      <div class="pt-2 pb-1">
+        <button id="btn-submit" type="submit"
+          class="w-full h-11 bg-stone-900 text-white text-sm font-semibold rounded-xl
+                 hover:bg-stone-800 active:scale-[.99] transition-all
+                 flex items-center justify-center gap-2
+                 disabled:opacity-50 disabled:cursor-not-allowed">
+          <span id="btn-text">Lưu địa chỉ</span>
+          <svg id="btn-spin" class="hidden size-4 animate-spin" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="white" stroke-width="4"/>
+            <path class="opacity-75" fill="white" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"/>
+          </svg>
+        </button>
+      </div>
+    </form>
+  </div>
+</div>  

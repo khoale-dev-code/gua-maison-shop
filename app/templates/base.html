@@ -4,7 +4,12 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="description" content="GUA — Thời trang kiến trúc Sport-Luxe 2026">
+  
+  <meta name="csrf-token" content="{{ csrf_token() }}">
+  
   <title>{% block title %}GUA Maison{% endblock %}</title>
+
+  <link rel="icon" type="image/png" href="{{ url_for('static', filename='images/favicon.png') }}">
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -148,7 +153,7 @@
   {% include 'chat.html' %}
 
   <script>
-    // ── 1. Logic Menu Mobile (Đã chuyển từ body lên đây để quản lý Navbar) ──
+    // ── 1. Logic Menu Mobile ──
     const openBtn  = document.getElementById('openMenu');
     const closeBtn = document.getElementById('closeMenu');
     const menu     = document.getElementById('mobileMenu');
@@ -168,7 +173,6 @@
         document.body.style.overflow = '';
       });
 
-      // ESC để đóng menu
       document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape' && !menu.classList.contains('invisible')) {
           closeBtn.click();
@@ -189,6 +193,86 @@
 
       document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
     });
+
+    // ── 3. HỆ THỐNG THÔNG BÁO (TOAST NOTIFICATION) ──
+    function showToast(message, isRemoved = false) {
+      // Tạo một thẻ div chứa thông báo
+      const toast = document.createElement('div');
+      
+      // Class của TailwindCSS giúp thông báo trượt mượt mà từ dưới lên
+      toast.className = 'fixed bottom-6 right-6 z-[9999] bg-stone-900 text-white px-6 py-4 rounded-2xl shadow-2xl flex items-center gap-3 text-sm font-bold tracking-wide transform translate-y-10 opacity-0 transition-all duration-500 ease-out';
+      
+      // Nếu là thêm vào thì icon màu xanh, xóa thì icon màu xám
+      const icon = isRemoved 
+        ? `<svg class="w-5 h-5 text-stone-500" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"/></svg>`
+        : `<svg class="w-5 h-5 text-emerald-400" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>`;
+
+      toast.innerHTML = `${icon} <span>${message}</span>`;
+      document.body.appendChild(toast);
+
+      // Kích hoạt hiệu ứng trượt lên
+      setTimeout(() => {
+        toast.classList.remove('translate-y-10', 'opacity-0');
+      }, 10);
+
+      // Tự động trượt xuống và biến mất sau 3 giây
+      setTimeout(() => {
+        toast.classList.add('translate-y-10', 'opacity-0');
+        setTimeout(() => toast.remove(), 500); // Xóa hẳn khỏi HTML
+      }, 3000);
+    }
+
+    // ── 4. Logic: Thêm / Bỏ Sản Phẩm Yêu Thích ──
+    async function toggleHeart(productId, btnElement) {
+      if(event) event.preventDefault(); // Ngăn hành vi chuyển trang nếu nút nằm trong thẻ <a>
+      
+      const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+      const icon = btnElement.querySelector('.heart-icon');
+
+      // Tạo hiệu ứng scale nhỏ lại khi vừa click để báo hiệu đang xử lý
+      icon.classList.add('scale-75');
+
+      try {
+          const response = await fetch('/api/favorites/toggle', {
+              method: 'POST',
+              headers: {
+                  'Content-Type': 'application/json',
+                  'X-CSRFToken': csrfToken
+              },
+              body: JSON.stringify({ product_id: productId })
+          });
+
+          const result = await response.json();
+
+          if (response.status === 401) {
+              alert("Vui lòng đăng nhập để lưu vào Bộ sưu tập cá nhân.");
+              window.location.href = '/auth/login';
+              return;
+          }
+
+          if (result.status === 'success') {
+              if (result.action === 'added') {
+                  icon.classList.remove('text-stone-300');
+                  icon.classList.add('text-red-500');
+                  // Gọi Toast thông báo Thêm thành công
+                  showToast("Đã thêm vào bộ sưu tập cá nhân.");
+              } else {
+                  icon.classList.remove('text-red-500');
+                  icon.classList.add('text-stone-300');
+                  // Gọi Toast thông báo Xóa thành công
+                  showToast("Đã xóa khỏi bộ sưu tập.", true);
+              }
+          } else {
+              console.error(result.message);
+              alert(result.message);
+          }
+      } catch (error) {
+          console.error("Lỗi Toggle Yêu Thích:", error);
+      } finally {
+          // Trả lại kích thước ban đầu cho icon
+          setTimeout(() => icon.classList.remove('scale-75'), 150);
+      }
+    }
   </script>
 </body>
 </html>
