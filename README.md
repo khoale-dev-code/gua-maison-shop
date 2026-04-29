@@ -2,7 +2,7 @@
 
 <br/>
 
-# 👗 GUA Maison
+# GUA Maison
 
 ### Nền tảng thương mại điện tử thời trang cao cấp tích hợp AI
 

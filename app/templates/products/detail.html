@@ -25,7 +25,7 @@
     <div class="grid grid-cols-1 lg:grid-cols-2">
 
       {# ══════════════════════════════
-          CỘT TRÁI — Hình ảnh sản phẩm
+         CỘT TRÁI — Hình ảnh sản phẩm
          ══════════════════════════════ #}
       <section aria-label="Hình ảnh sản phẩm"
                class="relative bg-stone-50 border-b lg:border-b-0 lg:border-r border-stone-100 group">
@@ -113,7 +113,7 @@
       </section>
 
       {# ══════════════════════════════
-          CỘT PHẢI — Thông tin sản phẩm
+         CỘT PHẢI — Thông tin sản phẩm
          ══════════════════════════════ #}
       <section aria-label="Thông tin sản phẩm"
                class="px-8 py-10 md:px-12 md:py-14 lg:px-16 lg:py-16 flex flex-col">
@@ -167,7 +167,7 @@
             </div>
           </fieldset>
 
-          {# Số lượng & Thêm vào giỏ #}
+          {# Số lượng & Thêm vào giỏ & YÊU THÍCH #}
           <div class="flex gap-3">
             {# Bộ chọn số lượng #}
             <div class="flex items-center border border-stone-200 rounded-md overflow-hidden bg-white min-w-[110px]">
@@ -207,6 +207,16 @@
                 <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4zM3 6h18M16 10a4 4 0 01-8 0"/>
               </svg>
             </button>
+
+            {# Nút Yêu thích (Wishlist) #}
+            <button type="button" 
+                    onclick="toggleHeart('{{ product.id }}', this)"
+                    title="Thêm vào Bộ sưu tập"
+                    class="w-11 h-11 flex-shrink-0 flex items-center justify-center bg-white border border-stone-200 rounded-md text-stone-300 hover:text-red-500 hover:border-red-200 hover:bg-red-50 transition-all shadow-sm active:scale-[0.95]">
+            <svg class="w-5 h-5 heart-icon transition-colors" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path d="M11.645 20.91l-.007-.003-.022-.012a15.247 15.247 0 01-.383-.218 25.18 25.18 0 01-4.244-3.17C4.688 15.36 2.25 12.174 2.25 8.25 2.25 5.322 4.714 3 7.688 3A5.5 5.5 0 0112 5.052 5.5 5.5 0 0116.313 3c2.973 0 5.437 2.322 5.437 5.25 0 3.925-2.438 7.111-4.739 9.256a25.175 25.175 0 01-4.244 3.17 15.247 15.247 0 01-.383.219l-.022.012-.007.004-.003.001a.752.752 0 01-.704 0l-.003-.001z" />
+            </svg>
+            </button>
           </div>
 
           {# Trạng thái tồn kho #}
@@ -221,6 +231,18 @@
         <div class="py-5 border-y border-stone-100 flex items-center gap-2">
           <span class="inline-block w-1.5 h-1.5 rounded-full bg-red-400 shrink-0"></span>
           <p class="text-sm font-semibold text-red-500">Tạm hết hàng</p>
+        </div>
+        
+        {# Nút yêu thích khi hết hàng #}
+        <div class="mt-4">
+            <button type="button" 
+                    onclick="toggleHeart('{{ product.id }}', this)"
+                    class="w-full h-11 flex items-center justify-center gap-2 bg-white border border-stone-200 rounded-md text-stone-600 hover:text-red-500 hover:border-red-200 hover:bg-red-50 transition-all shadow-sm font-semibold text-xs uppercase tracking-widest active:scale-[0.98]">
+              <svg class="w-4 h-4 heart-icon transition-colors text-stone-300" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M11.645 20.91l-.007-.003-.022-.012a15.247 15.247 0 01-.383-.218 25.18 25.18 0 01-4.244-3.17C4.688 15.36 2.25 12.174 2.25 8.25 2.25 5.322 4.714 3 7.688 3A5.5 5.5 0 0112 5.052 5.5 5.5 0 0116.313 3c2.973 0 5.437 2.322 5.437 5.25 0 3.925-2.438 7.111-4.739 9.256a25.175 25.175 0 01-4.244 3.17 15.247 15.247 0 01-.383.219l-.022.012-.007.004-.003.001a.752.752 0 01-.704 0l-.003-.001z" />
+              </svg>
+              Lưu vào Bộ sưu tập
+            </button>
         </div>
         {% endif %}
 

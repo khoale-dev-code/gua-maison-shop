@@ -2,185 +2,164 @@
 {% block title %}Giỏ Hàng | GUA Maison{% endblock %}
 
 {% block content %}
-<div class="min-h-screen bg-[#fafaf8] text-black pb-32">
-  <div class="max-w-[1400px] mx-auto px-4 md:px-8">
+<div class="min-h-screen bg-stone-50 pb-32">
+  <div class="max-w-[1200px] mx-auto px-4 md:px-8">
 
     {# ── Tiêu đề trang ── #}
-    <header class="pt-10 pb-8 border-b border-stone-200 reveal">
+    <header class="pt-10 pb-8 reveal">
       <div class="flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
-          <p class="text-[10px] font-bold uppercase tracking-[0.35em] text-stone-400 mb-2">
-            Bước 01 / 03
-          </p>
-          <h1 class="text-4xl md:text-6xl font-black uppercase tracking-tight leading-none">
-            Giỏ Hàng
-          </h1>
+          <p class="text-[10px] font-bold uppercase tracking-[0.3em] text-stone-400 mb-2">Bước 01 / 03</p>
+          <h1 class="text-3xl md:text-5xl font-black uppercase tracking-tight leading-none text-stone-900">Giỏ hàng</h1>
         </div>
 
         {# Breadcrumb bước #}
         <nav class="flex items-center gap-3 text-[10px] font-bold uppercase tracking-widest">
-          <span class="text-black border-b-2 border-black pb-0.5">Giỏ hàng</span>
-          <span class="text-stone-300">›</span>
-          <span class="text-stone-400">Thông tin</span>
-          <span class="text-stone-300">›</span>
+          <span class="text-stone-900 border-b-2 border-stone-900 pb-0.5">Giỏ hàng</span>
+          <span class="text-stone-300">/</span>
+          <span class="text-stone-400">Thanh toán</span>
+          <span class="text-stone-300">/</span>
           <span class="text-stone-400">Hoàn tất</span>
         </nav>
       </div>
     </header>
 
     {% if items %}
-    <div class="grid grid-cols-1 lg:grid-cols-12 gap-10 mt-10">
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 mt-6">
 
-      {# ── Danh sách sản phẩm ── #}
-      <section class="lg:col-span-8 reveal" style="transition-delay: 80ms;">
+      {# ── CỘT TRÁI: DANH SÁCH SẢN PHẨM ── #}
+      <section class="lg:col-span-8 reveal" style="transition-delay: 100ms;">
+        
+        <div class="bg-white rounded-3xl border border-stone-100 p-6 md:p-8 shadow-[0_4px_20px_rgb(0,0,0,0.02)] mb-6">
+          
+          {# Header bảng – ẩn trên mobile #}
+          <div class="hidden md:grid grid-cols-12 pb-4 text-[10px] font-bold uppercase tracking-widest text-stone-400 border-b border-stone-100">
+            <span class="col-span-6">Sản phẩm</span>
+            <span class="col-span-2 text-center">Kích cỡ</span>
+            <span class="col-span-2 text-center">Số lượng</span>
+            <span class="col-span-2 text-right">Thành tiền</span>
+          </div>
 
-        {# Header bảng – ẩn trên mobile #}
-        <div class="hidden md:grid grid-cols-12 px-6 py-3 text-[9px] font-black uppercase tracking-[0.3em] text-stone-400 border-b border-stone-200">
-          <span class="col-span-6">Sản phẩm</span>
-          <span class="col-span-2 text-center">Kích cỡ</span>
-          <span class="col-span-2 text-center">Số lượng</span>
-          <span class="col-span-2 text-right">Thành tiền</span>
-        </div>
+          <div class="divide-y divide-stone-100">
+            {% for item in items %}
+            <article class="grid grid-cols-1 md:grid-cols-12 gap-5 md:gap-0 items-center py-6 group">
 
-        <div class="divide-y divide-stone-100">
-          {% for item in items %}
-          <article class="grid grid-cols-1 md:grid-cols-12 gap-4 md:gap-0 items-center py-6 px-0 md:px-6 group">
+              {# Ảnh + Tên #}
+              <div class="col-span-6 flex gap-4 items-center">
+                <a href="/product/{{ item.products.id if item.products else '#' }}" class="w-20 md:w-24 aspect-[3/4] bg-stone-50 rounded-xl border border-stone-100/50 overflow-hidden shrink-0 block relative">
+                  {% if item.products and item.products.thumbnail_url %}
+                    <img src="{{ item.products.thumbnail_url }}" alt="{{ item.products.name }}" class="w-full h-full object-cover mix-blend-multiply group-hover:scale-105 transition-transform duration-700 ease-out" loading="lazy">
+                  {% else %}
+                    <div class="w-full h-full flex items-center justify-center text-xs font-bold text-stone-300">NO IMG</div>
+                  {% endif %}
+                </a>
 
-            {# Ảnh + tên #}
-            <div class="col-span-6 flex gap-4 items-center">
-              <a href="#" class="w-20 md:w-24 aspect-[3/4] bg-stone-100 border border-stone-100 overflow-hidden shrink-0 block">
-                {% if item.products and item.products.thumbnail_url %}
-                  <img src="{{ item.products.thumbnail_url }}"
-                       alt="{{ item.products.name }}"
-                       class="w-full h-full object-cover mix-blend-multiply group-hover:scale-105 transition-transform duration-500"
-                       loading="lazy">
-                {% else %}
-                  <div class="w-full h-full flex items-center justify-center text-[9px] font-black text-stone-300">GUA</div>
-                {% endif %}
-              </a>
-
-              <div>
-                <h3 class="text-[13px] font-black uppercase tracking-tight leading-tight mb-1">
-                  {{ item.products.name if item.products else 'Sản phẩm' }}
-                </h3>
-                <p class="text-[9px] font-mono text-stone-400 uppercase">
-                  SKU: {{ item.products.id[:8].upper() if item.products else 'N/A' }}
-                </p>
-                <p class="text-[12px] font-black mt-2 md:hidden">
-                  {{ '{:,.0f}'.format(item.products.price) }}&nbsp;<span class="text-[9px] font-bold text-stone-400">₫</span>
-                </p>
+                <div class="flex-1 min-w-0 pr-2">
+                  <a href="/product/{{ item.products.id if item.products else '#' }}">
+                    <h3 class="text-sm font-bold text-stone-900 leading-snug mb-1 line-clamp-2 hover:text-stone-600 transition-colors">
+                      {{ item.products.name if item.products else 'Sản phẩm không tồn tại' }}
+                    </h3>
+                  </a>
+                  <p class="text-[10px] font-mono font-medium text-stone-400 uppercase">
+                    SKU: {{ item.products.id[:8].upper() if item.products else 'N/A' }}
+                  </p>
+                  
+                  {# Giá hiển thị trên Mobile #}
+                  <p class="text-sm font-bold text-stone-900 mt-2 md:hidden">
+                    {{ '{:,.0f}'.format(item.products.price) }} <span class="text-[10px] font-medium text-stone-500">₫</span>
+                  </p>
+                </div>
               </div>
-            </div>
 
-            {# Kích cỡ #}
-            <div class="col-span-2 text-center hidden md:block">
-              {% if item.size %}
-                <span class="text-[11px] font-black uppercase border border-stone-300 px-2 py-1">{{ item.size }}</span>
-              {% else %}
-                <span class="text-stone-300 text-[11px]">—</span>
-              {% endif %}
-            </div>
+              {# Kích cỡ #}
+              <div class="col-span-2 text-center hidden md:block">
+                {% if item.size %}
+                  <span class="text-xs font-semibold text-stone-600 bg-stone-50 border border-stone-200 px-3 py-1 rounded-lg uppercase">{{ item.size }}</span>
+                {% else %}
+                  <span class="text-stone-300 text-sm">—</span>
+                {% endif %}
+              </div>
 
-            {# Số lượng #}
-            <div class="col-span-2 flex justify-start md:justify-center">
-              <form action="/cart/update/{{ item.id }}" method="post"
-                    class="flex items-center border border-stone-200 bg-white w-max">
-                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              {# Số lượng #}
+              <div class="col-span-2 flex justify-start md:justify-center">
+                <form action="/cart/update/{{ item.id }}" method="post" class="flex items-center border border-stone-200 rounded-lg overflow-hidden bg-white shadow-sm w-max">
+                  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                  
+                  <button type="button" onclick="thayDoiSoLuong(this, -1)" class="w-8 h-9 flex items-center justify-center text-stone-500 hover:text-stone-900 hover:bg-stone-50 transition-colors text-lg leading-none">
+                    −
+                  </button>
+                  <input type="number" name="quantity" value="{{ item.quantity }}" min="0" class="w-10 h-9 bg-transparent text-center text-sm font-bold text-stone-900 outline-none appearance-none border-x border-stone-100" onchange="this.form.submit()">
+                  <button type="button" onclick="thayDoiSoLuong(this, 1)" class="w-8 h-9 flex items-center justify-center text-stone-500 hover:text-stone-900 hover:bg-stone-50 transition-colors text-lg leading-none">
+                    +
+                  </button>
+                </form>
+              </div>
 
-                <button type="button"
-                        onclick="thayDoiSoLuong(this, -1)"
-                        class="w-9 h-9 text-stone-400 hover:text-black hover:bg-stone-50 transition-colors font-black text-lg">
-                  −
-                </button>
+              {# Giá tổng + Nút Xóa #}
+              <div class="col-span-2 flex flex-col items-start md:items-end gap-2">
+                <p class="text-sm font-bold text-stone-900 hidden md:block">
+                  {{ '{:,.0f}'.format(item.products.price * item.quantity) }} <span class="text-[10px] font-medium text-stone-500">₫</span>
+                </p>
 
-                <input type="number"
-                       name="quantity"
-                       value="{{ item.quantity }}"
-                       min="0"
-                       class="w-10 h-9 bg-transparent text-center text-[13px] font-black outline-none appearance-none"
-                       onchange="this.form.submit()">
+                <form action="/cart/remove/{{ item.id }}" method="post" class="m-0" onsubmit="return confirm('Bạn muốn xóa sản phẩm này khỏi giỏ hàng?');">
+                  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                  <button type="submit" class="text-xs font-semibold text-stone-400 hover:text-red-500 transition-colors underline underline-offset-4">
+                    Xóa
+                  </button>
+                </form>
+              </div>
 
-                <button type="button"
-                        onclick="thayDoiSoLuong(this, 1)"
-                        class="w-9 h-9 text-stone-400 hover:text-black hover:bg-stone-50 transition-colors font-black text-lg">
-                  +
-                </button>
-              </form>
-            </div>
-
-            {# Giá + xóa #}
-            <div class="col-span-2 flex flex-col items-start md:items-end gap-2">
-              <p class="text-[13px] font-black hidden md:block">
-                {{ '{:,.0f}'.format(item.products.price * item.quantity) }}&nbsp;<span class="text-[9px] font-bold text-stone-400">₫</span>
-              </p>
-
-              <form action="/cart/update/{{ item.id }}" method="post" class="m-0">
-                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                <input type="hidden" name="quantity" value="0">
-                <button type="submit"
-                        class="text-[9px] font-black uppercase tracking-widest text-stone-400 hover:text-red-500 transition-colors underline underline-offset-2 decoration-transparent hover:decoration-red-500">
-                  Xóa
-                </button>
-              </form>
-            </div>
-
-          </article>
-          {% endfor %}
+            </article>
+            {% endfor %}
+          </div>
         </div>
 
-        {# Link quay lại shop #}
-        <div class="pt-6 border-t border-stone-200">
-          <a href="/shop"
-             class="inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-stone-400 hover:text-black transition-colors">
-            <span>←</span>
-            <span>Tiếp tục mua sắm</span>
-          </a>
-        </div>
+        {# Link tiếp tục mua sắm #}
+        <a href="/shop" class="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-stone-500 hover:text-stone-900 transition-colors group px-2">
+          <svg class="w-4 h-4 group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5"/></svg>
+          Tiếp tục mua sắm
+        </a>
 
       </section>
 
-      {# ── Tóm tắt đơn hàng ── #}
-      <aside class="lg:col-span-4 reveal" style="transition-delay: 160ms;">
-        <div class="sticky top-24 bg-white border-2 border-black p-8 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
+      {# ── CỘT PHẢI: TÓM TẮT ĐƠN HÀNG ── #}
+      <aside class="lg:col-span-4 reveal" style="transition-delay: 200ms;">
+        <div class="sticky top-24 bg-white rounded-3xl border border-stone-100 p-8 shadow-[0_4px_20px_rgb(0,0,0,0.02)]">
 
-          <h2 class="text-lg font-black uppercase tracking-tight mb-6 pb-4 border-b border-stone-200">
-            Tóm tắt đơn hàng
+          <h2 class="text-base font-bold text-stone-900 mb-6 pb-4 border-b border-stone-100">
+            Thông tin thanh toán
           </h2>
 
-          <div class="space-y-3 mb-6">
-            <div class="flex justify-between items-center text-[12px]">
-              <span class="text-stone-500 font-medium">Tạm tính ({{ items|length }} sản phẩm)</span>
-              <span class="font-black">{{ '{:,.0f}'.format(total) }}&nbsp;₫</span>
+          <div class="space-y-4 mb-6">
+            <div class="flex justify-between items-center text-sm font-medium">
+              <span class="text-stone-500">Tạm tính ({{ items|length }} sản phẩm)</span>
+              <span class="text-stone-900">{{ '{:,.0f}'.format(total) }} ₫</span>
             </div>
-            <div class="flex justify-between items-center text-[12px]">
-              <span class="text-stone-500 font-medium">Phí vận chuyển</span>
-              <span class="font-black text-stone-400">Tính khi thanh toán</span>
-            </div>
-          </div>
-
-          <div class="border-t-2 border-black pt-5 mb-8">
-            <div class="flex justify-between items-center">
-              <span class="text-[13px] font-black uppercase tracking-wider">Tổng cộng</span>
-              <span class="text-3xl font-black tracking-tight">
-                {{ '{:,.0f}'.format(total) }}&nbsp;<span class="text-[11px] text-stone-400">₫</span>
-              </span>
+            <div class="flex justify-between items-center text-sm font-medium">
+              <span class="text-stone-500">Phí vận chuyển</span>
+              <span class="text-emerald-600 font-bold">Tính ở bước sau</span>
             </div>
           </div>
 
-          <a href="/cart/checkout"
-             class="group relative flex items-center justify-center w-full bg-black text-white py-4 overflow-hidden transition-all active:scale-[0.98]">
-            <span class="text-[11px] font-black uppercase tracking-[0.25em] relative z-10 group-hover:-translate-x-3 transition-transform duration-200">
-              Tiến hành thanh toán
-            </span>
-            <svg class="w-4 h-4 absolute right-5 opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all duration-200 z-10"
-                 fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24">
-              <path d="M9 5l7 7-7 7"/>
-            </svg>
-            <div class="absolute inset-0 bg-stone-800 scale-x-0 origin-left group-hover:scale-x-100 transition-transform duration-300 ease-out"></div>
+          <div class="border-t border-stone-100 pt-6 mb-8">
+            <div class="flex justify-between items-end">
+              <span class="text-sm font-bold text-stone-500">Tổng cộng</span>
+              <div class="text-right">
+                <p class="text-3xl font-black tracking-tight text-stone-900">
+                  {{ '{:,.0f}'.format(total) }} <span class="text-lg font-medium text-stone-400">₫</span>
+                </p>
+                <p class="text-[9px] font-medium text-stone-400 mt-1 uppercase tracking-widest">Đã bao gồm VAT</p>
+              </div>
+            </div>
+          </div>
+
+          <a href="/cart/checkout" class="group w-full bg-stone-900 text-white rounded-xl py-4 flex items-center justify-center gap-2 hover:bg-stone-800 active:scale-[0.98] transition-all shadow-md hover:shadow-lg">
+            <span class="text-xs font-bold uppercase tracking-widest">Tiến hành thanh toán</span>
+            <svg class="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"/></svg>
           </a>
 
-          <p class="mt-4 text-center text-[9px] font-bold text-stone-400 uppercase tracking-widest">
-            🔒 Thanh toán được mã hóa SSL
+          <p class="mt-5 text-center text-[10px] font-semibold text-stone-400 uppercase tracking-widest">
+            🔒 Thanh toán được mã hóa an toàn
           </p>
 
         </div>
@@ -189,18 +168,17 @@
     </div>
 
     {% else %}
-    {# ── Giỏ hàng trống ── #}
-    <div class="mt-20 py-32 flex flex-col items-center justify-center text-center reveal">
-      <div class="w-16 h-16 border-2 border-stone-200 flex items-center justify-center mb-6">
-        <svg class="w-7 h-7 text-stone-300" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
-          <path d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/>
+    {# ── TRẠNG THÁI GIỎ HÀNG TRỐNG (EMPTY STATE) ── #}
+    <div class="mt-10 bg-white rounded-3xl border border-stone-100 p-12 md:p-24 flex flex-col items-center justify-center text-center shadow-sm reveal">
+      <div class="w-20 h-20 bg-stone-50 rounded-full flex items-center justify-center text-stone-300 mb-6">
+        <svg class="w-10 h-10" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 10.5V6a3.75 3.75 0 10-7.5 0v4.5m11.356-1.993l1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 01-1.12-1.243l1.264-12A1.125 1.125 0 015.513 7.5h12.974c.576 0 1.059.435 1.119 1.007zM8.625 10.5a.375.375 0 11-.75 0 .375.375 0 01.75 0zm7.5 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
         </svg>
       </div>
-      <p class="text-[13px] font-black uppercase tracking-[0.4em] text-stone-400 mb-2">Giỏ hàng trống</p>
-      <p class="text-[11px] text-stone-400 mb-8">Hãy khám phá bộ sưu tập của chúng tôi</p>
-      <a href="/shop"
-         class="bg-black text-white px-10 py-4 text-[10px] font-black uppercase tracking-[0.25em] hover:bg-stone-800 transition-colors">
-        Xem bộ sưu tập
+      <h2 class="text-xl font-bold text-stone-900 mb-2">Giỏ hàng trống</h2>
+      <p class="text-sm font-medium text-stone-500 mb-8 max-w-sm">Chưa có sản phẩm nào trong giỏ hàng. Hãy dạo một vòng cửa hàng và chọn cho mình những sản phẩm ưng ý nhé.</p>
+      <a href="/shop" class="bg-stone-900 text-white px-8 py-3.5 rounded-xl text-sm font-bold shadow-md hover:bg-stone-800 active:scale-95 transition-all">
+        Khám phá cửa hàng
       </a>
     </div>
     {% endif %}
@@ -208,26 +186,40 @@
   </div>
 </div>
 
+<style>
+  .reveal { opacity: 0; transform: translateY(30px); transition: all 0.7s cubic-bezier(0.22, 1, 0.36, 1); }
+  .reveal.active { opacity: 1; transform: translateY(0); }
+</style>
+
 <script>
-function thayDoiSoLuong(nut, thayDoi) {
-  const form = nut.closest('form');
-  const input = form.querySelector('input[name="quantity"]');
-  const giaTriMoi = (parseInt(input.value) || 0) + thayDoi;
+  // Hiệu ứng Fade in
+  document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('.reveal').forEach((el) => {
+      setTimeout(() => el.classList.add('active'), 50);
+    });
+  });
 
-  if (giaTriMoi >= 0) {
-    input.value = giaTriMoi;
-    form.submit();
+  // Tăng giảm số lượng sản phẩm
+  function thayDoiSoLuong(nut, thayDoi) {
+    const form = nut.closest('form');
+    const input = form.querySelector('input[name="quantity"]');
+    const giaTriMoi = parseInt(input.value) + thayDoi;
+
+    if (giaTriMoi >= 0) {
+      input.value = giaTriMoi;
+      form.submit();
+    }
   }
-}
 
-document.addEventListener('DOMContentLoaded', function () {
-  const style = document.createElement('style');
-  style.textContent = `
-    input[type=number]::-webkit-inner-spin-button,
-    input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
-    input[type=number] { -moz-appearance: textfield; }
-  `;
-  document.head.appendChild(style);
-});
+  // Ẩn mũi tên lên xuống của thẻ input type=number
+  document.addEventListener('DOMContentLoaded', function () {
+    const style = document.createElement('style');
+    style.textContent = `
+      input[type=number]::-webkit-inner-spin-button,
+      input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+      input[type=number] { -moz-appearance: textfield; }
+    `;
+    document.head.appendChild(style);
+  });
 </script>
 {% endblock %}
