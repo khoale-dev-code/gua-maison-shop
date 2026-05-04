@@ -1,349 +1,317 @@
 {% extends "base.html" %}
-{% block title %}{{ product.name }} | GUA 2026{% endblock %}
+{% block title %}{{ product.name }} | GUA Maison 2026{% endblock %}
 
 {% block content %}
+{# ── TỪ ĐIỂN MÀU SẮC FALLBACK ── #}
+{% set color_map = {'đen': '#1c1917', 'trắng': '#ffffff', 'đỏ': '#ef4444', 'be': '#f5f5dc', 'xám': '#78716c'} %}
 
-{# ── Chuẩn bị danh sách ảnh ── #}
-{% set images = product.images if (product.images and product.images|length > 0)
+{# ── CHUẨN BỊ ẢNH ── #}
+{% set images = product.product_images if (product.product_images and product.product_images|length > 0)
    else ([{'url': product.thumbnail_url, 'is_primary': true}] if product.thumbnail_url else []) %}
 
-<div class="min-h-screen bg-white">
-
+<div class="min-h-screen bg-white pb-24 font-sans selection:bg-stone-900 selection:text-white">
+  
   {# ── Breadcrumb ── #}
-  <nav aria-label="Đường dẫn" class="max-w-7xl mx-auto px-6 py-4 flex items-center gap-2 text-xs text-stone-400">
+  <nav class="max-w-[1400px] mx-auto px-6 py-6 flex items-center gap-3 text-[10px] font-black uppercase tracking-widest text-stone-400">
     <a href="/" class="hover:text-stone-900 transition-colors">Trang chủ</a>
-    <span aria-hidden="true">/</span>
+    <span class="w-1 h-1 rounded-full bg-stone-300"></span>
     <a href="/shop" class="hover:text-stone-900 transition-colors">Cửa hàng</a>
     {% if product.categories %}
-    <span aria-hidden="true">/</span>
-    <span class="text-stone-600">{{ product.categories.name }}</span>
+    <span class="w-1 h-1 rounded-full bg-stone-300"></span>
+    <span class="text-stone-900">{{ product.categories.name }}</span>
     {% endif %}
   </nav>
 
-  {# ── Nội dung chính ── #}
-  <main class="max-w-7xl mx-auto border-t border-stone-100">
-    <div class="grid grid-cols-1 lg:grid-cols-2">
+  <main class="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="flex flex-col lg:flex-row gap-12 lg:gap-16">
 
       {# ══════════════════════════════
-         CỘT TRÁI — Hình ảnh sản phẩm
+         CỘT TRÁI — Hình ảnh (Fade Effect)
          ══════════════════════════════ #}
-      <section aria-label="Hình ảnh sản phẩm"
-               class="relative bg-stone-50 border-b lg:border-b-0 lg:border-r border-stone-100 group">
-
-        {# Vùng carousel #}
-        <div class="relative overflow-hidden min-h-[55vh] lg:min-h-[80vh] cursor-zoom-in">
-          <div id="carousel-track"
-               data-total="{{ images|length }}"
-               class="flex h-full w-full transition-transform duration-700 ease-in-out">
-
-            {% if images %}
-              {% for img in images %}
-              <div class="carousel-slide shrink-0 h-full flex items-center justify-center p-10 md:p-16">
-                <img src="{{ img.url }}"
-                     alt="{{ product.name }}"
-                     class="max-h-[72%] max-w-full object-contain transition-transform duration-500 group-hover:scale-[1.03]"
-                     draggable="false"
-                     loading="{% if loop.first %}eager{% else %}lazy{% endif %}">
-              </div>
-              {% endfor %}
-            {% else %}
-              <div class="flex items-center justify-center w-full h-full">
-                <p class="text-stone-300 text-sm">Chưa có hình ảnh</p>
-              </div>
-            {% endif %}
+      <section class="w-full lg:w-[55%] flex flex-col gap-6">
+        <div class="relative bg-stone-50 rounded-[2.5rem] overflow-hidden aspect-[4/5] md:aspect-auto md:h-[85vh] group border border-stone-100 shadow-sm">
+          <div id="carousel-track" class="relative w-full h-full">
+            {% for img in images %}
+            <div class="carousel-slide absolute inset-0 w-full h-full transition-all duration-700 ease-in-out 
+                        {% if loop.first %}opacity-100 z-10 scale-100{% else %}opacity-0 z-0 scale-105{% endif %}">
+              <img src="{{ img.url }}" alt="{{ product.name }}" class="w-full h-full object-cover object-top">
+            </div>
+            {% endfor %}
           </div>
-
-          {# Badge nổi bật #}
-          {% if product.is_featured %}
-          <div class="absolute top-5 left-5 z-10">
-            <span class="inline-block text-[10px] font-semibold uppercase tracking-widest bg-black text-white px-3 py-1.5 rounded-sm">
-              Nổi bật
-            </span>
-          </div>
-          {% endif %}
-
-          {# Nút điều hướng carousel #}
+          
+          {# Nút chuyển ảnh #}
           {% if images|length > 1 %}
-          <div class="absolute inset-x-4 top-1/2 -translate-y-1/2 flex justify-between z-20
-                      opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none">
-            <button onclick="slide(-1)"
-                    aria-label="Ảnh trước"
-                    class="pointer-events-auto w-9 h-9 bg-white border border-stone-200 rounded-full
-                           flex items-center justify-center hover:bg-stone-900 hover:text-white hover:border-stone-900
-                           transition-all shadow-sm">
-              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
-                <path d="M15 19l-7-7 7-7"/>
-              </svg>
+          <div class="absolute inset-x-6 top-1/2 -translate-y-1/2 flex justify-between z-30 opacity-0 group-hover:opacity-100 transition-all">
+            <button data-dir="-1" class="btn-slide w-12 h-12 bg-white/90 backdrop-blur-md rounded-full flex items-center justify-center shadow-lg hover:bg-stone-900 hover:text-white transition-all">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M15 19l-7-7 7-7"/></svg>
             </button>
-            <button onclick="slide(1)"
-                    aria-label="Ảnh tiếp"
-                    class="pointer-events-auto w-9 h-9 bg-white border border-stone-200 rounded-full
-                           flex items-center justify-center hover:bg-stone-900 hover:text-white hover:border-stone-900
-                           transition-all shadow-sm">
-              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
-                <path d="M9 5l7 7-7 7"/>
-              </svg>
+            <button data-dir="1" class="btn-slide w-12 h-12 bg-white/90 backdrop-blur-md rounded-full flex items-center justify-center shadow-lg hover:bg-stone-900 hover:text-white transition-all">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg>
             </button>
           </div>
           {% endif %}
         </div>
 
-        {# Thanh điều hướng dưới carousel #}
+        {# Thumbnails #}
         {% if images|length > 1 %}
-        <div class="flex items-center gap-4 px-6 py-3 border-t border-stone-100 bg-white">
-          <span id="slide-current" class="text-xs font-mono text-stone-500 tabular-nums min-w-[3rem]">
-            1 / {{ images|length }}
-          </span>
-          <div class="flex-1 h-px bg-stone-100 relative overflow-hidden rounded-full">
-            <div id="auto-progress" class="absolute left-0 top-0 h-full bg-stone-900 w-0 rounded-full"></div>
-          </div>
-          <button id="btn-autoplay"
-                  onclick="toggleAutoplay()"
-                  aria-label="Bật/tắt tự động"
-                  class="text-stone-400 hover:text-stone-900 transition-colors p-1">
-            <svg id="icon-pause" class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-              <rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/>
-            </svg>
-            <svg id="icon-play" class="w-3.5 h-3.5 hidden" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-              <path d="M8 5v14l11-7z"/>
-            </svg>
+        <div class="flex gap-4 overflow-x-auto no-scrollbar py-2">
+          {% for img in images %}
+          <button data-index="{{ loop.index0 }}" class="thumbnail-btn w-20 h-24 shrink-0 rounded-2xl overflow-hidden border-2 transition-all {% if loop.first %}border-stone-900{% else %}border-transparent opacity-50{% endif %}">
+            <img src="{{ img.url }}" class="w-full h-full object-cover object-top">
           </button>
+          {% endfor %}
         </div>
         {% endif %}
       </section>
 
       {# ══════════════════════════════
-         CỘT PHẢI — Thông tin sản phẩm
+         CỘT PHẢI — Thông tin & Form mua hàng
          ══════════════════════════════ #}
-      <section aria-label="Thông tin sản phẩm"
-               class="px-8 py-10 md:px-12 md:py-14 lg:px-16 lg:py-16 flex flex-col">
+      <section class="w-full lg:w-[45%] flex flex-col">
+        <div class="sticky top-12 space-y-8">
+          
+          <div class="space-y-4">
+            <span class="text-[11px] font-black text-stone-400 uppercase tracking-widest">{{ product.brand or 'GUA Maison' }}</span>
+            <h1 class="text-4xl lg:text-5xl font-black tracking-tighter text-stone-900 leading-tight">{{ product.name }}</h1>
+            <p id="price-display" class="text-3xl font-black text-stone-900 tabular-nums">{{ "{:,.0f}".format(product.price) }} ₫</p>
+          </div>
 
-        {# Meta — mã & danh mục #}
-        <div class="flex items-center gap-3 mb-5 text-[11px] text-stone-400">
-          <span class="font-mono">{{ product.id[:8] | upper }}</span>
-          <span class="text-stone-200" aria-hidden="true">·</span>
-          <span>{{ product.categories.name if product.categories else 'Chưa phân loại' }}</span>
-        </div>
+          {# ── FORM MUA HÀNG ── #}
+          <form action="/cart/add" method="POST" class="space-y-8 bg-stone-50 p-8 rounded-[2.5rem] border border-stone-100 shadow-sm">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <input type="hidden" name="product_id" value="{{ product.id }}">
+            <input type="hidden" name="variant_id" id="selected-variant-id" value="">
 
-        {# Tên sản phẩm #}
-        <h1 class="text-3xl md:text-4xl font-bold tracking-tight text-stone-900 leading-tight mb-6">
-          {{ product.name }}
-        </h1>
-
-        {# Giá #}
-        <div class="mb-8">
-          <p class="text-2xl md:text-3xl font-bold text-stone-900 tabular-nums">
-            {{ "{:,.0f}".format(product.price) }}<span class="text-sm font-normal text-stone-400 ml-1">₫</span>
-          </p>
-        </div>
-
-        {# ── Form mua hàng ── #}
-        {% if product.stock > 0 %}
-        <form action="/cart/add" method="POST" class="space-y-7">
-          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-          <input type="hidden" name="product_id" value="{{ product.id }}">
-
-          {# Chọn kích thước #}
-          <fieldset>
-            <div class="flex justify-between items-center mb-3">
-              <legend class="text-xs font-semibold uppercase tracking-wider text-stone-700">Kích thước</legend>
-              <a href="#" class="text-xs text-stone-400 hover:text-stone-700 underline underline-offset-2 transition-colors">
-                Hướng dẫn chọn size
-              </a>
+            {# 1. CHỌN MÀU SẮC #}
+            <div class="space-y-4">
+              <div class="flex justify-between items-baseline">
+                <span class="text-[10px] font-black uppercase text-stone-500 tracking-widest">Màu sắc</span>
+                <span id="color-label" class="text-xs font-bold text-stone-900">Chưa chọn</span>
+              </div>
+              <div class="flex flex-wrap gap-3">
+                {% for c_name, group in product.color_groups.items() %}
+                <label class="cursor-pointer relative group">
+                  <input type="radio" name="color" value="{{ c_name }}" class="sr-only peer color-radio">
+                  <span class="block w-11 h-11 rounded-full border-2 border-stone-200 shadow-sm peer-checked:ring-2 peer-checked:ring-stone-900 peer-checked:ring-offset-2 transition-all hover:scale-110 color-swatch" 
+                        data-bg="{{ group.hex if group.hex else color_map.get(c_name|lower, '#e7e5e4') }}"></span>
+                  <svg class="absolute inset-0 m-auto h-4 w-4 text-white opacity-0 peer-checked:opacity-100 transition-all mix-blend-difference" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"/></svg>
+                </label>
+                {% endfor %}
+              </div>
             </div>
-            <div class="grid grid-cols-5 gap-2">
-              {% for size in ['XS', 'S', 'M', 'L', 'XL'] %}
-              <label class="cursor-pointer">
-                <input type="radio" name="size" value="{{ size }}" class="sr-only peer"
-                       {% if size == 'M' %}checked{% endif %}>
-                <span class="flex items-center justify-center h-11 text-xs font-semibold
-                             border border-stone-200 rounded-md
-                             peer-checked:border-stone-900 peer-checked:bg-stone-900 peer-checked:text-white
-                             hover:border-stone-400 transition-all select-none">
-                  {{ size }}
-                </span>
-              </label>
-              {% endfor %}
-            </div>
-          </fieldset>
 
-          {# Số lượng & Thêm vào giỏ & YÊU THÍCH #}
-          <div class="flex gap-3">
-            {# Bộ chọn số lượng #}
-            <div class="flex items-center border border-stone-200 rounded-md overflow-hidden bg-white min-w-[110px]">
-              <button type="button"
-                      onclick="changeQty(-1)"
-                      aria-label="Giảm số lượng"
-                      class="w-10 h-11 flex items-center justify-center text-stone-500
-                             hover:bg-stone-50 hover:text-stone-900 transition-colors text-lg leading-none">
-                −
+            {# 2. CHỌN KÍCH THƯỚC #}
+            <div class="space-y-4">
+              <span class="text-[10px] font-black uppercase text-stone-500 tracking-widest block">Kích thước</span>
+              <div id="size-wrapper" class="min-h-[3.5rem]">
+                {% for c_name, group in product.color_groups.items() %}
+                <div class="size-group grid-cols-4 sm:grid-cols-5 gap-3" data-color="{{ c_name }}" style="display: none;">
+                  {% for sz in group.sizes %}
+                  <label class="relative {% if sz.stock > 0 %}cursor-pointer hover:-translate-y-0.5 transition-transform{% else %}cursor-not-allowed opacity-30{% endif %}">
+                    <input type="radio" name="size_radio" class="sr-only peer size-radio" {% if sz.stock <= 0 %}disabled{% endif %} 
+                           data-vid="{{ sz.variant_id }}" data-stock="{{ sz.stock }}" data-price="{{ sz.price }}">
+                    <span class="flex items-center justify-center h-14 border-2 border-stone-200 rounded-2xl text-xs font-black transition-all peer-checked:bg-stone-900 peer-checked:text-white peer-checked:border-stone-900 shadow-sm peer-checked:shadow-md">
+                      {{ sz.size }}
+                    </span>
+                  </label>
+                  {% endfor %}
+                </div>
+                {% endfor %}
+              </div>
+            </div>
+
+            {# 3. SỐ LƯỢNG & NÚT MUA #}
+            <div class="pt-6 border-t border-stone-200 flex flex-col sm:flex-row gap-4">
+              
+              <div class="flex items-center justify-between bg-white border-2 border-stone-200 rounded-2xl h-16 w-full sm:w-[140px] shadow-sm px-2 shrink-0">
+                <button type="button" data-qty="-1" class="btn-qty w-10 h-10 flex items-center justify-center text-2xl font-medium text-stone-400 hover:text-stone-900 hover:bg-stone-50 rounded-xl transition-all">−</button>
+                <input type="number" id="qty" name="quantity" value="1" min="1" max="1" readonly class="w-10 text-center text-base font-black bg-transparent outline-none pointer-events-none tabular-nums">
+                <button type="button" data-qty="1" class="btn-qty w-10 h-10 flex items-center justify-center text-2xl font-medium text-stone-400 hover:text-stone-900 hover:bg-stone-50 rounded-xl transition-all">+</button>
+              </div>
+
+              <button type="submit" id="btn-submit" disabled class="flex-1 h-16 bg-stone-200 text-stone-400 text-xs font-black uppercase tracking-[0.1em] rounded-2xl cursor-not-allowed transition-all flex items-center justify-center gap-3">
+                Chọn kích thước
               </button>
-              <input type="number"
-                     name="quantity"
-                     id="qty"
-                     value="1"
-                     min="1"
-                     max="{{ product.stock }}"
-                     readonly
-                     aria-label="Số lượng"
-                     class="w-full h-11 text-center text-sm font-semibold bg-transparent outline-none font-mono
-                            border-x border-stone-100">
-              <button type="button"
-                      onclick="changeQty(1)"
-                      aria-label="Tăng số lượng"
-                      class="w-10 h-11 flex items-center justify-center text-stone-500
-                             hover:bg-stone-50 hover:text-stone-900 transition-colors text-lg leading-none">
-                +
+
+              {# Nút Yêu thích (Loại bỏ onclick trực tiếp) #}
+              <button type="button" id="btn-wishlist" data-pid="{{ product.id }}" class="w-16 h-16 shrink-0 rounded-2xl border-2 border-stone-200 bg-white flex items-center justify-center text-stone-300 hover:text-red-500 transition-all active:scale-90 shadow-sm">
+                <svg class="w-6 h-6 heart-icon" fill="currentColor" viewBox="0 0 24 24"><path d="M11.645 20.91l-.007-.003-.022-.012a15.247 15.247 0 01-.383-.218 25.18 25.18 0 01-4.244-3.17C4.688 15.36 2.25 12.174 2.25 8.25 2.25 5.322 4.714 3 7.688 3A5.5 5.5 0 0112 5.052 5.5 5.5 0 0116.313 3c2.973 0 5.437 2.322 5.437 5.25 0 3.925-2.438 7.111-4.739 9.256a25.175 25.175 0 01-4.244 3.17 15.247 15.247 0 01-.383.219l-.022.012-.007.004-.003.001a.752.752 0 01-.704 0l-.003-.001z" /></svg>
               </button>
             </div>
 
-            {# Nút thêm vào giỏ #}
-            <button type="submit"
-                    class="flex-1 h-11 bg-stone-900 text-white text-xs font-semibold uppercase tracking-widest
-                           rounded-md hover:bg-stone-700 active:scale-[0.98]
-                           transition-all flex items-center justify-center gap-2">
-              Thêm vào giỏ
-              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" aria-hidden="true">
-                <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4zM3 6h18M16 10a4 4 0 01-8 0"/>
-              </svg>
-            </button>
+            <p id="stock-status" class="text-[10px] font-black text-center uppercase tracking-widest text-amber-500">
+              Vui lòng chọn Màu & Size để đặt hàng
+            </p>
+          </form>
 
-            {# Nút Yêu thích (Wishlist) #}
-            <button type="button" 
-                    onclick="toggleHeart('{{ product.id }}', this)"
-                    title="Thêm vào Bộ sưu tập"
-                    class="w-11 h-11 flex-shrink-0 flex items-center justify-center bg-white border border-stone-200 rounded-md text-stone-300 hover:text-red-500 hover:border-red-200 hover:bg-red-50 transition-all shadow-sm active:scale-[0.95]">
-            <svg class="w-5 h-5 heart-icon transition-colors" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-              <path d="M11.645 20.91l-.007-.003-.022-.012a15.247 15.247 0 01-.383-.218 25.18 25.18 0 01-4.244-3.17C4.688 15.36 2.25 12.174 2.25 8.25 2.25 5.322 4.714 3 7.688 3A5.5 5.5 0 0112 5.052 5.5 5.5 0 0116.313 3c2.973 0 5.437 2.322 5.437 5.25 0 3.925-2.438 7.111-4.739 9.256a25.175 25.175 0 01-4.244 3.17 15.247 15.247 0 01-.383.219l-.022.012-.007.004-.003.001a.752.752 0 01-.704 0l-.003-.001z" />
-            </svg>
-            </button>
+          {# Thông tin thêm #}
+          <div class="grid grid-cols-2 gap-4">
+            <div class="p-6 bg-white border border-stone-100 rounded-3xl"><h4 class="text-[9px] font-black uppercase text-stone-400 mb-1">Giao hàng</h4><p class="text-xs font-bold text-stone-600">Miễn phí từ 500k</p></div>
+            <div class="p-6 bg-white border border-stone-100 rounded-3xl"><h4 class="text-[9px] font-black uppercase text-stone-400 mb-1">Đổi trả</h4><p class="text-xs font-bold text-stone-600">Trong vòng 7 ngày</p></div>
           </div>
 
-          {# Trạng thái tồn kho #}
-          <p class="text-xs text-stone-400 flex items-center gap-1.5">
-            <span class="inline-block w-1.5 h-1.5 rounded-full bg-emerald-400 shrink-0"></span>
-            Còn hàng — {{ product.stock }} sản phẩm sẵn sàng giao
-          </p>
-        </form>
-
-        {% else %}
-        {# Hết hàng #}
-        <div class="py-5 border-y border-stone-100 flex items-center gap-2">
-          <span class="inline-block w-1.5 h-1.5 rounded-full bg-red-400 shrink-0"></span>
-          <p class="text-sm font-semibold text-red-500">Tạm hết hàng</p>
         </div>
-        
-        {# Nút yêu thích khi hết hàng #}
-        <div class="mt-4">
-            <button type="button" 
-                    onclick="toggleHeart('{{ product.id }}', this)"
-                    class="w-full h-11 flex items-center justify-center gap-2 bg-white border border-stone-200 rounded-md text-stone-600 hover:text-red-500 hover:border-red-200 hover:bg-red-50 transition-all shadow-sm font-semibold text-xs uppercase tracking-widest active:scale-[0.98]">
-              <svg class="w-4 h-4 heart-icon transition-colors text-stone-300" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M11.645 20.91l-.007-.003-.022-.012a15.247 15.247 0 01-.383-.218 25.18 25.18 0 01-4.244-3.17C4.688 15.36 2.25 12.174 2.25 8.25 2.25 5.322 4.714 3 7.688 3A5.5 5.5 0 0112 5.052 5.5 5.5 0 0116.313 3c2.973 0 5.437 2.322 5.437 5.25 0 3.925-2.438 7.111-4.739 9.256a25.175 25.175 0 01-4.244 3.17 15.247 15.247 0 01-.383.219l-.022.012-.007.004-.003.001a.752.752 0 01-.704 0l-.003-.001z" />
-              </svg>
-              Lưu vào Bộ sưu tập
-            </button>
-        </div>
-        {% endif %}
-
-        {# ── Thông tin chi tiết ── #}
-        <div class="mt-10 pt-8 border-t border-stone-100 grid grid-cols-2 gap-x-8 gap-y-6">
-          <div>
-            <h3 class="text-[11px] font-semibold uppercase tracking-wider text-stone-400 mb-1.5">Chất liệu</h3>
-            <p class="text-sm text-stone-600 leading-relaxed">Sợi kỹ thuật tổng hợp, độ bền cao, khả năng chống mài mòn tốt.</p>
-          </div>
-          <div>
-            <h3 class="text-[11px] font-semibold uppercase tracking-wider text-stone-400 mb-1.5">Xuất xứ</h3>
-            <p class="text-sm text-stone-600 leading-relaxed">Sản xuất tại GUA Lab — Việt Nam.</p>
-          </div>
-          <div>
-            <h3 class="text-[11px] font-semibold uppercase tracking-wider text-stone-400 mb-1.5">Giao hàng</h3>
-            <p class="text-sm text-stone-600 leading-relaxed">Miễn phí toàn quốc cho đơn từ 500.000₫.</p>
-          </div>
-          <div>
-            <h3 class="text-[11px] font-semibold uppercase tracking-wider text-stone-400 mb-1.5">Đổi trả</h3>
-            <p class="text-sm text-stone-600 leading-relaxed">Hỗ trợ đổi trả trong vòng 7 ngày kể từ ngày nhận hàng.</p>
-          </div>
-        </div>
-
       </section>
     </div>
   </main>
 </div>
 
 <style>
+  /* Fix chuẩn 100% lỗi vendorPrefix của VS Code */
   input[type="number"]::-webkit-outer-spin-button,
-  input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
-  input[type="number"] { -moz-appearance: textfield; }
+  input[type="number"]::-webkit-inner-spin-button {
+      -webkit-appearance: none;
+      appearance: none;
+      margin: 0;
+  }
+  input[type="number"] {
+      -moz-appearance: textfield;
+      appearance: textfield;
+  }
+  .no-scrollbar::-webkit-scrollbar { display: none; }
 </style>
 
 <script>
-(function () {
-  const track = document.getElementById("carousel-track");
-  if (!track) return;
+/* ─── SETUP BAN ĐẦU: XỬ LÝ BACKGROUND COLOR MÀ KHÔNG BỊ LỖI CSS LINTER ─── */
+document.addEventListener('DOMContentLoaded', () => {
+  document.querySelectorAll('.color-swatch').forEach(el => {
+    el.style.backgroundColor = el.dataset.bg;
+  });
 
-  const TOTAL = parseInt(track.getAttribute("data-total")) || 0;
-  if (TOTAL <= 1) return;
-
-  const INTERVAL = 5000;
-  const counter   = document.getElementById("slide-current");
-  const progressEl = document.getElementById("auto-progress");
-
-  let current = 0;
-  let timer   = null;
-  let playing = true;
-
-  function setWidth() {
-    track.style.width = (TOTAL * 100) + "%";
-    track.querySelectorAll(".carousel-slide").forEach(s => {
-      s.style.width = (100 / TOTAL) + "%";
-    });
+  const firstColor = document.querySelector('.color-radio');
+  if (firstColor) { 
+    firstColor.checked = true; 
+    selectColor(firstColor.value); 
   }
+});
 
-  function goTo(n) {
-    current = ((n % TOTAL) + TOTAL) % TOTAL;
-    track.style.transform = `translateX(-${current * (100 / TOTAL)}%)`;
-    if (counter) counter.textContent = `${current + 1} / ${TOTAL}`;
-    if (playing) resetProgress();
-  }
+/* ─── EVENT LISTENERS (THAY THẾ CHO ONCLICK INLINE) ─── */
+// Bắt sự kiện chọn Màu
+document.querySelectorAll('.color-radio').forEach(radio => {
+  radio.addEventListener('change', function() {
+    selectColor(this.value);
+  });
+});
 
-  function resetProgress() {
-    if (!progressEl) return;
-    progressEl.style.transition = "none";
-    progressEl.style.width = "0%";
-    requestAnimationFrame(() => setTimeout(() => {
-      progressEl.style.transition = `width ${INTERVAL}ms linear`;
-      progressEl.style.width = "100%";
-    }, 30));
-  }
+// Bắt sự kiện chọn Size
+document.querySelectorAll('.size-radio').forEach(radio => {
+  radio.addEventListener('change', function() {
+    const vid = this.dataset.vid;
+    const stock = parseInt(this.dataset.stock);
+    const price = parseFloat(this.dataset.price);
+    selectSize(vid, stock, price);
+  });
+});
 
-  function startTimer() {
-    clearInterval(timer);
-    timer = setInterval(() => goTo(current + 1), INTERVAL);
-  }
+// Bắt sự kiện Tăng Giảm
+document.querySelectorAll('.btn-qty').forEach(btn => {
+  btn.addEventListener('click', function() {
+    chQty(parseInt(this.dataset.qty));
+  });
+});
 
-  window.slide = function(dir) {
-    goTo(current + dir);
-    if (playing) startTimer();
-  };
+// Bắt sự kiện Slider Hình ảnh
+document.querySelectorAll('.btn-slide').forEach(btn => {
+  btn.addEventListener('click', function() {
+    slide(parseInt(this.dataset.dir));
+  });
+});
 
-  window.toggleAutoplay = function() {
-    playing = !playing;
-    document.getElementById("icon-pause").classList.toggle("hidden", !playing);
-    document.getElementById("icon-play").classList.toggle("hidden",  playing);
-    if (playing) { startTimer(); resetProgress(); }
-    else { clearInterval(timer); if (progressEl) progressEl.style.width = "0%"; }
-  };
+document.querySelectorAll('.thumbnail-btn').forEach(btn => {
+  btn.addEventListener('click', function() {
+    goTo(parseInt(this.dataset.index));
+  });
+});
 
-  setWidth();
-  goTo(0);
-  startTimer();
-})();
+// Bắt sự kiện Wishlist
+const wishlistBtn = document.getElementById('btn-wishlist');
+if (wishlistBtn) {
+  wishlistBtn.addEventListener('click', function() {
+    if(typeof toggleHeart === 'function') {
+      toggleHeart(this.dataset.pid, this);
+    }
+  });
+}
 
-function changeQty(delta) {
-  const el  = document.getElementById("qty");
-  const val = parseInt(el.value) + delta;
-  if (val >= 1 && val <= parseInt(el.max)) el.value = val;
+/* ─── XỬ LÝ LOGIC ─── */
+function selectColor(color) {
+  document.getElementById('color-label').innerText = color;
+  
+  document.querySelectorAll('.size-group').forEach(g => {
+      g.style.display = 'none';
+  });
+  
+  document.querySelectorAll('.size-group').forEach(g => {
+      if(g.dataset.color === color) {
+          g.style.display = 'grid';
+      }
+  });
+
+  document.querySelectorAll('.size-radio').forEach(i => i.checked = false);
+  
+  const btn = document.getElementById('btn-submit');
+  btn.disabled = true;
+  btn.innerText = "Chọn kích thước";
+  btn.className = "flex-1 h-16 bg-stone-200 text-stone-400 text-[13px] font-black uppercase tracking-[0.1em] rounded-2xl cursor-not-allowed flex items-center justify-center transition-all duration-300";
+  
+  document.getElementById('selected-variant-id').value = '';
+  document.getElementById('stock-status').innerText = "Vui lòng chọn kích thước";
+  
+  const qty = document.getElementById('qty');
+  qty.value = 1;
+  qty.max = 1;
+}
+
+function selectSize(vid, stock, price) {
+  const btn = document.getElementById('btn-submit');
+  const status = document.getElementById('stock-status');
+  const priceEl = document.getElementById('price-display');
+  const vidInput = document.getElementById('selected-variant-id');
+  const qtyInput = document.getElementById('qty');
+
+  btn.disabled = false;
+  btn.innerText = "Thêm vào túi hàng";
+  btn.className = "flex-1 h-16 bg-stone-900 text-white text-[13px] font-black uppercase tracking-[0.1em] rounded-2xl hover:bg-stone-800 transition-all shadow-[0_10px_30px_rgba(28,25,23,0.2)] flex items-center justify-center gap-2";
+  
+  status.innerHTML = `<span class="text-emerald-600">Sẵn sàng giao — Còn ${stock} sản phẩm</span>`;
+  priceEl.innerText = new Intl.NumberFormat('vi-VN').format(price) + " ₫";
+  vidInput.value = vid;
+  
+  qtyInput.max = stock;
+  if(parseInt(qtyInput.value) > stock) qtyInput.value = stock;
+}
+
+function chQty(d) {
+  const el = document.getElementById('qty');
+  const maxStock = parseInt(el.max) || 1; 
+  let v = parseInt(el.value) + d;
+  
+  if (v < 1) v = 1;
+  if (v > maxStock) v = maxStock;
+  
+  el.value = v;
+}
+
+/* ─── CAROUSEL HIỆU ỨNG FADE ─── */
+const slides = document.querySelectorAll('.carousel-slide');
+let current = 0;
+
+function goTo(n) {
+  if (slides.length <= 1) return;
+  slides[current].style.opacity = '0';
+  slides[current].style.zIndex = '0';
+  current = (n + slides.length) % slides.length;
+  slides[current].style.opacity = '1';
+  slides[current].style.zIndex = '10';
+  
+  document.querySelectorAll('.thumbnail-btn').forEach((b, i) => {
+    b.classList.toggle('border-stone-900', i === current);
+    b.style.opacity = (i === current) ? '1' : '0.5';
+  });
+}
+
+function slide(d) { 
+  goTo(current + d); 
 }
 </script>
 {% endblock %}

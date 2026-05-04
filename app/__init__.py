@@ -5,7 +5,6 @@ import logging
 from flask import Flask, session, render_template_string
 from flask_wtf.csrf import CSRFProtect, CSRFError
 
-# FIX: Import validate_config để kiểm tra biến môi trường ngay khi khởi động
 from config.settings import get_config, validate_config
 
 logging.basicConfig(level=logging.INFO)
@@ -13,8 +12,6 @@ logger = logging.getLogger(__name__)
 
 csrf = CSRFProtect()
 
-# FIX: Import Models 1 lần ở module level thay vì import lại mỗi request
-# trong context_processor — giảm overhead đáng kể
 from app.models.cart_model     import CartModel
 from app.models.category_model import CategoryModel
 
@@ -23,8 +20,6 @@ def create_app() -> Flask:
     app = Flask(__name__, template_folder="templates", static_folder="static")
 
     # 1. Validate & Load Config
-    # FIX: validate_config() crash sớm nếu thiếu SECRET_KEY / SUPABASE_* 
-    # thay vì để lỗi âm thầm xuất hiện lúc runtime
     validate_config()
     app.config.from_object(get_config())
 
@@ -32,22 +27,25 @@ def create_app() -> Flask:
     csrf.init_app(app)
 
     # 3. Blueprints
-    # FIX: Bỏ tuple (bp, None) không cần thiết — dùng thẳng register_blueprint
-    from app.controllers.auth_controller     import auth_bp
-    from app.controllers.product_controller  import products_bp
-    from app.controllers.cart_controller     import cart_bp
-    from app.controllers.admin_controller    import admin_bp
-    from app.controllers.profile_controller  import profile_bp
-    from app.controllers.chat_controller     import chat_bp
-    from app.controllers.ai_controller       import ai_bp
-    from app.controllers.favorite_controller import favorite_bp
+    from app.controllers.auth_controller                               import auth_bp
+    from app.controllers.product_controller                            import products_bp
+    from app.controllers.cart_controller                               import cart_bp
+    from app.controllers.admin                                         import admin_bp
+    from app.controllers.profile_controller                            import profile_bp
+    from app.controllers.chat_controller                               import chat_bp
+    from app.controllers.ai_controller                                 import ai_bp
+    from app.controllers.favorite_controller                           import favorite_bp
+    from app.controllers.payment_controller                            import payment_bp
+    from app.controllers.admin.admin_shipping_controller               import admin_shipping_bp
+    from app.controllers.admin.admin_shipping_providers_controller     import admin_providers_bp
 
-    for bp in [auth_bp, products_bp, cart_bp, admin_bp,
-               profile_bp, chat_bp, ai_bp, favorite_bp]:
+    for bp in [
+        auth_bp, products_bp, cart_bp, admin_bp,
+        profile_bp, chat_bp, ai_bp, favorite_bp, payment_bp,
+        admin_shipping_bp, admin_providers_bp,
+    ]:
         app.register_blueprint(bp)
 
-    # FIX: debug_bp chỉ đăng ký ở môi trường Development
-    # Tránh lộ endpoint /debug/test-db trên Production
     if app.config.get("DEBUG"):
         from app.controllers.debug_controller import debug_bp
         app.register_blueprint(debug_bp)
@@ -58,7 +56,9 @@ def create_app() -> Flask:
     def inject_globals() -> dict:
         cart_count = 0
         categories = []
+        pending_returns = 0
         user_id = session.get("user_id")
+        role = session.get("role")
 
         if user_id:
             try:
@@ -71,21 +71,34 @@ def create_app() -> Flask:
         except Exception:
             logger.exception("context_processor: Lỗi khi lấy categories.")
 
+        if role == "admin":
+            try:
+                from app.utils.supabase_client import get_supabase
+                r = (
+                    get_supabase()
+                    .table("return_requests")
+                    .select("id", count="exact")
+                    .eq("status", "pending")
+                    .execute()
+                )
+                pending_returns = r.count or 0
+            except Exception:
+                logger.warning("context_processor: Không lấy được pending_returns.")
+
         return {
             "current_user": {
-                "id": session.get("user_id"),
+                "id": user_id,
                 "email": session.get("email"),
                 "full_name": session.get("full_name"),
-                "role": session.get("role"),
+                "role": role,
             },
             "cart_count": cart_count,
             "global_categories": categories,
+            "pending_returns": pending_returns,
         }
 
     # 5. Error Handlers
     def _error_response(code: int, title: str, desc: str):
-        """Helper dùng chung cho tất cả error handler."""
-        # FIX: Chỉ hiện debug link khi DEBUG=True — không lộ /debug trên Production
         show_debug = app.config.get("DEBUG", False)
         return render_template_string(
             ERROR_TEMPLATE, code=code, title=title, desc=desc,
@@ -93,38 +106,37 @@ def create_app() -> Flask:
         ), code
 
     @app.errorhandler(400)
-    def bad_request(e):
+    def bad_request(_e):
         return _error_response(400, "Yêu cầu không hợp lệ",
                                "Dữ liệu gửi lên bị lỗi hoặc không đúng định dạng.")
 
     @app.errorhandler(403)
-    def forbidden(e):
+    def forbidden(_e):
         return _error_response(403, "Từ chối truy cập",
                                "Bạn không có quyền truy cập vào trang này.")
 
     @app.errorhandler(CSRFError)
-    def handle_csrf_error(e):
+    def handle_csrf_error(_e):
         return _error_response(403, "Phiên bảo mật hết hạn",
                                "Token bảo mật đã hết hạn. Vui lòng tải lại trang và thử lại.")
 
     @app.errorhandler(404)
-    def not_found(e):
+    def not_found(_e):
         return _error_response(404, "Không tìm thấy trang",
                                "Đường dẫn này không tồn tại hoặc đã bị gỡ khỏi hệ thống GUA Maison.")
 
     @app.errorhandler(405)
-    def method_not_allowed(e):
+    def method_not_allowed(_e):
         return _error_response(405, "Phương thức không được phép",
                                "Hành động này không được hỗ trợ trên endpoint hiện tại.")
 
-    # FIX: Handler riêng cho 413 — file upload vượt MAX_CONTENT_LENGTH
     @app.errorhandler(413)
-    def request_too_large(e):
+    def request_too_large(_e):
         return _error_response(413, "File quá lớn",
                                "Kích thước file vượt quá giới hạn 10 MB. Vui lòng chọn ảnh nhỏ hơn.")
 
     @app.errorhandler(500)
-    def server_error(e):
+    def server_error(_e):
         logger.exception("Internal Server Error")
         return _error_response(500, "Lỗi máy chủ",
                                "Hệ thống đang gặp sự cố kỹ thuật. Đội ngũ kỹ sư đang xử lý.")
@@ -133,8 +145,6 @@ def create_app() -> Flask:
 
 
 # ── Error Page Template ──────────────────────────────────────────────────────
-# FIX: Bỏ cdn.tailwindcss.com — inline critical CSS để trang lỗi
-# hoạt động ngay cả khi mất mạng hoặc CDN down
 ERROR_TEMPLATE = """<!DOCTYPE html>
 <html lang="vi">
 <head>
@@ -262,7 +272,6 @@ ERROR_TEMPLATE = """<!DOCTYPE html>
 
     <a href="/" class="btn-home">Trở về Trang chủ</a>
 
-    {# FIX: Link debug chỉ hiển thị khi DEBUG=True — ẩn hoàn toàn trên Production #}
     {% if show_debug and code == 500 %}
     <a href="/debug/test-db" class="btn-debug">Chạy trình kiểm tra CSDL</a>
     {% endif %}

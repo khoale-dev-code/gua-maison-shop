@@ -1,425 +1,454 @@
 {% extends "admin/admin_base.html" %}
-{% block title %}{% if product %}Sửa{% else %}Thêm{% endif %} sản phẩm | GUA Admin{% endblock %}
+{% block title %}{{ 'Chỉnh sửa' if product else 'Thêm mới' }} Sản Phẩm | GUA Admin{% endblock %}
 
 {% block content %}
-<div class="min-h-screen bg-stone-50 text-stone-900 pb-24 font-sans">
-
-  {# ── STICKY HEADER ── #}
-  <div class="bg-white border-b border-stone-200 mb-8 sticky top-16 z-30 shadow-sm transition-all">
-    <div class="max-w-[1200px] mx-auto px-6 lg:px-10 py-5">
-      
-      <a href="/admin/products"
-         class="inline-flex items-center gap-2 text-xs font-semibold text-stone-500 hover:text-stone-900 transition-colors mb-4 group">
-        <svg class="w-4 h-4 group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/>
-        </svg>
-        Quay lại kho hàng
-      </a>
-      
-      <div class="flex flex-col md:flex-row md:items-end justify-between gap-4">
-        <div>
-          <h1 class="text-2xl md:text-3xl font-bold tracking-tight text-stone-900 mb-1.5">
-            {% if product %}Cập nhật thông tin{% else %}Khởi tạo sản phẩm mới{% endif %}
-          </h1>
-          <div class="flex items-center gap-2">
-            <span class="w-1.5 h-1.5 rounded-full animate-pulse {% if product %}bg-amber-500{% else %}bg-emerald-500{% endif %}"></span>
-            <p class="text-[11px] font-medium text-stone-500 uppercase tracking-wider">
-              {% if product %}Chế độ chỉnh sửa • ID: {{ product.id[:8] }}{% else %}Trạng thái: Thêm mới{% endif %}
-            </p>
-          </div>
+<div class="min-h-screen bg-stone-50 pb-20 font-sans">
+    <div class="bg-white/80 backdrop-blur-xl border-b border-stone-200 sticky top-0 z-40 shadow-sm">
+        <div class="max-w-[1400px] mx-auto px-6 lg:px-10 py-5 flex items-center justify-between">
+            <div class="flex items-center gap-5">
+                <a href="{{ url_for('admin.products') }}" class="w-11 h-11 flex items-center justify-center bg-white border border-stone-200 rounded-2xl hover:border-stone-900 transition-all text-stone-500 hover:text-stone-900 shadow-sm">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18"/></svg>
+                </a>
+                <div>
+                    <p class="text-[10px] font-black uppercase tracking-widest text-stone-400 mb-0.5">GUA Admin Workspace</p>
+                    <h1 class="text-2xl font-black tracking-tight text-stone-900">
+                        {{ 'Biên tập Sản phẩm' if product else 'Thiết lập Sản phẩm mới' }}
+                    </h1>
+                </div>
+            </div>
+            <button type="submit" form="productForm" class="bg-stone-900 text-white px-8 py-3.5 rounded-2xl font-black text-xs uppercase tracking-widest shadow-[0_8px_30px_rgb(0,0,0,0.12)] hover:bg-stone-800 active:scale-95 transition-all flex items-center gap-2">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17.593 3.322c1.1.128 1.907 1.077 1.907 2.185V21L12 17.25 4.5 21V5.507c0-1.108.806-2.057 1.907-2.185a48.507 48.554 0 0111.186 0z"/></svg>
+                Lưu vào hệ thống
+            </button>
         </div>
-      </div>
-
     </div>
-  </div>
 
-  <div class="max-w-[1200px] mx-auto px-6 lg:px-10">
-    <form id="product-form" method="post" enctype="multipart/form-data" class="space-y-6">
-      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-      <input type="hidden" name="_images_synced" value="1">
+    <div class="max-w-[1400px] mx-auto px-6 lg:px-10 mt-10">
+        <form id="productForm" method="POST" enctype="multipart/form-data" class="grid grid-cols-1 lg:grid-cols-12 gap-10">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <input type="hidden" name="_images_synced" id="images-synced" value="">
 
-      {# ── BLOCK 01: THÔNG TIN CƠ BẢN ── #}
-      <div class="bg-white rounded-2xl shadow-[0_4px_20px_rgb(0,0,0,0.03)] border border-stone-100 p-6 md:p-8 reveal">
-        <div class="flex items-center gap-3 mb-6 pb-4 border-b border-stone-100">
-          <span class="flex items-center justify-center w-6 h-6 rounded bg-stone-100 text-stone-600 text-[10px] font-bold">01</span>
-          <h3 class="text-sm font-bold text-stone-900 uppercase tracking-wider">Thông tin cơ bản</h3>
-        </div>
-        
-        <div class="space-y-6">
-          <div>
-            <label class="block text-xs font-semibold text-stone-600 mb-2 uppercase tracking-wider">Tên sản phẩm <span class="text-red-500">*</span></label>
-            <input type="text" name="name" required value="{{ product.name if product else '' }}"
-                   placeholder="Nhập tên sản phẩm (VD: GUA Heritage Tee)"
-                   class="w-full text-sm text-stone-800 border border-stone-200 rounded-lg px-4 py-3 outline-none focus:border-stone-400 focus:ring-1 focus:ring-stone-400 transition-all bg-stone-50/50 focus:bg-white placeholder:text-stone-400 font-medium" />
-          </div>
-          
-          <div>
-            <label class="block text-xs font-semibold text-stone-600 mb-2 uppercase tracking-wider">Mô tả chi tiết</label>
-            <textarea name="description" rows="4" placeholder="Chất liệu, form dáng, câu chuyện thiết kế..."
-                      class="w-full text-sm text-stone-800 border border-stone-200 rounded-lg p-4 outline-none focus:border-stone-400 focus:ring-1 focus:ring-stone-400 transition-all bg-stone-50/50 focus:bg-white resize-y placeholder:text-stone-400 leading-relaxed">{{ product.description if product else '' }}</textarea>
-          </div>
-          
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div>
-              <label class="block text-xs font-semibold text-stone-600 mb-2 uppercase tracking-wider">Giá bán (₫) <span class="text-red-500">*</span></label>
-              <input type="number" name="price" required min="0" step="1000"
-                     value="{{ product.price if product else '' }}" placeholder="0"
-                     class="w-full text-sm text-stone-800 border border-stone-200 rounded-lg px-4 py-3 outline-none focus:border-stone-400 focus:ring-1 focus:ring-stone-400 transition-all bg-stone-50/50 focus:bg-white placeholder:text-stone-400 font-mono font-medium" />
+            {# ══════════════════════════════
+               CỘT TRÁI (8/12) — Thông tin chính & Biến thể
+               ══════════════════════════════ #}
+            <div class="lg:col-span-8 space-y-8">
+                
+                <div class="bg-white rounded-[2.5rem] p-8 md:p-10 shadow-[0_4px_20px_rgb(0,0,0,0.03)] border border-stone-100">
+                    <h2 class="text-xs font-black text-stone-400 mb-8 uppercase tracking-[0.2em] flex items-center gap-3">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z"/></svg>
+                        Thông tin định danh
+                    </h2>
+                    <div class="space-y-6">
+                        <div>
+                            <label class="text-[11px] font-black text-stone-900 uppercase tracking-widest block mb-2">Tên sản phẩm thương mại <span class="text-red-500">*</span></label>
+                            <input type="text" name="name" id="prod_name" value="{{ product.name or '' }}" required placeholder="Ví dụ: Áo Thun Essential GUA v1"
+                                   class="w-full bg-stone-50 border-2 border-stone-100 rounded-2xl px-5 py-4 text-sm font-bold text-stone-900 focus:bg-white focus:border-stone-900 outline-none transition-all placeholder-stone-400">
+                        </div>
+                        <div class="grid grid-cols-2 gap-6">
+                            <div>
+                                <label class="text-[11px] font-black text-stone-900 uppercase tracking-widest block mb-2">Giá niêm yết (VNĐ) <span class="text-red-500">*</span></label>
+                                <input type="number" name="price" id="base_price" value="{{ product.price or '' }}" required placeholder="Bắt buộc phải điền" oninput="syncVariantPricePlaceholders()"
+                                       class="w-full bg-stone-50 border-2 border-stone-100 rounded-2xl px-5 py-4 text-sm font-bold text-stone-900 focus:bg-white focus:border-stone-900 outline-none transition-all placeholder-stone-400">
+                                <p id="price-error" class="text-[10px] font-bold text-red-500 mt-2 hidden">⚠ Vui lòng nhập giá sản phẩm hợp lệ.</p>
+                            </div>
+                            <div>
+                                <label class="text-[11px] font-black text-stone-900 uppercase tracking-widest block mb-2">Thương hiệu</label>
+                                <input type="text" name="brand" value="{{ product.brand or 'GUA Maison' }}" 
+                                       class="w-full bg-stone-50 border-2 border-stone-100 rounded-2xl px-5 py-4 text-sm font-bold text-stone-900 focus:bg-white focus:border-stone-900 outline-none transition-all placeholder-stone-400">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="text-[11px] font-black text-stone-900 uppercase tracking-widest block mb-2">Mô tả sản phẩm</label>
+                            <textarea name="description" rows="5" class="w-full bg-stone-50 border-2 border-stone-100 rounded-2xl px-5 py-4 text-sm font-medium text-stone-600 focus:bg-white focus:border-stone-900 outline-none transition-all placeholder-stone-400" placeholder="Chất liệu, form dáng, tính năng nổi bật...">{{ product.description or '' }}</textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-[2.5rem] p-8 md:p-10 shadow-[0_4px_20px_rgb(0,0,0,0.03)] border border-stone-100">
+                    <div class="flex items-center justify-between mb-8 pb-6 border-b border-stone-100">
+                        <div>
+                            <h2 class="text-xs font-black text-stone-900 uppercase tracking-[0.2em]">Cấu hình Biến thể (Màu & Size)</h2>
+                            <p class="text-[11px] text-stone-400 mt-1 font-medium">Nhóm theo màu sắc giúp bạn nhập kho nhanh hơn gấp 5 lần.</p>
+                        </div>
+                        <button type="button" onclick="addGroup()" class="flex items-center gap-2 text-xs font-black text-emerald-600 bg-emerald-50 px-5 py-3 rounded-2xl hover:bg-emerald-100 transition-all active:scale-95">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
+                            Thêm Nhóm Màu
+                        </button>
+                    </div>
+                    
+                    <div id="variant-groups-container" class="space-y-6"></div>
+                </div>
+
+                <div class="bg-white rounded-[2.5rem] p-8 md:p-10 shadow-[0_4px_20px_rgb(0,0,0,0.03)] border border-stone-100">
+                    <h2 class="text-xs font-black text-stone-400 mb-8 uppercase tracking-[0.2em] flex items-center gap-3">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244"/></svg>
+                        Công cụ Tối ưu tìm kiếm (SEO)
+                    </h2>
+                    <div class="space-y-6">
+                        <div>
+                            <label class="text-[11px] font-black text-stone-900 uppercase tracking-widest block mb-2">Đường dẫn URL (Slug)</label>
+                            <input type="text" name="slug" value="{{ product.slug or '' }}" placeholder="Nếu để trống, hệ thống sẽ tự động tạo từ tên sản phẩm"
+                                   class="w-full bg-stone-50 border-2 border-stone-100 rounded-2xl px-5 py-4 text-sm font-bold text-stone-900 focus:bg-white focus:border-stone-900 outline-none transition-all placeholder-stone-400">
+                        </div>
+                        <div>
+                            <label class="text-[11px] font-black text-stone-900 uppercase tracking-widest block mb-2">Thẻ Tags (Phân cách bằng dấu phẩy)</label>
+                            <input type="text" name="tags" value="{{ ', '.join(product.tags) if product and product.tags else '' }}" placeholder="streetwear, summer2026, limited..."
+                                   class="w-full bg-stone-50 border-2 border-stone-100 rounded-2xl px-5 py-4 text-sm font-bold text-stone-900 focus:bg-white focus:border-stone-900 outline-none transition-all placeholder-stone-400">
+                        </div>
+                    </div>
+                </div>
             </div>
-            <div>
-              <label class="block text-xs font-semibold text-stone-600 mb-2 uppercase tracking-wider">Tồn kho <span class="text-red-500">*</span></label>
-              <input type="number" name="stock" required min="0"
-                     value="{{ product.stock if product else 0 }}"
-                     class="w-full text-sm text-stone-800 border border-stone-200 rounded-lg px-4 py-3 outline-none focus:border-stone-400 focus:ring-1 focus:ring-stone-400 transition-all bg-stone-50/50 focus:bg-white font-mono font-medium" />
+
+            {# ══════════════════════════════
+               CỘT PHẢI (4/12) — Phân loại & Hình ảnh
+               ══════════════════════════════ #}
+            <div class="lg:col-span-4 space-y-8">
+                
+                <div class="bg-white rounded-[2.5rem] p-8 shadow-[0_4px_20px_rgb(0,0,0,0.03)] border border-stone-100">
+                    <h2 class="text-xs font-black text-stone-400 mb-6 uppercase tracking-[0.2em]">Trạng thái bán</h2>
+                    <div class="space-y-5">
+                        <label class="flex items-center gap-3 cursor-pointer group">
+                            <input type="checkbox" name="is_active" class="hidden peer" {% if not product or product.is_active %}checked{% endif %}>
+                            <div class="w-6 h-6 border-2 border-stone-200 rounded-lg flex items-center justify-center peer-checked:bg-stone-900 peer-checked:border-stone-900 transition-all">
+                                <svg class="w-3.5 h-3.5 text-white opacity-0 peer-checked:opacity-100" fill="none" stroke="currentColor" stroke-width="4" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"/></svg>
+                            </div>
+                            <span class="text-sm font-bold text-stone-500 group-hover:text-stone-900 peer-checked:text-stone-900 transition-colors">Hiển thị lên Storefront</span>
+                        </label>
+
+                        <label class="flex items-center gap-3 cursor-pointer group">
+                            <input type="checkbox" name="is_featured" class="hidden peer" {% if product and product.is_featured %}checked{% endif %}>
+                            <div class="w-6 h-6 border-2 border-stone-200 rounded-lg flex items-center justify-center peer-checked:bg-amber-400 peer-checked:border-amber-400 transition-all">
+                                <svg class="w-3.5 h-3.5 text-white opacity-0 peer-checked:opacity-100" fill="none" stroke="currentColor" stroke-width="4" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"/></svg>
+                            </div>
+                            <span class="text-sm font-bold text-stone-500 group-hover:text-stone-900 peer-checked:text-stone-900 transition-colors">Sản phẩm nổi bật</span>
+                        </label>
+
+                        <div class="pt-6 border-t border-stone-100 space-y-5">
+                            <div>
+                                <label class="text-[10px] font-black text-stone-400 uppercase tracking-widest block mb-2">Nhóm danh mục</label>
+                                <select name="category_id" class="w-full bg-stone-50 border-2 border-stone-100 rounded-xl px-4 py-3.5 text-sm font-bold text-stone-900 focus:bg-white focus:border-stone-900 outline-none transition-colors appearance-none" style="background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%24%2024%22%20fill%3D%22none%22%20stroke%3D%22%231a1a1a%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpolyline%20points%3D%226%209%2012%2015%2018%209%22%3E%3C%2Fpolyline%3E%3C%2Fsvg%3E'); background-repeat: no-repeat; background-position: right 1rem center; background-size: 1em;">
+                                    <option value="">— Chọn danh mục —</option>
+                                    {% for cat in cats %}
+                                    <option value="{{ cat.id }}" {% if product and product.category_id == cat.id %}selected{% endif %}>{{ cat.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div>
+                                <label class="text-[10px] font-black text-stone-400 uppercase tracking-widest block mb-2">Giới tính mục tiêu</label>
+                                <select name="gender" class="w-full bg-stone-50 border-2 border-stone-100 rounded-xl px-4 py-3.5 text-sm font-bold text-stone-900 focus:bg-white focus:border-stone-900 outline-none transition-colors appearance-none" style="background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%24%2024%22%20fill%3D%22none%22%20stroke%3D%22%231a1a1a%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpolyline%20points%3D%226%209%2012%2015%2018%209%22%3E%3C%2Fpolyline%3E%3C%2Fsvg%3E'); background-repeat: no-repeat; background-position: right 1rem center; background-size: 1em;">
+                                    <option value="unisex" {% if not product or product.gender == 'unisex' %}selected{% endif %}>Cả hai (Unisex)</option>
+                                    <option value="men" {% if product and product.gender == 'men' %}selected{% endif %}>Nam (Men)</option>
+                                    <option value="women" {% if product and product.gender == 'women' %}selected{% endif %}>Nữ (Women)</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-[2.5rem] p-8 shadow-[0_4px_20px_rgb(0,0,0,0.03)] border border-stone-100">
+                    <h2 class="text-xs font-black text-stone-400 mb-6 uppercase tracking-[0.2em]">Thư viện hình ảnh</h2>
+                    
+                    <div class="space-y-6">
+                        <div class="relative group">
+                            <input type="file" name="image_files" id="fileInput" accept="image/*" multiple class="hidden" onchange="handleFileSelect(this)">
+                            <button type="button" onclick="document.getElementById('fileInput').click()" class="w-full border-2 border-dashed border-stone-200 rounded-3xl py-8 flex flex-col items-center justify-center hover:border-stone-900 hover:bg-stone-50 transition-all">
+                                <svg class="w-8 h-8 text-stone-300 mb-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 16.5V9.75m0 0l3 3m-3-3l-3 3M6.75 19.5a4.5 4.5 0 01-1.41-8.775 5.25 5.25 0 0110.233-2.33 3 3 0 013.758 3.848A3.752 3.752 0 0118 19.5H6.75z"/></svg>
+                                <span class="text-xs font-black text-stone-500 uppercase tracking-widest">Tải ảnh từ máy</span>
+                                <span class="text-[10px] text-stone-400 mt-1 font-medium">Hỗ trợ JPG, PNG, WEBP</span>
+                            </button>
+                        </div>
+
+                        <div class="pt-4 border-t border-stone-100">
+                            <label class="text-[10px] font-black text-stone-400 uppercase tracking-widest block mb-3">Hoặc nhúng Link ảnh (URL)</label>
+                            <div class="flex items-center bg-stone-50 border-2 border-stone-100 rounded-xl overflow-hidden focus-within:border-stone-900 transition-colors">
+                                <input type="text" id="urlInput" placeholder="https://..." class="flex-1 bg-transparent px-4 py-3 text-sm font-semibold outline-none" onkeydown="if(event.key==='Enter'){event.preventDefault(); addPhotoByUrl();}">
+                                <button type="button" onclick="addPhotoByUrl()" class="px-5 font-black text-xs uppercase tracking-widest text-stone-500 hover:text-stone-900 transition-colors">Thêm</button>
+                            </div>
+                        </div>
+
+                        <div id="image-preview-container" class="grid grid-cols-2 gap-3 mt-4">
+                            {% if product and product.product_images %}
+                                {% for img in product.product_images %}
+                                <div class="relative group aspect-[3/4] rounded-2xl overflow-hidden border border-stone-200 shadow-sm img-card">
+                                    <img src="{{ img.url }}" class="w-full h-full object-cover">
+                                    <input type="hidden" name="image_urls" value="{{ img.url }}">
+                                    <button type="button" onclick="removeImage(this)" class="absolute top-2 right-2 bg-white/90 text-rose-500 w-8 h-8 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all shadow-md hover:bg-rose-500 hover:text-white z-10">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                                    </button>
+                                    {% if loop.first %}<div class="cover-badge absolute bottom-0 inset-x-0 bg-stone-900/90 backdrop-blur-sm text-white text-[9px] font-black text-center py-2 uppercase tracking-[0.2em]">Ảnh Bìa</div>{% endif %}
+                                </div>
+                                {% endfor %}
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
             </div>
-            <div class="relative">
-              <label class="block text-xs font-semibold text-stone-600 mb-2 uppercase tracking-wider">Danh mục</label>
-              <select name="category_id" id="select-category"
-                      class="w-full appearance-none text-sm text-stone-800 font-semibold border border-stone-200 rounded-lg pl-4 pr-10 py-3 outline-none focus:border-stone-400 focus:ring-1 focus:ring-stone-400 transition-all bg-stone-50/50 focus:bg-white cursor-pointer {% if not (product and product.category_id) %}text-stone-400 font-normal{% endif %}">
-                <option value="">-- Chưa phân loại --</option>
-                {% for cat in cats %}
-                <option value="{{ cat.id }}" class="text-stone-900 font-semibold"
-                        {% if product and product.category_id == cat.id %}selected{% endif %}>{{ cat.name }}</option>
-                {% endfor %}
-              </select>
-              <div class="absolute right-3 top-9 pointer-events-none text-stone-400">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 15L12 18.75 15.75 15m-7.5-6L12 5.25 15.75 9"/></svg>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {# ── BLOCK 02: ẢNH SẢN PHẨM ── #}
-      <div class="bg-white rounded-2xl shadow-[0_4px_20px_rgb(0,0,0,0.03)] border border-stone-100 p-6 md:p-8 reveal">
-        <div class="flex items-center justify-between mb-4 pb-4 border-b border-stone-100">
-          <div class="flex items-center gap-3">
-            <span class="flex items-center justify-center w-6 h-6 rounded bg-stone-100 text-stone-600 text-[10px] font-bold">02</span>
-            <h3 class="text-sm font-bold text-stone-900 uppercase tracking-wider">Hình ảnh trực quan</h3>
-          </div>
-          <span class="text-[10px] font-medium text-stone-400 uppercase tracking-widest">Tối đa 10 ảnh · Kéo để sắp xếp</span>
-        </div>
-        <p class="text-xs text-stone-500 mb-6 font-medium">
-          Ảnh ở vị trí đầu tiên <span class="font-bold text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded">(Viền cam)</span> sẽ là ảnh đại diện ngoài trang chủ.
-        </p>
-
-        {# Grid ảnh #}
-        <div id="image-grid" class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 xl:grid-cols-6 gap-4 mb-6">
-          {% set existing_images = product.images if (product and product.images) else [] %}
-          {% for img in existing_images %}
-          <div class="image-item relative group rounded-xl bg-stone-50 cursor-grab aspect-[3/4] overflow-hidden shadow-sm transition-all duration-300 {% if loop.first %}ring-2 ring-amber-400{% else %}border border-stone-200/60{% endif %}"
-               data-id="{{ img.id }}" data-order="{{ loop.index0 }}">
-            <img src="{{ img.url }}" alt="" class="w-full h-full object-cover mix-blend-multiply group-hover:scale-105 transition-transform duration-500" loading="lazy">
-            
-            {% if loop.first %}
-            <span class="badge-primary absolute top-0 left-0 text-[9px] font-bold uppercase tracking-wider bg-amber-100 text-amber-700 px-2 py-1 rounded-br-lg shadow-sm">Chính</span>
-            {% endif %}
-            
-            <div class="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
-              <button type="button" onclick="xoaAnh(this, '{{ img.id }}')"
-                      class="w-6 h-6 bg-white/90 backdrop-blur-sm text-red-500 rounded-full flex items-center justify-center hover:bg-red-50 shadow-sm transition-colors">
-                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
-              </button>
-            </div>
-            <input type="hidden" name="image_urls" value="{{ img.url }}">
-          </div>
-          {% endfor %}
-
-          {# Slot thêm ảnh #}
-          <div id="add-slot"
-               class="border-2 border-dashed border-stone-200 rounded-xl bg-stone-50 aspect-[3/4] flex flex-col items-center justify-center gap-2 cursor-pointer hover:border-stone-400 hover:bg-stone-100 transition-all"
-               onclick="document.getElementById('file-input').click()">
-            <svg class="w-6 h-6 text-stone-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/>
-            </svg>
-            <span class="text-[10px] font-bold uppercase tracking-widest text-stone-400 text-center">Tải ảnh</span>
-          </div>
-        </div>
-
-        {# Tabs nhập ảnh #}
-        <div class="border border-stone-200 rounded-xl bg-white overflow-hidden shadow-sm">
-          <div class="flex border-b border-stone-100 px-2 pt-2 gap-2">
-            <button type="button" id="tab-url" onclick="doiTab('url')"
-                    class="tab-btn px-4 py-2.5 text-[11px] font-bold uppercase tracking-wider border-b-2 border-stone-900 text-stone-900 transition-colors">
-              Nhập từ URL
-            </button>
-            <button type="button" id="tab-file" onclick="doiTab('file')"
-                    class="tab-btn px-4 py-2.5 text-[11px] font-bold uppercase tracking-wider border-b-2 border-transparent text-stone-400 hover:text-stone-700 transition-colors">
-              Tải file từ máy
-            </button>
-          </div>
-
-          {# Panel URL #}
-          <div id="panel-url" class="p-4 md:p-6 bg-stone-50/30">
-            <div class="flex gap-3">
-              <input type="url" id="url-input" placeholder="https://example.com/image.jpg"
-                     class="flex-1 border border-stone-200 rounded-lg px-4 py-2 text-sm font-mono outline-none focus:border-stone-400 focus:ring-1 focus:ring-stone-400 placeholder:text-stone-400 bg-white shadow-sm transition-all" />
-              <button type="button" onclick="themUrlAnh()"
-                      class="px-5 py-2.5 bg-stone-900 text-white rounded-lg text-[11px] font-bold uppercase tracking-wider hover:bg-stone-700 transition-colors shadow-sm whitespace-nowrap">
-                Thêm ảnh
-              </button>
-            </div>
-          </div>
-
-          {# Panel File #}
-          <div id="panel-file" class="hidden p-4 md:p-6 bg-stone-50/30">
-            <div id="drop-zone"
-                 class="border-2 border-dashed border-stone-300 rounded-xl py-10 text-center cursor-pointer hover:border-stone-400 hover:bg-stone-50 transition-all bg-white"
-                 ondragover="event.preventDefault(); this.classList.add('border-stone-400', 'bg-stone-50')"
-                 ondragleave="this.classList.remove('border-stone-400', 'bg-stone-50')"
-                 ondrop="xuLyFileDrop(event)"
-                 onclick="document.getElementById('file-input').click()">
-              <div class="w-12 h-12 bg-stone-100 rounded-full flex items-center justify-center mx-auto mb-3 text-stone-400">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5"/>
-                </svg>
-              </div>
-              <p class="text-xs font-bold uppercase tracking-widest text-stone-600 mb-1">Kéo thả ảnh vào đây</p>
-              <p class="text-[10px] font-medium text-stone-400">Hoặc click để chọn file · Định dạng: JPG, PNG, WEBP (Max 5MB)</p>
-            </div>
-            <input type="file" id="file-input" name="image_files" multiple accept=".jpg,.jpeg,.png,.webp,.gif" class="hidden" onchange="xuLyFileChon(this.files)">
-
-            {# Progress #}
-            <div id="upload-progress" class="hidden mt-4">
-              <div class="flex justify-between text-[10px] font-bold uppercase text-stone-500 mb-1.5">
-                <span>Hệ thống đang tải lên...</span>
-                <span id="progress-pct">0%</span>
-              </div>
-              <div class="h-1.5 w-full bg-stone-100 rounded-full overflow-hidden">
-                <div id="progress-bar" class="h-full bg-emerald-500 rounded-full transition-all duration-300" style="width:0%"></div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {# ── BLOCK 03: CẤU HÌNH & TRẠNG THÁI ── #}
-      <div class="bg-white rounded-2xl shadow-[0_4px_20px_rgb(0,0,0,0.03)] border border-stone-100 p-6 md:p-8 reveal">
-        <div class="flex items-center gap-3 mb-6 pb-4 border-b border-stone-100">
-          <span class="flex items-center justify-center w-6 h-6 rounded bg-stone-100 text-stone-600 text-[10px] font-bold">03</span>
-          <h3 class="text-sm font-bold text-stone-900 uppercase tracking-wider">Cấu hình & Trạng thái</h3>
-        </div>
-        
-        <div class="space-y-6">
-          {% for name, label, desc, color, checked in [
-            ('is_featured', 'Sản phẩm nổi bật (Featured)', 'Hiển thị ưu tiên trong các khối gợi ý và đầu trang.', 'amber-500', product and product.is_featured),
-            ('is_active',   'Đang trực tuyến (Active)', 'Tắt công tắc này để tạm ẩn sản phẩm khỏi người dùng.', 'emerald-500', not product or product.is_active)
-          ] %}
-          {% if name == 'is_active' and not product %}{% else %}
-          <label class="flex items-center gap-5 cursor-pointer group">
-            <div class="relative shrink-0">
-              <input type="checkbox" name="{{ name }}" value="1" {% if checked %}checked{% endif %} class="sr-only peer">
-              <div class="w-12 h-6 bg-stone-200 rounded-full peer-checked:bg-{{ color }} transition-colors duration-300 shadow-inner"></div>
-              <div class="absolute left-1 top-1 w-4 h-4 bg-white rounded-full peer-checked:translate-x-6 transition-transform duration-300 shadow-sm"></div>
-            </div>
-            <div>
-              <span class="text-sm font-bold text-stone-800 group-hover:text-stone-900 transition-colors">{{ label }}</span>
-              <p class="text-xs font-medium text-stone-400 mt-0.5">{{ desc }}</p>
-            </div>
-          </label>
-          {% endif %}
-          {% endfor %}
-        </div>
-      </div>
-
-      {# ── ACTIONS ── #}
-      <div class="flex flex-col sm:flex-row gap-4 pt-4 reveal">
-        <button type="submit"
-                class="flex-[2] bg-stone-900 text-white py-3.5 rounded-xl text-[13px] font-bold uppercase tracking-widest hover:bg-stone-700 active:scale-[0.98] transition-all shadow-md">
-          {% if product %}Cập nhật dữ liệu{% else %}Khởi tạo sản phẩm{% endif %}
-        </button>
-        <a href="/admin/products"
-           class="flex-1 flex items-center justify-center bg-white border border-stone-200 py-3.5 rounded-xl text-[13px] font-bold text-stone-600 uppercase tracking-widest hover:bg-stone-50 hover:border-stone-300 hover:text-stone-900 transition-all shadow-sm">
-          Hủy bỏ
-        </a>
-      </div>
-
-    </form>
-  </div>
+        </form>
+    </div>
 </div>
 
-<style>
-  .reveal {
-    animation: revealUp 0.6s ease-out forwards;
-  }
-  @keyframes revealUp {
-    from { opacity: 0; transform: translateY(20px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-</style>
+{# Chuyển đổi an toàn dữ liệu Jinja sang JSON để tránh báo lỗi trong VS Code #}
+<script id="product_data" type="application/json">
+    {{ product.product_variants | tojson | safe if product and product.product_variants else '[]' }}
+</script>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.2/Sortable.min.js"></script>
 <script>
-const PRODUCT_ID = "{{ product.id if product else '' }}";
-const UPLOAD_URL = PRODUCT_ID ? `/admin/products/${PRODUCT_ID}/images/upload` : "";
-const DELETE_URL = PRODUCT_ID ? `/admin/products/${PRODUCT_ID}/images` : "";
-const CSRF       = document.querySelector('[name="csrf_token"]').value;
-const MAX        = 10;
-const grid       = document.getElementById("image-grid");
+/* ─── 1. TỪ ĐIỂN NHẬN DIỆN MÀU (THÔNG MINH) ─── */
+const COLOR_DB = [
+    {name:'Đen',hex:'#1c1917'},{name:'Trắng',hex:'#ffffff'},{name:'Xám',hex:'#78716c'},{name:'Đỏ',hex:'#ef4444'},
+    {name:'Xanh dương',hex:'#3b82f6'},{name:'Xanh navy',hex:'#1e3a8a'},{name:'Xanh lá',hex:'#22c55e'},{name:'Xanh rêu',hex:'#3f6212'},
+    {name:'Vàng',hex:'#eab308'},{name:'Nâu',hex:'#78350f'},{name:'Hồng',hex:'#ec4899'},{name:'Tím',hex:'#d946ef'},
+    {name:'Cam',hex:'#f97316'},{name:'Be',hex:'#f5f5dc'},{name:'Kem',hex:'#fef3c7'},{name:'Bạc',hex:'#d6d3d1'}
+];
+const DEFAULT_SIZES = ['XS', 'S', 'M', 'L', 'XL', 'XXL', '38', '39', '40', '41', '42', '43'];
 
-// ── Kéo thả sắp xếp ──
-Sortable.create(grid, {
-  animation: 150,
-  ghostClass: "opacity-30",
-  filter: "#add-slot",
-  onEnd() { capNhatThuTu(); capNhatBadge(); }
+/* ─── 2. STATE MANAGER (XỬ LÝ TOÀN BỘ LOGIC UI) ─── */
+let variantGroups = [];
+
+// Đọc dữ liệu đã được parse an toàn từ thẻ script ẩn
+const rawVariants = JSON.parse(document.getElementById('product_data').textContent);
+
+if (rawVariants && rawVariants.length > 0) {
+    rawVariants.forEach(v => {
+        let g = variantGroups.find(g => g.colorName === v.color_name && g.colorHex === v.color_hex);
+        if (!g) {
+            g = { colorName: v.color_name, colorHex: v.color_hex, sizes: [] };
+            variantGroups.push(g);
+        }
+        g.sizes.push({ size: v.size, stock: v.stock, price: v.price_override || '' });
+    });
+} else {
+    // Trang Thêm mới -> Render 1 nhóm màu trống
+    variantGroups.push({ colorName: '', colorHex: '#1c1917', sizes: [] });
+}
+
+// Hàm Render chính: Vẽ toàn bộ UI của Variant Matrix
+function renderVariants() {
+    const container = document.getElementById('variant-groups-container');
+    container.innerHTML = '';
+    
+    // Lấy giá gốc để làm Placeholder
+    const basePrice = document.getElementById('base_price').value;
+    const pricePlaceholder = basePrice ? `Giá gốc: ${parseInt(basePrice).toLocaleString('vi-VN')}đ` : 'Bằng giá niêm yết';
+
+    variantGroups.forEach((g, gIdx) => {
+        // Render Size Chips
+        const sizeChips = DEFAULT_SIZES.map(s => {
+            const isActive = g.sizes.some(sz => sz.size === s);
+            return `<button type="button" onclick="toggleSize(${gIdx}, '${s}')" class="h-9 px-3.5 rounded-xl text-xs font-bold border-2 transition-all duration-200 ${isActive ? 'bg-stone-900 text-white border-stone-900' : 'bg-white text-stone-400 border-stone-200 hover:border-stone-400 hover:text-stone-900'}">${s}</button>`;
+        }).join('');
+
+        // Render List Nhập Tồn kho & Giá
+        let rowsHtml = '';
+        if (g.sizes.length > 0) {
+            const rows = g.sizes.map((sz, sIdx) => `
+                <div class="grid grid-cols-12 gap-4 items-center py-4 border-t border-stone-100">
+                    <input type="hidden" name="v_color[]" value="${g.colorName}">
+                    <input type="hidden" name="v_color_hex[]" value="${g.colorHex}">
+                    <input type="hidden" name="v_size[]" value="${sz.size}">
+
+                    <div class="col-span-2 flex items-center justify-center">
+                        <span class="px-4 py-2 bg-stone-100 text-stone-900 text-xs font-black rounded-lg uppercase tracking-wider">${sz.size}</span>
+                    </div>
+                    <div class="col-span-4 relative">
+                        <span class="absolute left-4 top-1/2 -translate-y-1/2 text-[10px] font-black text-stone-400 uppercase tracking-widest">Kho <span class="text-red-500">*</span></span>
+                        <input type="number" name="v_stock[]" value="${sz.stock}" min="0" required onchange="updateSizeData(${gIdx}, ${sIdx}, 'stock', this.value)" class="w-full h-11 pl-20 pr-4 bg-white border border-stone-200 rounded-xl text-sm font-bold text-stone-900 outline-none focus:border-stone-900 transition-colors shadow-sm">
+                    </div>
+                    <div class="col-span-5 relative">
+                        <span class="absolute left-4 top-1/2 -translate-y-1/2 text-[10px] font-black text-stone-400 uppercase tracking-widest">Giá</span>
+                        <input type="number" name="v_price_override[]" value="${sz.price}" onchange="updateSizeData(${gIdx}, ${sIdx}, 'price', this.value)" placeholder="${pricePlaceholder}" class="w-full h-11 pl-[3.25rem] pr-4 bg-white border border-stone-200 rounded-xl text-sm font-bold text-stone-900 outline-none focus:border-stone-900 transition-colors shadow-sm placeholder-stone-300">
+                    </div>
+                    <div class="col-span-1 flex justify-end">
+                        <button type="button" onclick="toggleSize(${gIdx}, '${sz.size}')" class="w-9 h-9 rounded-xl flex items-center justify-center text-stone-300 hover:bg-rose-50 hover:text-rose-500 transition-all" title="Bỏ size này">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+
+            rowsHtml = `
+                <div class="mt-8 bg-white border border-stone-200 rounded-[1.5rem] p-5 shadow-[0_4px_20px_rgb(0,0,0,0.02)]">
+                    <p class="text-[10px] font-black text-stone-400 uppercase tracking-widest mb-2 ml-2">Nhập số lượng & giá cho từng Size</p>
+                    ${rows}
+                </div>
+            `;
+        }
+
+        // Dựng HTML cho cả khối Group
+        const html = `
+            <div class="bg-stone-50/70 border border-stone-100 rounded-[2rem] p-6 relative group/card">
+                ${variantGroups.length > 1 ? `<button type="button" onclick="removeGroup(${gIdx})" class="absolute top-6 right-6 w-8 h-8 rounded-full bg-white border border-stone-200 text-stone-300 hover:text-rose-500 hover:border-rose-200 flex items-center justify-center transition-all shadow-sm opacity-0 group-hover/card:opacity-100" title="Xóa nhóm màu này"><svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.34 12m-4.72 0l-.34-12M4.5 6.375h15m-15 0A2.25 2.25 0 005.25 9h13.5A2.25 2.25 0 0021 6.375m-15 0V4.5a2.25 2.25 0 012.25-2.25h4.5A2.25 2.25 0 0116.5 4.5v1.875"/></svg></button>` : ''}
+
+                <div class="grid grid-cols-1 xl:grid-cols-12 gap-8 items-start">
+                    <div class="xl:col-span-4">
+                        <label class="block text-[10px] font-black uppercase tracking-widest text-stone-900 mb-3">1. Định danh Màu <span class="text-red-500">*</span></label>
+                        <div class="flex gap-3 items-center relative">
+                            <label class="w-12 h-12 rounded-2xl border-2 border-stone-200 shadow-sm shrink-0 cursor-pointer overflow-hidden transition-transform hover:scale-105" style="background-color: ${g.colorHex}">
+                                <input type="color" value="${g.colorHex}" onchange="updateGroupColor(${gIdx}, 'hex', this.value)" class="opacity-0 w-full h-full cursor-pointer">
+                            </label>
+                            <div class="relative flex-1">
+                                <input type="text" value="${g.colorName}" required oninput="suggestColor(this, ${gIdx})" onchange="updateGroupColor(${gIdx}, 'name', this.value)" placeholder="Tên màu (VD: Đen)" class="w-full h-12 bg-white border border-stone-200 rounded-2xl px-4 text-sm font-bold text-stone-900 outline-none focus:border-stone-900 transition-all shadow-sm">
+                                <div id="suggest-${gIdx}" class="absolute top-full left-0 right-0 bg-white border border-stone-200 rounded-2xl shadow-xl z-50 mt-2 hidden max-h-48 overflow-y-auto p-2"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="xl:col-span-8">
+                        <label class="block text-[10px] font-black uppercase tracking-widest text-stone-900 mb-3">2. Kích thước của màu này <span class="text-stone-400 font-medium normal-case tracking-normal ml-2">(Click để bật/tắt)</span></label>
+                        <div class="flex flex-wrap gap-2">
+                            ${sizeChips}
+                            <div class="flex items-center border-2 border-stone-200 rounded-xl bg-white overflow-hidden h-9 focus-within:border-stone-900 transition-colors ml-2">
+                                <input type="text" id="custom-size-${gIdx}" placeholder="Cỡ khác..." class="w-20 h-full px-3 text-xs font-bold outline-none uppercase placeholder-stone-400" onkeydown="if(event.key==='Enter'){event.preventDefault(); addCustomSize(${gIdx});}">
+                                <button type="button" onclick="addCustomSize(${gIdx})" class="px-3 bg-stone-50 text-stone-400 hover:text-stone-900 font-black border-l-2 border-stone-200 hover:bg-stone-200 transition-colors h-full">+</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                ${rowsHtml}
+            </div>
+        `;
+        container.innerHTML += html;
+    });
+}
+
+/* Các hàm thay đổi State */
+function addGroup() {
+    variantGroups.push({ colorName: '', colorHex: '#1c1917', sizes: [] });
+    renderVariants();
+}
+function removeGroup(idx) {
+    variantGroups.splice(idx, 1);
+    if(variantGroups.length === 0) addGroup(); // Luôn giữ ít nhất 1 group
+    else renderVariants();
+}
+function toggleSize(gIdx, sizeName) {
+    const group = variantGroups[gIdx];
+    const existingIdx = group.sizes.findIndex(s => s.size === sizeName);
+    if (existingIdx >= 0) {
+        group.sizes.splice(existingIdx, 1); // Đã có -> Xóa
+    } else {
+        group.sizes.push({ size: sizeName, stock: 0, price: '' }); // Chưa có -> Thêm
+    }
+    renderVariants();
+}
+function addCustomSize(gIdx) {
+    const input = document.getElementById(`custom-size-${gIdx}`);
+    const val = input.value.trim().toUpperCase();
+    if(val && val.length <= 8) {
+        toggleSize(gIdx, val);
+    }
+}
+function updateGroupColor(gIdx, type, val) {
+    if (type === 'hex') variantGroups[gIdx].colorHex = val;
+    if (type === 'name') variantGroups[gIdx].colorName = val;
+    renderVariants(); // Re-render để update màu Background
+}
+function updateSizeData(gIdx, sIdx, field, val) {
+    variantGroups[gIdx].sizes[sIdx][field] = val;
+}
+
+/* ─── 3. GỢI Ý MÀU SẮC AUTOCOMPLETE ─── */
+function suggestColor(input, gIdx) {
+    const val = input.value.toLowerCase().trim();
+    const box = document.getElementById(`suggest-${gIdx}`);
+    if (!val) { box.classList.add('hidden'); return; }
+    
+    const matches = COLOR_DB.filter(c => c.name.toLowerCase().includes(val));
+    if (!matches.length) { box.classList.add('hidden'); return; }
+    
+    box.innerHTML = matches.slice(0,6).map(c => `
+        <button type="button" onclick="pickColor(${gIdx}, '${c.hex}', '${c.name}')" class="w-full flex items-center gap-3 px-3 py-2.5 hover:bg-stone-50 rounded-xl transition-colors text-left">
+            <span class="w-5 h-5 rounded-md border border-stone-200 shadow-sm shrink-0" style="background:${c.hex}"></span>
+            <span class="text-xs font-bold text-stone-900">${c.name}</span>
+        </button>`).join('');
+    box.classList.remove('hidden');
+}
+function pickColor(gIdx, hex, name) {
+    variantGroups[gIdx].colorHex = hex;
+    variantGroups[gIdx].colorName = name;
+    renderVariants();
+}
+// Đóng suggest khi click ngoài
+document.addEventListener('click', e => {
+    if (!e.target.closest('[id^="suggest-"]') && !e.target.closest('input[type="text"]')) {
+        document.querySelectorAll('[id^="suggest-"]').forEach(b => b.classList.add('hidden'));
+    }
 });
 
-// ── Tab ──
-function doiTab(tab) {
-  ['url','file'].forEach(t => {
-    document.getElementById(`panel-${t}`).classList.toggle("hidden", t !== tab);
-    const btn = document.getElementById(`tab-${t}`);
-    
-    // Tùy chỉnh CSS tab theo style Minimalist
-    btn.classList.toggle("border-stone-900", t === tab);
-    btn.classList.toggle("text-stone-900", t === tab);
-    btn.classList.toggle("border-transparent", t !== tab);
-    btn.classList.toggle("text-stone-400", t !== tab);
-  });
-}
-
-function demAnh() { return grid.querySelectorAll(".image-item").length; }
-
-// ── Thêm URL ──
-function themUrlAnh() {
-  const input = document.getElementById("url-input");
-  const url   = input.value.trim();
-  if (!url) return;
-  if (demAnh() >= MAX) { alert(`Hệ thống chỉ cho phép tối đa ${MAX} ảnh.`); return; }
-  const existing = [...grid.querySelectorAll('input[name="image_urls"]')].map(i => i.value);
-  if (existing.includes(url)) { alert("URL này đã tồn tại trong danh sách."); return; }
-  themAnhVaoGrid(url, null);
-  input.value = "";
-}
-
-// ── Upload file ──
-function xuLyFileDrop(e) {
-  e.preventDefault();
-  document.getElementById("drop-zone").classList.remove("border-stone-400", "bg-stone-50");
-  xuLyFileChon(e.dataTransfer.files);
-}
-
-async function xuLyFileChon(fileList) {
-  const files = [...fileList].filter(f => f.type.startsWith("image/")).slice(0, MAX - demAnh());
-  if (!files.length) return;
-
-  if (!PRODUCT_ID) {
-    const dt = new DataTransfer();
-    files.forEach(f => {
-      dt.items.add(f);
-      themAnhVaoGrid(URL.createObjectURL(f), null);
+/* ─── 4. HÌNH ẢNH & UPLOAD ─── */
+function handleFileSelect(input) {
+    Array.from(input.files).forEach(f => {
+        const r = new FileReader();
+        r.onload = e => renderImagePreview(e.target.result, true);
+        r.readAsDataURL(f);
     });
-    document.getElementById("file-input").files = dt.files;
-    return;
-  }
-
-  hienProgress(true);
-  const fd = new FormData();
-  files.forEach(f => fd.append("files", f));
-  try {
-    const res  = await fetch(UPLOAD_URL, { method:"POST", body:fd, headers:{"X-CSRFToken":CSRF} });
-    const data = await res.json();
-    if (data.success) data.images.forEach(img => themAnhVaoGrid(img.url, img.id));
-    else alert(data.message || "Upload thất bại.");
-  } catch { alert("Lỗi kết nối máy chủ."); }
-  finally { hienProgress(false); }
+    document.getElementById('images-synced').value = '1';
+}
+function addPhotoByUrl() {
+    const input = document.getElementById('urlInput');
+    const url = input.value.trim();
+    if (!url || !url.startsWith('http')) return;
+    renderImagePreview(url, false);
+    input.value = '';
+    document.getElementById('images-synced').value = '1';
+}
+function renderImagePreview(url, isFile) {
+    const container = document.getElementById('image-preview-container');
+    const isFirst = container.children.length === 0;
+    const div = document.createElement('div');
+    div.className = 'relative group aspect-[3/4] rounded-2xl overflow-hidden border border-stone-200 shadow-sm img-card';
+    div.innerHTML = `
+        <img src="${url}" class="w-full h-full object-cover">
+        ${isFile ? '' : `<input type="hidden" name="image_urls" value="${url}">`}
+        <button type="button" onclick="removeImage(this)" class="absolute top-2 right-2 bg-white/90 text-rose-500 w-8 h-8 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all shadow-md hover:bg-rose-500 hover:text-white z-10"><svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg></button>
+        ${isFirst ? '<div class="cover-badge absolute bottom-0 inset-x-0 bg-stone-900/90 backdrop-blur-sm text-white text-[9px] font-black text-center py-2 uppercase tracking-[0.2em]">Ảnh Bìa</div>' : ''}
+    `;
+    container.appendChild(div);
+}
+function removeImage(btn) {
+    const container = document.getElementById('image-preview-container');
+    btn.closest('.img-card').remove();
+    const first = container.querySelector('.img-card');
+    if (first && !first.querySelector('.cover-badge')) {
+        const badge = document.createElement('div');
+        badge.className = 'cover-badge absolute bottom-0 inset-x-0 bg-stone-900/90 backdrop-blur-sm text-white text-[9px] font-black text-center py-2 uppercase tracking-[0.2em]';
+        badge.innerText = 'Ảnh Bìa';
+        first.appendChild(badge);
+    }
+    document.getElementById('images-synced').value = '1';
 }
 
-// ── Thêm ảnh vào DOM ──
-function themAnhVaoGrid(url, imgId) {
-  const isFirst = demAnh() === 0;
-  const slot    = document.getElementById("add-slot");
-  const div     = document.createElement("div");
-  
-  // Tùy chỉnh CSS item khi thêm
-  div.className = `image-item relative group rounded-xl bg-stone-50 cursor-grab aspect-[3/4] overflow-hidden shadow-sm transition-all duration-300 ${isFirst ? "ring-2 ring-amber-400" : "border border-stone-200/60"}`;
-  if (imgId) div.dataset.id = imgId;
-  
-  div.innerHTML = `
-    <img src="${esc(url)}" class="w-full h-full object-cover mix-blend-multiply group-hover:scale-105 transition-transform duration-500" loading="lazy">
-    ${isFirst ? `<span class="badge-primary absolute top-0 left-0 text-[9px] font-bold uppercase tracking-wider bg-amber-100 text-amber-700 px-2 py-1 rounded-br-lg shadow-sm">Chính</span>` : ""}
-    <div class="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
-      <button type="button" onclick="xoaAnh(this,'${imgId||""}')"
-              class="w-6 h-6 bg-white/90 backdrop-blur-sm text-red-500 rounded-full flex items-center justify-center hover:bg-red-50 shadow-sm transition-colors">
-        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
-      </button>
-    </div>
-    <input type="hidden" name="image_urls" value="${esc(url)}">`;
-  grid.insertBefore(div, slot);
+/* ─── 5. VALIDATION & SYNC ─── */
+function syncVariantPricePlaceholders() {
+    const basePrice = document.getElementById('base_price').value;
+    const lbl = basePrice ? `Giá gốc: ${parseInt(basePrice).toLocaleString('vi-VN')}đ` : 'Bằng giá niêm yết';
+    document.querySelectorAll('[name="v_price_override[]"]').forEach(i => i.placeholder = lbl);
 }
 
-// ── Xóa ảnh ──
-async function xoaAnh(btn, imgId) {
-  const item = btn.closest(".image-item");
-  if (imgId && PRODUCT_ID) {
-    try {
-      const res  = await fetch(`${DELETE_URL}/${imgId}/delete`, { method:"POST", headers:{"X-CSRFToken":CSRF} });
-      const data = await res.json();
-      if (!data.success) { alert("Lỗi khi xóa trên máy chủ."); return; }
-    } catch { alert("Lỗi kết nối mạng."); return; }
-  }
-  item.remove();
-  capNhatBadge();
-}
-
-// ── Cập nhật badge ảnh chính ──
-function capNhatBadge() {
-  grid.querySelectorAll(".image-item").forEach((item, i) => {
-    item.classList.toggle("ring-2", i === 0);
-    item.classList.toggle("ring-amber-400", i === 0);
-    item.classList.toggle("border", i !== 0);
-    item.classList.toggle("border-stone-200/60", i !== 0);
+document.getElementById('productForm').onsubmit = function(e) {
+    const bp = document.getElementById('base_price');
+    const err = document.getElementById('price-error');
+    if (!bp.value || parseFloat(bp.value) <= 0) {
+        e.preventDefault();
+        err.classList.remove('hidden');
+        bp.style.borderColor = '#ef4444';
+        bp.focus();
+        return false;
+    }
     
-    let badge = item.querySelector(".badge-primary");
-    if (i === 0) {
-      if (!badge) {
-        badge = document.createElement("span");
-        badge.className = "badge-primary absolute top-0 left-0 text-[9px] font-bold uppercase tracking-wider bg-amber-100 text-amber-700 px-2 py-1 rounded-br-lg shadow-sm";
-        badge.textContent = "Chính";
-        item.appendChild(badge);
-      }
-    } else badge?.remove();
-  });
-}
+    // Kiểm tra xem đã có ít nhất 1 size được chọn chưa
+    const hasAnySize = variantGroups.some(g => g.sizes.length > 0);
+    if(!hasAnySize) {
+        e.preventDefault();
+        alert("⚠ Vui lòng chọn ít nhất 1 kích thước cho sản phẩm!");
+        return false;
+    }
+    return true;
+};
 
-// ── Reorder AJAX ──
-async function capNhatThuTu() {
-  if (!PRODUCT_ID) return;
-  const payload = [...grid.querySelectorAll(".image-item")]
-    .map((el, i) => ({ id: el.dataset.id, sort_order: i }))
-    .filter(x => x.id);
-  if (!payload.length) return;
-  try {
-    await fetch(`/admin/products/${PRODUCT_ID}/images/reorder`, {
-      method:"POST", headers:{"Content-Type":"application/json","X-CSRFToken":CSRF},
-      body: JSON.stringify(payload)
-    });
-  } catch(e) { console.error(e); }
-}
-
-// ── Progress bar ──
-function hienProgress(show) {
-  const el  = document.getElementById("upload-progress");
-  const bar = document.getElementById("progress-bar");
-  const pct = document.getElementById("progress-pct");
-  el.classList.toggle("hidden", !show);
-  if (!show) { bar.style.width="100%"; pct.textContent="100%"; return; }
-  let v=0;
-  const t = setInterval(() => {
-    v = Math.min(v + Math.random()*15, 90);
-    bar.style.width=v+"%"; pct.textContent=Math.round(v)+"%";
-    if (v>=90) clearInterval(t);
-  }, 200);
-}
-
-function esc(s) { return s.replace(/&/g,"&amp;").replace(/"/g,"&quot;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
-
-document.getElementById("select-category").addEventListener("change", function() {
-  this.classList.toggle("font-normal", !this.value);
-  this.classList.toggle("text-stone-400", !this.value);
-  this.classList.toggle("text-stone-900", !!this.value);
-  this.classList.toggle("font-semibold", !!this.value);
-});
+// Khởi chạy khi load trang
+renderVariants();
 </script>
 {% endblock %}

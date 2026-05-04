@@ -1,0 +1,247 @@
+{% extends "base.html" %}
+{% block title %}Chi tiết đơn hàng #{{ order.id[:8].upper() }} | GUA Maison{% endblock %}
+
+{% block content %}
+{# ── CONFIG TRẠNG THÁI DÀNH CHO KHÁCH HÀNG ── #}
+{% set status_map = {
+    'pending':   ('Chờ xác nhận',    'bg-amber-100 text-amber-700'),
+    'confirmed': ('Đang chuẩn bị hàng', 'bg-blue-100 text-blue-700'),
+    'packed':    ('Đã đóng gói',     'bg-indigo-100 text-indigo-700'),
+    'shipped':   ('Đang giao hàng',  'bg-purple-100 text-purple-700'),
+    'shipping':  ('Đang vận chuyển', 'bg-purple-100 text-purple-700'),
+    'delivered': ('Giao thành công', 'bg-emerald-100 text-emerald-700'),
+    'completed': ('Hoàn tất',        'bg-emerald-100 text-emerald-700'),
+    'cancelled': ('Đã hủy',          'bg-stone-100 text-stone-500'),
+    'failed':    ('Giao thất bại',   'bg-rose-100 text-rose-700'),
+    'returned':  ('Hoàn hàng',       'bg-orange-100 text-orange-700')
+} %}
+{% set current_status = status_map.get(order.status, ('Đang xử lý', 'bg-stone-100 text-stone-600')) %}
+
+<div class="bg-[#fcfcfc] min-h-screen pb-32 pt-8 font-sans">
+    <div class="max-w-5xl mx-auto px-4 sm:px-6">
+        
+        {# ── BREADCRUMB ── #}
+        <nav class="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-stone-400 mb-10">
+            <a href="/" class="hover:text-stone-900 transition-colors">Trang chủ</a>
+            <span>/</span>
+            <a href="{{ url_for('profile.my_orders') }}" class="hover:text-stone-900 transition-colors">Đơn hàng của tôi</a>
+            <span>/</span>
+            <span class="text-stone-900">Chi tiết #{{ order.id[:8].upper() }}</span>
+        </nav>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            
+            {# ══════════════════════════════
+               CỘT TRÁI (2/3): TIẾN TRÌNH & SẢN PHẨM
+               ══════════════════════════════ #}
+            <div class="lg:col-span-2 space-y-8">
+                
+                {# 1. THANH TRẠNG THÁI (PROGRESS BAR) #}
+                <div class="bg-white rounded-[2rem] p-8 shadow-sm border border-stone-100">
+                    <div class="flex justify-between items-center mb-10">
+                        <h2 class="text-xl font-bold text-stone-900 tracking-tight">Hành trình đơn hàng</h2>
+                        <span class="px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest {{ current_status[1] }}">
+                            {{ current_status[0] }}
+                        </span>
+                    </div>
+
+                    <div class="relative flex justify-between">
+                        {# Line background #}
+                        <div class="absolute top-5 left-0 w-full h-0.5 bg-stone-100 -z-0"></div>
+                        
+                        {% set steps = [
+                            ('pending', 'Đặt hàng', 'fa-receipt'),
+                            ('confirmed', 'Xác nhận', 'fa-check-circle'),
+                            ('packed', 'Đóng gói', 'fa-box-open'),
+                            ('shipped', 'Đang giao', 'fa-truck-fast'),
+                            ('completed', 'Hoàn tất', 'fa-house-chimney-check')
+                        ] %}
+                        
+                        {% set status_rank = {'pending':0, 'confirmed':1, 'packed':2, 'shipped':3, 'shipping':3, 'delivered':4, 'completed':4} %}
+                        {% set cur_rank = status_rank.get(order.status, -1) %}
+
+                        {% for slug, label, icon in steps %}
+                        <div class="relative z-10 flex flex-col items-center gap-3">
+                            <div class="w-10 h-10 rounded-full flex items-center justify-center text-sm border-2 transition-all
+                                {% if loop.index0 <= cur_rank %} bg-stone-900 border-stone-900 text-white shadow-lg shadow-stone-200
+                                {% else %} bg-white border-stone-100 text-stone-300 {% endif %}">
+                                <i class="fa-solid {{ icon }}"></i>
+                            </div>
+                            <span class="text-[9px] font-black uppercase tracking-widest {% if loop.index0 <= cur_rank %}text-stone-900{% else %}text-stone-300{% endif %}">
+                                {{ label }}
+                            </span>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                {# 2. LIVE TRACKING (Nếu có) #}
+                {% if order.shipments %}
+                <div class="bg-stone-900 rounded-[2rem] p-8 text-white">
+                    <div class="flex items-center justify-between mb-8">
+                        <div>
+                            <p class="text-[10px] font-black uppercase tracking-[0.2em] opacity-50">Đơn vị vận chuyển</p>
+                            <p class="text-lg font-bold mt-1 uppercase">{{ order.shipments.provider }} • {{ order.shipments.tracking_code }}</p>
+                        </div>
+                        <i class="fa-solid fa-location-crosshairs text-2xl opacity-20"></i>
+                    </div>
+
+                    <div class="space-y-6 relative pl-6 before:content-[''] before:absolute before:left-0 before:top-2 before:bottom-2 before:w-px before:bg-white/10">
+                        {% for event in order.shipments.shipment_events %}
+                        <div class="relative">
+                            <div class="absolute -left-[27px] top-1.5 w-1.5 h-1.5 rounded-full {% if loop.first %} bg-emerald-400 ring-4 ring-emerald-400/20 {% else %} bg-white/20 {% endif %}"></div>
+                            <div class="flex justify-between items-start gap-4">
+                                <div>
+                                    <p class="text-sm font-bold {% if not loop.first %}opacity-50{% endif %}">{{ event.status | upper }}</p>
+                                    <p class="text-xs opacity-60 mt-1 leading-relaxed">{{ event.description }}</p>
+                                </div>
+                                <time class="text-[10px] font-bold opacity-40 whitespace-nowrap">{{ event.created_at[11:16] }} | {{ event.created_at[8:10] }}/{{ event.created_at[5:7] }}</time>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+
+                {# 3. DANH SÁCH SẢN PHẨM #}
+                <div class="bg-white rounded-[2rem] shadow-sm border border-stone-100 overflow-hidden">
+                    <div class="p-8 border-b border-stone-50">
+                        <h3 class="text-sm font-black uppercase tracking-widest">Kiện hàng của bạn</h3>
+                    </div>
+                    <div class="divide-y divide-stone-50">
+                        {% for item in order.order_items %}
+                        <div class="p-8 flex items-center gap-6">
+                            <div class="w-20 aspect-[3/4] bg-stone-50 rounded-xl overflow-hidden shrink-0 border border-stone-100">
+                                <img src="{{ item.get('products', {}).get('thumbnail_url') or 'https://placehold.co/300x400' }}" class="w-full h-full object-cover">
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <p class="text-base font-bold text-stone-900 truncate">{{ item.get('products', {}).get('name', 'Sản phẩm') }}</p>
+                                
+                                {% set variant = item.get('product_variants') or {} %}
+                                <div class="flex items-center gap-4 mt-2">
+                                    <span class="text-[10px] font-black px-2 py-0.5 bg-stone-100 text-stone-500 rounded uppercase">Size {{ variant.get('size', item.get('size', 'N/A')) }}</span>
+                                    {% if variant.get('color_name') %}
+                                    <div class="flex items-center gap-1.5">
+                                        <span class="w-2 h-2 rounded-full variant-color" data-bg="{{ variant.get('color_hex') }}"></span>
+                                        <span class="text-[10px] font-bold text-stone-400 uppercase">{{ variant.get('color_name') }}</span>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="text-right">
+                                <p class="text-[10px] font-black text-stone-400 uppercase">x{{ item.quantity }}</p>
+                                <p class="text-sm font-black text-stone-900 mt-1">{{ '{:,.0f}'.format(item.unit_price) }} ₫</p>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    <div class="p-8 bg-[#fafaf8] flex justify-between items-center">
+                        <span class="text-[10px] font-black uppercase tracking-widest text-stone-400">Tổng thanh toán</span>
+                        <span class="text-2xl font-black text-stone-900">{{ '{:,.0f}'.format(order.total_amount) }} ₫</span>
+                    </div>
+                </div>
+            </div>
+
+            {# ══════════════════════════════
+               CỘT PHẢI (1/3): INFO & ACTIONS
+               ══════════════════════════════ #}
+            <div class="space-y-8">
+                
+                {# 1. ĐỊA CHỈ NHẬN HÀNG #}
+                <div class="bg-white rounded-[2rem] p-8 shadow-sm border border-stone-100">
+                    <h3 class="text-[10px] font-black uppercase tracking-widest text-stone-400 mb-6">Địa chỉ nhận hàng</h3>
+                    <div class="space-y-1">
+                        <p class="text-sm font-bold text-stone-900">{{ order.shipping_address.get('full_name') }}</p>
+                        <p class="text-sm text-stone-500">{{ order.shipping_address.get('phone') }}</p>
+                        <p class="text-sm text-stone-600 leading-relaxed mt-4 italic">
+                            {{ order.shipping_address.get('address') }}<br>
+                            {{ order.shipping_address.get('district') }}, {{ order.shipping_address.get('city') }}
+                        </p>
+                    </div>
+                </div>
+
+                {# 2. THANH TOÁN #}
+                <div class="bg-white rounded-[2rem] p-8 shadow-sm border border-stone-100">
+                    <h3 class="text-[10px] font-black uppercase tracking-widest text-stone-400 mb-6">Thanh toán</h3>
+                    <div class="flex justify-between items-center mb-4">
+                        <span class="text-xs font-bold text-stone-400">Phương thức</span>
+                        <span class="text-xs font-black text-stone-900 uppercase">{{ order.payment_method }}</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-xs font-bold text-stone-400">Trạng thái</span>
+                        {% if order.payment_status == 'paid' %}
+                        <span class="text-[10px] font-black text-emerald-600 uppercase">Đã thanh toán</span>
+                        {% else %}
+                        <span class="text-[10px] font-black text-amber-600 uppercase">Chờ thu tiền</span>
+                        {% endif %}
+                    </div>
+                </div>
+
+                {# 3. THAO TÁC HỦY ĐƠN #}
+                {% if order.status == 'pending' %}
+                <button onclick="openCancelModal()" class="w-full py-4 rounded-2xl border-2 border-stone-100 text-[10px] font-black uppercase tracking-widest text-stone-400 hover:border-red-100 hover:text-red-500 hover:bg-red-50/30 transition-all active:scale-95">
+                    Hủy đơn hàng này
+                </button>
+                {% endif %}
+
+                <a href="{{ url_for('products.index') }}" class="block w-full py-4 bg-stone-900 text-white text-center rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-stone-800 transition-all shadow-lg shadow-stone-200 active:scale-95">
+                    Tiếp tục mua sắm
+                </a>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+{# MODAL HỦY ĐƠN #}
+<div id="modal-cancel" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-stone-900/60 backdrop-blur-sm">
+    <div class="bg-white rounded-[2.5rem] p-10 max-w-sm w-full text-center shadow-2xl">
+        <div class="w-16 h-16 bg-red-50 text-red-500 rounded-2xl flex items-center justify-center mx-auto mb-6 text-2xl">
+            <i class="fa-solid fa-circle-exclamation"></i>
+        </div>
+        <h3 class="text-xl font-bold text-stone-900 mb-2">Bạn muốn hủy đơn?</h3>
+        <p class="text-xs text-stone-500 leading-relaxed mb-8">Hành động này không thể hoàn tác sau khi đã xác nhận.</p>
+        
+        <div class="flex gap-3">
+            <button onclick="closeCancelModal()" class="flex-1 py-4 bg-stone-100 rounded-xl text-[10px] font-black uppercase tracking-widest text-stone-600 hover:bg-stone-200 transition-colors">Quay lại</button>
+            <button id="btnConfirmCancel" onclick="handleCancelOrder()" class="flex-1 py-4 bg-red-500 rounded-xl text-[10px] font-black uppercase tracking-widest text-white hover:bg-red-600 transition-colors">Xác nhận hủy</button>
+        </div>
+    </div>
+</div>
+
+<script>
+const ORDER_ID = "{{ order.id }}";
+
+document.addEventListener("DOMContentLoaded", () => {
+    document.querySelectorAll('.variant-color').forEach(el => {
+        el.style.backgroundColor = el.dataset.bg;
+    });
+});
+
+function openCancelModal() { document.getElementById('modal-cancel').classList.replace('hidden', 'flex'); }
+function closeCancelModal() { document.getElementById('modal-cancel').classList.replace('flex', 'hidden'); }
+
+async function handleCancelOrder() {
+    const btn = document.getElementById('btnConfirmCancel');
+    btn.disabled = true; btn.innerText = "ĐANG XỬ LÝ...";
+    
+    try {
+        const res = await fetch(`/profile/orders/${ORDER_ID}/cancel`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json", "X-CSRFToken": "{{ csrf_token() }}" }
+        });
+        const data = await res.json();
+        if(data.success) {
+            alert("Đã hủy đơn hàng thành công.");
+            window.location.reload();
+        } else {
+            alert(data.message);
+            btn.disabled = false; btn.innerText = "XÁC NHẬN HỦY";
+        }
+    } catch(e) { 
+        alert("Lỗi kết nối máy chủ."); 
+        btn.disabled = false;
+    }
+}
+</script>
+{% endblock %}

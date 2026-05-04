@@ -1,0 +1,84 @@
+{% extends "admin/admin_base.html" %}
+{% block title %}Sửa hồ sơ Khách hàng | GUA Admin{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-[#f8faf9] pb-20">
+    
+    <div class="bg-white/80 backdrop-blur-md border-b border-stone-200 sticky top-0 z-40 px-8 py-6">
+        <div class="max-w-3xl mx-auto flex items-center justify-between">
+            <div class="flex items-center gap-4">
+                <a href="{{ url_for('admin.customers') }}" class="w-10 h-10 bg-white border border-stone-200 rounded-xl flex items-center justify-center text-stone-500 hover:text-stone-900 transition-all shadow-sm">
+                    <i class="fa-solid fa-chevron-left"></i>
+                </a>
+                <div>
+                    <h1 class="text-xl font-black text-stone-900 uppercase tracking-tight">Chỉnh sửa Hồ sơ</h1>
+                    <p class="text-stone-400 text-[10px] font-bold uppercase tracking-widest mt-0.5">ID: {{ customer.id[:8].upper() }}</p>
+                </div>
+            </div>
+            <div class="w-12 h-12 bg-stone-900 text-white rounded-2xl flex items-center justify-center font-bold shadow-lg">
+                {{ customer.full_name[0].upper() }}
+            </div>
+        </div>
+    </div>
+
+    <div class="max-w-3xl mx-auto px-6 mt-12">
+        <div class="bg-white rounded-[2.5rem] p-10 shadow-sm border border-stone-200">
+            
+            <div class="flex items-center gap-4 mb-10 pb-6 border-b border-stone-100">
+                <div class="w-12 h-12 bg-emerald-100 text-emerald-600 rounded-2xl flex items-center justify-center">
+                    <i class="fa-solid fa-user-pen text-lg"></i>
+                </div>
+                <div>
+                    <h3 class="font-black text-stone-900 text-lg">Thông tin tài khoản</h3>
+                    <p class="text-stone-400 text-xs font-medium">Cập nhật tên và số điện thoại liên lạc chính của khách.</p>
+                </div>
+            </div>
+
+            <form action="{{ url_for('admin.edit_customer', user_id=customer.id) }}" method="POST" class="space-y-8">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+                <div class="space-y-2">
+                    <label class="text-[10px] font-black text-stone-400 uppercase tracking-widest ml-2">Họ và tên khách hàng</label>
+                    <input type="text" name="full_name" value="{{ customer.full_name }}" required
+                           class="w-full bg-stone-50 border-2 border-stone-50 rounded-2xl px-6 py-4 text-sm font-bold text-stone-800 focus:outline-none focus:border-stone-900 focus:bg-white transition-all">
+                </div>
+
+                <div class="space-y-2">
+                    <label class="text-[10px] font-black text-stone-400 uppercase tracking-widest ml-2">Số điện thoại liên hệ</label>
+                    <input type="text" name="phone" value="{{ customer.phone if customer.phone else '' }}" 
+                           placeholder="Ví dụ: 0901234567"
+                           class="w-full bg-stone-50 border-2 border-stone-50 rounded-2xl px-6 py-4 text-sm font-bold text-stone-800 focus:outline-none focus:border-stone-900 focus:bg-white transition-all">
+                </div>
+
+                <div class="space-y-2 opacity-60">
+                    <label class="text-[10px] font-black text-stone-400 uppercase tracking-widest ml-2">Địa chỉ Email (Cố định)</label>
+                    <div class="w-full bg-stone-100 border-2 border-stone-100 rounded-2xl px-6 py-4 text-sm font-bold text-stone-500 flex items-center gap-3">
+                        <i class="fa-solid fa-lock text-[10px]"></i>
+                        {{ customer.email }}
+                    </div>
+                </div>
+
+                <div class="pt-6 flex items-center gap-4">
+                    <button type="submit" class="flex-1 bg-stone-900 hover:bg-stone-800 text-white font-bold py-5 rounded-2xl shadow-xl shadow-stone-200 transition-all active:scale-[0.98]">
+                        Lưu thay đổi hồ sơ
+                    </button>
+                    <a href="{{ url_for('admin.customers') }}" class="px-8 py-5 text-sm font-bold text-stone-400 hover:text-stone-900 transition-colors">
+                        Hủy
+                    </a>
+                </div>
+            </form>
+
+        </div>
+
+        <div class="mt-8 p-6 bg-blue-50 rounded-3xl border border-blue-100 flex items-start gap-4">
+            <i class="fa-solid fa-circle-info text-blue-500 mt-1"></i>
+            <div>
+                <p class="text-xs font-bold text-blue-900 uppercase tracking-tight">Lưu ý vận hành</p>
+                <p class="text-[11px] text-blue-700 font-medium mt-1 leading-relaxed">
+                    Việc sửa thông tin ở đây sẽ thay đổi hồ sơ gốc của khách hàng. Nếu khách hàng yêu cầu đổi địa chỉ cho 1 đơn hàng <b class="font-black underline">đã đặt</b>, hãy vào mục <b>Chi tiết Đơn hàng</b> để sửa trực tiếp trên đơn đó.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

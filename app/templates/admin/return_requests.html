@@ -1,0 +1,146 @@
+{% extends "admin/admin_base.html" %}
+{% block title %}Yêu cầu Đổi / Trả — GUA Admin{% endblock %}
+
+{% block content %}
+{% set tab_labels = [
+  ('all',      'Tất cả',        'text-stone-600'),
+  ('pending',  'Chờ duyệt',     'text-amber-600'),
+  ('approved', 'Đã duyệt',      'text-blue-600'),
+  ('rejected', 'Từ chối',       'text-red-500'),
+  ('refunded', 'Hoàn tiền xong','text-emerald-600'),
+] %}
+
+<div class="space-y-6">
+
+  {# ── Header ── #}
+  <div class="flex items-center justify-between">
+    <div>
+      <h1 class="text-2xl font-bold text-stone-900">Yêu cầu Đổi / Trả</h1>
+      <p class="text-sm text-stone-500 mt-1">Quản lý toàn bộ yêu cầu đổi trả của khách hàng</p>
+    </div>
+    {% if tab_counts.get('pending', 0) > 0 %}
+    <span class="inline-flex items-center gap-2 px-4 py-2 bg-amber-50 border border-amber-200 rounded-xl text-sm font-bold text-amber-700">
+      <span class="w-2 h-2 bg-amber-500 rounded-full animate-pulse"></span>
+      {{ tab_counts['pending'] }} yêu cầu chờ duyệt
+    </span>
+    {% endif %}
+  </div>
+
+  {# ── Tab filter ── #}
+  <div class="bg-white rounded-2xl border border-stone-100 shadow-sm p-1.5 flex gap-1 flex-wrap">
+    {% for slug, label, color in tab_labels %}
+    <a href="{{ url_for('admin.return_requests', status=(slug if slug != 'all' else '')) }}"
+       class="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-all
+              {% if current_status == slug %}bg-stone-900 text-white shadow-sm{% else %}text-stone-500 hover:bg-stone-50 hover:text-stone-800{% endif %}">
+      {{ label }}
+      <span class="text-xs px-1.5 py-0.5 rounded-full
+                   {% if current_status == slug %}bg-white/20 text-white{% else %}bg-stone-100 {{ color }}{% endif %}">
+        {{ tab_counts.get(slug, 0) }}
+      </span>
+    </a>
+    {% endfor %}
+  </div>
+
+  {# ── Table ── #}
+  <div class="bg-white rounded-2xl border border-stone-100 shadow-sm overflow-hidden">
+    {% if returns %}
+    <table class="w-full text-sm">
+      <thead class="border-b border-stone-100 bg-stone-50">
+        <tr>
+          <th class="px-6 py-4 text-left text-xs font-bold text-stone-500 uppercase tracking-wider">Khách hàng</th>
+          <th class="px-6 py-4 text-left text-xs font-bold text-stone-500 uppercase tracking-wider">Đơn hàng</th>
+          <th class="px-6 py-4 text-left text-xs font-bold text-stone-500 uppercase tracking-wider">Lý do</th>
+          <th class="px-6 py-4 text-left text-xs font-bold text-stone-500 uppercase tracking-wider">Ngày gửi</th>
+          <th class="px-6 py-4 text-left text-xs font-bold text-stone-500 uppercase tracking-wider">Trạng thái</th>
+          <th class="px-6 py-4 text-right text-xs font-bold text-stone-500 uppercase tracking-wider">Thao tác</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-stone-50">
+        {% for rr in returns %}
+        {% set order = rr.get('orders', {}) or {} %}
+        {% set user  = rr.get('users', {})  or {} %}
+
+        {% set status_ui = {
+          'pending':  ('Chờ duyệt',      'bg-amber-100 text-amber-700'),
+          'approved': ('Đã duyệt',        'bg-blue-100 text-blue-700'),
+          'rejected': ('Từ chối',         'bg-red-100 text-red-600'),
+          'refunded': ('Hoàn tiền xong',  'bg-emerald-100 text-emerald-700'),
+        } %}
+        {% set ui = status_ui.get(rr.status, ('Không rõ', 'bg-stone-100 text-stone-500')) %}
+
+        <tr class="hover:bg-stone-50/60 transition-colors">
+          {# Khách hàng #}
+          <td class="px-6 py-4">
+            <p class="font-semibold text-stone-800">{{ user.get('full_name', 'N/A') }}</p>
+            <p class="text-xs text-stone-400">{{ user.get('email', '') }}</p>
+          </td>
+
+          {# Đơn hàng #}
+          <td class="px-6 py-4">
+            <a href="{{ url_for('admin.order_detail', order_id=rr.order_id) }}"
+               class="font-mono text-xs font-bold text-stone-800 hover:text-stone-900 underline underline-offset-2">
+              #{{ rr.order_id[:8].upper() }}
+            </a>
+            <p class="text-xs text-stone-500 mt-0.5">
+              {{ "{:,.0f}".format(order.get('total_amount', 0)) }}đ
+            </p>
+          </td>
+
+          {# Lý do #}
+          <td class="px-6 py-4">
+            <p class="text-stone-700 line-clamp-2 max-w-xs">{{ rr.reason[:80] }}{% if rr.reason|length > 80 %}…{% endif %}</p>
+          </td>
+
+          {# Ngày gửi #}
+          <td class="px-6 py-4 text-stone-500 text-xs">
+            {{ rr.requested_at[:16].replace('T', ' ') if rr.requested_at else 'N/A' }}
+          </td>
+
+          {# Trạng thái #}
+          <td class="px-6 py-4">
+            <span class="px-2.5 py-1 text-xs font-bold rounded-full {{ ui[1] }}">{{ ui[0] }}</span>
+            {% if rr.status == 'refunded' and rr.refund_amount %}
+            <p class="text-xs text-emerald-600 font-semibold mt-1">-{{ "{:,.0f}".format(rr.refund_amount) }}đ</p>
+            {% endif %}
+          </td>
+
+          {# Thao tác #}
+          <td class="px-6 py-4 text-right">
+            <a href="{{ url_for('admin.return_request_detail', rr_id=rr.id) }}"
+               class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-stone-900 text-white text-xs font-bold rounded-lg hover:bg-stone-700 transition-colors">
+              Xem chi tiết
+            </a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+    {# Pagination #}
+    {% if total_pages > 1 %}
+    <div class="px-6 py-4 border-t border-stone-100 flex items-center justify-between">
+      <p class="text-xs text-stone-500">Tổng {{ total }} yêu cầu</p>
+      <div class="flex gap-2">
+        {% for p in range(1, total_pages + 1) %}
+        <a href="{{ url_for('admin.return_requests', page=p, status=current_status if current_status != 'all' else '') }}"
+           class="w-8 h-8 flex items-center justify-center rounded-lg text-xs font-bold transition-colors
+                  {% if p == page %}bg-stone-900 text-white{% else %}bg-stone-100 text-stone-600 hover:bg-stone-200{% endif %}">
+          {{ p }}
+        </a>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+
+    {% else %}
+    <div class="py-20 text-center">
+      <svg class="w-12 h-12 text-stone-200 mx-auto mb-4" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99"/>
+      </svg>
+      <p class="text-stone-400 font-medium">Không có yêu cầu nào</p>
+    </div>
+    {% endif %}
+  </div>
+
+</div>
+{% endblock %}

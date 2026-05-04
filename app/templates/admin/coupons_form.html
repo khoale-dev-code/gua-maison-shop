@@ -1,0 +1,404 @@
+{% extends "admin/admin_base.html" %}
+{% block title %}{{ 'Chỉnh sửa' if coupon else 'Tạo mới' }} Mã Khuyến Mãi | GUA Admin{% endblock %}
+
+{% block content %}
+{% set is_edit = coupon is not none %}
+{% set scope_ids_list = coupon.scope_ids if coupon and coupon.scope_ids else [] %}
+
+<div class="min-h-screen bg-[#f8faf9] pb-12">
+
+  <!-- HEADER -->
+  <div class="bg-white/80 backdrop-blur-md border-b border-stone-200 sticky top-0 z-40 shadow-sm">
+    <div class="max-w-screen-2xl mx-auto px-6 lg:px-10 py-5">
+      <div class="flex items-center gap-4">
+        <a href="{{ url_for('admin.coupons') }}"
+           class="w-10 h-10 flex items-center justify-center bg-white border border-stone-200 rounded-xl hover:border-stone-900 transition-all text-stone-500 hover:text-stone-900">
+          <i class="fa-solid fa-arrow-left text-sm"></i>
+        </a>
+        <div class="w-12 h-12 bg-stone-900 text-white rounded-2xl flex items-center justify-center shadow-md">
+          <i class="fa-solid fa-tag text-xl"></i>
+        </div>
+        <div>
+          <h1 class="text-2xl font-black tracking-tight text-stone-900">
+            {{ 'Chỉnh sửa mã: ' + coupon.code if is_edit else 'Tạo mã khuyến mãi mới' }}
+          </h1>
+          <p class="text-stone-500 text-sm font-medium mt-0.5">
+            {{ 'Cập nhật thông tin chương trình' if is_edit else 'Thiết lập chương trình khuyến mãi linh hoạt' }}
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="max-w-4xl mx-auto px-6 lg:px-10 mt-8">
+    <form method="POST" id="couponForm">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+        <!-- ── CỘT TRÁI (2/3) ── -->
+        <div class="lg:col-span-2 flex flex-col gap-6">
+
+          <!-- BLOCK 1: Thông tin cơ bản -->
+          <div class="bg-white rounded-[2rem] border border-stone-200 p-8 shadow-sm">
+            <h2 class="text-base font-black text-stone-900 mb-6 flex items-center gap-2">
+              <i class="fa-solid fa-circle-info text-stone-400"></i> Thông tin cơ bản
+            </h2>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+
+              <!-- Mã coupon -->
+              <div class="md:col-span-2">
+                <label class="block text-xs font-bold uppercase tracking-widest text-stone-500 mb-2">
+                  Mã khuyến mãi <span class="text-red-500">*</span>
+                </label>
+                <input type="text" name="code"
+                  value="{{ coupon.code if is_edit else '' }}"
+                  placeholder="VD: SUMMER2026, SALE20"
+                  class="w-full font-mono font-black text-lg uppercase bg-stone-50 border border-stone-200 rounded-xl px-4 py-3 outline-none focus:border-stone-900 focus:ring-2 focus:ring-stone-100 transition-all placeholder:font-normal placeholder:text-sm placeholder:normal-case tracking-widest"
+                  {% if is_edit %}readonly{% endif %}
+                  oninput="this.value = this.value.toUpperCase().replace(/\s/g, '')">
+                {% if is_edit %}
+                <p class="text-xs text-stone-400 font-medium mt-1.5">
+                  <i class="fa-solid fa-lock text-xs mr-1"></i> Không thể thay đổi mã sau khi tạo.
+                </p>
+                {% endif %}
+              </div>
+
+              <!-- Mô tả nội bộ -->
+              <div class="md:col-span-2">
+                <label class="block text-xs font-bold uppercase tracking-widest text-stone-500 mb-2">Mô tả nội bộ</label>
+                <input type="text" name="description"
+                  value="{{ coupon.description or '' }}"
+                  placeholder="Ghi chú cho admin (khách không thấy)"
+                  class="w-full bg-stone-50 border border-stone-200 rounded-xl px-4 py-3 text-sm font-medium outline-none focus:border-stone-900 focus:ring-2 focus:ring-stone-100 transition-all placeholder:text-stone-400">
+              </div>
+
+            </div>
+          </div>
+
+          <!-- BLOCK 2: Loại giảm giá -->
+          <div class="bg-white rounded-[2rem] border border-stone-200 p-8 shadow-sm">
+            <h2 class="text-base font-black text-stone-900 mb-6 flex items-center gap-2">
+              <i class="fa-solid fa-percent text-stone-400"></i> Loại & Giá trị giảm
+            </h2>
+
+            <!-- Toggle type -->
+            <div class="flex gap-3 mb-6">
+              <label id="type-percent-card"
+                class="flex-1 flex items-center gap-3 p-4 border-2 rounded-2xl cursor-pointer transition-all
+                {% if not is_edit or coupon.discount_type == 'percent' %}border-stone-900 bg-stone-50{% else %}border-stone-200 bg-white hover:border-stone-300{% endif %}">
+                <input type="radio" name="discount_type" value="percent"
+                  {% if not is_edit or coupon.discount_type == 'percent' %}checked{% endif %}
+                  class="sr-only" onchange="updateTypeUI()">
+                <div class="w-9 h-9 bg-emerald-100 rounded-xl flex items-center justify-center font-black text-emerald-700">%</div>
+                <div>
+                  <p class="text-sm font-bold text-stone-900">Phần trăm</p>
+                  <p class="text-xs text-stone-400 font-medium">VD: Giảm 20%</p>
+                </div>
+              </label>
+
+              <label id="type-fixed-card"
+                class="flex-1 flex items-center gap-3 p-4 border-2 rounded-2xl cursor-pointer transition-all
+                {% if is_edit and coupon.discount_type == 'fixed' %}border-stone-900 bg-stone-50{% else %}border-stone-200 bg-white hover:border-stone-300{% endif %}">
+                <input type="radio" name="discount_type" value="fixed"
+                  {% if is_edit and coupon.discount_type == 'fixed' %}checked{% endif %}
+                  class="sr-only" onchange="updateTypeUI()">
+                <div class="w-9 h-9 bg-blue-100 rounded-xl flex items-center justify-center font-black text-blue-700">₫</div>
+                <div>
+                  <p class="text-sm font-bold text-stone-900">Số tiền cố định</p>
+                  <p class="text-xs text-stone-400 font-medium">VD: Giảm 50,000₫</p>
+                </div>
+              </label>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+
+              <!-- Giá trị giảm -->
+              <div>
+                <label class="block text-xs font-bold uppercase tracking-widest text-stone-500 mb-2">
+                  Giá trị giảm <span class="text-red-500">*</span>
+                  <span id="unit-label" class="ml-1 text-stone-400">({% if is_edit and coupon.discount_type == 'fixed' %}₫{% else %}%{% endif %})</span>
+                </label>
+                <input type="number" name="discount_value" id="discount_value"
+                  value="{{ coupon.discount_value if is_edit else '' }}"
+                  min="0" step="0.01" placeholder="VD: 20 hoặc 50000"
+                  class="w-full bg-stone-50 border border-stone-200 rounded-xl px-4 py-3 text-sm font-bold outline-none focus:border-stone-900 transition-all">
+              </div>
+
+              <!-- Giảm tối đa (chỉ cho percent) -->
+              <div id="max-discount-wrap" class="{% if is_edit and coupon.discount_type == 'fixed' %}hidden{% endif %}">
+                <label class="block text-xs font-bold uppercase tracking-widest text-stone-500 mb-2">
+                  Giảm tối đa (₫) <span class="text-stone-300 font-normal normal-case">tuỳ chọn</span>
+                </label>
+                <input type="number" name="max_discount"
+                  value="{{ coupon.max_discount if is_edit and coupon.max_discount else '' }}"
+                  min="0" step="1000" placeholder="VD: 200000"
+                  class="w-full bg-stone-50 border border-stone-200 rounded-xl px-4 py-3 text-sm font-medium outline-none focus:border-stone-900 transition-all">
+                <p class="text-xs text-stone-400 mt-1.5">Để trống = không giới hạn mức giảm</p>
+              </div>
+
+              <!-- Đơn hàng tối thiểu -->
+              <div class="md:col-span-2">
+                <label class="block text-xs font-bold uppercase tracking-widest text-stone-500 mb-2">
+                  Đơn tối thiểu (₫) <span class="text-stone-300 font-normal normal-case">tuỳ chọn</span>
+                </label>
+                <input type="number" name="min_order_value"
+                  value="{{ coupon.min_order_value if is_edit else '' }}"
+                  min="0" step="1000" placeholder="VD: 300000 (để trống = không yêu cầu)"
+                  class="w-full bg-stone-50 border border-stone-200 rounded-xl px-4 py-3 text-sm font-medium outline-none focus:border-stone-900 transition-all">
+              </div>
+
+            </div>
+          </div>
+
+          <!-- BLOCK 3: PHẠM VI ÁP DỤNG -->
+          <div class="bg-white rounded-[2rem] border border-stone-200 p-8 shadow-sm">
+            <h2 class="text-base font-black text-stone-900 mb-6 flex items-center gap-2">
+              <i class="fa-solid fa-crosshairs text-stone-400"></i> Phạm vi áp dụng
+            </h2>
+
+            <!-- Scope radio -->
+            <div class="flex flex-col gap-3 mb-6">
+              {% for val, label, desc, icon, color in [
+                ('all',      'Tất cả sản phẩm',    'Áp dụng cho toàn bộ đơn hàng',       'fa-globe',       'stone'),
+                ('category', 'Theo danh mục',       'Chỉ tính sản phẩm thuộc danh mục',   'fa-layer-group', 'blue'),
+                ('product',  'Sản phẩm cụ thể',     'Chỉ áp dụng cho những sản phẩm chọn','fa-box',         'purple')
+              ] %}
+              {% set cur_scope = coupon.scope if is_edit else 'all' %}
+              <label class="scope-card flex items-center gap-4 p-4 border-2 rounded-2xl cursor-pointer transition-all
+                {% if cur_scope == val %}border-stone-900 bg-stone-50{% else %}border-stone-200 bg-white hover:border-stone-300{% endif %}"
+                data-scope="{{ val }}">
+                <input type="radio" name="scope" value="{{ val }}"
+                  {% if cur_scope == val %}checked{% endif %}
+                  class="sr-only" onchange="updateScopeUI('{{ val }}')">
+                <div class="w-9 h-9 bg-{{ color }}-100 rounded-xl flex items-center justify-center shrink-0">
+                  <i class="fa-solid {{ icon }} text-{{ color }}-700"></i>
+                </div>
+                <div>
+                  <p class="text-sm font-bold text-stone-900">{{ label }}</p>
+                  <p class="text-xs text-stone-400 font-medium">{{ desc }}</p>
+                </div>
+              </label>
+              {% endfor %}
+            </div>
+
+            <!-- Chọn danh mục -->
+            <div id="scope-category" class="{% if not is_edit or coupon.scope != 'category' %}hidden{% endif %}">
+              <p class="text-xs font-bold uppercase tracking-widest text-stone-500 mb-3">
+                Chọn danh mục áp dụng <span class="text-red-500">*</span>
+              </p>
+              <div class="grid grid-cols-2 md:grid-cols-3 gap-2.5 max-h-60 overflow-y-auto pr-1">
+                {% for cat in cats %}
+                <label class="flex items-center gap-2.5 p-3 border border-stone-200 rounded-xl cursor-pointer hover:border-stone-400 hover:bg-stone-50 transition-all has-[:checked]:border-stone-900 has-[:checked]:bg-stone-50">
+                  <input type="checkbox" name="category_ids" value="{{ cat.id }}"
+                    {% if cat.id|string in scope_ids_list|map('string')|list %}checked{% endif %}
+                    class="w-4 h-4 rounded accent-stone-900">
+                  <span class="text-sm font-semibold text-stone-700 truncate">{{ cat.name }}</span>
+                </label>
+                {% endfor %}
+              </div>
+            </div>
+
+            <!-- Chọn sản phẩm -->
+            <div id="scope-product" class="{% if not is_edit or coupon.scope != 'product' %}hidden{% endif %}">
+              <p class="text-xs font-bold uppercase tracking-widest text-stone-500 mb-3">
+                Chọn sản phẩm áp dụng <span class="text-red-500">*</span>
+              </p>
+              <input type="text" id="productSearch" placeholder="Tìm sản phẩm..."
+                class="w-full bg-stone-50 border border-stone-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-stone-900 transition-all mb-3"
+                oninput="filterProducts(this.value)">
+              <div id="productList" class="flex flex-col gap-2 max-h-72 overflow-y-auto pr-1">
+                {% for prod in products %}
+                <label class="prod-item flex items-center gap-3 p-3 border border-stone-200 rounded-xl cursor-pointer hover:border-stone-400 hover:bg-stone-50 transition-all has-[:checked]:border-stone-900 has-[:checked]:bg-stone-50"
+                  data-name="{{ prod.name|lower }}">
+                  <input type="checkbox" name="product_ids" value="{{ prod.id }}"
+                    {% if prod.id|string in scope_ids_list|map('string')|list %}checked{% endif %}
+                    class="w-4 h-4 rounded accent-stone-900 shrink-0">
+                  {% if prod.thumbnail_url %}
+                  <img src="{{ prod.thumbnail_url }}" alt="" class="w-9 h-9 object-cover rounded-lg shrink-0 border border-stone-100">
+                  {% else %}
+                  <div class="w-9 h-9 bg-stone-100 rounded-lg shrink-0 flex items-center justify-center">
+                    <i class="fa-solid fa-image text-stone-300 text-xs"></i>
+                  </div>
+                  {% endif %}
+                  <div class="flex-1 min-w-0">
+                    <p class="text-sm font-semibold text-stone-800 truncate">{{ prod.name }}</p>
+                    <p class="text-xs text-stone-400 font-medium">{{ '{:,.0f}'.format(prod.price) }}₫</p>
+                  </div>
+                </label>
+                {% endfor %}
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+
+        <!-- ── CỘT PHẢI (1/3) ── -->
+        <div class="flex flex-col gap-6">
+
+          <!-- BLOCK: Trạng thái -->
+          <div class="bg-white rounded-[2rem] border border-stone-200 p-6 shadow-sm">
+            <h2 class="text-sm font-black text-stone-900 mb-4">Trạng thái</h2>
+            <label class="flex items-center justify-between cursor-pointer gap-3">
+              <div>
+                <p class="text-sm font-bold text-stone-800">Kích hoạt ngay</p>
+                <p class="text-xs text-stone-400 font-medium mt-0.5">Khách có thể nhập mã ngay lập tức</p>
+              </div>
+              <div class="relative">
+                <input type="checkbox" name="is_active" id="is_active" class="sr-only"
+                  {% if not is_edit or coupon.is_active %}checked{% endif %}
+                  onchange="document.getElementById('toggle-knob').parentElement.classList.toggle('bg-emerald-500', this.checked); document.getElementById('toggle-knob').parentElement.classList.toggle('bg-stone-200', !this.checked); document.getElementById('toggle-knob').classList.toggle('translate-x-6', this.checked); document.getElementById('toggle-knob').classList.toggle('translate-x-0.5', !this.checked);">
+                <div id="toggle-track" class="w-12 h-6 rounded-full transition-colors duration-200 {% if not is_edit or coupon.is_active %}bg-emerald-500{% else %}bg-stone-200{% endif %}">
+                  <span id="toggle-knob" class="absolute top-0.5 w-5 h-5 bg-white rounded-full shadow-md transition-transform duration-200 {% if not is_edit or coupon.is_active %}translate-x-6{% else %}translate-x-0.5{% endif %}"></span>
+                </div>
+              </div>
+            </label>
+          </div>
+
+          <!-- BLOCK: Giới hạn sử dụng -->
+          <div class="bg-white rounded-[2rem] border border-stone-200 p-6 shadow-sm">
+            <h2 class="text-sm font-black text-stone-900 mb-4">Giới hạn sử dụng</h2>
+            <div class="flex flex-col gap-4">
+              <div>
+                <label class="block text-xs font-bold uppercase tracking-widest text-stone-500 mb-2">
+                  Tổng lượt toàn hệ thống
+                </label>
+                <input type="number" name="usage_limit"
+                  value="{{ coupon.usage_limit if is_edit and coupon.usage_limit else '' }}"
+                  min="1" placeholder="Để trống = ∞ không giới hạn"
+                  class="w-full bg-stone-50 border border-stone-200 rounded-xl px-4 py-2.5 text-sm font-medium outline-none focus:border-stone-900 transition-all placeholder:text-xs">
+              </div>
+              <div>
+                <label class="block text-xs font-bold uppercase tracking-widest text-stone-500 mb-2">
+                  Lượt/khách hàng
+                </label>
+                <input type="number" name="usage_per_user"
+                  value="{{ coupon.usage_per_user if is_edit else '1' }}"
+                  min="1" max="99"
+                  class="w-full bg-stone-50 border border-stone-200 rounded-xl px-4 py-2.5 text-sm font-medium outline-none focus:border-stone-900 transition-all">
+              </div>
+            </div>
+          </div>
+
+          <!-- BLOCK: Thời hạn -->
+          <div class="bg-white rounded-[2rem] border border-stone-200 p-6 shadow-sm">
+            <h2 class="text-sm font-black text-stone-900 mb-4">Thời gian hiệu lực</h2>
+            <div class="flex flex-col gap-4">
+              <div>
+                <label class="block text-xs font-bold uppercase tracking-widest text-stone-500 mb-2">Bắt đầu</label>
+                <input type="datetime-local" name="starts_at"
+                  value="{{ coupon.starts_at[:16] if is_edit and coupon.starts_at else '' }}"
+                  class="w-full bg-stone-50 border border-stone-200 rounded-xl px-4 py-2.5 text-sm font-medium outline-none focus:border-stone-900 transition-all">
+              </div>
+              <div>
+                <label class="block text-xs font-bold uppercase tracking-widest text-stone-500 mb-2">Kết thúc</label>
+                <input type="datetime-local" name="expires_at"
+                  value="{{ coupon.expires_at[:16] if is_edit and coupon.expires_at else '' }}"
+                  class="w-full bg-stone-50 border border-stone-200 rounded-xl px-4 py-2.5 text-sm font-medium outline-none focus:border-stone-900 transition-all">
+                <p class="text-xs text-stone-400 mt-1.5">Để trống = không có hạn</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- SUBMIT -->
+          <button type="submit"
+            class="w-full bg-stone-900 text-white py-4 rounded-2xl font-bold text-sm shadow-md hover:bg-stone-800 active:scale-95 transition-all flex items-center justify-center gap-2">
+            <i class="fa-solid {% if is_edit %}fa-floppy-disk{% else %}fa-plus{% endif %}"></i>
+            {{ 'Lưu thay đổi' if is_edit else 'Tạo mã khuyến mãi' }}
+          </button>
+
+          {% if is_edit %}
+          <a href="{{ url_for('admin.coupons') }}"
+             class="w-full border border-stone-200 text-stone-600 py-3.5 rounded-2xl font-bold text-sm hover:border-stone-400 transition-all flex items-center justify-center">
+            Hủy
+          </a>
+          {% endif %}
+
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+  // ── TYPE UI ──
+  function updateTypeUI() {
+    const selected = document.querySelector('input[name="discount_type"]:checked').value;
+    const isFixed = selected === 'fixed';
+
+    ['percent', 'fixed'].forEach(t => {
+      const card = document.getElementById(`type-${t}-card`);
+      const active = (t === selected);
+      card.classList.toggle('border-stone-900', active);
+      card.classList.toggle('bg-stone-50', active);
+      card.classList.toggle('border-stone-200', !active);
+      card.classList.toggle('bg-white', !active);
+    });
+
+    document.getElementById('max-discount-wrap').classList.toggle('hidden', isFixed);
+    document.getElementById('unit-label').textContent = isFixed ? '(₫)' : '(%)';
+
+    if (isFixed) {
+      document.getElementById('discount_value').max = '';
+    } else {
+      document.getElementById('discount_value').max = 100;
+    }
+  }
+
+  // ── SCOPE UI ──
+  function updateScopeUI(scope) {
+    document.querySelectorAll('.scope-card').forEach(card => {
+      const active = card.dataset.scope === scope;
+      card.classList.toggle('border-stone-900', active);
+      card.classList.toggle('bg-stone-50', active);
+      card.classList.toggle('border-stone-200', !active);
+      card.classList.toggle('bg-white', !active);
+    });
+    ['category', 'product'].forEach(s => {
+      document.getElementById(`scope-${s}`).classList.toggle('hidden', scope !== s);
+    });
+  }
+
+  // ── PRODUCT SEARCH ──
+  function filterProducts(q) {
+    const lower = q.toLowerCase();
+    document.querySelectorAll('.prod-item').forEach(el => {
+      el.classList.toggle('hidden', !el.dataset.name.includes(lower));
+    });
+  }
+
+  // ── FORM VALIDATION ──
+  document.getElementById('couponForm').addEventListener('submit', function(e) {
+    const scope = document.querySelector('input[name="scope"]:checked').value;
+
+    if (scope === 'category') {
+      const checked = document.querySelectorAll('input[name="category_ids"]:checked');
+      if (checked.length === 0) {
+        e.preventDefault();
+        alert('Vui lòng chọn ít nhất 1 danh mục.');
+        return;
+      }
+    }
+    if (scope === 'product') {
+      const checked = document.querySelectorAll('input[name="product_ids"]:checked');
+      if (checked.length === 0) {
+        e.preventDefault();
+        alert('Vui lòng chọn ít nhất 1 sản phẩm.');
+        return;
+      }
+    }
+
+    const type = document.querySelector('input[name="discount_type"]:checked').value;
+    const val = parseFloat(document.getElementById('discount_value').value);
+    if (type === 'percent' && val > 100) {
+      e.preventDefault();
+      alert('Phần trăm giảm không thể vượt quá 100%.');
+      return;
+    }
+  });
+</script>
+{% endblock %}
+
+{% block extra %}{% endblock %}
