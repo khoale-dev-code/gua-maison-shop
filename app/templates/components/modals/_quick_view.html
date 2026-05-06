@@ -1,0 +1,346 @@
+{# ════════════════════════════════════════════════════════════
+   POPUP MODAL XEM NHANH (QUICK VIEW) — PHIÊN BẢN HOÀN CHỈNH
+   ════════════════════════════════════════════════════════════ #}
+<div id="quick-view-modal" class="fixed inset-0 z-[200] hidden items-center justify-center opacity-0 transition-opacity duration-300 px-4 sm:px-6 font-sans">
+  
+  {# Lớp phủ đen mờ #}
+  <div class="absolute inset-0 bg-stone-900/60 backdrop-blur-md cursor-pointer transition-opacity" onclick="closeQuickView()"></div>
+
+  {# Khung Modal chính #}
+  <div class="relative bg-white w-full max-w-[900px] max-h-[90vh] min-h-[60vh] rounded-[2rem] shadow-[0_20px_60px_-15px_rgba(0,0,0,0.3)] overflow-hidden flex flex-col md:flex-row transform scale-95 transition-transform duration-300 z-10">
+    
+    {# Nút Đóng #}
+    <button onclick="closeQuickView()" class="absolute top-4 right-4 w-10 h-10 bg-white/80 backdrop-blur-sm rounded-full flex items-center justify-center text-stone-500 hover:text-stone-900 hover:bg-stone-100 transition-all z-50 shadow-sm cursor-pointer active:scale-90">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+    </button>
+
+    {# Cột Trái: Hình ảnh #}
+    <div class="w-full md:w-1/2 bg-stone-50 relative overflow-hidden flex items-center justify-center p-8 group">
+      {# Hiệu ứng loading skeleton đơn giản #}
+      <div id="qv-image-skeleton" class="absolute inset-0 bg-stone-100 animate-pulse z-0"></div>
+      <img id="qv-image" src="" class="max-h-[60vh] max-w-full object-contain mix-blend-multiply z-10 transition-all duration-500 opacity-0 group-hover:scale-105" alt="Quick View Product">
+    </div>
+
+    {# Cột Phải: Thông tin & Form #}
+    <div class="w-full md:w-1/2 p-8 md:p-10 flex flex-col overflow-y-auto no-scrollbar bg-white">
+      
+      {# 1. Tiêu đề & Giá #}
+      <div class="mb-6">
+        <p id="qv-category" class="text-[10px] font-black text-stone-400 uppercase tracking-widest mb-2">Danh mục</p>
+        <h2 id="qv-name" class="text-2xl md:text-3xl font-bold text-stone-900 tracking-tight mb-3 leading-snug">Tên sản phẩm</h2>
+        
+        <div class="flex items-end gap-3 mb-2">
+          <span id="qv-price" class="text-3xl font-black text-stone-900 tracking-tight tabular-nums">0 <span class="text-base font-medium text-stone-500">₫</span></span>
+          <span id="qv-price-original" class="text-lg font-semibold text-stone-400 line-through tabular-nums hidden mb-1"></span>
+        </div>
+        <div id="qv-stock-status" class="mt-2 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-bold uppercase tracking-wider"></div>
+      </div>
+
+      {# 2. Form Mua Hàng #}
+      <form action="/cart/add" method="POST" class="space-y-6 mt-auto border-t border-stone-100 pt-6">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <input type="hidden" name="product_id" id="qv-input-id" value="">
+        <input type="hidden" name="variant_id" id="qv-variant-id" value="">
+        
+        {# Khu vực chọn Màu Sắc #}
+        <div>
+          <div class="flex justify-between items-baseline mb-3">
+            <label class="text-[10px] font-black uppercase text-stone-500 tracking-widest">Màu sắc</label>
+            <span id="qv-color-label" class="text-xs font-bold text-stone-900"></span>
+          </div>
+          <div class="flex flex-wrap gap-3" id="qv-colors">
+             <!-- Render qua JS -->
+          </div>
+        </div>
+
+        {# Khu vực chọn Kích Thước #}
+        <div>
+          <div class="flex justify-between items-baseline mb-3">
+            <label class="text-[10px] font-black uppercase text-stone-500 tracking-widest">Kích thước</label>
+            <a href="#" class="text-[10px] font-bold text-stone-400 underline hover:text-stone-900 transition-colors">Hướng dẫn size</a>
+          </div>
+          <div class="flex flex-wrap gap-2 min-h-[3.5rem]" id="qv-sizes">
+             <!-- Render qua JS -->
+          </div>
+        </div>
+
+        {# Khu vực Số lượng & Nút Submit #}
+        <div class="flex flex-col gap-3 pt-2">
+          <div class="flex gap-3">
+            <div class="flex items-center justify-between bg-white border-2 border-stone-200 rounded-2xl h-14 w-32 shadow-sm px-1 shrink-0">
+              <button type="button" onclick="qvChangeQty(-1)" class="w-8 h-8 flex items-center justify-center text-xl font-medium text-stone-400 hover:text-stone-900 hover:bg-stone-50 rounded-lg transition-all">−</button>
+              <input type="number" name="quantity" id="qv-qty" value="1" min="1" readonly class="w-8 text-center text-sm font-black text-stone-900 bg-transparent outline-none pointer-events-none tabular-nums">
+              <button type="button" onclick="qvChangeQty(1)" class="w-8 h-8 flex items-center justify-center text-xl font-medium text-stone-400 hover:text-stone-900 hover:bg-stone-50 rounded-lg transition-all">+</button>
+            </div>
+            
+            <button type="submit" id="qv-submit-btn" class="flex-1 bg-stone-900 text-white rounded-2xl h-14 text-[13px] font-black uppercase tracking-[0.1em] shadow-md hover:bg-stone-800 active:scale-[0.98] transition-all flex items-center justify-center gap-2">
+              Thêm vào giỏ
+            </button>
+          </div>
+          
+          <a href="#" id="qv-detail-link" class="block w-full text-center py-3 text-[11px] font-bold text-stone-500 uppercase tracking-widest hover:text-stone-900 transition-colors mt-2 bg-stone-50 rounded-xl hover:bg-stone-100">
+            Xem chi tiết sản phẩm
+          </a>
+        </div>
+      </form>
+
+    </div>
+  </div>
+</div>
+
+<style>
+  /* Ẩn mũi tên input number */
+  #quick-view-modal input[type="number"]::-webkit-outer-spin-button,
+  #quick-view-modal input[type="number"]::-webkit-inner-spin-button {
+      -webkit-appearance: none; margin: 0;
+  }
+  #quick-view-modal input[type="number"] { -moz-appearance: textfield; }
+</style>
+
+<script>
+  // ── LOGIC MODAL XEM NHANH ĐỘNG (HOÀN CHỈNH) ──
+  // Đảm bảo không bị lỗi đụng độ biến khi load nhiều lần
+  if (typeof window.qvMaxStock === 'undefined') {
+      window.qvMaxStock = 1;
+      window.currentProductVariants = [];
+      window.currentBasePrice = 0;
+  }
+
+  // Hàm được gọi từ nút Xem Nhanh ngoài trang Shop / Trang chủ
+  function triggerQuickView(btn) {
+    const id = btn.getAttribute('data-id');
+    const slug = btn.getAttribute('data-slug');
+    const name = btn.getAttribute('data-name');
+    const price = btn.getAttribute('data-price');
+    const image = btn.getAttribute('data-image');
+    const category = btn.getAttribute('data-category');
+    const stock = parseInt(btn.getAttribute('data-stock')) || 0;
+    
+    let variants = [];
+    try {
+        const rawVariants = btn.getAttribute('data-variants');
+        if(rawVariants) variants = JSON.parse(rawVariants);
+    } catch (e) { console.error("Lỗi parse variants", e); }
+    
+    openQuickView(id, slug, name, price, image, category, stock, variants);
+  }
+
+  function openQuickView(id, slug, name, price, image, category, stock, variants) {
+    const modal = document.getElementById('quick-view-modal');
+    if(!modal) return;
+    const content = modal.querySelector('.relative');
+    
+    // Gán dữ liệu Global
+    window.currentProductVariants = variants || [];
+    window.currentBasePrice = parseFloat(price) || 0;
+    
+    // Cập nhật DOM tĩnh
+    document.getElementById('qv-input-id').value = id;
+    document.getElementById('qv-name').innerText = name;
+    document.getElementById('qv-category').innerText = category;
+    
+    // Xử lý hình ảnh (có skeleton)
+    const imgEl = document.getElementById('qv-image');
+    const skeleton = document.getElementById('qv-image-skeleton');
+    imgEl.classList.remove('opacity-100');
+    imgEl.classList.add('opacity-0');
+    skeleton.classList.remove('hidden');
+    
+    imgEl.src = image || 'https://placehold.co/600x800/f5f5f4/a8a29e?text=GUA+Maison';
+    imgEl.onload = () => { 
+        skeleton.classList.add('hidden');
+        imgEl.classList.remove('opacity-0'); 
+        imgEl.classList.add('opacity-100'); 
+    };
+
+    // Cập nhật Links
+    const detailUrl = `/product/${slug || id}`;
+    document.getElementById('qv-detail-link').href = detailUrl;
+
+    // Reset Form
+    document.getElementById('qv-qty').value = 1;
+    const colorsContainer = document.getElementById('qv-colors');
+    const sizesContainer = document.getElementById('qv-sizes');
+    colorsContainer.innerHTML = ''; sizesContainer.innerHTML = '';
+
+    // ==========================================
+    // RENDER VARIANTS & AUTO-SELECT LOGIC
+    // ==========================================
+    if(window.currentProductVariants.length > 0) {
+        const uniqueColors = [];
+        window.currentProductVariants.forEach(v => {
+            if(!uniqueColors.find(c => c.name === v.color_name) && v.color_name) {
+                uniqueColors.push({ name: v.color_name, hex: v.color_hex || '#ccc' });
+            }
+        });
+
+        // 1. Render Màu Sắc
+        uniqueColors.forEach((color, index) => {
+            const checked = index === 0 ? 'checked' : ''; // Tự chọn màu đầu tiên
+            colorsContainer.innerHTML += `
+              <label class="cursor-pointer relative group" title="${color.name}">
+                 <input type="radio" name="qv_color" value="${color.name}" class="sr-only peer qv-color-radio" ${checked}>
+                 <span class="block w-10 h-10 rounded-full border-2 border-stone-200 shadow-sm peer-checked:ring-2 peer-checked:ring-stone-900 peer-checked:ring-offset-2 transition-all hover:scale-110" style="background-color: ${color.hex};"></span>
+                 <svg class="absolute inset-0 m-auto h-4 w-4 text-white opacity-0 peer-checked:opacity-100 transition-all mix-blend-difference pointer-events-none" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"/></svg>
+              </label>
+            `;
+        });
+
+        // Lắng nghe sự kiện đổi màu -> Render Size tương ứng
+        document.querySelectorAll('.qv-color-radio').forEach(radio => {
+            radio.addEventListener('change', (e) => renderSizesForColor(e.target.value));
+        });
+
+        // Kích hoạt render Size cho màu mặc định (màu đầu tiên)
+        if(uniqueColors.length > 0) {
+            renderSizesForColor(uniqueColors[0].name);
+        }
+
+    } else {
+        // Fallback: Không có biến thể
+        colorsContainer.innerHTML = '<span class="text-sm font-medium text-stone-500">Mặc định</span>';
+        sizesContainer.innerHTML = '<span class="text-sm font-medium text-stone-500">Free size</span>';
+        document.getElementById('qv-variant-id').value = "";
+        qvUpdateFinalUI(stock, window.currentBasePrice, null);
+    }
+
+    // Hiển thị Modal với Animation
+    modal.classList.remove('hidden'); modal.classList.add('flex');
+    setTimeout(() => {
+      modal.classList.remove('opacity-0');
+      content.classList.remove('scale-95');
+      content.classList.add('scale-100');
+    }, 10);
+    document.body.style.overflow = 'hidden';
+  }
+
+  // Hàm phụ: Hiển thị danh sách Size dựa trên Màu được chọn
+  function renderSizesForColor(colorName) {
+      document.getElementById('qv-color-label').innerText = colorName;
+      const sizesContainer = document.getElementById('qv-sizes');
+      sizesContainer.innerHTML = '';
+
+      // Lọc các variant thuộc màu này
+      const variantsOfColor = window.currentProductVariants.filter(v => v.color_name === colorName);
+      let firstAvailableVid = null; // Dùng để auto-select size còn hàng
+
+      variantsOfColor.forEach(v => {
+          const isAvailable = v.stock > 0;
+          const disabledAttr = isAvailable ? '' : 'disabled';
+          
+          // Auto-select size đầu tiên còn hàng
+          let checkedAttr = '';
+          if (isAvailable && !firstAvailableVid) {
+              checkedAttr = 'checked';
+              firstAvailableVid = v.id;
+          }
+
+          sizesContainer.innerHTML += `
+            <label class="relative ${isAvailable ? 'cursor-pointer hover:-translate-y-0.5' : 'cursor-not-allowed'} transition-transform">
+              <input type="radio" name="qv_size" value="${v.size}" class="sr-only peer qv-size-radio" 
+                     data-vid="${v.id}" data-stock="${v.stock}" data-price="${v.price_override || window.currentBasePrice}" 
+                     ${disabledAttr} ${checkedAttr}>
+              <span class="flex items-center justify-center h-12 px-4 min-w-[3rem] border-2 border-stone-200 rounded-xl text-xs font-black transition-all peer-checked:bg-stone-900 peer-checked:text-white peer-checked:border-stone-900 peer-disabled:bg-stone-50 peer-disabled:text-stone-300 peer-disabled:border-stone-100 uppercase shadow-sm peer-checked:shadow-md">
+                ${v.size}
+              </span>
+            </label>
+          `;
+      });
+
+      // Lắng nghe sự kiện chọn Size -> Cập nhật Giá/Nút/Kho
+      document.querySelectorAll('.qv-size-radio').forEach(radio => {
+          radio.addEventListener('change', (e) => {
+              qvUpdateFinalUI(
+                  parseInt(e.target.getAttribute('data-stock')),
+                  parseFloat(e.target.getAttribute('data-price')),
+                  e.target.getAttribute('data-vid')
+              );
+          });
+      });
+
+      // Chủ động kích hoạt UI cho Size được auto-select
+      const checkedSizeRadio = sizesContainer.querySelector('input[type="radio"]:checked');
+      if (checkedSizeRadio) {
+          qvUpdateFinalUI(
+              parseInt(checkedSizeRadio.getAttribute('data-stock')),
+              parseFloat(checkedSizeRadio.getAttribute('data-price')),
+              checkedSizeRadio.getAttribute('data-vid')
+          );
+      } else {
+          // Trường hợp màu này hết sạch tất cả các size
+          qvUpdateFinalUI(0, window.currentBasePrice, null);
+      }
+  }
+
+  // Hàm phụ: Cập nhật DOM (Giá, Nút Submit, Kho) dựa trên Variant cuối cùng
+  function qvUpdateFinalUI(stockCount, currentPrice, variantId) {
+      const priceDisplay = document.getElementById('qv-price');
+      const priceOriginal = document.getElementById('qv-price-original');
+      const stockStatus = document.getElementById('qv-stock-status');
+      const submitBtn = document.getElementById('qv-submit-btn');
+      const vidInput = document.getElementById('qv-variant-id');
+      const qtyInput = document.getElementById('qv-qty');
+
+      // 1. Cập nhật Variant ID
+      vidInput.value = variantId || "";
+
+      // 2. Cập nhật Giá & Gạch ngang
+      priceDisplay.innerHTML = `${Number(currentPrice).toLocaleString('vi-VN')} <span class="text-base font-medium text-stone-500">₫</span>`;
+      if (currentPrice < window.currentBasePrice) {
+          priceOriginal.innerHTML = `${Number(window.currentBasePrice).toLocaleString('vi-VN')} ₫`;
+          priceOriginal.classList.remove('hidden');
+          priceDisplay.classList.add('text-rose-600');
+      } else {
+          priceOriginal.classList.add('hidden');
+          priceDisplay.classList.remove('text-rose-600');
+      }
+
+      // 3. Cập nhật Tình trạng kho & Nút Submit
+      if (stockCount > 0 && variantId) {
+          window.qvMaxStock = stockCount;
+          stockStatus.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> <span class="text-emerald-700">Còn ${stockCount} sản phẩm</span>`;
+          stockStatus.className = "mt-2 inline-flex items-center gap-1.5 bg-emerald-50 px-2.5 py-1 rounded-md text-[10px] font-black uppercase tracking-wider";
+          
+          submitBtn.disabled = false;
+          submitBtn.innerText = "Thêm vào giỏ hàng";
+          submitBtn.className = "flex-1 bg-stone-900 text-white rounded-2xl h-14 text-[13px] font-black uppercase tracking-[0.1em] shadow-md hover:bg-stone-800 active:scale-[0.98] transition-all flex items-center justify-center gap-2";
+      } else {
+          window.qvMaxStock = 1;
+          stockStatus.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-red-500"></span> <span class="text-red-700">Hết hàng</span>`;
+          stockStatus.className = "mt-2 inline-flex items-center gap-1.5 bg-red-50 px-2.5 py-1 rounded-md text-[10px] font-black uppercase tracking-wider";
+          
+          submitBtn.disabled = true;
+          submitBtn.innerText = "Tạm hết hàng";
+          submitBtn.className = "flex-1 bg-stone-200 text-stone-400 rounded-2xl h-14 text-[13px] font-black uppercase tracking-[0.1em] cursor-not-allowed transition-all flex items-center justify-center gap-2";
+      }
+
+      // 4. Reset số lượng an toàn
+      qtyInput.max = stockCount > 0 ? stockCount : 1;
+      qtyInput.value = 1;
+  }
+
+  // Đóng Modal
+  function closeQuickView() {
+    const modal = document.getElementById('quick-view-modal');
+    if(!modal) return;
+    const content = modal.querySelector('.relative');
+    modal.classList.add('opacity-0');
+    if(content) {
+        content.classList.remove('scale-100');
+        content.classList.add('scale-95');
+    }
+    setTimeout(() => {
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+      document.body.style.overflow = ''; 
+    }, 300);
+  }
+
+  // Tăng giảm số lượng
+  function qvChangeQty(delta) {
+    const el = document.getElementById('qv-qty');
+    if(!el) return;
+    let val = parseInt(el.value) + delta;
+    if (val >= 1 && val <= window.qvMaxStock) el.value = val;
+  }
+</script> 

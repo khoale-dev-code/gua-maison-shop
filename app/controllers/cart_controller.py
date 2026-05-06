@@ -1,7 +1,7 @@
 """
 app/controllers/cart_controller.py
 Quản lý Giỏ hàng, Luồng Thanh toán (Checkout) và Khuyến mãi (Coupons) chuẩn E-commerce 2026.
-Tích hợp thanh toán VNPay, Voucher và Kiến trúc Biến thể (Variants).
+Tích hợp thanh toán VNPay, Voucher, Kiến trúc Biến thể (Variants) và Tính phí Vận chuyển Động.
 """
 
 import logging
@@ -10,6 +10,8 @@ from flask import Blueprint, render_template, request, redirect, url_for, sessio
 from app.models.cart_model import CartModel
 from app.models.order_model import OrderModel
 from app.models.address_model import AddressModel
+from app.models.user_model import UserModel
+from app.models.setting_model import SettingModel
 from app.services.vnpay_service import VNPayService
 from app.middleware.auth_required import login_required
 from app.utils.supabase_client import get_supabase
@@ -18,23 +20,18 @@ cart_bp = Blueprint("cart", __name__, url_prefix="/cart")
 logger = logging.getLogger(__name__)
 
 # ═══════════════════════════════════════════════════════════════
-#  HELPERS
+#  HELPERS VÀ LOGIC DÙNG CHUNG
 # ═══════════════════════════════════════════════════════════════
 
 
 def calculate_cart_total(items: list) -> float:
-    """
-    Tính tổng giá trị hàng hóa trong giỏ (chưa trừ voucher).
-    CẬP NHẬT: Ưu tiên lấy Giá của Biến thể (nếu Admin có set giá riêng), 
-    nếu không thì lấy Giá gốc của Sản phẩm.
-    """
+    """Tính tổng giá trị hàng hóa trong giỏ (chưa trừ voucher)."""
     total = 0.0
     for item in items:
         qty = int(item.get("quantity", 0))
         variant = item.get("product_variants") or {}
         product = item.get("products") or {}
         
-        # Lấy giá trị override của variant, nếu None thì fallback về giá gốc
         price = variant.get("price_override")
         if price is None:
             price = product.get("price", 0)
@@ -45,6 +42,35 @@ def calculate_cart_total(items: list) -> float:
 
 def _get_user_id():
     return str(session.get("user_id"))
+
+
+def _get_dynamic_shipping(province_name: str) -> dict:
+    """
+    Hàm xử lý Lõi: Quét phí ship & cảnh báo bão lũ từ cấu hình của Admin.
+    Tích hợp Fuzzy Match (so khớp thông minh) và chống kẹt Cache.
+    """
+    # Ép buộc tải lại dữ liệu mới nhất từ Database (Bỏ qua RAM Cache)
+    settings = SettingModel.get_settings(force_reload=True)
+    shipping_rules = settings.get("shipping_rules", {}).get("rules", [])
+    
+    if not province_name:
+        return {"fee": 30000, "warning": ""}
+        
+    # Tiền xử lý chuỗi: Biến "Thành phố Hà Nội" -> "hà nội" để so khớp dễ dàng
+    req_prov = province_name.lower().replace("thành phố", "").replace("tỉnh", "").replace("tp.", "").replace("tp ", "").strip()
+    
+    for rule in shipping_rules:
+        rule_prov = rule.get("province", "").lower().replace("thành phố", "").replace("tỉnh", "").replace("tp.", "").replace("tp ", "").strip()
+        
+        # So khớp chéo để đảm bảo bắt trúng 100%
+        if rule_prov and (rule_prov in req_prov or req_prov in rule_prov):
+            return {
+                "fee": float(rule.get("fee", 30000)),
+                "warning": rule.get("warning", "")
+            }
+            
+    # Phí mặc định nếu tỉnh đó Admin không cấu hình gì
+    return {"fee": 30000, "warning": ""}
 
 # ═══════════════════════════════════════════════════════════════
 #  GIỎ HÀNG (Cart Management)
@@ -72,14 +98,13 @@ def add_to_cart():
     data = dict(request.form)
     
     product_id = data.get("product_id")
-    variant_id = data.get("variant_id")  # Mã định danh cho cặp Size - Màu
+    variant_id = data.get("variant_id")
     
     try:
         quantity = int(data.get("quantity", 1))
     except ValueError:
         quantity = 1
 
-    # Rào cản số 1: Validate đầu vào cực chặt
     if not product_id or not variant_id:
         flash("Vui lòng chọn đầy đủ Màu sắc và Kích thước trước khi thêm vào túi hàng.", "warning")
         return redirect(request.referrer or url_for("shop.index"))
@@ -89,7 +114,6 @@ def add_to_cart():
         return redirect(request.referrer or url_for("shop.index"))
 
     try:
-        # Gọi Model lưu trực tiếp với Variant ID
         res = CartModel.add_item(user_id=user_id, product_id=product_id, variant_id=variant_id, quantity=quantity)
         if res:
             flash("Sản phẩm đã được thêm vào túi hàng thành công!", "success")
@@ -145,7 +169,6 @@ def remove_item(item_id):
 @cart_bp.route("/apply-coupon", methods=["POST"])
 @login_required
 def apply_coupon():
-    """Kiểm tra mã giảm giá từ Giao diện Checkout bằng AJAX."""
     user_id = _get_user_id()
     req_data = request.get_json() or {}
     coupon_code = req_data.get("code", "").strip().upper()
@@ -159,7 +182,6 @@ def apply_coupon():
         if not items:
             return jsonify({"valid": False, "error": "Giỏ hàng của bạn đang trống."})
         
-        # Truy vấn Coupon
         res = db.table("coupons").select("*").eq("code", coupon_code).eq("is_active", True).single().execute()
         coupon = res.data
         
@@ -173,7 +195,6 @@ def apply_coupon():
                 "error": f"Mã này áp dụng cho đơn hàng từ {int(coupon['min_order_value']):,}đ"
             })
 
-        # Logic tính toán giảm giá
         discount = 0
         val = float(coupon.get("discount_value", 0))
         if coupon["discount_type"] == "percent":
@@ -183,7 +204,6 @@ def apply_coupon():
         else:
             discount = val
         
-        # Chặn lỗi giảm giá lớn hơn cả giá trị đơn
         discount = min(discount, cart_total)
         
         return jsonify({
@@ -197,6 +217,32 @@ def apply_coupon():
     except Exception as e:
         logger.error(f"Lỗi apply_coupon: {e}")
         return jsonify({"valid": False, "error": "Hệ thống khuyến mãi đang bận, vui lòng thử lại."})
+
+# ═══════════════════════════════════════════════════════════════
+#  VẬN CHUYỂN ĐỘNG & BÃO LŨ (DYNAMIC SHIPPING RULES)
+# ═══════════════════════════════════════════════════════════════
+
+
+@cart_bp.route("/calculate-shipping", methods=["POST"])
+@login_required
+def calculate_shipping():
+    """API Tính phí ship động hiển thị ngay lên UI khi đổi địa chỉ"""
+    try:
+        data = request.get_json() or {}
+        request_province = data.get("province", "")
+        
+        # Tái sử dụng hàm helper dùng chung
+        ship_info = _get_dynamic_shipping(request_province)
+
+        return jsonify({
+            "success": True,
+            "shipping_fee": ship_info["fee"],
+            "warning": ship_info["warning"]
+        })
+        
+    except Exception as e:
+        logger.error(f"Lỗi tính phí ship: {e}")
+        return jsonify({"success": False, "shipping_fee": 30000, "warning": ""}) 
 
 # ═══════════════════════════════════════════════════════════════
 #  THANH TOÁN (CHECKOUT)
@@ -224,7 +270,6 @@ def checkout():
         order_notes = form.get("order_notes", "").strip()
         coupon_code = form.get("coupon_code", "").strip().upper()
 
-        # 1. Bóc tách địa chỉ giao hàng
         selected_address = next((a for a in addresses if str(a["id"]) == address_id), default_address)
         if not selected_address:
             flash("Vui lòng thiết lập địa chỉ giao hàng trước khi thanh toán.", "danger")
@@ -239,12 +284,13 @@ def checkout():
             "city": selected_address.get("province"),
         }
 
-        # 2. Re-Validate Khuyến mãi tại Server (Bảo mật 100%)
+        # Validate Khuyến mãi tại Server
         discount_amount = 0
         coupon_id = None
+        db = get_supabase()  # Gọi Supabase client
+        
         if coupon_code:
             try:
-                db = get_supabase()
                 c_res = db.table("coupons").select("*").eq("code", coupon_code).eq("is_active", True).single().execute()
                 coupon = c_res.data
                 if coupon and total >= float(coupon.get("min_order_value", 0)):
@@ -259,15 +305,21 @@ def checkout():
             except Exception as e:
                 logger.warning(f"Bỏ qua mã giảm giá do lỗi server hoặc mã sai: {e}")
 
-        final_total = total - discount_amount
+        request_province = address_snapshot.get("city", "")
+        ship_info = _get_dynamic_shipping(request_province)
+        shipping_fee = ship_info["fee"]
+
+        final_total = total - discount_amount + shipping_fee
 
         try:
-            # 3. Khởi tạo Đơn hàng mới
+            # 1. TẠO ĐƠN HÀNG QUA MODEL
             order = OrderModel.create_order(
                 user_id=user_id,
                 items=items,
                 total=final_total,
                 address=address_snapshot,
+                shipping_fee=shipping_fee,
+                discount_amount=discount_amount,
                 payment_method=payment_method,
                 order_notes=order_notes
             )
@@ -277,11 +329,60 @@ def checkout():
                 return redirect(url_for("cart.checkout"))
 
             order_id = str(order["id"])
+            short_order_id = order_id[:8].upper()
 
-            # 4. Ghi lại Lịch sử dùng Voucher
+            # 2. XỬ LÝ SNAPSHOT, INVENTORY LOG VÀ ANALYTICS SAU KHI TẠO ĐƠN
+            for item in items:
+                product = item.get("products") or {}
+                variant = item.get("product_variants") or {}
+                
+                product_id = item.get("product_id")
+                variant_id = item.get("variant_id")
+                quantity = int(item.get("quantity", 1))
+                
+                # Trích xuất dữ liệu Snapshot
+                product_name = product.get("name", "Sản phẩm")
+                variant_label = f"{variant.get('color_name', '')} - Size {variant.get('size', '')}".strip(" -")
+                price = variant.get("price_override") if variant.get("price_override") else product.get("price", 0)
+                
+                old_stock = int(variant.get("stock", 0))
+                new_stock = old_stock - quantity
+
+                try:
+                    # A. Ép dữ liệu Snapshot vào order_items
+                    db.table("order_items").update({
+                        "product_name": product_name,
+                        "variant_label": variant_label
+                    }).eq("order_id", order_id).eq("variant_id", variant_id).execute()
+
+                    # B. Ghi Lịch sử tồn kho (Inventory Logs)
+                    db.table("inventory_logs").insert({
+                        "product_id": product_id,
+                        "variant_id": variant_id,
+                        "change_type": "SALE",
+                        "quantity_changed":-quantity,
+                        "stock_after": new_stock,
+                        "reference_id": order_id,
+                        "note": f"Khách mua qua Web - Đơn hàng {short_order_id}",
+                        "created_by": user_id
+                    }).execute()
+
+                    # C. Ghi nhận AI Analytics
+                    db.rpc('log_product_event', {
+                        'p_product_id': product_id,
+                        'p_channel': 'web',
+                        'p_source': 'organic',
+                        'p_event_type': 'sold',
+                        'p_revenue': float(price) * quantity,
+                        'p_qty': quantity
+                    }).execute()
+                except Exception as e:
+                    logger.error(f"Lỗi ghi Snapshot/Inventory/Analytics cho SP {product_id}: {e}")
+
+            # 3. GHI LỊCH SỬ COUPON
             if coupon_id:
                 try:
-                    get_supabase().table("coupon_usages").insert({
+                    db.table("coupon_usages").insert({
                         "coupon_id": coupon_id,
                         "user_id": user_id,
                         "order_id": order_id,
@@ -290,17 +391,16 @@ def checkout():
                 except Exception as e:
                     logger.error(f"Lỗi ghi nhận lịch sử coupon: {e}")
 
-            # 5. Phân luồng Cổng thanh toán
+            # 4. CHUYỂN HƯỚNG THANH TOÁN
             if payment_method == "VNPAY":
                 vnpay_url = VNPayService.create_payment_url(
                     order_id=order_id,
                     amount=final_total,
                     ip_address=request.remote_addr or "127.0.0.1",
-                    order_desc=f"Thanh toan hoa don GUA {order_id[:8].upper()}"
+                    order_desc=f"Thanh toan don hang {short_order_id}"
                 )
                 return redirect(vnpay_url)
 
-            # Nếu là COD: Xóa giỏ hàng và Dẫn tới trang Hoàn tất
             CartModel.clear_cart(user_id)
             flash("🎉 Đơn hàng của bạn đã được ghi nhận thành công!", "success")
             return redirect(url_for("cart.order_success", order_id=order_id))

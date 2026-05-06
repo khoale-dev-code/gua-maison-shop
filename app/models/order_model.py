@@ -3,10 +3,9 @@ app/models/order_model.py
 Quản lý vòng đời đơn hàng, thống kê tài chính, logistics và hỗ trợ vận hành.
 
 Cập nhật 2026:
-  - request_return()  → ghi vào bảng return_requests (tách riêng)
-  - approve_return()  → admin duyệt yêu cầu đổi/trả
-  - complete_refund() → admin xác nhận đã hoàn tiền → trừ doanh thu
-  - get_stats()       → Tính Toán Doanh Thu + Tích hợp KPI Vận Chuyển (Logistics)
+  - Tích hợp snapshot shipping_fee và discount_amount tại thời điểm Checkout.
+  - get_stats() nâng cấp: Tính toán Lời/Lỗ phí vận chuyển (Logistics Profit/Loss).
+  - Tích hợp State Machine Guard bảo vệ luồng trạng thái chặt chẽ.
 """
 
 import logging
@@ -25,12 +24,18 @@ class OrderModel:
 
     @staticmethod
     def create_order(user_id: str, items: list, total: float, address: dict,
+                     shipping_fee: float=0, discount_amount: float=0,
                      payment_method: str='COD', order_notes: str=None) -> dict:
+        """
+        Khởi tạo đơn hàng với đầy đủ Snapshot về Phí ship và Giảm giá.
+        """
         db = get_supabase()
         try:
             order_data = {
                 "user_id": user_id,
-                "total_amount": float(total),
+                "total_amount": float(total),  # Tổng đã bao gồm phí ship và trừ giảm giá
+                "shipping_fee": float(shipping_fee),
+                "discount_amount": float(discount_amount),
                 "shipping_address": address,
                 "status": "pending",
                 "payment_method": payment_method.upper(),
@@ -51,7 +56,7 @@ class OrderModel:
                 order_items.append({
                     "order_id": order_id,
                     "product_id": item.get("product_id"),
-                    "variant_id": item.get("variant_id"),  # QUAN TRỌNG: Lưu liên kết với bảng biến thể
+                    "variant_id": item.get("variant_id"),  # Lưu liên kết với bảng biến thể (Màu/Size)
                     "quantity": int(item.get("quantity", 1)),
                     "unit_price": float(prod.get("price", 0)),
                     "size": item.get("size"),
@@ -66,16 +71,20 @@ class OrderModel:
             logger.exception(f"Lỗi tạo đơn hàng: {e}")
             return {}
 
-   # ═══════════════════════════════════════════════════════════════
-    #  THỐNG KÊ DASHBOARD  (Doanh Thu & KPI Vận Chuyển)
     # ═══════════════════════════════════════════════════════════════
+#  THỐNG KÊ DASHBOARD  (Doanh Thu & KPI Vận Chuyển)
+# ═══════════════════════════════════════════════════════════════
 
     @staticmethod
     def get_stats() -> dict:
+        """
+        Tính toán các chỉ số kinh doanh cốt lõi (Gross Revenue, Net Revenue, Logistics KPIs).
+        """
         db = get_supabase()
         stats = {
             "total_orders": 0,
             "total_revenue": 0,
+            "net_revenue": 0,
             "pending": 0,
             "vnpay_orders": 0,
             "vnpay_ratio": 0,
@@ -84,17 +93,20 @@ class OrderModel:
             "_orders": [],
             "vnpay_recent": [],
             "pending_returns": 0,
-            # KPIs Logistics
+            # KPIs Logistics & Tài chính Vận chuyển
             "delivery_success": 0,
             "return_rate": 0,
-            "avg_time": 0
+            "avg_time": 0,
+            "shipping_collected": 0,
+            "actual_shipping_cost": 0,
+            "logistics_profit_loss": 0
         }
 
         try:
             # 1. THỐNG KÊ DOANH THU & ĐƠN HÀNG
             r = (
                 db.table("orders")
-                .select("id, total_amount, refunded_amount, status, payment_method, payment_status, created_at, users(full_name, email)")
+                .select("id, total_amount, shipping_fee, refunded_amount, status, payment_method, payment_status, created_at, users(full_name, email)")
                 .order("created_at", desc=True)
                 .limit(500)
                 .execute()
@@ -106,7 +118,7 @@ class OrderModel:
 
             status_counts = Counter()
             monthly_revenue = defaultdict(float)
-            paid_orders = []
+            valid_orders = []  # Đổi tên cho chuẩn nghĩa: Đơn hợp lệ để tính tiền
             vnpay_paid = []
             pending_count = 0
 
@@ -119,26 +131,32 @@ class OrderModel:
 
                 status_counts[status] += 1
 
-                # Doanh thu thực = amount đã thu - phần đã hoàn lại
-                if payment_status == "paid":
+                # 👉 ĐỒNG BỘ LOGIC DOANH THU VỚI TRANG REPORT:
+                # Tính tiền khi: Giao thành công (Delivered/Completed) HOẶC Đã thanh toán (Paid)
+                is_delivered = status in ["delivered", "completed"]
+                is_paid = (payment_status == "paid")
+
+                if is_delivered or is_paid:
                     net_revenue = amount - refunded
                     stats["total_revenue"] += net_revenue
-                    paid_orders.append(o)
+                    valid_orders.append(o)
 
                     if payment_method == "VNPAY":
                         vnpay_paid.append(o)
 
                     if o.get("created_at"):
-                        month = o["created_at"][:7]
+                        month = o["created_at"][:7]  # Lấy format YYYY-MM
                         monthly_revenue[month] += net_revenue
 
+                # Đếm đơn đang chờ xử lý
                 if status == "pending" and (payment_method == "COD" or payment_status == "paid"):
                     pending_count += 1
 
             stats["pending"] = pending_count
             stats["vnpay_orders"] = len(vnpay_paid)
-            if paid_orders:
-                stats["vnpay_ratio"] = round((len(vnpay_paid) / len(paid_orders)) * 100, 1)
+            
+            if valid_orders:
+                stats["vnpay_ratio"] = round((len(vnpay_paid) / len(valid_orders)) * 100, 1)
 
             stats["vnpay_recent"] = sorted(vnpay_paid, key=lambda x: x.get("created_at", ""), reverse=True)[:5]
             stats["status_chart"] = [{"status": k, "count": v} for k, v in status_counts.items()]
@@ -151,14 +169,25 @@ class OrderModel:
             except Exception:
                 pass
 
-            # 3. THỐNG KÊ VẬN CHUYỂN (LOGISTICS)
-            shipments_res = db.table("shipments").select("status, created_at, shipped_at, delivered_at").execute()
+            # 3. THỐNG KÊ VẬN CHUYỂN (LOGISTICS & TÀI CHÍNH)
+            shipments_res = db.table("shipments").select("status, created_at, shipped_at, delivered_at, shipping_fee, actual_shipping_fee").execute()
             shipments = shipments_res.data or []
             
             total_shipped = len(shipments)
             delivered_count = sum(1 for s in shipments if s["status"] == "delivered")
             returned_count = sum(1 for s in shipments if s["status"] in ("returned", "failed", "cancelled"))
             
+            # Tính toán Lời/Lỗ tiền vận chuyển
+            for s in shipments:
+                if s["status"] not in ["cancelled"]:
+                    stats["shipping_collected"] += float(s.get("shipping_fee") or 0)
+                    stats["actual_shipping_cost"] += float(s.get("actual_shipping_fee") or 0)
+            
+            stats["logistics_profit_loss"] = stats["shipping_collected"] - stats["actual_shipping_cost"]
+            
+            # Lợi nhuận ròng = Tổng tiền hàng hợp lệ + Lời/Lỗ vận chuyển
+            stats["net_revenue"] = stats["total_revenue"] + stats["logistics_profit_loss"]
+
             stats["delivery_success"] = round((delivered_count / total_shipped * 100), 1) if total_shipped > 0 else 0
             stats["return_rate"] = round((returned_count / total_shipped * 100), 1) if total_shipped > 0 else 0
             
@@ -169,8 +198,6 @@ class OrderModel:
                     try:
                         start = datetime.fromisoformat(s["shipped_at"].replace('Z', '+00:00'))
                         end = datetime.fromisoformat(s["delivered_at"].replace('Z', '+00:00'))
-                        
-                        # Thay đổi: Dùng total_seconds để lấy số ngày chính xác (vd: 1.5 ngày)
                         total_days += (end - start).total_seconds() / 86400.0
                         valid_deliveries += 1
                     except Exception: 
@@ -182,18 +209,17 @@ class OrderModel:
             logger.exception(f"Lỗi lấy thống kê Dashboard: {e}")
 
         return stats
+
     # ═══════════════════════════════════════════════════════════════
     #  QUẢN LÝ ĐƠN HÀNG (CHI TIẾT & DANH SÁCH)
     # ═══════════════════════════════════════════════════════════════
 
     @staticmethod
     def get_by_id(order_id: str):
-        """Lấy chi tiết 1 đơn hàng đầy đủ item, ảnh, CHUẨN BIẾN THỂ và return_request."""
         db = get_supabase()
         try:
             r = (
                 db.table("orders")
-                # ĐÃ FIX: Lấy chuẩn xác product_variants(*) để giao diện hiển thị size/màu
                 .select("*, users(full_name, email, phone), order_items(*, products(id, name, thumbnail_url, slug), product_variants(*))")
                 .eq("id", order_id)
                 .single()
@@ -222,7 +248,7 @@ class OrderModel:
             return None
 
     @staticmethod
-    def get_all(page: int=1, per_page: int=20, status: str=None):
+    def get_all(page: int=1, per_page: int=20, status: str=None, keyword: str=None):
         db = get_supabase()
         offset = (page - 1) * per_page
         try:
@@ -231,8 +257,23 @@ class OrderModel:
                 .select("*, users(email, full_name, phone), order_items(*, products(id, name, thumbnail_url))", count="exact")
                 .order("created_at", desc=True)
             )
+
             if status:
                 query = query.eq("status", status)
+
+            # TÌM KIẾM THEO TỪ KHÓA (ID, TÊN, SĐT)
+            if keyword:
+                kw = keyword.strip()
+                if kw.startswith('#'):
+                    kw = kw[1:]
+                kw_lower = kw.lower()
+                
+                search_condition = (
+                    f"id.ilike.%{kw_lower}%,"
+                    f"shipping_address->>phone.ilike.%{kw}%,"
+                    f"shipping_address->>full_name.ilike.%{kw}%"
+                )
+                query = query.or_(search_condition)
 
             r = query.range(offset, offset + per_page - 1).execute()
             return {"items": r.data or [], "total": r.count or 0}
@@ -246,7 +287,6 @@ class OrderModel:
         try:
             r = (
                 db.table("orders")
-                # ĐÃ FIX: Lấy thêm order_items, products và product_variants
                 .select("*, order_items(*, products(id, name, thumbnail_url, slug), product_variants(*))")
                 .eq("user_id", user_id)
                 .order("created_at", desc=True)
@@ -264,7 +304,6 @@ class OrderModel:
         try:
             r = (
                 db.table("orders")
-                # ĐÃ FIX: Lấy thêm order_items, products và product_variants để hiển thị ảnh, size, màu
                 .select("*, order_items(*, products(id, name, thumbnail_url, slug), product_variants(*))", count="exact")
                 .eq("user_id", user_id)
                 .order("created_at", desc=True)
@@ -283,6 +322,7 @@ class OrderModel:
         except Exception as e:
             logger.error(f"Lỗi lấy đơn hàng phân trang user {user_id}: {e}")
             return {"items": [], "pagination": {"page": 1, "per_page": per_page, "total": 0, "total_pages": 1, "has_prev": False, "has_next": False}}
+
     # ═══════════════════════════════════════════════════════════════
     #  CẬP NHẬT TRẠNG THÁI & HOTLINE
     # ═══════════════════════════════════════════════════════════════
@@ -485,11 +525,11 @@ class OrderModel:
             return r.count or 0
         except Exception:
             return 0
+
     # ═══════════════════════════════════════════════════════════════
     #  STATE MACHINE: Chuyển trạng thái CÓ KIỂM TRA
     # ═══════════════════════════════════════════════════════════════
  
-    # Luồng hợp lệ: status_hiện_tại → [status_có_thể_chuyển_sang]
     _VALID_TRANSITIONS = {
         "pending": ["confirmed", "cancelled"],
         "confirmed": ["packed", "cancelled"],
@@ -497,21 +537,14 @@ class OrderModel:
         "shipped": ["delivered", "failed", "returned"],
         "shipping": ["delivered", "failed", "returned"],
         "delivered": ["completed", "returned"],
-        "completed": [],  # Trạng thái cuối, không chuyển thêm
-        "cancelled": [],  # Trạng thái cuối
+        "completed": [],
+        "cancelled": [],
         "failed": ["returned"],
         "returned": [],
     }
  
     @staticmethod
     def update_status_guarded(order_id: str, new_status: str) -> tuple[bool, str]:
-        """
-        Cập nhật trạng thái đơn hàng có kiểm tra luồng hợp lệ.
-        Trả về (True, "") nếu thành công, (False, "lý do") nếu không hợp lệ.
- 
-        Dùng trong controller khi cần bảo vệ chặt. 
-        Ví dụ: không thể chuyển từ 'completed' về 'pending'.
-        """
         db = get_supabase()
         try:
             order = db.table("orders").select("status").eq("id", order_id).single().execute().data
@@ -537,14 +570,9 @@ class OrderModel:
  
     @staticmethod
     def get_status_counts() -> dict:
-        """
-        Đếm số đơn theo từng trạng thái — dùng để hiện badge số trên tab.
-        Trả về: {'pending': 5, 'confirmed': 2, ...}
-        """
         db = get_supabase()
         try:
             rows = db.table("orders").select("status").execute().data or []
-            from collections import Counter
             return dict(Counter(r["status"] for r in rows))
         except Exception as e:
             logger.error(f"Lỗi get_status_counts: {e}")

@@ -1,114 +1,117 @@
+"""
+app/services/vnpay_service.py
+Dịch vụ tích hợp cổng thanh toán VNPay Version 2.1.0.
+"""
 import hashlib
 import hmac
 import urllib.parse
 from datetime import datetime
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class VNPayService:
+    TMN_CODE = "GQGO53PK"
+    HASH_SECRET = "8DOUH7Z99VJ220VXSUH1VGIXSN72QVZW"
+    PAYMENT_URL = "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html"
+    RETURN_URL = "http://127.0.0.1:5000/payment/vnpay_return"
 
-    @staticmethod
-    def create_payment_url(order_id: str, amount: float, ip_address: str, order_desc: str=None) -> str:
-        # HARDCODE KEY ĐỂ TRÁNH LỖI ENV
-        vnp_TmnCode = "GQGO53PK"
-        vnp_HashSecret = "8DOUH7Z99VJ220VXSUH1VGIXSN72QVZW"
-        vnp_Url = "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html"
-        vnp_ReturnUrl = "http://127.0.0.1:5000/payment/vnpay_return"
-
+    @classmethod
+    def create_payment_url(cls, order_id: str, amount: float, ip_address: str, order_desc: str=None) -> str:
+        """Tạo URL thanh toán gửi sang VNPay"""
+        
+        # 1. Định dạng số tiền (VNPay yêu cầu nhân 100)
         vnp_Amount = str(int(float(amount)) * 100)
-        clean_order_id = str(order_id).replace("-", "")[:8]
-        vnp_TxnRef = f"{clean_order_id}{datetime.now().strftime('%H%M%S')}"
+        
+        # Giữ nguyên mã UUID đầy đủ
+        vnp_TxnRef = str(order_id)
 
         vnp_Params = {
-            "vnp_Amount": vnp_Amount,
+            "vnp_Version": "2.1.0",
             "vnp_Command": "pay",
-            "vnp_CreateDate": datetime.now().strftime('%Y%m%d%H%M%S'),
+            "vnp_TmnCode": cls.TMN_CODE,
+            "vnp_Amount": vnp_Amount,
             "vnp_CurrCode": "VND",
-            "vnp_IpAddr": "113.160.92.202",
-            "vnp_Locale": "vn",
-            "vnp_OrderInfo": "ThanhToanGUA",
-            "vnp_OrderType": "other",
-            "vnp_ReturnUrl": vnp_ReturnUrl,
-            "vnp_TmnCode": vnp_TmnCode,
             "vnp_TxnRef": vnp_TxnRef,
-            "vnp_Version": "2.1.0"
+            # Bổ sung lại order_desc từ Controller truyền sang
+            "vnp_OrderInfo": order_desc or f"ThanhToanGUA_{vnp_TxnRef[:8]}",
+            "vnp_OrderType": "other",
+            "vnp_Locale": "vn",
+            "vnp_ReturnUrl": cls.RETURN_URL,
+            "vnp_IpAddr": ip_address or "127.0.0.1",
+            "vnp_CreateDate": datetime.now().strftime('%Y%m%d%H%M%S'),
         }
 
-        vnp_Params = {k: v for k, v in vnp_Params.items() if v is not None and str(v).strip() != ""}
+        # 2. Sắp xếp tham số theo alphabet
         vnp_Params = dict(sorted(vnp_Params.items()))
+        
+        # 3. Tạo chuỗi Hash (Query String)
         query_string = urllib.parse.urlencode(vnp_Params)
 
+        # 4. Tính toán chữ ký bảo mật HMAC-SHA512
         hash_value = hmac.new(
-            vnp_HashSecret.encode('utf-8'),
+            cls.HASH_SECRET.encode('utf-8'),
             query_string.encode('utf-8'),
             hashlib.sha512
         ).hexdigest()
 
-        return f"{vnp_Url}?{query_string}&vnp_SecureHash={hash_value}"
+        return f"{cls.PAYMENT_URL}?{query_string}&vnp_SecureHash={hash_value}"
 
-    @staticmethod
-    def parse_response(request_args) -> dict:
-        vnp_Params = request_args.to_dict()
+    @classmethod
+    def parse_response(cls, request_args) -> dict:
+        """Xác thực và phân tích phản hồi từ VNPay gửi về"""
         
-        # Bóc chữ ký của VNPay ra để đối chiếu
-        secure_hash = vnp_Params.pop('vnp_SecureHash', '')
+        # Chống lỗi AttributeError to_dict()
+        if hasattr(request_args, 'to_dict'):
+            vnp_Params = request_args.to_dict()
+        else:
+            vnp_Params = dict(request_args)
+            
+        # Lấy chữ ký từ VNPay trả về
+        vnp_SecureHash = vnp_Params.pop('vnp_SecureHash', None)
         vnp_Params.pop('vnp_SecureHashType', None)
 
-        # LỌC NGHIÊM NGẶT: Chỉ lấy các tham số hợp lệ của VNPay (Bắt đầu bằng vnp_)
-        clean_params = {}
-        for key, val in vnp_Params.items():
-            if key.startswith('vnp_') and val is not None and str(val).strip() != "":
-                clean_params[key] = val
-
-        # Sắp xếp và nối chuỗi
-        clean_params = dict(sorted(clean_params.items()))
+        # 1. Sắp xếp lại tham số còn lại để tính Hash đối chiếu
+        vnp_Params = dict(sorted(vnp_Params.items()))
         
+        # 2. Tạo chuỗi dữ liệu để băm
         hash_data = []
-        for key, val in clean_params.items():
-            hash_data.append(key + "=" + urllib.parse.quote_plus(str(val)))
+        for key, val in vnp_Params.items():
+            if key.startswith('vnp_') and val:
+                hash_data.append(f"{key}={urllib.parse.quote_plus(str(val))}")
         
-        query_string = "&".join(hash_data)
+        hash_string = "&".join(hash_data)
         
-        # SỬ DỤNG LẠI CHÍNH XÁC KEY BẠN VỪA TẠO
-        vnp_HashSecret = "8DOUH7Z99VJ220VXSUH1VGIXSN72QVZW"
-        
-        # Tự tính toán lại Hash
-        my_hash = hmac.new(
-            vnp_HashSecret.encode('utf-8'),
-            query_string.encode('utf-8'),
+        # 3. Tính toán Hash đối ứng
+        calculated_hash = hmac.new(
+            cls.HASH_SECRET.encode('utf-8'),
+            hash_string.encode('utf-8'),
             hashlib.sha512
         ).hexdigest()
 
-        # SO SÁNH (LƯU Ý: Phải ép về chữ thường (.lower()) để tránh lỗi phân biệt hoa/thường)
-        is_valid = (my_hash.lower() == secure_hash.lower())
-
-        # ---------------- IN LOG ĐỂ KIỂM TRA MÁY CHỦ ----------------
-        print("\n" + "🌟" * 25)
-        print("📥 BIÊN LAI TỪ VNPAY TRẢ VỀ:")
-        for k, v in clean_params.items():
-            print(f"  {k}: {v}")
-        print("-" * 50)
-        print(f"✅ Chuỗi tự nối:  {query_string}")
-        print(f"✅ Hash tự tính:  {my_hash.lower()}")
-        print(f"✅ Hash VNPay:    {secure_hash.lower()}")
-        print(f"🎯 KẾT QUẢ KHỚP:  {is_valid}")
-        print("🌟" * 25 + "\n")
-
-        response_code = vnp_Params.get("vnp_ResponseCode", "")
+        # 4. Kiểm tra tính hợp lệ
+        is_valid = (calculated_hash.lower() == str(vnp_SecureHash).lower())
         
-        # Lấy lại order_id thật
-        txn_ref = vnp_Params.get("vnp_TxnRef", "")
-        order_id = txn_ref[:-6] if len(txn_ref) > 6 else txn_ref
+        response_code = vnp_Params.get("vnp_ResponseCode", "")
+        # Lấy lại order_id nguyên bản (UUID) từ vnp_TxnRef
+        order_id = vnp_Params.get("vnp_TxnRef") 
 
-        vn_pay_messages = {
+        error_messages = {
             "00": "Giao dịch thành công",
+            "07": "Trừ tiền thành công. Giao dịch bị nghi ngờ (liên quan tới lừa đảo).",
+            "09": "Thẻ/Tài khoản chưa đăng ký Internet Banking.",
+            "10": "Xác thực thông tin thẻ/tài khoản không đúng quá 3 lần.",
+            "11": "Hết hạn chờ thanh toán.",
             "24": "Khách hàng hủy giao dịch",
+            "51": "Tài khoản không đủ số dư.",
+            "75": "Ngân hàng đang bảo trì.",
         }
 
         return {
             "is_valid": is_valid,
-            "is_success": (response_code == "00"),
             "order_id": order_id,
-            "transaction_id": vnp_Params.get("vnp_TransactionNo", txn_ref),
+            "transaction_id": vnp_Params.get("vnp_TransactionNo"),
             "response_code": response_code,
-            "message": vn_pay_messages.get(response_code, f"Lỗi VNPay: {response_code}")
+            "message": error_messages.get(response_code, f"Lỗi không xác định: {response_code}")
         }

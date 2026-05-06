@@ -14,6 +14,6 @@ from . import returns
 from . import customers
 from . import coupons
 from . import products
-
+from . import reports
 # 3. Export admin_bp ra ngoài (cho app/__init__.py gọi)
 __all__ = ["admin_bp"]

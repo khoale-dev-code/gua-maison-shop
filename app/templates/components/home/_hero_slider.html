@@ -1,0 +1,30 @@
+<!-- components/home/_hero_slider.html -->
+<section class="relative h-[85vh] min-h-[600px] w-full bg-white overflow-hidden">
+  <div class="w-full h-full relative">
+    <!-- Cinematic Video Background -->
+    <video autoplay loop muted playsinline class="w-full h-full object-cover scale-105">
+      <!-- Thay URL này bằng link video campaign của bạn -->
+      <source src="https://cdn.hstatic.net/files/200001029438/file/ef7df01e-38a3-4b59-b7ae-79757c79a37b.mp4" type="video/mp4">
+    </video>
+    
+    <!-- Lớp gradient rất mỏng dưới cùng để text nổi bật mà không làm tối video -->
+    <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
+  </div>
+
+  <!-- Minimal Content (Căn dưới cùng, typography lớn) -->
+  <div class="absolute bottom-12 left-0 right-0 z-20 px-6 sm:px-12 flex flex-col items-center md:items-start text-center md:text-left pointer-events-none">
+    <div class="reveal pointer-events-auto w-full max-w-[1400px] mx-auto">
+      <h1 class="text-white text-5xl md:text-7xl lg:text-8xl font-black uppercase tracking-tighter mb-6 drop-shadow-sm">
+        Collection<br/>2026
+      </h1>
+      <div class="flex flex-col sm:flex-row items-center gap-4">
+        <a href="/shop" class="w-full sm:w-auto bg-white text-black border border-white px-10 py-4 text-xs font-bold uppercase tracking-[0.15em] hover:bg-black hover:text-white transition-all duration-300">
+          Shop Now
+        </a>
+        <a href="/shop?category=new" class="w-full sm:w-auto bg-transparent text-white border border-white px-10 py-4 text-xs font-bold uppercase tracking-[0.15em] hover:bg-white hover:text-black transition-all duration-300">
+          View Campaign
+        </a>
+      </div>
+    </div>
+  </div>
+</section>

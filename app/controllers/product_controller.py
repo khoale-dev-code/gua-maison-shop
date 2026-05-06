@@ -1,106 +1,41 @@
 """
 app/controllers/product_controller.py
-Quản lý luồng hiển thị sản phẩm Storefront. 
+======================================
+Quản lý luồng hiển thị sản phẩm Storefront.
 Tích hợp AI Visual Search và xử lý Biến thể (Variants) chuẩn E-commerce.
 """
 
 import logging
 import requests
-from flask import Blueprint, render_template, request, current_app, flash, redirect, url_for
+from flask import (
+    Blueprint, render_template, request,
+    current_app, flash, redirect, url_for,
+)
 
+from typing import Optional
 from app.models.product_model import ProductModel
-from app.models.category_model import CategoryModel
-# Đã thêm import get_supabase và loại bỏ 'abort' bị thừa
 from app.utils.supabase_client import get_supabase
 
 products_bp = Blueprint("products", __name__)
 logger = logging.getLogger(__name__)
 
 # ═══════════════════════════════════════════════════════════════
-#  HELPERS (XÁC THỰC AI ENGINE)
+#  INTERNAL HELPERS
 # ═══════════════════════════════════════════════════════════════
 
 
-def _get_ai_headers():
-    """Lấy token xác thực nếu Space Hugging Face đang để chế độ Private"""
+def _get_ai_headers() -> dict:
+    """Trả về Authorization header nếu HF Space đang ở chế độ Private."""
     token = current_app.config.get("HF_TOKEN")
     return {"Authorization": f"Bearer {token}"} if token else {}
 
-# ═══════════════════════════════════════════════════════════════
-#  STOREFRONT ROUTING (HIỂN THỊ CỬA HÀNG)
-# ═══════════════════════════════════════════════════════════════
 
-
-@products_bp.route("/")
-def index():
-    """Trang chủ – Hiển thị sản phẩm nổi bật"""
-    try:
-        res = ProductModel.get_all(page=1, per_page=8, admin_mode=False)
-        # SỬA Ở ĐÂY: Thêm products/ vào trước
-        return render_template("products/index.html", featured_products=res.get("items", []))
-    except Exception as e:
-        logger.error(f"Lỗi trang chủ: {e}")
-        # SỬA Ở ĐÂY NỮA: Để khi có lỗi nó vẫn tìm đúng file
-        return render_template("products/index.html", featured_products=[])
-
-
-@products_bp.route("/shop")
-def shop():
-    """Trang danh sách sản phẩm (Có phân trang & Bộ lọc)"""
-    # Ép kiểu dict để bypass linter PyDev không báo lỗi .get()
-    args = dict(request.args)
-    page = int(args.get("page", 1))
-    category_slug = args.get("category")
-    gender = args.get("gender")
-    keyword = args.get("q")
-    
-    result = ProductModel.get_all(
-        page=page,
-        per_page=12,
-        category_slug=category_slug,
-        gender=gender,
-        keyword=keyword,
-        admin_mode=False
-    )
-    
-    categories = CategoryModel.get_all()
-    total_pages = max(1, (result["total"] + 11) // 12)
-    
-    return render_template(
-        "products/shop.html",
-        products=result["items"],
-        total_pages=total_pages,
-        page=page,
-        categories=categories,
-        current_category=category_slug,
-        current_gender=gender,
-        keyword=keyword
-    )
-
-
-@products_bp.route("/product/<slug>")
-def detail(slug):
-    # ── GUARD: slug không hợp lệ ──
-    if not slug or slug in ("None", "null", "undefined", ""):
-        flash("Đường dẫn sản phẩm không hợp lệ.", "warning")
-        return redirect(url_for("products.shop"))
-
-    product = ProductModel.get_by_slug(slug)
-    
-    if not product:
-        flash("Sản phẩm không tồn tại hoặc đã ngừng kinh doanh.", "warning")
-        return redirect(url_for("products.shop"))
-        # ── DEBUG: In ra terminal để kiểm tra ──
-    print("=" * 60)
-    print(f"[DEBUG] slug        : {slug}")
-    print(f"[DEBUG] product.id  : {product.get('id')}")
-    print(f"[DEBUG] variants raw: {product.get('product_variants')}")
-    print("=" * 60)
-    
-     # #Gom nhóm biến thể theo màu
-    color_groups = {}
-    variants = product.get("product_variants", []) or []
-    
+def _build_color_groups(variants: list, base_price: float) -> dict:
+    """
+    Gom nhóm product_variants theo màu sắc.
+    Trả về dict: { color_name: { hex, sizes: [...] } }
+    """
+    color_groups: dict = {}
     for v in variants:
         c_name = v.get("color_name")
         if not c_name:
@@ -108,98 +43,216 @@ def detail(slug):
         if c_name not in color_groups:
             color_groups[c_name] = {
                 "hex": v.get("color_hex") or "#1a1a1a",
-                "sizes": []
+                "sizes": [],
             }
-        price = v.get("price_override") or product.get("price") or 0
         color_groups[c_name]["sizes"].append({
             "variant_id": v["id"],
-            "size": v["size"],
-            "stock": v.get("stock", 0),
-            "price": float(price),
+            "size": v.get("size"),
+            "stock": int(v.get("stock") or 0),
+            "price": float(v.get("price_override") or base_price or 0),
         })
+    return color_groups
 
-    # ── DEBUG: In color_groups sau khi gom ──
-    print(f"[DEBUG] color_groups: {color_groups}")
-    print("=" * 60)
 
-    product["color_groups"] = color_groups
+def _clean_str(val) -> Optional[str]:
+    """Trả về None nếu chuỗi rỗng — tránh query DB với param trống."""
+    v = (val or "").strip()
+    return v if v else None
 
+# ═══════════════════════════════════════════════════════════════
+#  STOREFRONT ROUTES
+# ═══════════════════════════════════════════════════════════════
+
+
+@products_bp.route("/")
+def index():
+    """Trang chủ — Hiển thị sản phẩm nổi bật."""
+    try:
+        res = ProductModel.get_all(page=1, per_page=8, admin_mode=False)
+        featured = res.get("items", [])
+    except Exception as e:
+        logger.error(f"[index] Lỗi kéo sản phẩm nổi bật: {e}")
+        featured = []
+
+    return render_template("products/index.html", featured_products=featured)
+
+
+@products_bp.route("/shop")
+def shop():
+    """
+    Trang danh sách sản phẩm.
+    Query params: ?page= | ?category= | ?gender= | ?q=
+    """
+    # ── Parse & sanitize params ──
+    try:
+        page = max(1, int(request.args.get("page", 1)))
+    except (ValueError, TypeError):
+        page = 1
+
+    category_slug = _clean_str(request.args.get("category"))
+    gender = _clean_str(request.args.get("gender"))
+    keyword = _clean_str(request.args.get("q"))
+
+    # ── Kéo danh sách sản phẩm ──
+    try:
+        result = ProductModel.get_all(
+            page=page,
+            per_page=12,
+            category_slug=category_slug,
+            gender=gender,
+            keyword=keyword,
+            admin_mode=False,
+        )
+    except Exception as e:
+        logger.error(f"[shop] Lỗi ProductModel.get_all: {e}")
+        result = {"items": [], "total": 0}
+
+    total_pages = max(1, (result["total"] + 11) // 12)
+
+    return render_template(
+        "products/shop.html",
+        products=result["items"],
+        total=result["total"],
+        total_pages=total_pages,
+        page=page,
+        # Tên biến phải khớp CHÍNH XÁC với shop.html
+        category=category_slug,  # tab active check + build URL phân trang
+        current_gender=gender,
+        keyword=keyword,
+    )
+
+
+@products_bp.route("/product/<slug>")
+def detail(slug: str):
+    """
+    Trang chi tiết sản phẩm theo slug.
+    - Slug không hợp lệ  → redirect shop (không flash)
+    - Sản phẩm không tồn tại → redirect shop + flash warning
+    """
+    # ── Guard: slug không hợp lệ ──
+    if not slug or slug in ("None", "null", "undefined", ""):
+        flash("Đường dẫn sản phẩm không hợp lệ.", "warning")
+        return redirect(url_for("products.shop"))
+
+    # ── Kéo dữ liệu sản phẩm ──
+    try:
+        product = ProductModel.get_by_slug(slug)
+    except Exception as e:
+        logger.error(f"[detail] Lỗi get_by_slug('{slug}'): {e}")
+        product = None
+
+    if not product:
+        flash("Sản phẩm không tồn tại hoặc đã ngừng kinh doanh.", "warning")
+        return redirect(url_for("products.shop"))
+
+    # ── Gom nhóm biến thể theo màu ──
+    product["color_groups"] = _build_color_groups(
+        variants=product.get("product_variants") or [],
+        base_price=float(product.get("price") or 0),
+    )
+
+    # ── Sản phẩm liên quan (cùng danh mục, loại trừ SP hiện tại) ──
+    related_products: list = []
     try:
         cat_slug = (product.get("categories") or {}).get("slug")
-        related_res = ProductModel.get_all(page=1, per_page=5, category_slug=cat_slug)
-        related_products = [
-            p for p in related_res.get("items", [])
-            if p["id"] != product["id"]
-        ][:4]
-    except Exception:
-        related_products = []
+        if cat_slug:
+            related_res = ProductModel.get_all(page=1, per_page=5, category_slug=cat_slug)
+            related_products = [
+                p for p in related_res.get("items", [])
+                if p["id"] != product["id"]
+            ][:4]
+    except Exception as e:
+        logger.warning(f"[detail] Không lấy được related products: {e}")
 
     return render_template(
         "products/detail.html",
         product=product,
-        related_products=related_products
+        related_products=related_products,
     )
+
 # ═══════════════════════════════════════════════════════════════
-#  AI VISUAL SEARCH (TÌM KIẾM BẰNG HÌNH ẢNH)
+#  AI VISUAL SEARCH
 # ═══════════════════════════════════════════════════════════════
 
 
 @products_bp.route("/visual-search", methods=["POST"])
 def visual_search():
-    """Tính năng tìm kiếm sản phẩm qua ảnh bằng AI (Hugging Face)"""
-    
-    # FIX: Viết kiểu kiểm tra "in" để bypass lỗi linter của PyDev đối với request.files.get
+    """
+    Tìm kiếm sản phẩm bằng hình ảnh qua Hugging Face AI Engine.
+    Kết quả AI được map lại với DB để đảm bảo dữ liệu real-time.
+    """
+    # ── Validate file upload (dùng "in" để bypass lỗi PyDev với ImmutableMultiDict) ──
     file = request.files["image"] if "image" in request.files else None
-    
-    if not file or file.filename == "":
+    if not file or not file.filename:
         flash("Vui lòng tải lên một hình ảnh để tìm kiếm.", "warning")
         return redirect(request.referrer or url_for("products.shop"))
 
+    # ── Validate config ──
     engine_url = current_app.config.get("AI_ENGINE_URL")
     if not engine_url:
-        flash("Hệ thống AI chưa được cấu hình.", "danger")
+        logger.error("[visual_search] AI_ENGINE_URL chưa được cấu hình.")
+        flash("Hệ thống AI chưa được cấu hình. Vui lòng liên hệ quản trị viên.", "danger")
         return redirect(request.referrer or url_for("products.shop"))
+
+    matched_products: list = []
 
     try:
-        # Bắn ảnh sang HF để quét Vector
-        files = {'image': (file.filename, file.stream, file.mimetype)}
+        # ── Gọi AI Engine ──
         response = requests.post(
             f"{engine_url}/search",
-            files=files,
+            files={"image": (file.filename, file.stream, file.mimetype)},
             headers=_get_ai_headers(),
-            timeout=20  # Visual search cần nhiều thời gian xử lý hơn
+            timeout=20,
         )
-        
-        if response.status_code == 200:
-            ai_results = response.json().get("results", [])
-            matched_product_ids = [item["id"] for item in ai_results if "id" in item]
-            
-            if matched_product_ids:
-                db = get_supabase()  # Lúc này hàm đã được import chuẩn xác
-                # Query lấy thông tin gốc từ DB để đảm bảo dữ liệu là Real-time
-                db_res = db.table("products").select("*, categories(name, slug)").in_("id", matched_product_ids).eq("is_active", True).is_("deleted_at", "null").execute()
-                matched_products = db_res.data or []
-            else:
-                matched_products = []
-                
-            flash("Đã tìm thấy các thiết kế tương tự từ kho lưu trữ.", "success")
-        else:
-            matched_products = []
-            logger.warning(f"AI Search Error: {response.status_code} - {response.text}")
-            flash("Hệ thống Matrix Vision không tìm thấy kết quả phù hợp.", "warning")
+        response.raise_for_status()
 
-        return render_template(
-            "products/shop.html",
-            products=matched_products,
-            keyword="Kết quả Matrix Vision",
-            page=1, total_pages=1
+        ai_results = response.json().get("results", [])
+        matched_product_ids = [item["id"] for item in ai_results if "id" in item]
+
+        # ── Map kết quả AI với DB (real-time, bỏ qua SP bị ẩn/xoá) ──
+        if matched_product_ids:
+            try:
+                db = get_supabase()
+                db_res = (
+                    db.table("products")
+                    .select("*, categories(name, slug), product_images(*), product_variants(*)")
+                    .in_("id", matched_product_ids)
+                    .eq("is_active", True)
+                    .is_("deleted_at", "null")
+                    .execute()
+                )
+                matched_products = db_res.data or []
+            except Exception as db_err:
+                logger.error(f"[visual_search] Lỗi map DB: {db_err}")
+
+        flash(
+            f"Tìm thấy {len(matched_products)} thiết kế tương tự." if matched_products
+            else "Không tìm thấy sản phẩm phù hợp với hình ảnh này.",
+            "success" if matched_products else "info",
         )
-        
+
     except requests.exceptions.Timeout:
-        logger.error("Hugging Face API Timeout (Visual Search)")
-        flash("Hệ thống phân tích hình ảnh đang xử lý quá tải. Vui lòng thử lại sau.", "danger")
+        logger.error("[visual_search] AI Engine timeout.")
+        flash("Hệ thống AI đang xử lý quá tải. Vui lòng thử lại sau.", "danger")
         return redirect(request.referrer or url_for("products.shop"))
+
+    except requests.exceptions.HTTPError as http_err:
+        logger.error(f"[visual_search] AI Engine HTTP error: {http_err}")
+        flash("Hệ thống AI trả về lỗi. Vui lòng thử lại.", "danger")
+        return redirect(request.referrer or url_for("products.shop"))
+
     except Exception as e:
-        logger.error(f"Lỗi Visual Search: {e}")
-        flash("Lỗi kết nối đến máy chủ Matrix Vision.", "danger")
+        logger.error(f"[visual_search] Lỗi không xác định: {e}", exc_info=True)
+        flash("Lỗi kết nối đến máy chủ AI.", "danger")
         return redirect(request.referrer or url_for("products.shop"))
+
+    return render_template(
+        "products/shop.html",
+        products=matched_products,
+        total=len(matched_products),
+        keyword="Kết quả Visual Search",
+        category=None,
+        current_gender=None,
+        page=1,
+        total_pages=1,
+    )

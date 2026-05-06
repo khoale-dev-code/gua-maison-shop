@@ -1,0 +1,85 @@
+<!-- components/home/_featured.html -->
+<section class="py-12 md:py-16 bg-white overflow-hidden border-t border-neutral-200">
+  <div class="w-full">
+    
+    <!-- Tiêu đề lớn & Rõ ràng hơn -->
+    <div class="px-4 sm:px-6 lg:px-8 mb-8 flex items-end justify-between reveal">
+      <h2 class="text-4xl md:text-6xl font-black uppercase tracking-tighter text-black leading-none">
+        Sản Phẩm<br/>Mới Nhất
+      </h2>
+      <a href="/shop" class="hidden md:block text-sm font-bold uppercase tracking-widest text-black border-b-2 border-black pb-1 hover:text-neutral-500 hover:border-neutral-500 transition-all">
+        Xem tất cả
+      </a>
+    </div>
+
+    <!-- Swiper Container -->
+    <div class="swiper product-mousewheel-swiper w-full px-4 sm:px-6 lg:px-8 reveal" data-delay="100">
+      <div class="swiper-wrapper">
+        
+        {% for product in featured_products %}
+        <!-- Slide Item to hơn: Mobile 85%, Tablet 45%, PC 30% -->
+        <div class="swiper-slide w-[85vw] sm:w-[45vw] md:w-[35vw] lg:w-[28vw]">
+          <div class="group relative bg-white transition-all duration-300">
+            
+            <a href="/product/{{ product.slug or product.id }}" class="block relative aspect-[3/4] bg-[#f8f8f8] overflow-hidden">
+              {% if product.images and product.images|length > 1 %}
+                <img src="{{ product.thumbnail_url or product.images[0].url }}" alt="{{ product.name }}" class="absolute inset-0 w-full h-full object-cover transition-opacity duration-500 group-hover:opacity-0" loading="lazy" />
+                <img src="{{ product.images[1].url }}" alt="{{ product.name }} hover" class="absolute inset-0 w-full h-full object-cover opacity-0 transition-opacity duration-500 group-hover:opacity-100" loading="lazy" />
+              {% elif product.thumbnail_url %}
+                <img src="{{ product.thumbnail_url }}" alt="{{ product.name }}" class="absolute inset-0 w-full h-full object-cover" loading="lazy" />
+              {% else %}
+                <img src="https://placehold.co/600x800/f8f8f8/cccccc?text=GUA" alt="{{ product.name }}" class="absolute inset-0 w-full h-full object-cover" loading="lazy" />
+              {% endif %}
+
+              {% if product.discount_percent %}
+              <div class="absolute top-4 left-4 z-20">
+                <span class="bg-black text-white text-xs font-bold px-2 py-1 uppercase tracking-wider">
+                  -{{ product.discount_percent }}%
+                </span>
+              </div>
+              {% endif %}
+            </a>
+
+            <!-- Thông tin sản phẩm chữ to, dễ đọc -->
+            <div class="pt-4 pb-2 text-left">
+              <a href="/product/{{ product.slug or product.id }}" class="block">
+                <h3 class="text-base md:text-lg font-bold text-black uppercase mb-1 line-clamp-1 group-hover:text-neutral-500 transition-colors">
+                  {{ product.name }}
+                </h3>
+              </a>
+              
+              <div class="flex items-center gap-3 mb-3">
+                <p class="text-base font-bold text-black">
+                  {{ "{:,.0f}".format(product.price) }}₫
+                </p>
+                {% if product.old_price %}
+                <p class="text-sm font-medium text-neutral-400 line-through">
+                  {{ "{:,.0f}".format(product.old_price) }}₫
+                </p>
+                {% endif %}
+              </div>
+
+              <button type="button" 
+                      data-id="{{ product.id }}" 
+                      onclick="event.preventDefault(); triggerQuickView(this);"
+                      class="text-xs font-bold uppercase text-black border-b border-black pb-0.5 hover:text-neutral-500 hover:border-neutral-500 transition-colors">
+                Thêm vào giỏ
+              </button>
+            </div>
+
+          </div>
+        </div>
+        {% endfor %}
+
+      </div>
+    </div>
+    
+    <!-- Mobile Nút xem tất cả -->
+    <div class="mt-8 px-4 md:hidden">
+      <a href="/shop" class="block w-full text-center text-xs font-bold uppercase tracking-widest text-black border border-black py-4 hover:bg-black hover:text-white transition-all">
+        Xem tất cả sản phẩm
+      </a>
+    </div>
+
+  </div>
+</section>

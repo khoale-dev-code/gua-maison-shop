@@ -3,7 +3,9 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>{% block title %}GUA ADMIN | Trung tâm quản trị{% endblock %}</title>
+  
+  {# 👉 TỰ ĐỘNG LẤY TÊN SHOP TỪ DATABASE #}
+  <title>{% block title %}{{ system_settings.get('general', {}).get('shop_name') or 'GUA ADMIN' }} | Trung tâm quản trị{% endblock %}</title>
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -106,12 +108,22 @@
           </a>
           {% endif %}
         </div>
+        
+        {# 👉 BẢN QUYỀN ĐỘNG THEO TÊN SHOP #}
         <p class="text-stone-400">
-          © 2026 <span class="font-semibold text-stone-600">GUA Store</span>. 
+          © 2026 <span class="font-semibold text-stone-600">{{ system_settings.get('general', {}).get('shop_name') or 'GUA Store' }}</span>. 
           Phát triển bởi <span class="font-medium">Lê Trần Đăng Khoa</span>
         </p>
+
         <div class="text-stone-400 flex items-center gap-5">
-          <a href="#" class="hover:text-stone-600 transition-colors">Hỗ trợ</a>
+          {# 👉 HIỂN THỊ EMAIL NẾU ĐÃ CÀI ĐẶT TRONG SYSTEM SETTINGS #}
+          {% set support_email = system_settings.get('general', {}).get('email') %}
+          {% if support_email %}
+            <a href="mailto:{{ support_email }}" class="hover:text-stone-600 transition-colors">Hỗ trợ ({{ support_email }})</a>
+          {% else %}
+            <a href="#" class="hover:text-stone-600 transition-colors">Hỗ trợ</a>
+          {% endif %}
+          
           <a href="#" class="hover:text-stone-600 transition-colors">Tài liệu</a>
           <a href="#" class="hover:text-stone-600 transition-colors">Phiên bản 1.0.27</a>
         </div>
@@ -131,8 +143,11 @@
       }, { threshold: 0.08, rootMargin: "0px 0px -50px 0px" });
       document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
     });
+    
     function initTailwind() {
-      console.log('%cGUA Admin Dashboard loaded successfully', 'color: #4f46e5; font-weight: 600;');
+      // Lấy tên shop động thả vào console log
+      const shopName = "{{ system_settings.get('general', {}).get('shop_name') or 'GUA' }}";
+      console.log(`%c${shopName} Admin Dashboard loaded successfully`, 'color: #4f46e5; font-weight: 600;');
     }
     window.onload = initTailwind;
   </script>

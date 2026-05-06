@@ -1,402 +1,132 @@
 {% extends "base.html" %}
-{% block title %}GUA Maison — Thời trang Thể thao & Phong cách{% endblock %}
+{% block title %}GUA. | Official Online Store{% endblock %}
+
+{% block extra_head %}
+<style>
+  /* =========================================
+     CUSTOM CURSOR - ĐẶC SẢN WEB STUDIO
+     ========================================= */
+  /* Ẩn con trỏ mặc định trên Desktop (thiết bị có chuột chính xác) */
+  @media (pointer: fine) {
+    body { cursor: none; }
+    a, button, input, textarea, select, .swiper-wrapper { cursor: none !important; }
+  }
+
+  /* Styling con trỏ tùy chỉnh */
+  .custom-cursor {
+    position: fixed;
+    top: 0; left: 0;
+    width: 12px; height: 12px;
+    background-color: #000;
+    border-radius: 50%;
+    pointer-events: none; /* Không ngăn cản click chuột */
+    z-index: 999999;
+    transform: translate(-50%, -50%);
+    transition: width 0.3s cubic-bezier(0.16, 1, 0.3, 1), 
+                height 0.3s cubic-bezier(0.16, 1, 0.3, 1), 
+                background-color 0.3s;
+    mix-blend-mode: difference; /* Tự động đổi màu Trắng/Đen tùy theo nền đè lên */
+  }
+
+  /* Trạng thái khi di chuột vào nút/link */
+  .custom-cursor.hovering {
+    width: 60px; height: 60px;
+    background-color: transparent;
+    border: 1px solid #fff;
+    mix-blend-mode: difference;
+  }
+</style>
+{% endblock %}
 
 {% block content %}
+  <!-- CON TRỎ CHUỘT CUSTOM (Chỉ hiện trên màn hình to / có chuột) -->
+  <div class="custom-cursor hidden md:block" id="custom-cursor"></div>
 
-{# ══════════════════════════════
-    HERO SLIDER — AUTO FADE & ZOOM (CẢM HỨNG TỪ NIKE)
-   ══════════════════════════════ #}
-<section class="relative h-[85vh] min-h-[600px] w-full bg-stone-100 overflow-hidden">
-  
-  <div id="hero-slider" class="w-full h-full relative">
-    
-    <div class="hero-slide absolute inset-0 w-full h-full transition-opacity duration-1000 ease-in-out opacity-100 z-10">
-      <img src="https://images.unsplash.com/photo-1556821840-3a63f95609a7?q=80&w=2000" alt="Slide 1" class="slide-img w-full h-full object-cover transition-transform duration-[6s] ease-out scale-105" />
-      <div class="absolute inset-0 bg-black/30"></div>
+  {# =========================================
+     1. HERO VIDEO TỈ LỆ FULL MÀN HÌNH
+     ========================================= #}
+  {% include 'components/home/_hero_slider.html' ignore missing %}
+
+  {# =========================================
+     2. LƯỚT NGANG SẢN PHẨM MỚI (SWIPER JS)
+     ========================================= #}
+  {% if featured_products %}
+    <div class="pt-16 md:pt-24 pb-8">
+      {% include 'components/home/_featured.html' ignore missing %}
     </div>
-    
-    <div class="hero-slide absolute inset-0 w-full h-full transition-opacity duration-1000 ease-in-out opacity-0 z-0">
-      <img src="https://images.unsplash.com/photo-1483985988355-763728e1935b?q=80&w=2000" alt="Slide 2" class="slide-img w-full h-full object-cover transition-transform duration-[6s] ease-out" />
-      <div class="absolute inset-0 bg-black/30"></div>
-    </div>
+  {% endif %}
 
-    <div class="hero-slide absolute inset-0 w-full h-full transition-opacity duration-1000 ease-in-out opacity-0 z-0">
-      <img src="https://images.unsplash.com/photo-1511556532299-8f662fc26c06?q=80&w=2000" alt="Slide 3" class="slide-img w-full h-full object-cover transition-transform duration-[6s] ease-out" />
-      <div class="absolute inset-0 bg-black/30"></div>
-    </div>
-
-  </div>
-
-  <div class="absolute inset-0 z-20 flex flex-col items-center justify-center text-center px-4 pointer-events-none">
-    <div class="reveal pointer-events-auto">
-      <h1 class="text-white text-4xl md:text-6xl lg:text-7xl font-bold tracking-tight mb-4 drop-shadow-md">
-        Phong Cách Chuyển Động
-      </h1>
-      <p class="text-white/90 text-sm md:text-base mb-8 max-w-lg mx-auto drop-shadow-md">
-        Bộ sưu tập Xuân Hè 2026 mang đến sự thoải mái tối đa và thiết kế đậm chất thể thao đương đại.
-      </p>
-      <div class="flex flex-col sm:flex-row items-center justify-center gap-3">
-        <a href="/shop" class="w-full sm:w-auto bg-white text-stone-900 px-8 py-3.5 rounded-full text-sm font-semibold hover:bg-stone-200 transition-all shadow-lg active:scale-95">
-          Mua sắm ngay
-        </a>
-        <a href="/shop?category=new" class="w-full sm:w-auto bg-black/20 backdrop-blur-md border border-white/50 text-white px-8 py-3.5 rounded-full text-sm font-semibold hover:bg-black/40 transition-all shadow-lg active:scale-95">
-          Xem hàng mới
-        </a>
-      </div>
-    </div>
-  </div>
-
-  <div class="absolute bottom-8 left-0 right-0 z-20 flex justify-center gap-2">
-    <button class="slide-dot w-2.5 h-2.5 rounded-full bg-white transition-all" onclick="goToSlide(0)"></button>
-    <button class="slide-dot w-2.5 h-2.5 rounded-full bg-white/40 transition-all" onclick="goToSlide(1)"></button>
-    <button class="slide-dot w-2.5 h-2.5 rounded-full bg-white/40 transition-all" onclick="goToSlide(2)"></button>
-  </div>
-</section>
-
-{# ══════════════════════════════
-    DANH MỤC — BO TRÒN MỀM MẠI
-   ══════════════════════════════ #}
-<section class="py-16 md:py-24 bg-white">
-  <div class="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
-    <div class="text-center mb-10 reveal">
-      <h2 class="text-2xl md:text-3xl font-bold tracking-tight text-stone-900 mb-2">Khám Phá Danh Mục</h2>
-      <p class="text-stone-500 text-sm">Tìm kiếm phong cách dành riêng cho bạn.</p>
-    </div>
-
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8">
-      {% for cat in [
-        ('Thời trang Nữ',   'women',       'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=800'),
-        ('Thời trang Nam',  'men',         'https://images.unsplash.com/photo-1488161628813-04466f872be2?w=800'),
-        ('Phụ kiện',        'accessories', 'https://images.unsplash.com/photo-1608248543803-ba4f8c70ae0b?w=800')
-      ] %}
-      <a href="/shop?category={{ cat[1] }}" class="group relative aspect-[4/5] rounded-2xl overflow-hidden block shadow-sm hover:shadow-xl transition-shadow duration-300 reveal" data-delay="{{ loop.index0 * 100 }}">
-        <img src="{{ cat[2] }}" alt="{{ cat[0] }}" class="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105 ease-out" loading="lazy" />
-        <div class="absolute inset-0 bg-gradient-to-t from-stone-900/60 via-stone-900/10 to-transparent opacity-80 group-hover:opacity-100 transition-opacity duration-300"></div>
-
-        <div class="absolute bottom-0 left-0 right-0 p-6 md:p-8 flex flex-col items-center text-center transform translate-y-2 group-hover:translate-y-0 transition-transform duration-300">
-          <h3 class="text-white text-xl md:text-2xl font-bold mb-2">{{ cat[0] }}</h3>
-          <span class="bg-white text-stone-900 text-xs font-semibold px-5 py-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300 shadow-md">
-            Mua ngay
-          </span>
-        </div>
-      </a>
-      {% endfor %}
-    </div>
-  </div>
-</section>
-
-{# ══════════════════════════════
-    SẢN PHẨM NỔI BẬT
-   ══════════════════════════════ #}
-{% if featured %}
-<section class="py-16 md:py-24 bg-stone-50 border-t border-stone-100">
-  <div class="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
-
-    <div class="flex items-end justify-between mb-10 reveal">
-      <div>
-        <h2 class="text-2xl md:text-3xl font-bold tracking-tight text-stone-900">
-          Được yêu thích nhất
-        </h2>
-      </div>
-      <a href="/shop" class="hidden md:inline-flex items-center gap-1.5 text-sm font-semibold text-stone-600 hover:text-stone-900 transition-colors group">
-        Xem tất cả
-        <svg class="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"/></svg>
-      </a>
-    </div>
-
-    <ul class="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6" role="list">
-      {% for product in featured %}
-      <li class="group reveal" data-delay="{{ loop.index0 * 100 }}">
-        <div class="bg-white rounded-2xl border border-stone-100 overflow-hidden hover:shadow-[0_10px_40px_rgb(0,0,0,0.06)] transition-all duration-300">
+  {# =========================================
+     3. BẢN BANNER CAMPAIGN (ĐIỂM NHẤN THỊ GIÁC)
+     ========================================= #}
+  <section class="w-full aspect-square md:aspect-[21/9] overflow-hidden relative reveal">
+     <!-- Ảnh bìa Lookbook/Campaign -->
+     <img src="https://images.unsplash.com/photo-1556821840-3a63f95609a7?q=80&w=2000" 
+          class="w-full h-full object-cover scale-105 hover:scale-100 transition-transform duration-[2.5s] ease-out" 
+          loading="lazy" alt="Campaign 2026" />
           
-          <a href="/product/{{ product.id }}" class="block relative aspect-[3/4] bg-stone-100 overflow-hidden group/img">
-            
-            {# Đổi ảnh mượt mà khi Hover #}
-            {% if product.images and product.images|length > 1 %}
-              <img src="{{ product.thumbnail_url or product.images[0].url }}" alt="{{ product.name }}" class="absolute inset-0 w-full h-full object-cover transition-all duration-700 ease-out group-hover/img:opacity-0 group-hover/img:scale-105" loading="lazy" />
-              <img src="{{ product.images[1].url }}" alt="{{ product.name }} hover" class="absolute inset-0 w-full h-full object-cover opacity-0 transition-all duration-700 ease-out group-hover/img:opacity-100 group-hover/img:scale-105" loading="lazy" />
-            {% elif product.thumbnail_url %}
-              <img src="{{ product.thumbnail_url }}" alt="{{ product.name }}" class="absolute inset-0 w-full h-full object-cover transition-transform duration-700 ease-out group-hover/img:scale-105" loading="lazy" />
-            {% endif %}
+     <!-- Overlay tối màu & Typo nghệ thuật -->
+     <div class="absolute inset-0 flex items-center justify-center pointer-events-none bg-black/10">
+         <h2 class="text-white text-5xl md:text-8xl lg:text-[10rem] font-black uppercase tracking-tighter mix-blend-overlay opacity-90 drop-shadow-sm">
+             Street Culture
+         </h2>
+     </div>
+  </section>
 
-            {# Badges #}
-            <div class="absolute top-3 left-3 flex flex-col gap-2 z-30">
-              {% if product.stock == 0 %}
-              <span class="bg-red-50 text-red-600 border border-red-100 text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded-full shadow-sm">Hết hàng</span>
-              {% else %}
-              <span class="bg-stone-900 text-white text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded-full shadow-sm">Hot</span>
-              {% endif %}
-            </div>
-
-            <button onclick="toggleHeart('{{ product.id }}', this)" 
-                    title="Thêm vào yêu thích"
-                    class="absolute top-3 right-3 w-8 h-8 bg-white/90 backdrop-blur-md text-stone-300 rounded-full flex items-center justify-center hover:scale-110 hover:text-red-500 transition-all shadow-sm z-30">
-                <svg class="w-5 h-5 heart-icon transition-colors" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M11.645 20.91l-.007-.003-.022-.012a15.247 15.247 0 01-.383-.218 25.18 25.18 0 01-4.244-3.17C4.688 15.36 2.25 12.174 2.25 8.25 2.25 5.322 4.714 3 7.688 3A5.5 5.5 0 0112 5.052 5.5 5.5 0 0116.313 3c2.973 0 5.437 2.322 5.437 5.25 0 3.925-2.438 7.111-4.739 9.256a25.175 25.175 0 01-4.244 3.17 15.247 15.247 0 01-.383.219l-.022.012-.007.004-.003.001a.752.752 0 01-.704 0l-.003-.001z" />
-                </svg>
-            </button>
-
-            {# Nút Xem Nhanh Trượt Lên #}
-            <div class="absolute inset-x-0 bottom-0 p-3 translate-y-full opacity-0 group-hover/img:translate-y-0 group-hover/img:opacity-100 transition-all duration-300 ease-out z-20">
-              <button type="button" 
-                      data-id="{{ product.id }}" data-name="{{ product.name }}" data-price="{{ product.price }}"
-                      data-image="{{ product.thumbnail_url or '' }}" data-category="{{ product.categories.name if product.categories else 'Chưa phân loại' }}" data-stock="{{ product.stock }}"
-                      onclick="event.preventDefault(); triggerQuickView(this);"
-                      class="w-full bg-white/95 backdrop-blur-sm text-stone-900 font-semibold text-sm py-2.5 rounded-full shadow-md hover:bg-stone-900 hover:text-white transition-colors cursor-pointer">
-                Xem nhanh
-              </button>
-            </div>
-          </a>
-
-          {# Thông tin sản phẩm #}
-          <div class="p-4 md:p-5 text-center">
-            <a href="/product/{{ product.id }}" class="block">
-              <h3 class="text-sm font-semibold text-stone-800 mb-1.5 line-clamp-1 group-hover:text-stone-500 transition-colors">{{ product.name }}</h3>
-            </a>
-            <p class="text-base font-bold text-stone-900 tabular-nums">
-              {{ "{:,.0f}".format(product.price) }}<span class="text-xs font-medium text-stone-400 ml-0.5">₫</span>
-            </p>
-          </div>
-
-        </div>
-      </li>
-      {% endfor %}
-    </ul>
-
-    <div class="mt-10 text-center md:hidden">
-      <a href="/shop" class="inline-flex items-center gap-2 text-sm font-semibold text-stone-900 bg-white border border-stone-200 px-6 py-3 rounded-full shadow-sm">
-        Xem tất cả sản phẩm
-      </a>
+  {# =========================================
+     4. KHÁM PHÁ INSTAGRAM ILLUSION (ẢO GIÁC)
+     ========================================= #}
+  {% if categories and featured_products %}
+    <!-- Margin top âm một chút để tạo độ kết nối với banner trên -->
+    <div class="mt-8 md:mt-16">
+      {% include 'components/home/_instagram_illusion.html' ignore missing %}
     </div>
+  {% endif %}
+
+  {# =========================================
+     5. MARQUEE CHỮ CHẠY VÔ TẬN
+     ========================================= #}
+  <div class="mt-auto">
+    {% include 'components/home/_benefits.html' ignore missing %}
   </div>
-</section>
-{% endif %}
 
-{# ══════════════════════════════
-    CTA — ĐĂNG KÝ
-   ══════════════════════════════ #}
-<section class="py-16 md:py-24 bg-white overflow-hidden">
-  <div class="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8">
-    <div class="bg-stone-100 rounded-3xl p-8 md:p-16 flex flex-col md:flex-row items-center justify-between gap-10 reveal">
-      
-      <div class="flex-1 text-center md:text-left">
-        <h2 class="text-3xl md:text-4xl font-bold tracking-tight text-stone-900 mb-4">
-          Nhận ưu đãi độc quyền
-        </h2>
-        <p class="text-stone-500 text-sm md:text-base leading-relaxed mb-8 max-w-md mx-auto md:mx-0">
-          Đăng ký thành viên ngay hôm nay để nhận mã giảm giá 15% cho đơn hàng đầu tiên và cập nhật sớm nhất các sản phẩm mới.
-        </p>
-        <div class="flex flex-col sm:flex-row gap-3 justify-center md:justify-start">
-          <a href="/auth/register" class="bg-stone-900 text-white px-8 py-3.5 rounded-full text-sm font-semibold hover:bg-stone-700 transition-colors shadow-md active:scale-95">
-            Tạo tài khoản
-          </a>
-          <a href="/auth/login" class="bg-white border border-stone-200 text-stone-700 px-8 py-3.5 rounded-full text-sm font-semibold hover:bg-stone-50 transition-colors shadow-sm active:scale-95">
-            Đăng nhập
-          </a>
-        </div>
-      </div>
+  {# =========================================
+     6. MODAL XEM NHANH SẢN PHẨM
+     ========================================= #}
+  {% include 'components/modals/_quick_view.html' ignore missing %}
 
-      <div class="flex-1 w-full max-w-md aspect-square rounded-2xl overflow-hidden shadow-lg">
-        <img src="https://images.unsplash.com/photo-1549298916-b41d501d3772?q=80&w=1000" alt="Join us" class="w-full h-full object-cover hover:scale-105 transition-transform duration-700" loading="lazy" />
-      </div>
+{% endblock %}
 
-    </div>
-  </div>
-</section>
-
-{# ════════════════════════════════════════════════════════════
-   POPUP MODAL XEM NHANH (MỀM MẠI, SẠCH SẼ)
-   ════════════════════════════════════════════════════════════ #}
-{% include 'quick_view_modal.html' ignore missing %}
-<div id="quick-view-modal" class="fixed inset-0 z-[200] hidden items-center justify-center opacity-0 transition-opacity duration-300 px-4 sm:px-6 font-sans">
-  
-  <div class="absolute inset-0 bg-stone-900/40 backdrop-blur-sm cursor-pointer transition-opacity" onclick="closeQuickView()"></div>
-
-  <div class="relative bg-white w-full max-w-[850px] max-h-[90vh] min-h-[50vh] rounded-3xl shadow-2xl overflow-hidden flex flex-col md:flex-row transform scale-95 transition-transform duration-300 z-10">
-    
-    <button onclick="closeQuickView()" class="absolute top-4 right-4 w-9 h-9 bg-white/80 backdrop-blur-md rounded-full flex items-center justify-center text-stone-500 hover:text-stone-900 hover:bg-stone-100 transition-all z-50 shadow-sm cursor-pointer">
-      <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
-    </button>
-
-    <div class="w-full md:w-1/2 bg-stone-50 relative overflow-hidden flex items-center justify-center p-6">
-      <img id="qv-image" src="" class="max-h-[50vh] max-w-full object-contain mix-blend-multiply z-10 transition-all duration-500" alt="Product">
-    </div>
-
-    <div class="w-full md:w-1/2 p-8 md:p-10 flex flex-col overflow-y-auto no-scrollbar bg-white">
-      <div class="mb-6">
-        <p id="qv-category" class="text-xs font-semibold text-stone-400 uppercase tracking-wider mb-2">Danh mục</p>
-        <h2 id="qv-name" class="text-2xl font-bold text-stone-900 tracking-tight mb-4 leading-snug">Tên sản phẩm</h2>
-        <div class="flex items-end gap-3 border-b border-stone-100 pb-5">
-          <span id="qv-price" class="text-2xl font-bold text-stone-900">0</span>
-          <div id="qv-stock-status" class="mb-1"></div>
-        </div>
-      </div>
-
-      <form action="/cart/add" method="POST" class="space-y-6 mt-auto">
-        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-        <input type="hidden" name="product_id" id="qv-input-id" value="">
-
-        <div>
-          <div class="flex justify-between items-center mb-3">
-            <label class="text-sm font-semibold text-stone-900">Chọn kích thước</label>
-            <span class="text-xs text-stone-500 underline cursor-pointer hover:text-stone-900">Hướng dẫn size</span>
-          </div>
-          <div class="flex flex-wrap gap-2">
-            {% for size in ['S','M','L','XL'] %}
-            <label class="cursor-pointer">
-              <input type="radio" name="size" value="{{ size }}" class="sr-only peer" {% if size == 'M' %}checked{% endif %}>
-              <span class="flex items-center justify-center w-12 h-12 rounded-full border border-stone-200 text-sm font-medium text-stone-600 peer-checked:bg-stone-900 peer-checked:text-white peer-checked:border-stone-900 hover:border-stone-400 transition-all">
-                {{ size }}
-              </span>
-            </label>
-            {% endfor %}
-          </div>
-        </div>
-
-        <div class="flex flex-col gap-3 pt-2">
-          <div class="flex gap-3">
-            <div class="flex items-center bg-stone-50 border border-stone-200 rounded-full h-12 w-32">
-              <button type="button" onclick="qvChangeQty(-1)" class="flex-1 h-full text-lg text-stone-500 hover:text-stone-900 rounded-l-full">−</button>
-              <input type="number" name="quantity" id="qv-qty" value="1" min="1" readonly class="w-10 text-center font-semibold text-stone-900 bg-transparent outline-none pointer-events-none tabular-nums">
-              <button type="button" onclick="qvChangeQty(1)" class="flex-1 h-full text-lg text-stone-500 hover:text-stone-900 rounded-r-full">+</button>
-            </div>
-            <button type="submit" name="action" value="add_to_cart" class="flex-1 bg-stone-900 text-white rounded-full h-12 text-sm font-semibold shadow-md hover:bg-stone-700 active:scale-[0.98] transition-all">
-              Thêm vào giỏ
-            </button>
-          </div>
-          <a href="#" id="qv-detail-link" class="block w-full text-center py-3 text-xs font-semibold text-stone-500 hover:text-stone-900 underline underline-offset-4 transition-colors mt-1">
-            Xem chi tiết sản phẩm
-          </a>
-        </div>
-      </form>
-    </div>
-  </div>
-</div>
-
-<style>
-  .line-clamp-1 { display: -webkit-box; -webkit-line-clamp: 1; line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden; }
-  .no-scrollbar::-webkit-scrollbar { display: none; }
-  .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-  .reveal { opacity: 0; transform: translateY(30px); transition: all 0.8s cubic-bezier(0.22, 1, 0.36, 1); }
-  .reveal.active { opacity: 1; transform: translateY(0); }
-</style>
-
+{% block extra_scripts %}
 <script>
-  // ── LOGIC ANIMATION TRƯỢT KHI CUỘN TRANG ──
+  // ==========================================
+  // LOGIC ĐIỀU KHIỂN CUSTOM CURSOR (CON TRỎ CHUỘT)
+  // ==========================================
   document.addEventListener('DOMContentLoaded', () => {
-    document.querySelectorAll('[data-delay]').forEach(el => {
-      el.style.transitionDelay = el.getAttribute('data-delay') + 'ms';
-    });
-  });
+    const cursor = document.getElementById('custom-cursor');
+    if (!cursor) return;
 
-  // ── LOGIC HERO SLIDER TỰ ĐỘNG CHUYỂN ẢNH ──
-  let currentSlide = 0;
-  const slides = document.querySelectorAll('.hero-slide');
-  const dots = document.querySelectorAll('.slide-dot');
-  let slideInterval;
+    // Kiểm tra xem thiết bị có dùng chuột không (bỏ qua màn hình cảm ứng)
+    if (window.matchMedia("(pointer: fine)").matches) {
+        
+        // Cập nhật vị trí con trỏ theo tọa độ chuột
+        document.addEventListener('mousemove', (e) => {
+            cursor.style.left = e.clientX + 'px';
+            cursor.style.top = e.clientY + 'px';
+        });
 
-  function showSlide(index) {
-    slides[currentSlide].classList.remove('opacity-100', 'z-10');
-    slides[currentSlide].classList.add('opacity-0', 'z-0');
-    slides[currentSlide].querySelector('.slide-img').classList.remove('scale-105');
-    dots[currentSlide].classList.remove('bg-white');
-    dots[currentSlide].classList.add('bg-white/40');
-
-    currentSlide = index;
-
-    slides[currentSlide].classList.remove('opacity-0', 'z-0');
-    slides[currentSlide].classList.add('opacity-100', 'z-10');
-    slides[currentSlide].querySelector('.slide-img').classList.add('scale-105');
-    dots[currentSlide].classList.remove('bg-white/40');
-    dots[currentSlide].classList.add('bg-white');
-  }
-
-  function nextSlide() {
-    let nextIndex = (currentSlide + 1) % slides.length;
-    showSlide(nextIndex);
-  }
-
-  function goToSlide(index) {
-    clearInterval(slideInterval);
-    showSlide(index);
-    slideInterval = setInterval(nextSlide, 5000); // Reset timer
-  }
-
-  // Chạy slider mỗi 5 giây
-  if (slides.length > 1) {
-    slideInterval = setInterval(nextSlide, 5000);
-  }
-
-  // ── LOGIC MODAL XEM NHANH ──
-  let qvMaxStock = 1;
-
-  function triggerQuickView(btn) {
-    const id = btn.getAttribute('data-id');
-    const name = btn.getAttribute('data-name');
-    const price = btn.getAttribute('data-price');
-    const image = btn.getAttribute('data-image');
-    const category = btn.getAttribute('data-category');
-    const stock = parseInt(btn.getAttribute('data-stock')) || 0;
-    openQuickView(id, name, price, image, category, stock);
-  }
-
-  function openQuickView(id, name, price, image, category, stock) {
-    const modal = document.getElementById('quick-view-modal');
-    const content = modal.querySelector('.relative');
-    
-    document.getElementById('qv-input-id').value = id;
-    document.getElementById('qv-name').innerText = name;
-    document.getElementById('qv-price').innerHTML = `${Number(price).toLocaleString('en-US')} <span class="text-base font-medium text-stone-500">₫</span>`;
-    document.getElementById('qv-category').innerText = category;
-    
-    const imgEl = document.getElementById('qv-image');
-    imgEl.src = image || 'https://placehold.co/600x800/f5f5f4/a8a29e?text=No+Image';
-    imgEl.classList.remove('opacity-100');
-    imgEl.classList.add('opacity-0');
-    imgEl.onload = () => { imgEl.classList.remove('opacity-0'); imgEl.classList.add('opacity-100'); };
-
-    document.getElementById('qv-detail-link').href = `/product/${id}`;
-    
-    const stockEl = document.getElementById('qv-stock-status');
-    if (stock > 0) {
-        qvMaxStock = stock;
-        stockEl.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> <span class="text-emerald-600">Còn hàng</span>`;
-        stockEl.className = "text-xs font-semibold bg-emerald-50 px-2 py-1 rounded-md flex items-center gap-1.5";
-    } else {
-        qvMaxStock = 1;
-        stockEl.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-red-500"></span> <span class="text-red-600">Hết hàng</span>`;
-        stockEl.className = "text-xs font-semibold bg-red-50 px-2 py-1 rounded-md flex items-center gap-1.5";
+        // Bắt sự kiện hover vào các thẻ có thể tương tác (Link, Nút, Ảnh Swiper...)
+        const interactables = document.querySelectorAll('a, button, input, select, .swiper-wrapper, .group');
+        
+        interactables.forEach(el => {
+            el.addEventListener('mouseenter', () => {
+                cursor.classList.add('hovering');
+            });
+            el.addEventListener('mouseleave', () => {
+                cursor.classList.remove('hovering');
+            });
+        });
     }
-    document.getElementById('qv-qty').value = 1;
-    
-    modal.classList.remove('hidden');
-    modal.classList.add('flex');
-    setTimeout(() => {
-      modal.classList.remove('opacity-0');
-      content.classList.remove('scale-95');
-      content.classList.add('scale-100');
-    }, 10);
-    document.body.style.overflow = 'hidden';
-  }
-
-  function closeQuickView() {
-    const modal = document.getElementById('quick-view-modal');
-    const content = modal.querySelector('.relative');
-    modal.classList.add('opacity-0');
-    content.classList.remove('scale-100');
-    content.classList.add('scale-95');
-    setTimeout(() => {
-      modal.classList.add('hidden');
-      modal.classList.remove('flex');
-      document.body.style.overflow = ''; 
-    }, 300);
-  }
-
-  function qvChangeQty(delta) {
-    const el = document.getElementById('qv-qty');
-    let val = parseInt(el.value) + delta;
-    if (val >= 1 && val <= qvMaxStock) el.value = val;
-  }
+  });
 </script>
-
 {% endblock %}

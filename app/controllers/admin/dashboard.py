@@ -11,7 +11,6 @@ from app.models.product_model import ProductModel
 from app.models.order_model import OrderModel
 from app.middleware.auth_required import admin_required
 from app.utils.supabase_client import get_supabase
-
 from ._blueprint import admin_bp
 from ._helpers import handle_errors
 
@@ -86,11 +85,3 @@ def dashboard():
         prod_count=prod_total,
         recent_orders=recent_orders,  # ← truyền riêng ra ngoài stats
     )
-
-
-@admin_bp.route("/reports")
-@admin_required
-@handle_errors("Lỗi tải trang báo cáo.", "admin.dashboard")
-def reports():
-    stats = OrderModel.get_stats()
-    return render_template("admin/reports.html", stats=stats, report=stats)

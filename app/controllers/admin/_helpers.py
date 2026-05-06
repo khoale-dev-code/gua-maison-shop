@@ -21,7 +21,7 @@ ALLOWED_EXTENSIONS = {"jpg", "jpeg", "png", "webp", "gif"}
 # ── Error handler decorator ──────────────────────────────────────
 
 
-def handle_errors(message="Lỗi hệ thống.", redirect_to="admin.dashboard"):
+def handle_errors(message="Lỗi hệ thống.", redirect_to="admin.dashboard_view"):
 
     def decorator(fn):
 

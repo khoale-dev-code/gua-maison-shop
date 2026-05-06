@@ -20,242 +20,275 @@
 <div class="bg-[#f8faf9] min-h-screen pb-24 font-sans selection:bg-stone-900 selection:text-white">
 
   {# ── STICKY TOP BAR ── #}
-  <div class="bg-white/90 backdrop-blur-xl border-b border-stone-200 sticky top-0 z-40 shadow-sm no-print">
-    <div class="max-w-[1400px] mx-auto px-6 py-4 flex items-center justify-between">
-      <div class="flex items-center gap-4">
-        <a href="{{ url_for('admin.orders') }}" class="w-10 h-10 flex items-center justify-center bg-stone-50 rounded-xl hover:bg-stone-900 hover:text-white transition-all group shadow-sm border border-stone-100 hover:border-stone-900">
-          <svg class="w-5 h-5 group-hover:-translate-x-0.5 transition-transform" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
+  <div class="bg-white/80 backdrop-blur-xl border-b border-stone-200 sticky top-0 z-40 shadow-sm no-print">
+    <div class="max-w-[1400px] mx-auto px-6 py-3.5 flex items-center justify-between">
+      <div class="flex items-center gap-5">
+        <a href="{{ url_for('admin.orders') }}" class="w-11 h-11 flex items-center justify-center bg-white rounded-2xl hover:bg-stone-900 hover:text-white transition-all group shadow-sm border border-stone-200 hover:border-stone-900">
+          <svg class="w-5 h-5 group-hover:-translate-x-1 transition-transform duration-300" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
         </a>
         <div>
-          <h1 class="text-xs font-black uppercase tracking-[0.2em] text-stone-900">Quản lý Vận hành</h1>
-          <p class="text-[10px] font-bold text-stone-400 uppercase tracking-widest mt-0.5">#{{ order.id[:8].upper() }}</p>
+          <h1 class="text-[13px] font-black uppercase tracking-[0.15em] text-stone-900">Chi tiết đơn hàng</h1>
+          <div class="flex items-center gap-2 mt-0.5">
+            <p class="text-sm font-bold text-stone-500">#{{ order.id[:8].upper() }}</p>
+            <span class="w-1 h-1 rounded-full bg-stone-300"></span>
+            <p class="text-xs font-medium text-stone-400">{{ order.created_at[:16].replace('T', ' ') }}</p>
+          </div>
         </div>
       </div>
 
       <div class="flex items-center gap-3">
-        <button onclick="window.print()" class="px-5 py-2.5 bg-white border border-stone-200 rounded-xl text-[10px] font-black uppercase tracking-widest text-stone-600 hover:bg-stone-50 transition-all shadow-sm flex items-center gap-2 active:scale-95">
-          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6.728 6.75h10.544a2.25 2.25 0 012.25 2.25v5.004a2.25 2.25 0 01-2.25 2.25H17.25v2.25a2.25 2.25 0 01-2.25 2.25H9a2.25 2.25 0 01-2.25-2.25v-2.25H4.972a2.25 2.25 0 01-2.25-2.25V9a2.25 2.25 0 012.25-2.25zM10.5 6.75V4.5a2.25 2.25 0 012.25-2.25h3a2.25 2.25 0 012.25 2.25v2.25M17.25 16.5H6.75"/></svg>
+        <button onclick="window.print()" class="px-5 py-2.5 bg-white border border-stone-200 rounded-xl text-[11px] font-bold uppercase tracking-widest text-stone-700 hover:bg-stone-50 hover:border-stone-300 transition-all shadow-sm flex items-center gap-2 active:scale-95">
+          <svg class="w-4 h-4 text-stone-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6.728 6.75h10.544a2.25 2.25 0 012.25 2.25v5.004a2.25 2.25 0 01-2.25 2.25H17.25v2.25a2.25 2.25 0 01-2.25 2.25H9a2.25 2.25 0 01-2.25-2.25v-2.25H4.972a2.25 2.25 0 01-2.25-2.25V9a2.25 2.25 0 012.25-2.25zM10.5 6.75V4.5a2.25 2.25 0 012.25-2.25h3a2.25 2.25 0 012.25 2.25v2.25M17.25 16.5H6.75"/></svg>
           In hóa đơn
         </button>
         {% if order.status in ['pending', 'confirmed', 'packed'] %}
-        <button onclick="openCancelModal()" class="px-5 py-2.5 bg-red-50 text-red-600 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-red-100 transition-all shadow-sm active:scale-95">
-          Hủy đơn hàng
+        <button onclick="openCancelModal()" class="px-5 py-2.5 bg-white border border-rose-200 text-rose-600 rounded-xl text-[11px] font-bold uppercase tracking-widest hover:bg-rose-50 transition-all shadow-sm active:scale-95">
+          Hủy đơn
         </button>
         {% endif %}
       </div>
     </div>
   </div>
 
-  <div class="max-w-[1400px] mx-auto px-6 lg:px-10 mt-10 grid grid-cols-1 lg:grid-cols-12 gap-8">
+  <div class="max-w-[1400px] mx-auto px-6 lg:px-10 mt-8 grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8">
 
     {# ══════════════════════════════
        CỘT TRÁI (8/12): FULFILLMENT & ITEMS
        ══════════════════════════════ #}
-    <div class="lg:col-span-8 space-y-8">
+    <div class="lg:col-span-8 space-y-6">
 
       {# ─── 1. FULFILLMENT CENTER ─── #}
-      <div class="bg-white rounded-[2.5rem] p-8 lg:p-10 shadow-[0_4px_20px_rgb(0,0,0,0.03)] border border-stone-100 fade-up print-box">
-        <div class="flex justify-between items-center mb-8 pb-6 border-b border-stone-50">
+      <div class="bg-white rounded-3xl p-6 lg:p-8 shadow-card border border-stone-100 fade-up print-box">
+        <div class="flex justify-between items-center mb-8">
           <div>
-            <h2 class="text-2xl font-black text-stone-900 tracking-tight">Fulfillment Center</h2>
-            <p class="text-[11px] font-bold text-stone-400 uppercase tracking-widest mt-1">Nghiệp vụ kho vận & điều phối</p>
+            <h2 class="text-xl font-black text-stone-900 tracking-tight">Quy trình kho vận</h2>
+            <p class="text-[11px] font-medium text-stone-400 mt-1">Điều phối và xử lý đơn hàng</p>
           </div>
-          <span class="px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest shadow-sm {{ current_status[1] }}">
+          <span class="px-4 py-1.5 rounded-full text-[11px] font-black uppercase tracking-wider shadow-sm {{ current_status[1] }}">
             {{ current_status[0] }}
           </span>
         </div>
 
-        {# KIỂM TRA ĐIỀU KIỆN ĐƯỢC PHÉP XỬ LÝ (CHỐNG XUẤT KHO KHI CHƯA CHUYỂN KHOẢN) #}
         {% set is_cod = order.payment_method in ['COD', 'TIỀN MẶT', 'CASH'] %}
         {% set can_process = is_cod or order.payment_status == 'paid' %}
 
-        {# ── 3 NÚT HÀNH ĐỘNG THEO LUỒNG ── #}
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 no-print">
-
-          {# Nút 1: Xác nhận đơn (pending → confirmed) #}
-          <button id="btn-confirm"
-                  onclick="processOrder('confirm', this)"
-                  {% if order.status != 'pending' or not can_process %}disabled{% endif %}
-                  class="relative flex flex-col items-center gap-3 p-6 rounded-[2rem] border-2 transition-all group overflow-hidden
+        {# ── 3 NÚT HÀNH ĐỘNG CẢI TIẾN MỚI ── #}
+        <div class="relative flex flex-col md:flex-row gap-4 mb-8 no-print p-2 bg-stone-50/50 rounded-[2rem] border border-stone-100">
+          
+          {# Nút 1: Xác nhận đơn #}
+          <button id="btn-confirm" onclick="processOrder('confirm', this)" {% if order.status != 'pending' or not can_process %}disabled{% endif %}
+                  class="flex-1 relative flex items-center justify-center gap-3 py-4 px-2 rounded-full border border-transparent transition-all group overflow-hidden
                   {% if order.status == 'pending' and can_process %}
-                    border-stone-900 bg-stone-900 text-white shadow-xl hover:scale-[1.02] active:scale-95
+                    bg-stone-900 text-white shadow-md hover:shadow-lg active:scale-[0.98]
                   {% elif order.status in ['confirmed','packed','shipped','shipping','delivered','completed'] %}
-                    border-emerald-200 bg-emerald-50 text-emerald-600 cursor-default
+                    bg-white text-emerald-600 border-emerald-100 shadow-sm cursor-default
                   {% else %}
-                    border-stone-100 bg-stone-50 text-stone-300 opacity-60 cursor-not-allowed
+                    text-stone-400 cursor-not-allowed
                   {% endif %}">
-            <span class="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center font-black text-lg z-10">
-              {% if order.status in ['confirmed','packed','shipped','shipping','delivered','completed'] %}
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>
-              {% else %}1{% endif %}
+            <span class="w-6 h-6 rounded-full flex items-center justify-center text-xs font-black z-10 
+                 {% if order.status == 'pending' and can_process %}bg-white/20{% else %}bg-emerald-100{% endif %}">
+              {% if order.status in ['confirmed','packed','shipped','shipping','delivered','completed'] %}<i class="fa-solid fa-check"></i>{% else %}1{% endif %}
             </span>
-            <span class="text-[11px] font-black uppercase tracking-widest z-10 btn-text">Xác nhận đơn</span>
-            <div class="spinner hidden absolute inset-0 bg-stone-900 flex items-center justify-center z-20">
-              <svg class="w-6 h-6 animate-spin text-white" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>
+            <span class="text-[11px] font-black uppercase tracking-widest z-10 btn-text">Xác nhận</span>
+            <div class="spinner hidden absolute inset-0 bg-stone-900 items-center justify-center z-20">
+              <i class="fa-solid fa-circle-notch fa-spin text-white"></i>
             </div>
           </button>
 
-          {# Nút 2: Đóng gói xong (confirmed → packed) #}
-          <button id="btn-pack"
-                  onclick="processOrder('pack', this)"
-                  {% if order.status != 'confirmed' %}disabled{% endif %}
-                  class="relative flex flex-col items-center gap-3 p-6 rounded-[2rem] border-2 transition-all group overflow-hidden
+          {# Mũi tên nối #}
+          <div class="hidden md:flex items-center justify-center text-stone-300">
+             <i class="fa-solid fa-chevron-right text-xs"></i>
+          </div>
+
+          {# Nút 2: Đóng gói #}
+          <button id="btn-pack" onclick="processOrder('pack', this)" {% if order.status != 'confirmed' %}disabled{% endif %}
+                  class="flex-1 relative flex items-center justify-center gap-3 py-4 px-2 rounded-full border border-transparent transition-all group overflow-hidden
                   {% if order.status == 'confirmed' %}
-                    border-blue-600 bg-blue-600 text-white shadow-xl hover:scale-[1.02] active:scale-95
+                    bg-blue-600 text-white shadow-md hover:shadow-lg active:scale-[0.98]
                   {% elif order.status in ['packed','shipped','shipping','delivered','completed'] %}
-                    border-emerald-200 bg-emerald-50 text-emerald-600 cursor-default
+                    bg-white text-emerald-600 border-emerald-100 shadow-sm cursor-default
                   {% else %}
-                    border-stone-100 bg-stone-50 text-stone-300 opacity-60 cursor-not-allowed
+                    text-stone-400 cursor-not-allowed
                   {% endif %}">
-            <span class="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center font-black text-lg z-10">
-              {% if order.status in ['packed','shipped','shipping','delivered','completed'] %}
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>
-              {% else %}2{% endif %}
+            <span class="w-6 h-6 rounded-full flex items-center justify-center text-xs font-black z-10
+                 {% if order.status == 'confirmed' %}bg-white/20{% elif order.status in ['packed','shipped','shipping','delivered','completed'] %}bg-emerald-100{% else %}bg-stone-200{% endif %}">
+              {% if order.status in ['packed','shipped','shipping','delivered','completed'] %}<i class="fa-solid fa-check"></i>{% else %}2{% endif %}
             </span>
-            <span class="text-[11px] font-black uppercase tracking-widest z-10 btn-text">Đóng gói xong</span>
-            <div class="spinner hidden absolute inset-0 bg-blue-600 flex items-center justify-center z-20">
-              <svg class="w-6 h-6 animate-spin text-white" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>
+            <span class="text-[11px] font-black uppercase tracking-widest z-10 btn-text">Đóng gói</span>
+            <div class="spinner hidden absolute inset-0 bg-blue-600 items-center justify-center z-20">
+              <i class="fa-solid fa-circle-notch fa-spin text-white"></i>
             </div>
           </button>
 
-          {# Nút 3: Tạo vận đơn (packed → shipped) — mở Modal #}
-          <button id="btn-fulfill"
-                  onclick="openFulfillModal()"
-                  {% if order.status != 'packed' %}disabled{% endif %}
-                  class="relative flex flex-col items-center gap-3 p-6 rounded-[2rem] border-2 transition-all group overflow-hidden
+          {# Mũi tên nối #}
+          <div class="hidden md:flex items-center justify-center text-stone-300">
+             <i class="fa-solid fa-chevron-right text-xs"></i>
+          </div>
+
+          {# Nút 3: Vận đơn #}
+          <button id="btn-fulfill" onclick="openFulfillModal()" {% if order.status != 'packed' %}disabled{% endif %}
+                  class="flex-1 relative flex items-center justify-center gap-3 py-4 px-2 rounded-full border border-transparent transition-all group overflow-hidden
                   {% if order.status == 'packed' %}
-                    border-emerald-600 bg-emerald-600 text-white shadow-xl hover:scale-[1.02] active:scale-95
+                    bg-emerald-600 text-white shadow-md hover:shadow-lg active:scale-[0.98]
                   {% elif order.status in ['shipped','shipping','delivered','completed'] %}
-                    border-emerald-200 bg-emerald-50 text-emerald-600 cursor-default
+                    bg-white text-emerald-600 border-emerald-100 shadow-sm cursor-default
                   {% else %}
-                    border-stone-100 bg-stone-50 text-stone-300 opacity-60 cursor-not-allowed
+                    text-stone-400 cursor-not-allowed
                   {% endif %}">
-            <span class="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center font-black text-lg z-10">
-              {% if order.status in ['shipped','shipping','delivered','completed'] %}
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>
-              {% else %}3{% endif %}
+            <span class="w-6 h-6 rounded-full flex items-center justify-center text-xs font-black z-10
+                 {% if order.status == 'packed' %}bg-white/20{% elif order.status in ['shipped','shipping','delivered','completed'] %}bg-emerald-100{% else %}bg-stone-200{% endif %}">
+              {% if order.status in ['shipped','shipping','delivered','completed'] %}<i class="fa-solid fa-check"></i>{% else %}3{% endif %}
             </span>
             <span class="text-[11px] font-black uppercase tracking-widest z-10 btn-text">
-              {% if order.status in ['shipped','shipping','delivered','completed'] %}
-                Đã bắn đơn
-              {% else %}
-                Tạo vận đơn
-              {% endif %}
+              {{ 'Đã bắn đơn' if order.status in ['shipped','shipping','delivered','completed'] else 'Tạo vận đơn' }}
             </span>
           </button>
         </div>
 
-        {# WARNING NẾU ĐƠN CHUYỂN KHOẢN CHƯA CÓ TIỀN #}
+        {# CẢNH BÁO CHƯA THANH TOÁN #}
         {% if not can_process and order.status == 'pending' %}
         <div class="mb-8 p-4 bg-rose-50 border border-rose-100 rounded-2xl flex items-start gap-3 no-print">
-          <svg class="w-5 h-5 text-rose-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
-          <p class="text-[10px] font-bold text-rose-700 leading-relaxed uppercase tracking-wide">
-            Lỗi Quy Trình: Đơn hàng yêu cầu {{ order.payment_method }} nhưng chưa nhận được tiền.<br>Kế toán cần "Xác nhận đã thu tiền" ở cột bên phải trước khi Kho có thể xử lý.
-          </p>
-        </div>
-        {% endif %}
-
-        {# ── TRACKING CODE BADGE (Hiện sau khi bắn đơn) ── #}
-        {% if order.shipments and order.shipments.tracking_code %}
-        <div class="mb-6 p-4 bg-stone-50 border border-stone-200 rounded-2xl flex items-center justify-between no-print">
-          <div>
-            <p class="text-[10px] font-black uppercase tracking-widest text-stone-400 mb-1">Mã vận đơn</p>
-            <p class="text-base font-black text-stone-900 font-mono tracking-wider">{{ order.shipments.tracking_code }}</p>
+          <div class="w-8 h-8 bg-rose-100 text-rose-600 rounded-full flex items-center justify-center shrink-0">
+             <i class="fa-solid fa-triangle-exclamation"></i>
           </div>
-          <span class="text-[10px] font-black uppercase tracking-widest px-3 py-1.5 bg-white border border-stone-200 rounded-xl shadow-sm text-stone-600 flex items-center gap-1.5">
-            {% if provider_info.icon %}<span style="text-transform:none">{{ provider_info.icon }}</span>{% endif %}
-            {{ provider_info.name if provider_info.name else order.shipments.provider | upper }}
-          </span>
+          <div>
+            <p class="text-xs font-black text-rose-800 uppercase tracking-wide mb-1">Chờ xác nhận thanh toán</p>
+            <p class="text-[11px] font-medium text-rose-600 leading-relaxed">
+              Đơn hàng thanh toán qua {{ order.payment_method }} nhưng chưa ghi nhận được tiền. Vui lòng xác nhận thu tiền ở cột bên phải để tiếp tục xử lý kho.
+            </p>
+          </div>
         </div>
         {% endif %}
 
-        {# ── TIMELINE: HÀNH TRÌNH VẬN CHUYỂN LIVE ── #}
+        {# ── MÃ VẬN ĐƠN ── #}
+        {% if order.shipments and order.shipments.tracking_code %}
+        <div class="mb-6 p-5 bg-gradient-to-r from-stone-50 to-white border border-stone-200 rounded-2xl flex items-center justify-between no-print shadow-sm">
+          <div>
+            <p class="text-[10px] font-bold uppercase tracking-widest text-stone-400 mb-1">Mã vận đơn</p>
+            <p class="text-lg font-black text-stone-900 font-mono tracking-widest">{{ order.shipments.tracking_code }}</p>
+          </div>
+          <div class="text-right">
+             <span class="inline-flex items-center gap-2 px-3 py-1.5 bg-white border border-stone-200 rounded-xl shadow-sm text-[11px] font-bold text-stone-700">
+              {% if provider_info.icon %}
+                <i class="fa-solid {{ provider_info.icon.replace('fa-solid ', '') }} text-base text-stone-500"></i>
+              {% endif %}
+              {{ provider_info.name if provider_info.name else order.shipments.provider | upper }}
+            </span>
+          </div>
+        </div>
+        {% endif %}
+
+        {# ── TIMELINE HÀNH TRÌNH ── #}
         {% if order.shipments %}
-        <div class="space-y-6 mt-4 p-6 bg-[#fafaf8] rounded-3xl border border-stone-200/60">
-          <div class="flex items-center justify-between border-b border-stone-200/60 pb-4">
-            <h3 class="text-[10px] font-black uppercase tracking-[0.2em] text-stone-400">Hành trình vận chuyển (Live Tracking)</h3>
-            {% set s_status = order.shipments.status %}
-            <span class="px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-sm
-              {% if s_status == 'delivered' %} bg-emerald-500 text-white
-              {% elif s_status in ['failed', 'returned', 'cancelled'] %} bg-red-500 text-white
-              {% else %} bg-indigo-500 text-white {% endif %}">
-              {{ s_status }}
+        <div class="mt-8">
+          <div class="flex items-center justify-between mb-6">
+            <h3 class="text-xs font-black uppercase tracking-[0.15em] text-stone-900">Hành trình giao hàng</h3>
+            <span class="text-[10px] font-bold text-stone-500 uppercase tracking-widest flex items-center gap-1.5">
+               <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> Live Tracking
             </span>
           </div>
 
           {% set events = order.shipments.shipment_events or [] %}
-          {% if events %}
-          <div class="relative pl-8 space-y-6 before:content-[''] before:absolute before:left-[11px] before:top-2 before:bottom-2 before:w-0.5 before:bg-stone-200">
-            {% for event in events %}
-            <div class="relative">
-              <div class="absolute -left-[27px] top-1 w-3 h-3 rounded-full border-2 border-[#fafaf8] shadow-sm
-                {% if loop.first %} bg-stone-900 ring-4 ring-stone-900/10 {% else %} bg-stone-300 {% endif %}"></div>
-              <div class="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2">
-                <div>
-                  <p class="text-sm font-black text-stone-900">{{ event.status | upper }}</p>
-                  <p class="text-xs font-medium text-stone-600 mt-0.5 leading-relaxed">{{ event.description }}</p>
-                  {% if event.location %}
-                  <p class="text-[10px] font-bold text-stone-400 mt-1.5">
-                    <i class="fa-solid fa-location-dot mr-1"></i>{{ event.location }}
-                  </p>
-                  {% endif %}
+          <div class="bg-stone-50/50 border border-stone-100 rounded-2xl p-6">
+            {% if events %}
+            <div class="relative pl-6 space-y-6 before:content-[''] before:absolute before:left-[11px] before:top-2 before:bottom-2 before:w-0.5 before:bg-stone-200">
+              {% for event in events %}
+              <div class="relative group">
+                <div class="absolute -left-[25px] top-1.5 w-3 h-3 rounded-full border-2 border-white shadow-sm transition-all
+                  {% if loop.first %} bg-emerald-500 ring-4 ring-emerald-500/20 {% else %} bg-stone-300 group-hover:bg-stone-400 {% endif %}"></div>
+                <div class="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-1">
+                  <div>
+                    <p class="text-[13px] font-black text-stone-900">{{ event.status | upper }}</p>
+                    <p class="text-xs font-medium text-stone-600 mt-1">{{ event.description }}</p>
+                    {% if event.location %}
+                    <p class="text-[11px] font-medium text-stone-400 mt-1.5 flex items-center gap-1">
+                      <i class="fa-solid fa-location-dot text-[10px]"></i> {{ event.location }}
+                    </p>
+                    {% endif %}
+                  </div>
+                  <time class="text-[11px] font-bold text-stone-400 tabular-nums shrink-0 mt-1 sm:mt-0 text-right">
+                    {{ event.created_at[11:16] }}<br>
+                    <span class="text-[10px] font-medium">{{ event.created_at[8:10] }}/{{ event.created_at[5:7] }}</span>
+                  </time>
                 </div>
-                <time class="text-[10px] font-bold text-stone-400 uppercase tracking-widest tabular-nums shrink-0 sm:text-right">
-                  {{ event.created_at[11:16] }}<br class="hidden sm:block">
-                  <span class="sm:mt-0.5 inline-block">{{ event.created_at[8:10] }}/{{ event.created_at[5:7] }}</span>
-                </time>
               </div>
+              {% endfor %}
             </div>
-            {% endfor %}
+            {% else %}
+            <div class="text-center py-8">
+              <div class="w-12 h-12 bg-stone-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                 <i class="fa-solid fa-truck-fast text-stone-400"></i>
+              </div>
+              <p class="text-xs font-medium text-stone-500">Đang chờ cập nhật trạng thái từ đối tác vận chuyển...</p>
+            </div>
+            {% endif %}
           </div>
-          {% else %}
-          <p class="text-xs font-bold text-stone-400 text-center py-4">
-            Đang chờ cập nhật trạng thái đầu tiên từ hãng vận chuyển...
-          </p>
-          {% endif %}
         </div>
         {% endif %}
       </div>
 
-      {# ─── 2. DANH SÁCH SẢN PHẨM ─── #}
-      <div class="bg-white rounded-[2.5rem] shadow-[0_4px_20px_rgb(0,0,0,0.03)] border border-stone-100 overflow-hidden fade-up delay-2 print-box">
-        <div class="px-8 py-6 bg-stone-50/50 border-b border-stone-100 flex justify-between items-center">
-          <h3 class="text-xs font-black text-stone-900 uppercase tracking-[0.2em]">Danh mục đóng gói</h3>
-          <span class="text-[10px] font-black text-stone-600 bg-white border border-stone-200 shadow-sm px-3 py-1.5 rounded-lg">{{ order.order_items|length }} mặt hàng</span>
+      {# ─── 2. DANH SÁCH SẢN PHẨM & HÓA ĐƠN ĐÚNG CHUẨN ─── #}
+      <div class="bg-white rounded-3xl shadow-card border border-stone-100 overflow-hidden fade-up delay-2 print-box">
+        <div class="px-6 py-5 border-b border-stone-100 flex justify-between items-center bg-white">
+          <h3 class="text-sm font-black text-stone-900 tracking-tight">Sản phẩm đã đặt</h3>
+          <span class="text-[11px] font-bold text-stone-500 bg-stone-100 px-3 py-1 rounded-full">{{ order.order_items|length }} sản phẩm</span>
         </div>
 
-        <div class="divide-y divide-stone-50">
+        <div class="divide-y divide-stone-100">
+          {% set subtotal = namespace(value=0) %}
           {% for item in order.order_items %}
-          <div class="p-8 flex items-center gap-6 hover:bg-stone-50/50 transition-colors">
-            <div class="w-20 aspect-[3/4] bg-stone-50 rounded-2xl overflow-hidden shrink-0 border border-stone-100">
-              <img src="{{ item.get('products', {}).get('thumbnail_url') or 'https://placehold.co/300x400' }}" class="w-full h-full object-cover mix-blend-multiply">
+          {% set item_total = item.unit_price * item.quantity %}
+          {% set subtotal.value = subtotal.value + item_total %}
+          
+          <div class="p-6 flex items-start sm:items-center gap-5 hover:bg-stone-50/50 transition-colors">
+            <div class="w-16 h-20 sm:w-20 sm:h-24 bg-stone-50 rounded-xl overflow-hidden shrink-0 border border-stone-200">
+              <img src="{{ item.get('products', {}).get('thumbnail_url') or 'https://placehold.co/300x400' }}" class="w-full h-full object-cover mix-blend-multiply" alt="Product">
             </div>
             <div class="flex-1 min-w-0">
-              <p class="text-base font-black text-stone-900 truncate mb-2">{{ item.get('products', {}).get('name', 'Sản phẩm không rõ') }}</p>
+              <p class="text-sm font-bold text-stone-900 truncate mb-1.5 hover:text-stone-600 transition-colors cursor-pointer">{{ item.get('products', {}).get('name', 'Sản phẩm không rõ') }}</p>
               {% set variant = item.get('product_variants') or {} %}
-              <div class="flex flex-wrap items-center gap-3">
-                <span class="text-[10px] font-black px-2.5 py-1 bg-stone-100 text-stone-600 rounded-md uppercase tracking-widest border border-stone-200/60">
-                  Size {{ variant.get('size', item.get('size', 'N/A')) }}
-                </span>
+              <div class="flex flex-wrap items-center gap-2 mb-2">
+                <span class="text-[10px] font-bold px-2 py-0.5 bg-stone-100 text-stone-600 rounded-md">Size {{ variant.get('size', item.get('size', 'N/A')) }}</span>
                 {% if variant.get('color_name') %}
-                <span class="text-[10px] font-bold text-stone-500 flex items-center gap-1.5 uppercase tracking-wide">
-                  <span class="w-2.5 h-2.5 rounded-full border border-stone-200 shadow-sm variant-color" data-bg="{{ variant.get('color_hex', '#e7e5e4') }}"></span>
+                <span class="text-[10px] font-medium text-stone-500 flex items-center gap-1.5">
+                  <span class="w-2.5 h-2.5 rounded-full border border-stone-200" style="background-color: {{ variant.get('color_hex', '#e7e5e4') }}"></span>
                   {{ variant.get('color_name') }}
                 </span>
                 {% endif %}
               </div>
+              <p class="text-xs font-medium text-stone-500">{{ '{:,.0f}'.format(item.unit_price) }} ₫ <span class="mx-1">x</span> {{ item.quantity }}</p>
             </div>
-            <div class="text-right">
-              <p class="text-sm font-black text-stone-400 uppercase tracking-[0.15em]">SL: <span class="text-stone-900">{{ item.quantity }}</span></p>
-              <p class="text-lg font-black text-stone-900 mt-1">{{ '{:,.0f}'.format(item.unit_price * item.quantity) }} ₫</p>
+            <div class="text-right shrink-0">
+              <p class="text-sm font-black text-stone-900">{{ '{:,.0f}'.format(item_total) }} ₫</p>
             </div>
           </div>
           {% endfor %}
         </div>
 
-        <div class="p-8 bg-stone-900 text-white flex justify-between items-center rounded-b-[2.5rem]">
-          <span class="text-[11px] font-black uppercase tracking-[0.3em] opacity-70">Tổng tiền hàng</span>
-          <span class="text-3xl font-black tracking-tighter">{{ '{:,.0f}'.format(order.total_amount) }} ₫</span>
+        {# BẢNG PHÂN TÍCH CHI PHÍ (COST BREAKDOWN) #}
+        <div class="p-6 bg-stone-50/50 border-t border-stone-100">
+          <div class="max-w-xs ml-auto space-y-3">
+            <div class="flex justify-between items-center text-sm">
+              <span class="font-medium text-stone-500">Tạm tính</span>
+              <span class="font-bold text-stone-900">{{ '{:,.0f}'.format(subtotal.value) }} ₫</span>
+            </div>
+            <div class="flex justify-between items-center text-sm">
+              <span class="font-medium text-stone-500">Phí vận chuyển</span>
+              <span class="font-bold text-stone-900">{{ '{:,.0f}'.format(order.shipping_fee) }} ₫</span>
+            </div>
+            {% if order.discount_amount and order.discount_amount > 0 %}
+            <div class="flex justify-between items-center text-sm">
+              <span class="font-medium text-emerald-600">Giảm giá</span>
+              <span class="font-bold text-emerald-600">-{{ '{:,.0f}'.format(order.discount_amount) }} ₫</span>
+            </div>
+            {% endif %}
+            <div class="pt-4 mt-2 border-t border-stone-200 flex justify-between items-end">
+              <div>
+                <span class="block text-[11px] font-black uppercase tracking-widest text-stone-400">Tổng cộng</span>
+              </div>
+              <span class="text-2xl font-black text-stone-900">{{ '{:,.0f}'.format(order.total_amount) }} ₫</span>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -263,12 +296,12 @@
     {# ══════════════════════════════
        CỘT PHẢI (4/12): KHÁCH HÀNG & THANH TOÁN
        ══════════════════════════════ #}
-    <div class="lg:col-span-4 space-y-8">
+    <div class="lg:col-span-4 space-y-6">
 
       {# ─── 1. TIMELINE TỔNG QUAN ─── #}
-      <div class="bg-white rounded-[2.5rem] shadow-[0_4px_20px_rgb(0,0,0,0.03)] border border-stone-100 p-8 fade-up print-box">
-        <h3 class="text-[10px] font-black uppercase tracking-[0.2em] text-stone-400 mb-6">Trạng thái Tổng quan</h3>
-        <div class="relative pl-6 space-y-6 before:content-[''] before:absolute before:left-[7px] before:top-2 before:bottom-2 before:w-0.5 before:bg-stone-100">
+      <div class="bg-white rounded-3xl shadow-card border border-stone-100 p-6 lg:p-8 fade-up print-box">
+        <h3 class="text-xs font-black uppercase tracking-[0.15em] text-stone-900 mb-6">Tiến độ đơn hàng</h3>
+        <div class="relative pl-6 space-y-7 before:content-[''] before:absolute before:left-[7px] before:top-2 before:bottom-2 before:w-[2px] before:bg-stone-100">
           {% set status_order = {'pending':0,'confirmed':1,'packed':2,'shipped':3,'shipping':3,'completed':4,'delivered':4,'cancelled':-1,'failed':-1,'returned':-1} %}
           {% set cur_idx = status_order.get(order.status, 0) %}
           {% set steps = [('pending','Khách đặt hàng'),('confirmed','Đã xác nhận'),('packed','Đóng gói xong'),('shipped','Đang vận chuyển'),('completed','Hoàn tất giao dịch')] %}
@@ -276,23 +309,25 @@
           {% for slug, label in steps %}
           {% set i = loop.index0 %}
           <div class="relative flex items-center gap-4 {% if i > cur_idx and cur_idx != -1 %}opacity-40{% endif %}">
-            <div class="absolute -left-[30px] w-4 h-4 rounded-full border-2 border-white shadow-sm flex items-center justify-center
+            <div class="absolute -left-[30px] w-4 h-4 rounded-full border-2 border-white shadow-sm flex items-center justify-center transition-colors
               {% if cur_idx == -1 %} bg-stone-200
               {% elif i < cur_idx %} bg-stone-900
-              {% elif i == cur_idx %} bg-stone-900 ring-4 ring-stone-900/20
+              {% elif i == cur_idx %} bg-emerald-500 ring-4 ring-emerald-500/20
               {% else %} bg-stone-200 {% endif %}">
               {% if i < cur_idx and cur_idx != -1 %}
-              <svg class="w-2.5 h-2.5 text-white" fill="none" stroke="currentColor" stroke-width="4" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+              <i class="fa-solid fa-check text-[8px] text-white"></i>
               {% endif %}
             </div>
-            <span class="text-xs font-black uppercase tracking-widest {% if i <= cur_idx and cur_idx != -1 %}text-stone-900{% else %}text-stone-400{% endif %}">{{ label }}</span>
+            <span class="text-xs font-bold uppercase tracking-wider {% if i == cur_idx %}text-emerald-600{% elif i < cur_idx and cur_idx != -1 %}text-stone-900{% else %}text-stone-400{% endif %}">{{ label }}</span>
           </div>
           {% endfor %}
 
           {% if order.status in ['cancelled', 'failed', 'returned'] %}
-          <div class="relative flex items-center gap-4">
-            <div class="absolute -left-[30px] w-4 h-4 rounded-full bg-red-400 border-2 border-white shadow-sm ring-4 ring-red-400/20"></div>
-            <span class="text-xs font-black uppercase tracking-widest text-red-500">
+          <div class="relative flex items-center gap-4 pt-2">
+            <div class="absolute -left-[30px] w-4 h-4 rounded-full bg-rose-500 border-2 border-white shadow-sm ring-4 ring-rose-500/20 flex items-center justify-center">
+               <i class="fa-solid fa-xmark text-[8px] text-white"></i>
+            </div>
+            <span class="text-xs font-black uppercase tracking-widest text-rose-600">
               {{ {'cancelled':'Đã hủy', 'failed':'Giao thất bại', 'returned':'Hoàn hàng'}.get(order.status, order.status) }}
             </span>
           </div>
@@ -301,25 +336,30 @@
       </div>
 
       {# ─── 2. THÔNG TIN GIAO HÀNG ─── #}
-      <div class="bg-white rounded-[2.5rem] p-8 shadow-sm border border-stone-100 fade-up delay-1 print-box">
-        <h3 class="text-[10px] font-black uppercase tracking-widest text-stone-400 mb-6">Thông tin Giao hàng</h3>
+      <div class="bg-white rounded-3xl p-6 lg:p-8 shadow-card border border-stone-100 fade-up delay-1 print-box">
+        <div class="flex justify-between items-center mb-6">
+           <h3 class="text-xs font-black uppercase tracking-[0.15em] text-stone-900">Khách hàng</h3>
+           <a href="#" class="text-[10px] font-bold text-blue-600 hover:text-blue-800 transition-colors uppercase tracking-widest">Sửa</a>
+        </div>
         <div class="space-y-5">
           <div class="flex items-center gap-4">
-            <div class="w-12 h-12 bg-stone-50 border border-stone-200 rounded-2xl flex items-center justify-center text-stone-900 font-black text-xl shadow-sm">
+            <div class="w-12 h-12 bg-stone-100 rounded-full flex items-center justify-center text-stone-600 font-black text-lg shadow-inner">
               {{ order.shipping_address.get('full_name','?')[0] | upper }}
             </div>
-            <div>
-              <p class="text-sm font-black text-stone-900">{{ order.shipping_address.get('full_name','') }}</p>
-              <p class="text-[11px] font-bold text-stone-500 mt-0.5 tracking-wider">{{ order.shipping_address.get('phone','') }}</p>
-              {% if order.get('users', {}).get('email') %}
-              <p class="text-[10px] font-medium text-stone-400 mt-0.5">{{ order.users.email }}</p>
-              {% endif %}
+            <div class="flex-1 min-w-0">
+              <p class="text-sm font-black text-stone-900 truncate">{{ order.shipping_address.get('full_name','') }}</p>
+              <div class="flex items-center gap-2 mt-0.5 group">
+                <p class="text-[12px] font-medium text-stone-500">{{ order.shipping_address.get('phone','') }}</p>
+                <i class="fa-regular fa-copy text-stone-300 opacity-0 group-hover:opacity-100 cursor-pointer hover:text-stone-600 transition-all text-[10px]"></i>
+              </div>
             </div>
           </div>
-          <div class="h-px w-full bg-stone-100"></div>
-          <div>
-            <p class="text-[10px] font-black text-stone-400 uppercase tracking-widest mb-1.5">Địa chỉ bàn giao</p>
-            <p class="text-sm font-bold text-stone-700 leading-relaxed">
+          
+          <div class="p-4 bg-stone-50 rounded-2xl border border-stone-100">
+            <p class="text-[10px] font-bold text-stone-400 uppercase tracking-widest mb-1.5 flex items-center gap-1.5">
+               <i class="fa-solid fa-map-location-dot"></i> Địa chỉ nhận hàng
+            </p>
+            <p class="text-xs font-medium text-stone-700 leading-relaxed">
               {{ order.shipping_address.get('address','') }}<br>
               {{ order.shipping_address.get('district','') }}{% if order.shipping_address.get('district') and order.shipping_address.get('city') %}, {% endif %}{{ order.shipping_address.get('city','') }}
             </p>
@@ -328,59 +368,43 @@
       </div>
 
       {# ─── 3. KẾ TOÁN & THANH TOÁN ─── #}
-      <div class="bg-white rounded-[2.5rem] p-8 shadow-sm border border-stone-100 fade-up delay-2 print-box">
-        <h3 class="text-[10px] font-black uppercase tracking-widest text-stone-400 mb-6">Kế toán & Đối soát</h3>
+      <div class="bg-white rounded-3xl p-6 lg:p-8 shadow-card border border-stone-100 fade-up delay-2 print-box">
+        <h3 class="text-xs font-black uppercase tracking-[0.15em] text-stone-900 mb-6">Thanh toán</h3>
         <div class="space-y-4">
-          <div class="flex justify-between items-center pb-4 border-b border-stone-50">
-            <span class="text-[11px] font-bold text-stone-500 uppercase tracking-widest">Hình thức</span>
-            <span class="text-xs font-black text-stone-900 uppercase bg-stone-100 px-3 py-1 rounded-lg">{{ order.payment_method }}</span>
+          <div class="flex justify-between items-center p-3 bg-stone-50 rounded-xl">
+            <span class="text-[11px] font-bold text-stone-500 uppercase tracking-widest">Phương thức</span>
+            <span class="text-[11px] font-black text-stone-900 uppercase">{{ order.payment_method }}</span>
           </div>
-          <div class="flex justify-between items-center pb-4 border-b border-stone-50">
-            <span class="text-[11px] font-bold text-stone-500 uppercase tracking-widest">Trạng thái</span>
+          
+          <div class="flex justify-between items-center p-3 {% if order.payment_status == 'paid' %}bg-emerald-50 border-emerald-100{% else %}bg-amber-50 border-amber-100{% endif %} rounded-xl border">
+            <span class="text-[11px] font-bold uppercase tracking-widest {% if order.payment_status == 'paid' %}text-emerald-700{% else %}text-amber-700{% endif %}">Trạng thái</span>
+            
             {% if order.payment_status == 'paid' %}
-            <span class="px-3 py-1 bg-emerald-50 text-emerald-600 border border-emerald-100 text-[10px] font-black uppercase tracking-widest rounded-lg flex items-center gap-1.5">
-              <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>
-              Đã thu tiền
+            <span class="text-[11px] font-black uppercase tracking-widest text-emerald-600 flex items-center gap-1.5">
+              <i class="fa-solid fa-circle-check"></i> Đã thanh toán
             </span>
             {% else %}
-            <span class="px-3 py-1 bg-amber-50 text-amber-600 border border-amber-100 text-[10px] font-black uppercase tracking-widest rounded-lg flex items-center gap-1.5">
-              <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
-              {% if order.payment_method in ['COD', 'TIỀN MẶT', 'CASH'] %}
-                Chờ thu hộ (COD)
-              {% else %}
-                Chờ thanh toán
-              {% endif %}
+            <span class="text-[11px] font-black uppercase tracking-widest text-amber-600 flex items-center gap-1.5">
+              <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span> Chờ thu tiền
             </span>
             {% endif %}
           </div>
 
-          {% if order.discount_amount and order.discount_amount > 0 %}
-          <div class="flex justify-between items-center pb-4 border-b border-stone-50">
-            <span class="text-[11px] font-bold text-stone-500 uppercase tracking-widest">Giảm giá</span>
-            <span class="text-xs font-black text-emerald-600">-{{ '{:,.0f}'.format(order.discount_amount) }} ₫</span>
-          </div>
-          {% endif %}
-
           {% if order.status != 'cancelled' and order.payment_status != 'paid' %}
             {% if order.payment_method in ['COD', 'TIỀN MẶT', 'CASH'] and order.status not in ['delivered', 'completed'] %}
-            {# Đơn COD đang trên đường giao -> Ẩn nút xác nhận thu tiền thủ công #}
-            <div class="pt-2 no-print">
-              <div class="px-4 py-3.5 bg-blue-50/50 border border-blue-100 rounded-xl flex items-start gap-3">
-                <svg class="w-4 h-4 text-blue-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z"/></svg>
-                <p class="text-[10px] font-bold text-blue-700 leading-relaxed uppercase tracking-wide">
-                  Hệ thống sẽ tự động cập nhật "Đã thu tiền" khi đơn vị vận chuyển báo giao thành công.
-                </p>
-              </div>
+            <div class="pt-3 no-print">
+              <p class="text-[10px] font-medium text-stone-400 text-center italic">
+                Hệ thống tự động cập nhật thanh toán khi đơn vị vận chuyển báo giao thành công.
+              </p>
             </div>
             {% else %}
-            {# Các trường hợp khác (Chuyển khoản, VNPay hoặc COD bị lỗi webhook phải xác nhận tay) #}
-            <div class="pt-2 no-print">
+            <div class="pt-3 no-print">
               <form action="{{ url_for('admin.update_payment_status', order_id=order.id) }}" method="POST"
                     onsubmit="return confirm('Xác nhận đã thu tiền thành công cho đơn hàng này?')">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <input type="hidden" name="payment_status" value="paid">
-                <button type="submit" class="w-full py-3.5 bg-stone-900 text-white rounded-xl text-[10px] font-black uppercase tracking-[0.2em] hover:bg-stone-800 transition-all shadow-lg active:scale-95">
-                  Xác nhận đã thu tiền
+                <button type="submit" class="w-full py-3.5 bg-stone-900 text-white rounded-xl text-[11px] font-black uppercase tracking-[0.2em] hover:bg-stone-800 transition-all shadow-md hover:shadow-lg active:scale-95 flex items-center justify-center gap-2">
+                  <i class="fa-solid fa-hand-holding-dollar"></i> Xác nhận thu tiền
                 </button>
               </form>
             </div>
@@ -393,47 +417,47 @@
   </div>
 </div>
 
+{# Các Modal (Fulfill, Cancel) và Script giữ nguyên như cũ vì logic đang chạy rất tốt #}
 {# ════════════════════════════════════════════════════════════════
-   MODAL: FULFILLMENT — CHỌN HÃNG VẬN CHUYỂN (DYNAMIC)
+   MODAL: FULFILLMENT — CHỌN HÃNG VẬN CHUYỂN
 ════════════════════════════════════════════════════════════════ #}
 {% if order.status == 'packed' %}
 <div id="modal-fulfill" class="fixed inset-0 z-50 hidden items-center justify-center p-4">
-  <div class="absolute inset-0 bg-stone-900/40 backdrop-blur-sm" onclick="closeFulfillModal()"></div>
-  <div class="relative bg-white rounded-[2.5rem] shadow-2xl p-10 max-w-md w-full animate-modal">
+  <div class="absolute inset-0 bg-stone-900/60 backdrop-blur-sm" onclick="closeFulfillModal()"></div>
+  <div class="relative bg-white rounded-3xl shadow-2xl p-8 max-w-md w-full animate-modal">
     <button onclick="closeFulfillModal()" class="absolute top-6 right-6 w-8 h-8 rounded-full bg-stone-100 flex items-center justify-center text-stone-500 hover:bg-stone-200 hover:text-stone-900 transition-colors">
-      <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+      <i class="fa-solid fa-xmark"></i>
     </button>
-    <h3 class="text-xl font-black text-stone-900 mb-2 tracking-tight text-center uppercase">Bàn giao vận chuyển</h3>
-    <p class="text-center text-[10px] font-bold text-stone-400 uppercase tracking-widest mb-8">Chọn đối tác vận chuyển</p>
+    <div class="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center mb-4 mx-auto text-xl">
+       <i class="fa-solid fa-truck-fast"></i>
+    </div>
+    <h3 class="text-xl font-black text-stone-900 mb-1 text-center tracking-tight">Giao Vận Chuyển</h3>
+    <p class="text-center text-xs font-medium text-stone-500 mb-8">Chọn đối tác để tạo mã vận đơn tự động</p>
 
-    {# DYNAMIC: Render từ ShippingService.list_providers() qua controller #}
     <div class="space-y-3 mb-8">
       {% for p in providers %}
-      <label class="block cursor-pointer">
-        <input type="radio" name="provider" value="{{ p.id }}"
-               class="peer sr-only"
-               {% if p.id == 'mock' %}checked{% endif %}>
-        <div class="p-4 border-2 border-stone-100 rounded-2xl flex items-center gap-4 peer-checked:border-stone-900 peer-checked:bg-stone-50 transition-all hover:border-stone-300">
-          <span class="text-xl w-8 text-center">{{ p.icon }}</span>
+      <label class="block cursor-pointer group">
+        <input type="radio" name="provider" value="{{ p.id }}" class="peer sr-only" {% if p.id == 'mock' %}checked{% endif %}>
+        <div class="p-4 border-2 border-stone-100 rounded-2xl flex items-center gap-4 peer-checked:border-emerald-500 peer-checked:bg-emerald-50/30 transition-all group-hover:border-stone-300">
+         <div class="text-2xl w-12 flex items-center justify-center shrink-0 drop-shadow-sm text-stone-500 group-hover:text-emerald-600 peer-checked:text-emerald-600 transition-colors">
+          <i class="fa-solid {{ p.icon.replace('fa-solid ', '') }}"></i>
+        </div>
           <div class="flex-1 min-w-0">
-            <p class="font-black text-sm text-stone-900">{{ p.name or p.label }}</p>
-            {% if p.description %}
-            <p class="text-[10px] font-bold text-stone-400 mt-0.5">{{ p.description }}</p>
-            {% endif %}
+            <p class="font-bold text-sm text-stone-900">{{ p.name or p.label }}</p>
+            {% if p.description %}<p class="text-[10px] font-medium text-stone-500 mt-0.5 truncate">{{ p.description }}</p>{% endif %}
           </div>
-          <div class="w-4 h-4 rounded-full border-2 border-stone-200 peer-checked:border-stone-900 peer-checked:bg-stone-900 flex items-center justify-center shrink-0">
-            <div class="w-1.5 h-1.5 bg-white rounded-full"></div>
+          <div class="w-5 h-5 rounded-full border-2 border-stone-300 peer-checked:border-emerald-500 flex items-center justify-center shrink-0">
+            <div class="w-2.5 h-2.5 bg-emerald-500 rounded-full opacity-0 peer-checked:opacity-100 transition-opacity"></div>
           </div>
         </div>
       </label>
       {% endfor %}
     </div>
 
-    <button onclick="submitFulfill()" id="btnSubmitFulfill"
-            class="relative overflow-hidden w-full bg-stone-900 text-white py-4 rounded-xl text-[11px] font-black uppercase tracking-[0.2em] hover:bg-stone-800 transition-all active:scale-95 shadow-xl shadow-stone-900/20 flex items-center justify-center h-[52px]">
-      <span class="btn-text">Xác nhận & Bắn lệnh ship</span>
-      <div class="spinner hidden absolute inset-0 bg-stone-900 items-center justify-center z-20">
-        <svg class="w-5 h-5 animate-spin text-white" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>
+    <button onclick="submitFulfill()" id="btnSubmitFulfill" class="relative overflow-hidden w-full bg-emerald-600 text-white py-4 rounded-2xl text-[12px] font-black uppercase tracking-widest hover:bg-emerald-700 transition-all active:scale-[0.98] shadow-lg shadow-emerald-600/20 flex items-center justify-center">
+      <span class="btn-text">Xác nhận & Bắn lệnh</span>
+      <div class="spinner hidden absolute inset-0 bg-emerald-700 items-center justify-center z-20">
+        <i class="fa-solid fa-circle-notch fa-spin text-white text-lg"></i>
       </div>
     </button>
   </div>
@@ -446,25 +470,23 @@
 {% if order.status in ['pending', 'confirmed', 'packed'] %}
 <div id="modal-cancel" class="fixed inset-0 z-50 hidden items-center justify-center p-4">
   <div class="absolute inset-0 bg-stone-900/60 backdrop-blur-sm" onclick="closeCancelModal()"></div>
-  <div class="relative bg-white rounded-[2.5rem] shadow-2xl max-w-md w-full p-10 animate-modal">
-    <div class="flex flex-col items-center text-center mb-8">
-      <div class="w-16 h-16 rounded-[1.25rem] bg-red-50 flex items-center justify-center mb-6">
-        <svg class="w-8 h-8 text-red-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"/></svg>
+  <div class="relative bg-white rounded-3xl shadow-2xl max-w-md w-full p-8 animate-modal">
+    <div class="flex flex-col items-center text-center mb-6">
+      <div class="w-16 h-16 rounded-full bg-rose-50 flex items-center justify-center mb-4 border border-rose-100">
+        <i class="fa-solid fa-triangle-exclamation text-2xl text-rose-500"></i>
       </div>
-      <h2 class="text-xl font-black text-stone-900 mb-2">Hủy đơn hàng</h2>
-      <p class="text-sm font-medium text-stone-500 leading-relaxed">
-        Bạn đang thực hiện hủy đơn <span class="font-bold text-stone-900">#{{ order.id[:8].upper() }}</span>.<br>
-        Khách hàng sẽ nhận được thông báo.
+      <h2 class="text-xl font-black text-stone-900 mb-2">Xác nhận hủy đơn</h2>
+      <p class="text-sm font-medium text-stone-500 leading-relaxed px-4">
+        Hành động này không thể hoàn tác. Khách hàng sẽ được thông báo ngay lập tức.
       </p>
     </div>
-    <div id="cancel-error" class="hidden mb-4 p-4 rounded-xl bg-red-50 text-[11px] font-bold text-red-600 text-center uppercase tracking-widest"></div>
-    <div class="flex gap-3">
-      <button onclick="closeCancelModal()" class="flex-1 px-5 py-4 bg-stone-100 hover:bg-stone-200 text-stone-900 font-black text-[10px] uppercase tracking-widest rounded-2xl transition-all active:scale-95">Quay lại</button>
-      <button id="btn-confirm-cancel" onclick="confirmCancelAdmin()"
-              class="flex-1 px-5 py-4 bg-red-500 hover:bg-red-600 text-white font-black text-[10px] uppercase tracking-widest rounded-2xl transition-all active:scale-95 relative overflow-hidden h-[52px]">
-        <span class="btn-text">Xác nhận Hủy</span>
-        <div class="spinner hidden absolute inset-0 bg-red-600 items-center justify-center z-20">
-          <svg class="w-4 h-4 animate-spin text-white" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>
+    <div id="cancel-error" class="hidden mb-4 p-3 rounded-xl bg-rose-50 text-[11px] font-bold text-rose-600 text-center uppercase tracking-widest border border-rose-100"></div>
+    <div class="flex gap-3 mt-8">
+      <button onclick="closeCancelModal()" class="flex-1 py-4 bg-stone-100 hover:bg-stone-200 text-stone-700 font-bold text-xs uppercase tracking-widest rounded-2xl transition-all active:scale-95">Đóng</button>
+      <button id="btn-confirm-cancel" onclick="confirmCancelAdmin()" class="flex-1 py-4 bg-rose-500 hover:bg-rose-600 text-white font-black text-xs uppercase tracking-widest rounded-2xl transition-all active:scale-95 relative overflow-hidden">
+        <span class="btn-text">Hủy đơn ngay</span>
+        <div class="spinner hidden absolute inset-0 bg-rose-600 items-center justify-center z-20">
+          <i class="fa-solid fa-circle-notch fa-spin text-white"></i>
         </div>
       </button>
     </div>
@@ -479,24 +501,23 @@
     .lg\:col-span-8, .lg\:col-span-4 { width: 100% !important; grid-column: span 12 / span 12 !important; }
     .print-box { box-shadow: none !important; border: 1px solid #eee !important; margin-bottom: 2rem !important; }
   }
-  .fade-up { opacity: 0; animation: fadeUpAnim 0.6s cubic-bezier(0.22, 1, 0.36, 1) forwards; }
+  .fade-up { opacity: 0; animation: fadeUpAnim 0.5s cubic-bezier(0.22, 1, 0.36, 1) forwards; }
   .delay-1 { animation-delay: 0.1s; } .delay-2 { animation-delay: 0.2s; }
-  @keyframes fadeUpAnim { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes fadeUpAnim { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
   .animate-modal { animation: modalIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; }
-  @keyframes modalIn { from { opacity: 0; transform: scale(0.95) translateY(10px); } to { opacity: 1; transform: scale(1) translateY(0); } }
+  @keyframes modalIn { from { opacity: 0; transform: scale(0.97) translateY(10px); } to { opacity: 1; transform: scale(1) translateY(0); } }
+  .shadow-card { box-shadow: 0 4px 20px -2px rgba(0,0,0,0.03), 0 0 3px rgba(0,0,0,0.02); }
 </style>
 
 <script>
 const ORDER_ID = "{{ order.id }}";
 
-// ── Màu biến thể ──
 document.addEventListener("DOMContentLoaded", () => {
   document.querySelectorAll('.variant-color').forEach(el => {
     el.style.backgroundColor = el.dataset.bg;
   });
 });
 
-// ── Bước 1 & 2: Xác nhận đơn / Đóng gói ──
 async function processOrder(action, btnElement) {
   if (btnElement.disabled) return;
   if (!confirm("Xác nhận hoàn thành bước này?")) return;
@@ -505,6 +526,7 @@ async function processOrder(action, btnElement) {
   const spinner = btnElement.querySelector('.spinner');
   btnText.classList.add('opacity-0');
   spinner.classList.remove('hidden');
+  spinner.classList.add('flex');
   btnElement.disabled = true;
 
   try {
@@ -529,11 +551,10 @@ function _resetBtn(btn) {
   const btnText = btn.querySelector('.btn-text');
   const spinner = btn.querySelector('.spinner');
   if (btnText) btnText.classList.remove('opacity-0');
-  if (spinner) spinner.classList.add('hidden');
+  if (spinner) { spinner.classList.add('hidden'); spinner.classList.remove('flex'); }
   btn.disabled = false;
 }
 
-// ── Bước 3: Modal chọn hãng vận chuyển ──
 function openFulfillModal() {
   const m = document.getElementById('modal-fulfill');
   if (m) { m.classList.remove('hidden'); m.classList.add('flex'); }
@@ -583,7 +604,6 @@ function _resetFulfillBtn(btn) {
   spinner.classList.remove('flex');
 }
 
-// ── Hủy đơn ──
 function openCancelModal() {
   const m = document.getElementById("modal-cancel");
   if (m) { m.classList.remove("hidden"); m.classList.add("flex"); }
@@ -629,7 +649,6 @@ function _resetCancelBtn(btn) {
   spinner.classList.remove('flex');
 }
 
-// ESC đóng modal
 document.addEventListener("keydown", (e) => {
   if (e.key === "Escape") { closeCancelModal(); closeFulfillModal(); }
 });

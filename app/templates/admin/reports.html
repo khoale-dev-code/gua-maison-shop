@@ -1,157 +1,807 @@
 {% extends "admin/admin_base.html" %}
-{% block title %}Phân tích dữ liệu | GUA Admin{% endblock %}
+{% block title %}Báo cáo & Phân tích Đa kênh | GUA Admin{% endblock %}
 
 {% block extra_head %}
+<!-- Chart.js -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<!-- TomSelect -->
+<link href="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/css/tom-select.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/js/tom-select.complete.min.js"></script>
+
+<style>
+  .ts-control { border: 2px solid #e7e5e4 !important; border-radius: 1rem !important; padding: 0.875rem 1rem !important; font-size: 0.875rem !important; font-weight: 600 !important; box-shadow: none !important; transition: all 0.2s; background: #ffffff !important;}
+  .ts-control.focus { border-color: #1c1917 !important; }
+  .ts-dropdown { border-radius: 1rem !important; border: 1px solid #e7e5e4 !important; overflow: hidden; font-size: 0.875rem !important; margin-top: 6px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04); }
+  .ts-dropdown .option { padding: 0.875rem 1rem !important; transition: background 0.1s; }
+  .ts-dropdown .option.active { background-color: #f5f5f4 !important; color: #1c1917 !important; font-weight: bold; }
+  @media print {
+    .no-print { display: none !important; }
+    body { background: white !important; }
+    .print-box { box-shadow: none !important; border: 1px solid #e5e5e5 !important; page-break-inside: avoid; }
+  }
+  input[type=number]::-webkit-inner-spin-button, 
+  input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+  input[type=number] { -moz-appearance: textfield; }
+
+  /* ── POS MODAL POPUP ── */
+  #posModal { transition: opacity 0.3s ease; }
+  #posModalContent { transition: transform 0.3s ease; }
+</style>
 {% endblock %}
 
 {% block content %}
-<div class="min-h-screen bg-stone-50 pb-12">
+<div class="min-h-screen bg-[#f8f7f5] pb-12 font-sans selection:bg-stone-900 selection:text-white">
 
-  <!-- Header -->
-  <div class="bg-white border-b border-stone-200 sticky top-0 z-40 shadow-sm">
-    <div class="max-w-screen-2xl mx-auto px-6 lg:px-10 py-6">
-      <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <h1 class="text-3xl font-bold tracking-tight text-stone-900">Phân tích dữ liệu</h1>
-          <p class="text-stone-500 mt-1">Báo cáo doanh thu, sản phẩm bán chạy và xu hướng kinh doanh</p>
-        </div>
-        <button onclick="window.print()" 
-                class="flex items-center gap-2 bg-stone-900 hover:bg-black text-white px-6 py-3 rounded-2xl text-sm font-semibold transition-all">
-          <i class="fa-solid fa-print"></i>
-          Xuất PDF
+  <!-- ── 1. HEADER & ACTIONS ── -->
+  <div class="bg-white/80 backdrop-blur-xl border-b border-stone-200 sticky top-0 z-30 shadow-sm no-print">
+    <div class="max-w-[1400px] mx-auto px-6 lg:px-10 py-5 flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div>
+        <h1 class="text-2xl font-black tracking-tight text-stone-900 uppercase">Omnichannel Analytics</h1>
+        <p class="text-xs font-bold text-stone-400 mt-0.5 uppercase tracking-widest">Trung tâm dữ liệu đa nền tảng & AI</p>
+      </div>
+      <div class="flex items-center gap-3">
+        <button onclick="window.print()" class="bg-white border-2 border-stone-200 text-stone-700 hover:border-stone-900 hover:bg-stone-50 px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all active:scale-95 flex items-center gap-2">
+          <i class="fa-solid fa-print"></i> In Báo Cáo
+        </button>
+        <!-- Nút POS: mở modal popup ngay trong trang reports -->
+        <button onclick="POSModal.open()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest shadow-[0_8px_16px_-6px_rgba(5,150,105,0.4)] flex items-center gap-2 transition-all active:scale-95">
+          <i class="fa-solid fa-cash-register"></i> Đơn Tại Quầy (POS)
         </button>
       </div>
     </div>
   </div>
 
-  <div class="max-w-screen-2xl mx-auto px-6 lg:px-10 py-8">
+  <div class="max-w-[1400px] mx-auto px-6 lg:px-10 py-8 space-y-8">
 
-    <!-- Tab Navigation -->
-    <div class="flex mb-10 overflow-x-auto no-scrollbar gap-2 bg-white p-2 rounded-3xl shadow-sm border border-stone-100">
-      {% for label, href, active in [
-        ('Tổng quan', '/admin/', False),
-        ('Sản phẩm', '/admin/products', False),
-        ('Danh mục', '/admin/categories', False),
-        ('Đơn hàng', '/admin/orders', False),
-        ('Báo cáo', '/admin/reports', True)
-      ] %}
-      <a href="{{ href }}" 
-         class="px-6 py-3 text-sm font-semibold rounded-2xl transition-all whitespace-nowrap
-         {% if active %} bg-stone-900 text-white shadow {% else %} text-stone-600 hover:bg-stone-100 {% endif %}">
-        {{ label }}
-      </a>
+    <!-- ── 2. KPI DOANH THU (BENTO UI) ── -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+      <div class="bg-stone-900 rounded-[2rem] p-6 shadow-xl text-white relative overflow-hidden group">
+        <div class="absolute -right-4 -bottom-4 opacity-10 text-8xl group-hover:scale-110 transition-transform duration-500"><i class="fa-solid fa-chart-pie"></i></div>
+        <p class="text-[10px] font-bold text-stone-400 uppercase tracking-[0.2em] mb-2 relative z-10">Tổng Doanh Thu Hệ Thống</p>
+        <h3 class="text-3xl font-black tracking-tighter relative z-10">{{ '{:,.0f}'.format(report.channel_revenue.values() | sum) }} ₫</h3>
+        <p class="text-[11px] font-bold text-emerald-400 mt-4 flex items-center gap-1.5 relative z-10"><span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span> Đồng bộ thời gian thực</p>
+      </div>
+      {% for channel, rev in (report.channel_revenue.items() | sort(attribute='1', reverse=true))[:3] %}
+      <div class="bg-white rounded-[2rem] p-6 shadow-sm border border-stone-100 flex flex-col justify-between group hover:border-stone-300 hover:shadow-md transition-all">
+        <div class="flex justify-between items-start">
+          <p class="text-[10px] font-bold text-stone-400 uppercase tracking-[0.2em]">Doanh thu {{ channel }}</p>
+          <div class="w-10 h-10 rounded-[12px] bg-stone-50 flex items-center justify-center text-stone-400 group-hover:text-stone-900 group-hover:bg-stone-100 transition-all text-lg">
+            {% if channel == 'web' %}<i class="fa-solid fa-globe"></i>
+            {% elif channel == 'pos' %}<i class="fa-solid fa-store"></i>
+            {% elif channel == 'tiktok' %}<i class="fa-brands fa-tiktok"></i>
+            {% elif channel == 'shopee' %}<i class="fa-solid fa-bag-shopping"></i>
+            {% else %}<i class="fa-solid fa-box"></i>{% endif %}
+          </div>
+        </div>
+        <h3 class="text-2xl font-black text-stone-900 mt-2">{{ '{:,.0f}'.format(rev) }} ₫</h3>
+      </div>
       {% endfor %}
     </div>
 
-    <div class="grid grid-cols-1 xl:grid-cols-12 gap-8">
-
-      <!-- Biểu đồ doanh thu theo tháng -->
-      <div class="xl:col-span-8 bg-white rounded-3xl shadow-sm border border-stone-100 p-8">
-        <div class="flex justify-between items-center mb-8">
-          <h2 class="text-lg font-semibold text-stone-900">Doanh thu theo tháng</h2>
-          <p class="text-sm text-stone-500">12 tháng gần nhất</p>
+    <!-- ── 3. CHARTS TỔNG QUAN ── -->
+    <div class="grid grid-cols-1 xl:grid-cols-3 gap-6 print-box">
+      <div class="xl:col-span-1 bg-white rounded-[2rem] shadow-sm border border-stone-100 p-8 flex flex-col">
+        <h2 class="text-sm font-black text-stone-900 uppercase tracking-widest mb-6">Tỉ trọng Kênh</h2>
+        <div class="flex-1 relative min-h-[260px] flex items-center justify-center"><canvas id="channelPieChart"></canvas></div>
+      </div>
+      <div class="xl:col-span-2 bg-white rounded-[2rem] shadow-sm border border-stone-100 p-8 flex flex-col">
+        <div class="flex justify-between items-center mb-6">
+          <h2 class="text-sm font-black text-stone-900 uppercase tracking-widest">Tăng trưởng 12 Tháng</h2>
+          <span class="px-3 py-1 bg-stone-50 border border-stone-200 text-stone-600 rounded-lg text-[10px] font-black uppercase tracking-widest">Realtime Analytics</span>
         </div>
-        <div class="h-96">
-          <canvas id="monthlyRevenueChart"></canvas>
+        <div class="flex-1 min-h-[260px]"><canvas id="monthlyRevenueChart"></canvas></div>
+      </div>
+    </div>
+
+    <!-- ── 4. PHỄU CHUYỂN ĐỔI (FUNNEL) ── -->
+    <div class="bg-white rounded-[2rem] shadow-sm border border-stone-100 p-8 print-box">
+      <div class="flex items-center justify-between mb-8 pb-5 border-b border-stone-100">
+        <div>
+          <h2 class="text-sm font-black uppercase tracking-widest text-stone-900"><i class="fa-solid fa-filter text-stone-400 mr-2"></i>Phễu chuyển đổi (Conversion Funnel)</h2>
+          <p class="text-xs text-stone-500 font-medium mt-1">Hành trình khách hàng: Lượt Xem → Thêm Giỏ → Thanh Toán</p>
         </div>
       </div>
-
-      <!-- Top sản phẩm bán chạy -->
-      <div class="xl:col-span-4 bg-white rounded-3xl shadow-sm border border-stone-100 p-8">
-        <div class="flex justify-between items-center mb-8">
-          <h2 class="text-lg font-semibold text-stone-900">Sản phẩm bán chạy nhất</h2>
-          <span class="text-xs font-mono text-stone-400">TOP 5</span>
-        </div>
-
-        {% if report.top_products and report.top_products|length > 0 %}
-          {% set max_qty = report.top_products[0].total_qty %}
-          <div class="space-y-6">
-            {% for item in report.top_products[:5] %}
-            {% set width_percent = (item.total_qty / max_qty * 100) | round(1) %}
-            <div>
-              <div class="flex justify-between text-sm mb-1">
-                <span class="font-medium truncate">{{ item.product_name }}</span>
-                <span class="font-mono">{{ item.total_qty }} sp</span>
-              </div>
-              <div class="h-2.5 bg-stone-100 rounded-full overflow-hidden">
-                <div class="h-full bg-stone-900 rounded-full transition-all duration-700" 
-                     style="width: {{ width_percent }}%"></div>
-              </div>
-              <div class="text-xs text-right text-emerald-600 mt-1 font-medium">
-                {{ '{:,.0f}'.format(item.total_revenue) }} ₫
-              </div>
-            </div>
-            {% endfor %}
+      {% if report.funnel and report.funnel|length > 0 %}
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        {% for f in report.funnel %}
+        <div class="bg-stone-50 rounded-3xl p-6 border border-stone-100 hover:border-stone-300 hover:bg-white transition-all shadow-sm hover:shadow-md">
+          <div class="flex justify-between items-center mb-5">
+            <span class="text-[10px] font-black uppercase tracking-widest text-white bg-stone-900 px-3 py-1.5 rounded-lg shadow-sm">{{ f.channel }}</span>
+            <span class="text-[10px] font-black text-emerald-700 bg-emerald-100 px-2.5 py-1.5 rounded-lg border border-emerald-200">CR: {{ f.cr_total }}%</span>
           </div>
-        {% else %}
-          <div class="py-12 text-center text-stone-400">Chưa có dữ liệu</div>
-        {% endif %}
+          <div class="space-y-4">
+            <div>
+              <div class="flex justify-between text-xs font-bold text-stone-500 mb-1.5"><span>Lượt Xem</span><span class="tabular-nums text-stone-900">{{ f.views }}</span></div>
+              <div class="h-2 bg-stone-200 rounded-full overflow-hidden"><div class="h-full bg-stone-400" style="width:100%"></div></div>
+            </div>
+            <div>
+              <div class="flex justify-between text-xs font-bold text-stone-500 mb-1.5">
+                <span>Thêm Giỏ</span>
+                <div class="tabular-nums"><span class="text-[9px] text-stone-400 mr-1">{{ f.cr_view_to_cart }}%</span><span class="text-stone-900">{{ f.add_to_carts }}</span></div>
+              </div>
+              <div class="h-2 bg-stone-200 rounded-full overflow-hidden"><div class="h-full bg-stone-600" style="width:{{ f.cr_view_to_cart }}%"></div></div>
+            </div>
+            <div>
+              <div class="flex justify-between text-xs font-bold text-stone-900 mb-1.5">
+                <span>Chốt Đơn</span>
+                <div class="tabular-nums"><span class="text-[9px] text-emerald-500 mr-1">{{ f.cr_cart_to_order }}%</span>{{ f.sold }}</div>
+              </div>
+              <div class="h-2 bg-stone-200 rounded-full overflow-hidden"><div class="h-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]" style="width:{{ f.cr_total }}%"></div></div>
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+      {% else %}
+      <div class="py-16 flex flex-col items-center justify-center text-stone-400">
+        <i class="fa-solid fa-filter-circle-xmark text-5xl mb-4 opacity-40"></i>
+        <p class="text-sm font-bold uppercase tracking-widest">Chưa có dữ liệu phễu chuyển đổi</p>
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- ── 5. AI INSIGHTS & WISHLIST ── -->
+    <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
+      <div class="bg-white rounded-[2rem] shadow-sm border border-stone-100 overflow-hidden print-box flex flex-col">
+        <div class="p-6 lg:p-8 bg-gradient-to-r from-indigo-50 to-white border-b border-indigo-50 flex justify-between items-center">
+          <div>
+            <h2 class="text-sm font-black text-indigo-900 uppercase tracking-widest"><i class="fa-solid fa-robot text-indigo-500 mr-2"></i>AI Dự Báo Sản Xuất</h2>
+            <p class="text-[10px] font-bold text-indigo-400 uppercase mt-1 tracking-widest">Khuyến nghị sản xuất lô mới</p>
+          </div>
+        </div>
+        <div class="p-6 lg:p-8 flex-1">
+          {% if report.production_suggestions %}
+            <div class="space-y-4">
+              {% for suggest in report.production_suggestions %}
+              <div class="p-5 border border-stone-100 rounded-[1.5rem] hover:border-indigo-200 hover:shadow-md transition-all bg-white group">
+                <div class="flex justify-between items-start mb-4">
+                  <div>
+                    <span class="px-2.5 py-1 bg-stone-100 text-stone-600 rounded-md text-[9px] font-black uppercase tracking-widest mb-2 inline-block border border-stone-200">{{ suggest.channel }}</span>
+                    <h3 class="text-sm font-black text-stone-900 leading-tight">{{ suggest.product_name }}</h3>
+                  </div>
+                  <div class="text-right">
+                    <p class="text-[9px] text-indigo-400 font-bold uppercase tracking-widest">AI Score</p>
+                    <p class="text-2xl font-black text-indigo-600 tabular-nums leading-none">{{ '{:,.1f}'.format(suggest.ai_score) }}</p>
+                  </div>
+                </div>
+                <div class="text-xs font-medium text-stone-600 bg-stone-50 border border-stone-100 p-3.5 rounded-xl flex gap-3 items-start">
+                  <div class="mt-0.5 w-6 h-6 shrink-0 bg-white rounded-full flex items-center justify-center shadow-sm"><i class="fa-solid fa-lightbulb text-amber-500 text-[10px]"></i></div>
+                  {% if suggest.channel == 'tiktok' or suggest.channel == 'shopee' %}
+                    <span class="leading-relaxed">Lượt xem cực mạnh. <b class="text-stone-900">Đề xuất:</b> Sản xuất lô cực lớn, tối ưu chi phí bao bì để ép giá chạy Flash Sale.</span>
+                  {% else %}
+                    <span class="leading-relaxed">Tỷ lệ chốt đơn tự nhiên rất tốt. <b class="text-stone-900">Đề xuất:</b> Giữ nguyên thiết kế, nâng cấp chất liệu Premium tăng biên lợi nhuận.</span>
+                  {% endif %}
+                </div>
+              </div>
+              {% endfor %}
+            </div>
+          {% else %}
+            <div class="py-16 text-center text-xs font-bold uppercase tracking-widest text-stone-400">Đang thu thập dữ liệu AI...</div>
+          {% endif %}
+        </div>
       </div>
 
+      <div class="bg-white rounded-[2rem] shadow-sm border border-stone-100 overflow-hidden print-box flex flex-col">
+        <div class="p-6 lg:p-8 bg-gradient-to-r from-rose-50 to-white border-b border-rose-50 flex justify-between items-center">
+          <div>
+            <h2 class="text-sm font-black text-rose-900 uppercase tracking-widest"><i class="fa-solid fa-heart text-rose-500 mr-2"></i>Nhu cầu Tiềm năng</h2>
+            <p class="text-[10px] font-bold text-rose-400 uppercase mt-1 tracking-widest">Top được thêm vào Wishlist</p>
+          </div>
+        </div>
+        <div class="p-6 lg:p-8 flex-1 flex flex-col">
+          {% if report.most_liked %}
+            <div class="space-y-3 flex-1">
+              {% for item in report.most_liked %}
+              <div class="flex items-center justify-between p-4 border border-stone-100 rounded-[1.25rem] bg-white hover:border-rose-200 transition-colors group">
+                <div class="flex items-center gap-4">
+                  <div class="w-10 h-10 bg-stone-50 text-stone-400 group-hover:bg-rose-50 group-hover:text-rose-500 rounded-xl flex items-center justify-center font-black text-xs transition-colors">#{{ loop.index }}</div>
+                  <p class="text-sm font-bold text-stone-900">{{ item.product_name }}</p>
+                </div>
+                <span class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white border border-stone-200 rounded-lg text-xs font-black text-stone-600 shadow-sm group-hover:border-rose-200 transition-colors">
+                  <i class="fa-solid fa-heart text-rose-500 text-[10px] animate-pulse"></i> {{ item.likes }}
+                </span>
+              </div>
+              {% endfor %}
+            </div>
+            <div class="mt-6 p-5 bg-stone-900 rounded-[1.5rem] flex gap-4 items-start shadow-xl">
+              <div class="w-10 h-10 shrink-0 bg-stone-800 rounded-xl flex items-center justify-center text-emerald-400 text-lg"><i class="fa-solid fa-bullseye"></i></div>
+              <p class="text-xs font-medium text-stone-300 leading-relaxed"><b class="text-white uppercase tracking-widest text-[10px] block mb-1">Action Plan:</b> Tạo ngay <span class="text-white font-bold">Voucher 10%</span> hoặc chạy chiến dịch <span class="text-white font-bold">Retargeting Email</span> cho tệp khách hàng đã lưu các sản phẩm này để ép chốt sale.</p>
+            </div>
+          {% else %}
+            <div class="py-16 text-center text-xs font-bold uppercase tracking-widest text-stone-400">Chưa có dữ liệu Wishlist</div>
+          {% endif %}
+        </div>
+      </div>
     </div>
   </div>
 </div>
 
-<!-- Dữ liệu cho Chart.js -->
-<script id="monthly-data" type="application/json">
-{{ stats.monthly | tojson | safe }}
+<!-- ════════════════════════════════════════════════════
+     MODAL POS POPUP (dùng iframe load trang pos_terminal)
+════════════════════════════════════════════════════ -->
+<div id="posModal"
+  class="fixed inset-0 z-50 hidden items-center justify-center p-4 opacity-0"
+  style="background: rgba(15,15,15,0.75); backdrop-filter: blur(8px);">
+  
+  <div id="posModalContent"
+    class="bg-white rounded-[2rem] w-full max-w-4xl shadow-2xl overflow-hidden transform scale-95 flex flex-col"
+    style="max-height: 94vh;">
+
+    <!-- Header Modal -->
+    <div class="flex items-center justify-between px-8 py-5 border-b border-stone-100 bg-white flex-shrink-0">
+      <div class="flex items-center gap-4">
+        <div class="w-11 h-11 bg-stone-100 rounded-[14px] flex items-center justify-center shadow-inner">
+          <i class="fa-solid fa-store text-stone-700 text-lg"></i>
+        </div>
+        <div>
+          <p class="text-base font-black text-stone-900 uppercase tracking-wide">Nhập đơn tại quầy</p>
+          <p class="text-[10px] font-bold text-emerald-600 uppercase tracking-widest mt-0.5">
+            <i class="fa-solid fa-circle text-[8px] mr-1 animate-pulse"></i>Hệ thống POS GUA Maison
+          </p>
+        </div>
+      </div>
+      <div class="flex items-center gap-3">
+        <!-- Nút mở trang POS đầy đủ (tab riêng) -->
+        <a href="{{ url_for('admin.pos_terminal') }}" target="_blank"
+          class="text-[10px] font-black text-stone-500 hover:text-stone-900 bg-stone-50 hover:bg-stone-100 border border-stone-200 px-3 py-2 rounded-xl transition-colors flex items-center gap-1.5 uppercase tracking-widest">
+          <i class="fa-solid fa-arrow-up-right-from-square text-[9px]"></i> Mở trang đầy đủ
+        </a>
+        <button onclick="POSModal.close()"
+          class="w-10 h-10 rounded-full bg-stone-50 hover:bg-rose-50 hover:text-rose-500 flex items-center justify-center transition-colors text-stone-500">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- Nội dung POS nhúng trực tiếp (không dùng iframe để tránh session) -->
+    <div class="overflow-y-auto flex-1 bg-stone-50/30">
+      <div class="flex flex-col md:flex-row min-h-[500px]">
+
+        <!-- Cột Trái: Chọn sản phẩm -->
+        <div class="flex-1 p-8 border-b md:border-b-0 md:border-r border-stone-100 bg-white relative">
+          <div class="mb-6">
+            <label class="text-[11px] font-black text-stone-500 uppercase tracking-widest block mb-2.5">1. Tìm / Quét mã sản phẩm</label>
+            <div class="relative" id="posSearchWrapper">
+              <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-stone-400 pointer-events-none z-10"></i>
+              <input id="posSearch" type="text" placeholder="Gõ tên hoặc quét mã vạch..." autocomplete="off"
+                class="w-full pl-10 pr-10 py-3.5 border-2 border-stone-200 focus:border-stone-900 rounded-2xl text-sm font-bold outline-none transition-colors bg-white shadow-sm"
+                oninput="POSSystem.filterProducts()" onfocus="POSSystem.showDropdown()">
+              <button id="posClearSearch" onclick="POSSystem.clearProduct()"
+                class="absolute right-4 top-1/2 -translate-y-1/2 hidden text-stone-400 hover:text-stone-700 z-10 bg-white">
+                <i class="fa-solid fa-xmark"></i>
+              </button>
+            </div>
+            <div id="posDropdown"
+              class="hidden mt-2 border border-stone-200 rounded-2xl overflow-hidden shadow-xl bg-white absolute z-50"
+              style="max-height:260px; overflow-y:auto; width: calc(100% - 4rem);">
+            </div>
+
+            <div id="posSelectedChip"
+              class="hidden mt-3 p-3 bg-white border-2 border-stone-900 rounded-2xl items-center gap-4 shadow-sm">
+              <div class="w-12 h-12 bg-stone-100 rounded-xl flex items-center justify-center text-xl flex-shrink-0">👕</div>
+              <div class="flex-1 min-w-0">
+                <p id="posChipName" class="text-sm font-black text-stone-900 truncate"></p>
+                <p id="posChipPrice" class="text-[11px] font-bold text-stone-500 mt-0.5"></p>
+              </div>
+              <div class="flex items-center gap-2 flex-shrink-0">
+                <span id="posChipStock" class="text-[10px] font-black px-2 py-1 rounded-lg"></span>
+                <button onclick="POSSystem.clearProduct()" class="w-8 h-8 rounded-full bg-stone-100 hover:bg-stone-200 flex items-center justify-center text-stone-600 transition-colors">
+                  <i class="fa-solid fa-xmark text-xs"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div id="posVariantWrapper" class="hidden">
+            <label class="text-[10px] font-black text-stone-500 uppercase tracking-widest block mb-2.5">2. Chọn Phân Loại</label>
+            <div class="relative">
+              <select id="posVariant" onchange="POSSystem.changeVariant()"
+                class="w-full border-2 border-stone-200 focus:border-stone-900 rounded-2xl px-4 py-3.5 text-sm font-bold outline-none transition-colors appearance-none bg-white shadow-sm cursor-pointer">
+              </select>
+              <i class="fa-solid fa-chevron-down absolute right-5 top-1/2 -translate-y-1/2 text-stone-400 pointer-events-none text-xs"></i>
+            </div>
+          </div>
+        </div>
+
+        <!-- Cột Phải: Thanh toán -->
+        <div class="w-full md:w-[360px] bg-stone-50/50 p-8 flex flex-col justify-between">
+          <div class="space-y-5">
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <label class="text-[10px] font-black text-stone-500 uppercase tracking-widest block mb-2.5">Số lượng</label>
+                <div class="flex items-center border-2 border-stone-200 rounded-2xl overflow-hidden focus-within:border-stone-900 transition-colors bg-white shadow-sm">
+                  <button type="button" onclick="POSSystem.adjustQty(-1)" class="w-12 h-12 bg-stone-50 hover:bg-stone-100 active:bg-stone-200 flex items-center justify-center text-stone-600 transition-colors flex-shrink-0 border-r border-stone-200"><i class="fa-solid fa-minus text-xs"></i></button>
+                  <input id="posQty" type="number" value="1" min="1" class="flex-1 text-center text-base font-black text-stone-900 border-none outline-none py-2 bg-transparent" oninput="POSSystem.calcTotal()">
+                  <button type="button" onclick="POSSystem.adjustQty(1)" class="w-12 h-12 bg-stone-50 hover:bg-stone-100 active:bg-stone-200 flex items-center justify-center text-stone-600 transition-colors flex-shrink-0 border-l border-stone-200"><i class="fa-solid fa-plus text-xs"></i></button>
+                </div>
+              </div>
+              <div>
+                <label class="text-[10px] font-black text-rose-500 uppercase tracking-widest block mb-2.5">Mã Giảm Giá</label>
+                <div class="relative">
+                  <select id="posCouponSelect" onchange="POSSystem.calcTotal()"
+                    class="w-full pl-9 pr-4 py-3.5 border-2 border-rose-200 focus:border-rose-500 rounded-2xl text-sm font-bold text-rose-600 outline-none transition-colors appearance-none bg-white shadow-sm cursor-pointer">
+                    <option value="">-- Trống --</option>
+                    {% for c in coupons %}
+                    <option value="{{ c.id }}"
+                      data-type="{{ c.discount_type }}"
+                      data-value="{{ c.discount_value }}"
+                      data-max="{{ c.max_discount or 0 }}"
+                      data-min="{{ c.min_order_value or 0 }}">
+                      {{ c.code }}
+                      {% if c.discount_type == 'percent' %}(-{{ c.discount_value }}%){% else %}(-{{ '{:,.0f}'.format(c.discount_value) }}đ){% endif %}
+                    </option>
+                    {% endfor %}
+                  </select>
+                  <i class="fa-solid fa-ticket absolute left-3.5 top-1/2 -translate-y-1/2 text-rose-400 text-sm pointer-events-none"></i>
+                  <i class="fa-solid fa-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-rose-300 text-[10px] pointer-events-none"></i>
+                </div>
+              </div>
+            </div>
+
+            <div id="posWarningContainer" class="hidden flex-col gap-3">
+              <div id="posStockWarning" class="hidden px-4 py-3 rounded-xl text-xs font-bold flex items-center gap-2 shadow-sm"></div>
+              <div id="posCouponWarning" class="hidden px-4 py-3 rounded-xl text-xs font-bold flex items-center gap-2 bg-amber-50 text-amber-700 border border-amber-200 shadow-sm"></div>
+            </div>
+          </div>
+
+          <!-- Hóa đơn nháp -->
+          <div class="mt-6">
+            <div class="bg-white rounded-[1.5rem] border-2 border-stone-100 shadow-sm overflow-hidden mb-5">
+              <div class="px-5 py-4 space-y-3">
+                <div class="flex justify-between items-center">
+                  <span class="text-[11px] text-stone-500 font-bold uppercase tracking-widest">Tạm tính</span>
+                  <span id="bdSubtotal" class="text-sm font-black text-stone-900 tabular-nums">0 ₫</span>
+                </div>
+                <div class="flex justify-between items-center">
+                  <span class="text-[11px] text-rose-400 font-bold uppercase tracking-widest">Khuyến mãi</span>
+                  <span id="bdDiscount" class="text-sm font-black text-rose-500 tabular-nums">- 0 ₫</span>
+                </div>
+              </div>
+              <div class="border-t-2 border-dashed border-stone-200 bg-stone-50 px-5 py-4 flex justify-between items-center">
+                <span class="text-xs font-black text-stone-900 uppercase tracking-widest">Thực Thu</span>
+                <span id="bdTotal" class="text-3xl font-black text-emerald-600 tabular-nums">0 ₫</span>
+              </div>
+            </div>
+            <button onclick="POSSystem.submit()" id="posSubmitBtn"
+              class="w-full py-4 bg-stone-900 hover:bg-stone-800 active:scale-[0.98] text-white rounded-2xl text-sm font-black uppercase tracking-widest flex items-center justify-center gap-2 transition-all shadow-[0_10px_20px_-10px_rgba(28,25,23,0.5)]">
+              <i class="fa-solid fa-print"></i>
+              <span id="posSubmitLabel">Lưu Đơn & In Bill</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- TOAST -->
+<div id="posToast" class="fixed bottom-6 right-6 z-[60] hidden items-center gap-3 px-5 py-4 rounded-2xl text-sm font-bold shadow-2xl transition-all">
+  <i id="posToastIcon" class="fa-solid text-xl"></i>
+  <span id="posToastMsg"></span>
+</div>
+
+<!-- DATA JSON TỪ BACKEND -->
+<script id="chart-data" type="application/json">
+{
+  "monthly": {{ stats.monthly | tojson | safe if stats else '[]' }},
+  "channel": {{ report.channel_revenue | tojson | safe if report.channel_revenue else '{}' }}
+}
+</script>
+<script id="products-data" type="application/json">
+{{ products | tojson | safe }}
 </script>
 
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    let monthlyData = [];
-    const dataElement = document.getElementById('monthly-data');
-    
-    if (dataElement) {
-        try {
-            monthlyData = JSON.parse(dataElement.textContent);
-        } catch(e) {
-            console.error("Failed to parse monthly data");
+// ════════════════════════════════════════════════════════════════════
+//  MODULE: BÁO CÁO (CHART.JS)
+// ════════════════════════════════════════════════════════════════════
+const ReportDashboard = {
+  init: function () {
+    let data = { monthly: [], channel: {} };
+    try { data = JSON.parse(document.getElementById('chart-data').textContent); } catch (e) {}
+
+    Chart.defaults.font.family = "'Inter', sans-serif";
+    Chart.defaults.color = '#a8a29e';
+
+    const channelLabels = Object.keys(data.channel).map(k => k.toUpperCase());
+    if (channelLabels.length > 0 && document.getElementById('channelPieChart')) {
+      new Chart(document.getElementById('channelPieChart'), {
+        type: 'doughnut',
+        data: {
+          labels: channelLabels,
+          datasets: [{
+            data: Object.values(data.channel),
+            backgroundColor: ['#1c1917', '#10b981', '#f97316', '#ec4899', '#06b6d4'].slice(0, channelLabels.length),
+            borderWidth: 0, hoverOffset: 8
+          }]
+        },
+        options: {
+          responsive: true, maintainAspectRatio: false, cutout: '75%',
+          plugins: {
+            legend: { position: 'bottom', labels: { usePointStyle: true, padding: 20, font: { size: 11, weight: 'bold' } } },
+            tooltip: { padding: 12, callbacks: { label: ctx => ' ' + ctx.raw.toLocaleString('vi-VN') + ' ₫' } }
+          }
         }
+      });
     }
 
-    if (monthlyData.length > 0) {
-        new Chart(document.getElementById('monthlyRevenueChart'), {
-            type: 'bar',
-            data: {
-                labels: monthlyData.map(d => d.month),
-                datasets: [{
-                    label: 'Doanh thu',
-                    data: monthlyData.map(d => d.revenue),
-                    backgroundColor: '#1f2937',
-                    borderRadius: 6,
-                    barThickness: 32
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: { display: false },
-                    tooltip: {
-                        callbacks: {
-                            label: ctx => ctx.raw.toLocaleString('vi-VN') + ' ₫'
-                        }
-                    }
-                },
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        ticks: { callback: v => (v / 1000000) + 'tr' }
-                    },
-                    x: { grid: { display: false } }
-                }
-            }
-        });
+    if (data.monthly && data.monthly.length > 0 && document.getElementById('monthlyRevenueChart')) {
+      new Chart(document.getElementById('monthlyRevenueChart'), {
+        type: 'bar',
+        data: {
+          labels: data.monthly.map(d => d.month),
+          datasets: [{
+            label: 'Doanh thu', data: data.monthly.map(d => d.revenue),
+            backgroundColor: '#1c1917', hoverBackgroundColor: '#44403c',
+            borderRadius: 8, barThickness: 'flex', maxBarThickness: 48
+          }]
+        },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false },
+            tooltip: { backgroundColor: '#1c1917', padding: 12, callbacks: { label: ctx => ' ' + ctx.raw.toLocaleString('vi-VN') + ' ₫' } }
+          },
+          scales: {
+            y: { border: { display: false }, grid: { color: '#f5f5f4', drawTicks: false }, ticks: { callback: v => (v / 1000000) + ' Tr', padding: 10 } },
+            x: { border: { display: false }, grid: { display: false }, ticks: { font: { weight: 'bold' } } }
+          }
+        }
+      });
     }
+  }
+};
+
+// ════════════════════════════════════════════════════════════════════
+//  MODULE: ĐIỀU KHIỂN MODAL POS
+// ════════════════════════════════════════════════════════════════════
+const POSModal = {
+  open: function () {
+    const m = document.getElementById('posModal');
+    const c = document.getElementById('posModalContent');
+    m.style.display = 'flex';
+    requestAnimationFrame(() => {
+      m.classList.remove('opacity-0');
+      c.classList.remove('scale-95');
+    });
+    POSSystem.resetForm();
+    setTimeout(() => document.getElementById('posSearch')?.focus(), 200);
+    // Khoá scroll trang nền
+    document.body.style.overflow = 'hidden';
+  },
+
+  close: function () {
+    const m = document.getElementById('posModal');
+    const c = document.getElementById('posModalContent');
+    m.classList.add('opacity-0');
+    c.classList.add('scale-95');
+    setTimeout(() => {
+      m.style.display = 'none';
+      document.body.style.overflow = '';
+    }, 300);
+  }
+};
+
+// Đóng modal khi click vào backdrop
+document.getElementById('posModal').addEventListener('click', function (e) {
+  if (e.target === this) POSModal.close();
+});
+
+// ════════════════════════════════════════════════════════════════════
+//  MODULE: HỆ THỐNG POS (POINT OF SALE)
+// ════════════════════════════════════════════════════════════════════
+const POSSystem = {
+  products: [],
+  selected: null,
+  selectedVariant: null,
+  currentDiscount: 0,
+
+  init: function () {
+    try { this.products = JSON.parse(document.getElementById('products-data').textContent) || []; } catch (e) {}
+    document.addEventListener('click', (e) => {
+      const wrapper = document.getElementById('posSearchWrapper');
+      const dropdown = document.getElementById('posDropdown');
+      if (wrapper && !wrapper.contains(e.target)) dropdown.classList.add('hidden');
+    });
+  },
+
+  resetForm: function () {
+    this.selected = null;
+    this.selectedVariant = null;
+    this.currentDiscount = 0;
+    const els = {
+      posSearch: '', posQty: 1, posCouponSelect: ''
+    };
+    Object.entries(els).forEach(([id, val]) => {
+      const el = document.getElementById(id);
+      if (el) el.value = val;
+    });
+    ['posClearSearch', 'posDropdown', 'posSelectedChip', 'posVariantWrapper', 'posWarningContainer'].forEach(id => {
+      document.getElementById(id)?.classList.add('hidden');
+    });
+    this.calcTotal();
+  },
+
+  showDropdown: function () {
+    if (!this.selected) this.renderDropdown(document.getElementById('posSearch').value);
+  },
+
+  filterProducts: function () {
+    if (this.selected) return;
+    const kw = document.getElementById('posSearch').value.trim();
+    document.getElementById('posClearSearch').classList.toggle('hidden', !kw);
+    this.renderDropdown(kw);
+  },
+
+  renderDropdown: function (keyword) {
+    const dropdown = document.getElementById('posDropdown');
+    const filtered = this.products.filter(p => p.name.toLowerCase().includes(keyword.toLowerCase()));
+    if (!filtered.length) {
+      dropdown.innerHTML = `<div class="px-5 py-6 text-center text-xs font-bold text-stone-400 uppercase tracking-widest">Không tìm thấy sản phẩm</div>`;
+      dropdown.classList.remove('hidden');
+      return;
+    }
+    dropdown.innerHTML = filtered.map(p => {
+      const stock = p.product_variants ? p.product_variants.reduce((s, v) => s + (v.stock || 0), 0) : (p.stock || 0);
+      const badge = stock <= 0
+        ? `<span class="text-[10px] font-black px-2 py-1 rounded-md bg-red-50 text-red-500 shadow-sm border border-red-100">Hết hàng</span>`
+        : `<span class="text-[10px] font-black px-2 py-1 rounded-md bg-emerald-50 text-emerald-600 shadow-sm border border-emerald-100">Kho: ${stock}</span>`;
+      return `<div onclick="${stock <= 0 ? '' : `POSSystem.selectProduct('${p.id}')`}"
+        class="flex items-center gap-4 px-5 py-3.5 border-b border-stone-100 last:border-0
+        ${stock <= 0 ? 'opacity-40 cursor-not-allowed' : 'hover:bg-stone-50 cursor-pointer transition-colors'}">
+        <div class="w-10 h-10 bg-stone-100 rounded-xl flex items-center justify-center text-stone-400 flex-shrink-0">
+          <i class="fa-solid fa-shirt text-sm"></i>
+        </div>
+        <div class="flex-1 min-w-0">
+          <p class="text-sm font-black text-stone-900 truncate">${p.name}</p>
+          <p class="text-[11px] font-bold text-stone-500 mt-0.5">${this.formatVND(p.price)}</p>
+        </div>
+        ${badge}
+      </div>`;
+    }).join('');
+    dropdown.classList.remove('hidden');
+  },
+
+  selectProduct: function (id) {
+    const p = this.products.find(x => String(x.id) === String(id));
+    if (!p) return;
+    this.selected = p;
+    document.getElementById('posSearch').value = p.name;
+    document.getElementById('posDropdown').classList.add('hidden');
+    document.getElementById('posClearSearch').classList.remove('hidden');
+
+    const variantWrapper = document.getElementById('posVariantWrapper');
+    const variantSelect = document.getElementById('posVariant');
+    if (p.product_variants && p.product_variants.length > 0) {
+      let options = '<option value="">-- Chọn Màu sắc & Kích thước --</option>';
+      p.product_variants.forEach(v => {
+        const vStock = v.stock || 0;
+        const vPrice = v.price_override || p.price;
+        options += `<option value="${v.id}" data-price="${vPrice}" data-stock="${vStock}" ${vStock <= 0 ? 'disabled' : ''}>
+          ${v.color_name} - Size ${v.size} ${vStock <= 0 ? '(Hết)' : `(Còn ${vStock})`} - ${this.formatVND(vPrice)}
+        </option>`;
+      });
+      variantSelect.innerHTML = options;
+      variantWrapper.classList.remove('hidden');
+      const firstAvailable = p.product_variants.find(v => (v.stock || 0) > 0);
+      if (firstAvailable) variantSelect.value = firstAvailable.id;
+    } else {
+      variantWrapper.classList.add('hidden');
+    }
+    this.changeVariant();
+  },
+
+  changeVariant: function () {
+    const vSelect = document.getElementById('posVariant');
+    const chip = document.getElementById('posSelectedChip');
+    chip.classList.remove('hidden');
+    chip.style.display = 'flex';
+
+    if (!vSelect.value) {
+      this.selectedVariant = null;
+      document.getElementById('posChipName').textContent = this.selected.name;
+      document.getElementById('posChipPrice').textContent = 'Vui lòng chọn phân loại';
+      document.getElementById('posChipStock').className = 'hidden';
+      this.calcTotal();
+      return;
+    }
+
+    const opt = vSelect.options[vSelect.selectedIndex];
+    this.selectedVariant = {
+      id: vSelect.value,
+      price: parseFloat(opt.getAttribute('data-price')) || this.selected.price,
+      stock: parseInt(opt.getAttribute('data-stock')) || 0,
+      label: opt.text.split(' (')[0]
+    };
+
+    document.getElementById('posChipName').textContent = `${this.selected.name} (${this.selectedVariant.label})`;
+    document.getElementById('posChipPrice').textContent = this.formatVND(this.selectedVariant.price) + ' / sản phẩm';
+
+    const stockEl = document.getElementById('posChipStock');
+    stockEl.textContent = `Kho: ${this.selectedVariant.stock}`;
+    stockEl.className = this.selectedVariant.stock <= 5
+      ? 'text-[10px] font-black px-2.5 py-1.5 rounded-md bg-amber-50 text-amber-600 border border-amber-200'
+      : 'text-[10px] font-black px-2.5 py-1.5 rounded-md bg-emerald-50 text-emerald-600 border border-emerald-200';
+
+    document.getElementById('posQty').value = 1;
+    document.getElementById('posQty').max = this.selectedVariant.stock;
+    this.calcTotal();
+  },
+
+  clearProduct: function () {
+    this.resetForm();
+    document.getElementById('posSearch')?.focus();
+  },
+
+  adjustQty: function (delta) {
+    const el = document.getElementById('posQty');
+    const max = this.selectedVariant ? this.selectedVariant.stock : (this.selected ? this.selected.stock : 999);
+    el.value = Math.max(1, Math.min((parseInt(el.value) || 1) + delta, max));
+    this.calcTotal();
+  },
+
+  calcTotal: function () {
+    const qty = Math.max(1, parseInt(document.getElementById('posQty').value) || 1);
+    const price = this.selectedVariant ? this.selectedVariant.price : (this.selected ? this.selected.price : 0);
+    const subtotal = price * qty;
+
+    const couponSelect = document.getElementById('posCouponSelect');
+    const opt = couponSelect.options[couponSelect.selectedIndex];
+    const couponWarningEl = document.getElementById('posCouponWarning');
+
+    let discount = 0;
+    couponWarningEl.classList.add('hidden');
+
+    if (couponSelect.value && subtotal > 0) {
+      const type = opt.getAttribute('data-type');
+      const value = parseFloat(opt.getAttribute('data-value')) || 0;
+      const maxDiscount = parseFloat(opt.getAttribute('data-max')) || 0;
+      const minOrder = parseFloat(opt.getAttribute('data-min')) || 0;
+
+      if (subtotal < minOrder) {
+        couponWarningEl.classList.remove('hidden');
+        couponWarningEl.innerHTML = `<i class="fa-solid fa-circle-exclamation"></i> Mã cần đơn tối thiểu ${this.formatVND(minOrder)}!`;
+      } else {
+        if (type === 'percent') {
+          discount = subtotal * (value / 100);
+          if (maxDiscount > 0 && discount > maxDiscount) discount = maxDiscount;
+        } else { discount = value; }
+        if (discount > subtotal) discount = subtotal;
+      }
+    }
+
+    this.currentDiscount = discount;
+    const total = Math.max(0, subtotal - discount);
+
+    document.getElementById('bdSubtotal').textContent = this.formatVND(subtotal);
+    document.getElementById('bdDiscount').textContent = '- ' + this.formatVND(discount);
+    document.getElementById('bdTotal').textContent = this.formatVND(total);
+
+    const stockWarningEl = document.getElementById('posStockWarning');
+    const currentStock = this.selectedVariant ? this.selectedVariant.stock : 0;
+
+    if (this.selectedVariant && qty > currentStock) {
+      stockWarningEl.classList.remove('hidden');
+      stockWarningEl.className = 'px-4 py-3 rounded-xl text-xs font-bold flex items-center gap-2 bg-red-50 text-red-600 border border-red-200 shadow-sm';
+      stockWarningEl.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i> Vượt tồn kho! Chỉ còn ${currentStock} cái.`;
+    } else if (this.selectedVariant && currentStock <= 5) {
+      stockWarningEl.classList.remove('hidden');
+      stockWarningEl.className = 'px-4 py-3 rounded-xl text-xs font-bold flex items-center gap-2 bg-amber-50 text-amber-700 border border-amber-200 shadow-sm';
+      stockWarningEl.innerHTML = `<i class="fa-solid fa-circle-exclamation"></i> Chú ý: Sắp hết (Kho: ${currentStock}).`;
+    } else {
+      stockWarningEl.classList.add('hidden');
+    }
+
+    const warningContainer = document.getElementById('posWarningContainer');
+    if (!stockWarningEl.classList.contains('hidden') || !couponWarningEl.classList.contains('hidden')) {
+      warningContainer.classList.remove('hidden');
+      warningContainer.style.display = 'flex';
+    } else {
+      warningContainer.classList.add('hidden');
+    }
+  },
+
+  submit: async function () {
+    if (!this.selected) { this.showToast('Vui lòng chọn sản phẩm!', false); return; }
+    if (this.selected.product_variants && this.selected.product_variants.length > 0 && !this.selectedVariant) {
+      this.showToast('Vui lòng chọn Màu & Size!', false); return;
+    }
+
+    const qty = Math.max(1, parseInt(document.getElementById('posQty').value) || 1);
+    const price = this.selectedVariant ? this.selectedVariant.price : this.selected.price;
+    const revenue = Math.max(0, (price * qty) - this.currentDiscount);
+    const currentStock = this.selectedVariant ? this.selectedVariant.stock : 0;
+
+    if (qty > currentStock) { this.showToast(`Hết hàng! Kho chỉ còn: ${currentStock}`, false); return; }
+
+    const btn = document.getElementById('posSubmitBtn');
+    const label = document.getElementById('posSubmitLabel');
+    btn.disabled = true; btn.classList.add('opacity-60'); label.textContent = 'Hệ thống đang xử lý...';
+
+    try {
+      const res = await fetch('/admin/reports/pos-order', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token() }}' },
+        body: JSON.stringify({
+          product_id: this.selected.id,
+          variant_id: this.selectedVariant ? this.selectedVariant.id : '',
+          quantity: qty,
+          discount: this.currentDiscount,
+          revenue: revenue
+        })
+      });
+      const result = await res.json();
+
+      if (result.success) {
+        POSModal.close();
+        this.printReceipt(result.invoice);
+        this.showToast('Giao dịch POS thành công!', true);
+        setTimeout(() => location.reload(), 2200);
+      } else {
+        this.showToast('Lỗi: ' + result.message, false);
+      }
+    } catch (e) {
+      this.showToast('Lỗi kết nối máy chủ.', false);
+    } finally {
+      btn.disabled = false; btn.classList.remove('opacity-60'); label.textContent = 'Lưu Đơn & In Bill';
+    }
+  },
+
+  printReceipt: function (inv) {
+    const html = `<!DOCTYPE html><html lang="vi"><head><meta charset="UTF-8">
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Inconsolata:wght@400;700&display=swap');
+      @page { margin: 0; }
+      body { font-family: 'Inconsolata','Courier New',monospace; width: 72mm; margin: 0 auto; color: #000; font-size: 13px; padding: 10mm 4mm; line-height: 1.4; }
+      .text-center{text-align:center} .font-bold{font-weight:700} .flex{display:flex;justify-content:space-between}
+      .divider{border-bottom:1px dashed #000;margin:8px 0} .divider-thick{border-bottom:2px solid #000;margin:10px 0}
+      .store-name{font-size:24px;font-weight:700;margin-bottom:4px;text-transform:uppercase;letter-spacing:1px}
+      .store-info{font-size:11px;margin-bottom:2px}
+      .meta-info{font-size:12px;margin-bottom:10px} .meta-info div{display:flex;justify-content:space-between;margin-bottom:2px}
+      .item-name{font-weight:700;font-size:12px;margin-bottom:3px;text-transform:uppercase} .item-calc{font-size:12px;margin-bottom:6px}
+      .summary-line{font-size:12px;margin-bottom:4px} .total-line{font-size:18px;font-weight:700;margin:8px 0;text-transform:uppercase}
+      .footer-text{font-size:11px;text-align:center;margin-top:15px}
+    </style></head><body>
+    <div class="text-center"><div class="store-name">GUA MAISON</div><div class="store-info">123 Nguyễn Trãi, Quận 1, TP.HCM</div><div class="store-info">Hotline: 0909 123 456</div></div>
+    <div class="divider"></div>
+    <div class="text-center font-bold" style="font-size:16px;margin:8px 0;">HÓA ĐƠN THANH TOÁN</div>
+    <div class="meta-info"><div><span>Mã đơn:</span><span class="font-bold">${inv.order_code}</span></div><div><span>Ngày in:</span><span>${inv.date}</span></div><div><span>Thu ngân:</span><span>Admin</span></div></div>
+    <div class="divider-thick"></div>
+    <div class="item-name">${inv.product_name}</div>
+    <div class="flex item-calc"><span>${inv.quantity} x ${inv.original_price.toLocaleString('vi-VN')}</span><span>${(inv.quantity * inv.original_price).toLocaleString('vi-VN')}</span></div>
+    <div class="divider"></div>
+    <div class="flex summary-line"><span>Tạm tính:</span><span>${(inv.quantity * inv.original_price).toLocaleString('vi-VN')}</span></div>
+    ${inv.discount > 0 ? `<div class="flex summary-line"><span>Giảm giá:</span><span>- ${inv.discount.toLocaleString('vi-VN')}</span></div>` : ''}
+    <div class="divider-thick"></div>
+    <div class="flex total-line"><span>THỰC THU:</span><span>${inv.total.toLocaleString('vi-VN')} ₫</span></div>
+    <div class="flex summary-line" style="margin-top:8px"><span>Thanh toán:</span><span>Tại quầy / Bank</span></div>
+    <div class="divider"></div>
+    <div class="footer-text"><p class="font-bold" style="font-size:13px">CẢM ƠN QUÝ KHÁCH & HẸN GẶP LẠI!</p><p style="font-size:10px;margin-top:8px;font-style:italic">* Đổi trả trong 7 ngày với hóa đơn và tem mác nguyên vẹn.</p></div>
+    <script>window.onload=function(){window.print();setTimeout(function(){window.close();},500);}<\/script>
+    </body></html>`;
+    const w = window.open('', '_blank', 'width=400,height=700');
+    w.document.open(); w.document.write(html); w.document.close();
+  },
+
+  showToast: function (msg, success) {
+    const t = document.getElementById('posToast');
+    t.className = `fixed bottom-6 right-6 z-[60] flex items-center gap-3 px-5 py-4 rounded-2xl text-sm font-bold shadow-2xl transition-all ${success ? 'bg-stone-900 text-white' : 'bg-red-600 text-white'}`;
+    document.getElementById('posToastIcon').className = `fa-solid ${success ? 'fa-circle-check text-emerald-400' : 'fa-circle-xmark text-white'}`;
+    document.getElementById('posToastMsg').textContent = msg;
+    t.classList.remove('hidden');
+    setTimeout(() => t.classList.add('hidden'), 3500);
+  },
+
+  formatVND: function (n) { return Number(n || 0).toLocaleString('vi-VN') + ' ₫'; }
+};
+
+// Expose hàm openPosModal cho navbar mobile dùng
+function openPosModal() { POSModal.open(); }
+
+document.addEventListener('DOMContentLoaded', () => {
+  ReportDashboard.init();
+  POSSystem.init();
 });
 </script>
-
-<style>
-  @media print {
-    nav, footer, button[onclick="window.print()"] { display: none !important; }
-    body { background: white !important; }
-  }
-</style>
 {% endblock %}

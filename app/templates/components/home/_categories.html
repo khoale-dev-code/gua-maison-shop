@@ -1,0 +1,59 @@
+<section class="py-16 md:py-24 bg-white">
+  <div class="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
+    <!-- Header Section -->
+    <div class="flex items-end justify-between mb-8 md:mb-12 reveal">
+      <div>
+        <h2 class="text-3xl md:text-5xl font-black tracking-tighter text-black uppercase leading-tight">
+          Danh Mục<br/>Nổi Bật
+        </h2>
+      </div>
+      <a href="/shop" class="hidden md:inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-[0.1em] text-neutral-500 hover:text-black border-b border-transparent hover:border-black pb-1 transition-all">
+        Xem tất cả
+      </a>
+    </div>
+
+    <!-- Categories Grid (Dynamic from Database) -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 lg:gap-6">
+      
+      <!-- Lặp qua biến categories từ Backend truyền sang -->
+      {% for cat in categories %}
+      <a href="/shop?category={{ cat.slug }}" class="group relative aspect-[3/4] md:aspect-[4/5] overflow-hidden block bg-neutral-100 reveal" data-delay="{{ loop.index0 * 100 }}">
+        
+        <!-- Ảnh Background (Lấy từ DB, nếu null thì dùng Placeholder tạo tự động theo tên) -->
+        <img src="{{ cat.image_url or 'https://placehold.co/800x1000/111111/dddddd?text=' ~ cat.name|urlencode }}" 
+             alt="{{ cat.name }}" 
+             class="absolute inset-0 w-full h-full object-cover transition-transform duration-[1.5s] ease-out group-hover:scale-105" 
+             loading="lazy" />
+        
+        <!-- Dark Overlay -->
+        <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-60 group-hover:opacity-80 transition-opacity duration-500"></div>
+
+        <!-- Content -->
+        <div class="absolute inset-0 p-6 md:p-8 flex flex-col justify-end">
+          <span class="text-white/80 text-xs font-medium uppercase tracking-[0.2em] mb-2 transform translate-y-4 group-hover:translate-y-0 transition-transform duration-500">
+            Khám phá
+          </span>
+          
+          <div class="flex items-end justify-between transform translate-y-4 group-hover:translate-y-0 transition-transform duration-500 delay-75">
+            <!-- Tên danh mục lấy từ DB -->
+            <h3 class="text-white text-3xl md:text-4xl font-black uppercase tracking-tighter">{{ cat.name }}</h3>
+            
+            <!-- Minimalist Arrow Icon -->
+            <div class="w-10 h-10 border border-white/30 rounded-full flex items-center justify-center text-white opacity-0 group-hover:opacity-100 group-hover:border-white transition-all duration-500 group-hover:rotate-[-45deg]">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3"/></svg>
+            </div>
+          </div>
+        </div>
+      </a>
+      {% endfor %}
+
+    </div>
+    
+    <!-- Mobile View All Button -->
+    <div class="mt-8 text-center md:hidden">
+      <a href="/shop" class="inline-block text-xs font-bold uppercase tracking-[0.1em] text-black border border-black px-8 py-4 hover:bg-black hover:text-white transition-colors">
+        Xem tất cả
+      </a>
+    </div>
+  </div>
+</section>

@@ -1,0 +1,81 @@
+<!-- components/home/_instagram_illusion.html -->
+<section class="relative bg-white w-full border-t border-neutral-200">
+
+  <!-- 1. INSTAGRAM STORIES BAR (Dính trên cùng) -->
+  <div class="sticky top-[var(--height-header,60px)] z-50 w-full border-b border-neutral-200 bg-white/90 backdrop-blur-md py-4 px-4 overflow-x-auto no-scrollbar">
+    <div class="flex items-center gap-6 w-max mx-auto">
+      
+      <a href="/shop" class="flex flex-col items-center gap-2 group cursor-pointer">
+        <div class="w-16 h-16 rounded-full p-[2px] bg-gradient-to-tr from-neutral-300 to-black transition-transform duration-300 group-hover:scale-105">
+          <div class="w-full h-full rounded-full border-2 border-white overflow-hidden bg-black flex items-center justify-center text-white">
+            <h3 class="text-[10px] font-black uppercase tracking-wider">All</h3>
+          </div>
+        </div>
+        <span class="text-[10px] font-bold uppercase tracking-widest text-black">Khám phá</span>
+      </a>
+
+      {% for cat in categories %}
+      <a href="/shop?category={{ cat.slug }}" class="flex flex-col items-center gap-2 group cursor-pointer">
+        <div class="w-16 h-16 rounded-full p-[2px] bg-neutral-200 group-hover:bg-black transition-colors duration-300">
+          <div class="w-full h-full rounded-full border-2 border-white overflow-hidden bg-neutral-100 relative">
+            <img src="{{ cat.image_url or 'https://placehold.co/200x200/111/fff?text=GUA' }}" 
+                 alt="{{ cat.name }}" class="absolute inset-0 w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-500" loading="lazy">
+          </div>
+        </div>
+        <span class="text-[10px] font-bold uppercase tracking-widest text-neutral-500 group-hover:text-black transition-colors">{{ cat.name }}</span>
+      </a>
+      {% endfor %}
+
+    </div>
+  </div>
+
+  <!-- 2. OPTICAL ILLUSION FEED (Chắc chắn chạy 100%) -->
+  <div class="relative w-full min-h-[200vh] bg-white">
+    
+    <!-- LỚP CHỮ KHỔNG LỒ ĐỨNG YÊN (WATERMARK) -->
+    <div class="sticky top-0 h-screen w-full flex items-center justify-center overflow-hidden z-0 pointer-events-none">
+      <h1 class="text-[25vw] md:text-[20vw] font-black uppercase tracking-tighter leading-[0.8] text-neutral-100 text-center select-none">
+        GUA<br/>Maison
+      </h1>
+    </div>
+
+    <!-- LỚP ẢNH CUỘN LÊN TRÊN CHỮ -->
+    <!-- Sử dụng -mt-[100vh] để kéo lớp ảnh này đè lên khu vực của chữ sticky -->
+    <div class="relative z-10 w-full max-w-2xl mx-auto flex flex-col gap-24 md:gap-32 pb-32 -mt-[100vh] pt-[20vh] px-4">
+      
+      {% for product in featured_products %}
+      <!-- Card Instagram Feed -->
+      <div class="relative w-full aspect-[4/5] bg-white shadow-2xl reveal group">
+        
+        <a href="/product/{{ product.slug or product.id }}" class="block w-full h-full overflow-hidden">
+          <img src="{{ product.thumbnail_url }}" alt="{{ product.name }}" 
+               class="w-full h-full object-cover transition-transform duration-[2s] group-hover:scale-105" loading="lazy">
+        </a>
+
+        <!-- Nút tim và xem nhanh nổi bên ngoài ảnh -->
+        <div class="absolute -right-4 md:-right-12 bottom-20 flex flex-col gap-4 drop-shadow-md">
+          <button onclick="event.preventDefault(); toggleHeart('{{ product.id }}', this)" class="bg-white p-3 rounded-full text-black hover:text-red-500 transition-colors">
+            <svg class="w-6 h-6 heart-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" /></svg>
+          </button>
+          <button onclick="triggerQuickView(this)" data-id="{{ product.id }}" ... class="bg-white p-3 rounded-full text-black hover:bg-black hover:text-white transition-colors">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 00-3 3h15.75m-12.75-3h11.218c1.121-2.3 2.1-4.684 2.924-7.138a60.114 60.114 0 00-16.536-1.84M7.5 14.25L5.106 5.272M6 20.25a.75.75 0 11-1.5 0 .75.75 0 011.5 0zm12.75 0a.75.75 0 11-1.5 0 .75.75 0 011.5 0z" /></svg>
+          </button>
+        </div>
+
+        <!-- Caption bên dưới -->
+        <div class="mt-5 flex flex-col items-start w-full px-2">
+          <div class="flex items-center justify-between w-full mb-1">
+            <h3 class="text-base md:text-xl font-bold text-black uppercase tracking-tight">{{ product.name }}</h3>
+            <span class="text-base md:text-xl font-black text-black">{{ "{:,.0f}".format(product.price) }}₫</span>
+          </div>
+          <p class="text-xs uppercase tracking-widest text-neutral-500">
+            {% if product.categories %}{{ product.categories.name }}{% else %}GUA Studio{% endif %}
+          </p>
+        </div>
+
+      </div>
+      {% endfor %}
+
+    </div>
+  </div>
+</section>

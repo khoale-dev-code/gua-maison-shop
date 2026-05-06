@@ -42,7 +42,13 @@ def orders():
     args = _args()
     page, per_page, _ = _paginate(args)
     status = args.get("status", "").strip() or None
-    result = OrderModel.get_all(page=page, per_page=per_page, status=status)
+    
+    # 1. Hứng từ khóa tìm kiếm (q) từ URL
+    keyword = args.get("q", "").strip() or None
+
+    # 2. Truyền keyword vào hàm get_all của Model
+    result = OrderModel.get_all(page=page, per_page=per_page, status=status, keyword=keyword)
+    
     return render_template(
         "admin/order/orders.html",
         orders=result["items"],
@@ -134,44 +140,77 @@ def fulfill_order(order_id: str):
     data = request.get_json(silent=True) or {}
     provider = data.get("provider", "mock").strip()
 
+    # Lấy thông tin đơn hàng đầy đủ
     order = OrderModel.get_by_id(order_id)
     if not order:
         return jsonify({"success": False, "message": "Đơn hàng không tồn tại."})
 
+    # Guard: Đơn hàng phải ở trạng thái packed mới được bắn sang hãng vận chuyển
     if order["status"] != "packed":
         return jsonify({
             "success": False,
-            "message": f"Đơn hàng phải ở trạng thái 'Đã đóng gói' để tạo vận đơn. Hiện tại: '{order['status']}'."
+            "message": f"Yêu cầu 'Đã đóng gói' để tạo vận đơn. Hiện tại: '{order['status']}'."
         })
 
-    # 1. Tạo bản ghi Shipment
+    # 1. Khởi tạo bản ghi Shipment (Trạng thái ban đầu: pending)
     shipment_data = _build_shipment_data(order_id, order, provider)
     shipment = ShipmentModel.create_shipment(shipment_data)
     if not shipment:
         return jsonify({"success": False, "message": "Lỗi khởi tạo dữ liệu vận chuyển nội bộ."})
 
-    # 2. Gọi API hãng vận chuyển
+    # 2. Gọi API hãng vận chuyển (GHN, GHTK, v.v.)
     payload = _build_shipping_payload(shipment_data)
     api_result = ShippingService.create_order(provider, payload, shipment_db_id=shipment["id"])
 
     if api_result.get("success"):
-        # 3. Đổi trạng thái đơn hàng
+        # 3. Cập nhật thông tin phản hồi từ API vào bảng shipments
+        # Bao gồm: tracking_code, actual_shipping_fee, expected_delivery_at
+        update_data = {
+            "tracking_code": api_result.get("tracking_code"),
+            "actual_shipping_fee": float(api_result.get("fee", 0)),  # Đối soát lời lỗ
+            "status": "waiting_pickup",  # Chuyển sang trạng thái chờ lấy hàng[cite: 6]
+            "raw_response": api_result.get("raw_response", {}),
+            "shipped_at": datetime.now().isoformat()
+        }
+        
+        # Lưu SLA nếu hãng có trả về thời gian dự kiến
+        if api_result.get("expected_delivery"):
+            update_data["expected_delivery_at"] = api_result.get("expected_delivery")
+
+        # Cập nhật bảng Shipments
+        from app.utils.supabase_client import get_supabase
+        get_supabase().table("shipments").update(update_data).eq("id", shipment["id"]).execute()
+
+        # 4. Ghi nhận sự kiện vào Timeline[cite: 6]
+        ShipmentModel.log_event(
+            shipment_id=shipment["id"],
+            status="waiting_pickup",
+            description=f"Đã tạo vận đơn thành công qua {provider.upper()}. Đang chờ bưu tá lấy hàng.",
+            raw_data=api_result.get("raw_response", {})
+        )
+
+        # 5. Đổi trạng thái đơn hàng chính sang 'shipped' để khách hàng nhận được thông báo
         OrderModel.update_status(order_id, "shipped")
-        logger.info(f"[Order {order_id[:8]}] packed → shipped | Provider: {provider} | Tracking: {api_result.get('tracking_code')}")
+        
+        logger.info(f"[Order {order_id[:8]}] Fulfill thành công | Tracking: {api_result.get('tracking_code')}")
+        
         return jsonify({
             "success": True,
-            "message": f"Đã tạo vận đơn thành công qua {provider.upper()}.",
+            "message": f"Bắn đơn sang {provider.upper()} thành công.",
             "tracking_code": api_result.get("tracking_code"),
+            "actual_fee": api_result.get("fee")
         })
 
-    # Thất bại
+    # Trường hợp thất bại: Ghi log lỗi vào Timeline[cite: 6]
+    error_desc = api_result.get("message", "Unknown API Error")
     ShipmentModel.log_event(
         shipment_id=shipment["id"],
         status="failed",
-        description=f"Lỗi API {provider.upper()}: {api_result.get('raw_response', {}).get('error', 'Unknown error')}",
+        description=f"Lỗi API {provider.upper()}: {error_desc}",
+        raw_data=api_result.get("raw_response", {})
     )
-    return jsonify({"success": False, "message": f"Lỗi từ {provider.upper()}. Vui lòng kiểm tra lại địa chỉ/SĐT."})
-
+    
+    return jsonify({"success": False, "message": f"Lỗi từ {provider.upper()}: {error_desc}"})
 # ═══════════════════════════════════════════════════════════════
 #  WEBHOOK: GHN BẮN VỀ ĐỂ CẬP NHẬT TIMELINE (LIVE TRACKING)
 # ═══════════════════════════════════════════════════════════════
@@ -388,35 +427,51 @@ def update_payment_status(order_id: str):
 # ═══════════════════════════════════════════════════════════════
 #  PRIVATE BUILDERS
 # ═══════════════════════════════════════════════════════════════
+# ═══════════════════════════════════════════════════════════════
+#  PRIVATE BUILDERS
+# ═══════════════════════════════════════════════════════════════
 
 
 def _build_shipment_data(order_id: str, order: dict, provider: str) -> dict:
     addr = order.get("shipping_address", {})
     items = order.get("order_items", [])
     
-    # Tính khối lượng động (Giả sử 1 SP thời trang ~ 250g)
+    # Giả định khối lượng: 250g/sản phẩm thời trang
     total_weight = sum(item.get("quantity", 1) * 250 for item in items)
-    weight_g = total_weight if total_weight > 0 else 500
+    weight_g = max(total_weight, 500)  # Tối thiểu 500g
+
+    # 👉 GHÉP CHUỖI ĐỊA CHỈ ĐẦY ĐỦ TRƯỚC KHI LƯU VÀO DB
+    address_parts = [
+        addr.get("address", ""),
+        addr.get("district", ""),
+        addr.get("city", "")
+    ]
+    full_address = ", ".join([part for part in address_parts if part])
 
     return {
         "order_id": order_id,
         "provider": provider,
         "recipient_name": addr.get("full_name", ""),
         "recipient_phone": addr.get("phone", ""),
-        "recipient_address": addr.get("address", ""),
-        "recipient_district": addr.get("district", ""),
-        "recipient_province": addr.get("city", ""),
-        "cod_amount": float(order["total_amount"]) if order.get("payment_method", "").upper() == "COD" else 0,
+        "recipient_address": full_address,  # Lưu địa chỉ đã được ghép đầy đủ
+        "recipient_ward_code": addr.get("ward_code", ""),
+        "recipient_district_id": addr.get("district_id"),
+        "recipient_province_id": addr.get("province_id"),
+        "cod_amount": float(order["total_amount"]) if order.get("payment_method") == "COD" else 0,
+        "shipping_fee": float(order.get("shipping_fee", 0)),  # Phí đã thu của khách
         "weight_g": weight_g,
-        "status": "pending_pickup",
+        "dimensions_json": {"l": 20, "w": 15, "h": 10},  # Kích thước hộp tiêu chuẩn
+        "status": "pending",
+        "package_index": 1  # Mặc định kiện số 1
     }
 
 
 def _build_shipping_payload(sd: dict) -> dict:
+    # Ở bước này chỉ cần lấy ra và bắn thẳng sang API (GHN/GHTK)
     return {
-        "to_name": sd["recipient_name"],
-        "to_phone": sd["recipient_phone"],
-        "to_address": f"{sd['recipient_address']}, {sd['recipient_district']}, {sd['recipient_province']}".strip(", "),
-        "cod_amount": sd["cod_amount"],
-        "weight": sd["weight_g"],
+        "to_name": sd.get("recipient_name", ""),
+        "to_phone": sd.get("recipient_phone", ""),
+        "to_address": sd.get("recipient_address", ""),  # Đã có sẵn Quận/Huyện, Tỉnh/Thành
+        "cod_amount": sd.get("cod_amount", 0),
+        "weight": sd.get("weight_g", 500),
     }

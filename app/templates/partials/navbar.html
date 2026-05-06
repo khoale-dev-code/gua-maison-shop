@@ -1,245 +1,121 @@
 {# ══════════════════════════════
-    MENU MOBILE — Overlay toàn màn hình
-   ══════════════════════════════ #}
-<div id="mobileMenu"
-     role="dialog"
-     aria-modal="true"
-     aria-label="Menu điều hướng"
-     class="fixed inset-0 bg-stone-900 z-[200] flex flex-col justify-center px-8 md:px-12
-            invisible opacity-0 transition-all duration-400 ease-in-out">
-
-  <button id="closeMenu"
-          aria-label="Đóng menu"
-          class="absolute top-5 right-5 p-3 text-stone-400 hover:text-white transition-colors">
-    <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24" aria-hidden="true">
-      <path d="M6 18L18 6M6 6l12 12"/>
-    </svg>
-  </button>
-
-  <nav aria-label="Menu chính mobile" class="flex flex-col gap-2">
-    <a href="/shop"
-       class="text-white text-4xl md:text-5xl font-bold tracking-tight py-2 hover:text-stone-400 transition-colors">
-      Cửa hàng
-    </a>
-    
-    <a href="/styling-lab"
-       class="text-emerald-400 text-4xl md:text-5xl font-bold tracking-tight py-2 hover:text-emerald-300 transition-colors flex items-center gap-3">
-      AI Styling
-      <svg class="w-8 h-8" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09l2.846.813-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456z"/></svg>
-    </a>
-
-    {% for cat in global_categories %}
-    <a href="/shop?category={{ cat.slug }}"
-       class="text-white text-4xl md:text-5xl font-bold tracking-tight py-2 hover:text-stone-400 transition-colors">
-      {{ cat.name }}
-    </a>
-    {% endfor %}
-
-    <div class="h-px w-16 bg-stone-700 my-5"></div>
-
-    {% if current_user.id %}
-      <a href="/profile/"
-         class="text-stone-400 text-xl font-semibold hover:text-white transition-colors py-1">
-        Thông tin cá nhân
-      </a>
-      <form action="/auth/logout" method="POST" class="mt-2">
-        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-        <button type="submit"
-                class="text-red-400 text-xl font-semibold hover:text-red-300 transition-colors text-left cursor-pointer">
-          Đăng xuất
-        </button>
-      </form>
-    {% else %}
-      <a href="/auth/login"
-         class="text-stone-400 text-xl font-semibold hover:text-white transition-colors py-1">
-        Đăng nhập
-      </a>
-      <a href="/auth/register"
-         class="text-white text-xl font-semibold hover:text-stone-400 transition-colors py-1">
-        Tạo tài khoản
-      </a>
-    {% endif %}
-  </nav>
-</div>
-
-{# ══════════════════════════════
-    NAVBAR — Cố định trên cùng
+   NAVBAR — Cố định trên cùng (Phong cách High-end Streetwear / Studio)
    ══════════════════════════════ #}
 <nav id="mainNav"
      aria-label="Điều hướng chính"
-     class="fixed top-0 w-full z-[150] bg-white/95 backdrop-blur-md border-b border-stone-100 transition-all duration-300 shadow-[0_4px_20px_rgb(0,0,0,0.02)]">
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-16">
+     class="fixed top-0 w-full z-[150] bg-transparent text-white transition-all duration-500 hover:bg-black/20">
+  
+  <div class="max-w-[1440px] mx-auto px-6 lg:px-10 flex items-center h-[88px]">
 
-    {# Nút hamburger mobile #}
-    <div class="flex lg:hidden items-center">
-      <button id="openMenu"
-              aria-label="Mở menu"
-              aria-expanded="false"
-              aria-controls="mobileMenu"
-              class="flex flex-col gap-1.5 p-1.5 hover:opacity-60 transition-opacity rounded-md">
-        <span class="w-5 h-[2px] bg-stone-900 block rounded-full"></span>
-        <span class="w-3.5 h-[2px] bg-stone-900 block rounded-full"></span>
+    {# 1. MOBILE HAMBURGER (Bên trái) #}
+    <div class="flex lg:hidden items-center flex-1">
+      <button id="openMenu" aria-label="Mở menu" aria-expanded="false" aria-controls="mobileMenu"
+              class="flex flex-col gap-1.5 p-2 hover:opacity-60 transition-opacity active:scale-95 text-white">
+        <span class="w-6 h-[2px] bg-current block transition-all"></span>
+        <span class="w-4 h-[2px] bg-current block transition-all"></span>
       </button>
     </div>
 
-    {# Logo #}
-    <a href="/"
-       aria-label="GUA — Trang chủ"
-       class="text-2xl font-black tracking-tight text-stone-900 hover:opacity-70 transition-opacity">
-      GUA
-    </a>
-
-    {# Nav links desktop #}
-    <div class="hidden lg:flex items-center gap-8 text-xs font-bold text-stone-600 uppercase tracking-widest">
-      <a href="/shop"
-         class="relative py-2 hover:text-stone-900 transition-colors
-                after:absolute after:bottom-1 after:left-0 after:h-[2px] after:w-0 after:bg-stone-900
-                after:transition-all after:duration-300 hover:after:w-full">
-        Cửa hàng
-      </a>
-
-      <a href="/styling-lab" class="relative py-2 text-stone-900 flex items-center gap-1.5 group">
-        <svg class="w-4 h-4 text-emerald-500 group-hover:rotate-180 transition-transform duration-700" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09l2.846.813-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456z"/></svg>
-        AI STYLING
-      </a>
-
-      {% for cat in global_categories[:3] %}
-      <a href="/shop?category={{ cat.slug }}"
-         class="relative py-2 hover:text-stone-900 transition-colors
-                after:absolute after:bottom-1 after:left-0 after:h-[2px] after:w-0 after:bg-stone-900
-                after:transition-all after:duration-300 hover:after:w-full">
-        {{ cat.name }}
-      </a>
-      {% endfor %}
-    </div>
-
-    {# Khu vực phải #}
-    <div class="flex items-center gap-3 sm:gap-4">
-
-      {# Thanh tìm kiếm — desktop #}
-      <div class="hidden xl:flex items-center bg-stone-50 border border-stone-200/60 rounded-full h-9 px-1
-                  focus-within:border-stone-300 focus-within:bg-white focus-within:shadow-sm transition-all duration-300 overflow-hidden">
-        <form action="/shop" method="get" class="flex items-center px-2 h-full">
-          <svg class="w-3.5 h-3.5 text-stone-400 shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" aria-hidden="true">
-            <circle cx="11" cy="11" r="8"/><path stroke-linecap="round" stroke-linejoin="round" d="m21 21-4.35-4.35"/>
-          </svg>
-          <input name="q"
-                 placeholder="Tìm kiếm..."
-                 aria-label="Tìm kiếm sản phẩm"
-                 class="outline-none bg-transparent w-24 focus:w-40 text-[13px] font-medium text-stone-800
-                        placeholder:text-stone-400 ml-2 transition-all duration-300" />
-        </form>
-        <div class="h-4 w-px bg-stone-200 shrink-0 mx-1"></div>
-        <form action="/visual-search" method="POST" enctype="multipart/form-data" class="flex items-center px-2 h-full">
-          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-          <input type="file" name="image" id="visual-search-input" class="sr-only" accept="image/*" onchange="this.form.submit()">
-          <label for="visual-search-input"
-                 title="Tìm bằng hình ảnh"
-                 class="cursor-pointer text-stone-400 hover:text-stone-800 flex items-center transition-colors p-1">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
-              <path d="M6.827 6.175A2.31 2.31 0 015.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 00-1.134-.175 2.31 2.31 0 01-1.64-1.055l-.822-1.316a2.192 2.192 0 00-1.736-1.039 48.774 48.774 0 00-5.232 0 2.192 2.192 0 00-1.736 1.039l-.821 1.316z"/>
-              <path d="M16.5 12.75a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0zM18.75 10.5h.008v.008h-.008V10.5z"/>
-            </svg>
-            <span class="sr-only">Tìm bằng ảnh</span>
-          </label>
-        </form>
+    {# 2. NAV LINKS DESKTOP (Bên trái - Căn lề trái) #}
+    <div class="hidden lg:flex flex-1 items-center gap-8 text-[14px] font-medium tracking-wide capitalize">
+      
+      {# CỬA HÀNG (Dropdown) #}
+      <div class="relative group py-6">
+        <a href="/shop" class="flex items-center gap-1.5 hover:text-gray-300 transition-colors">
+          Cửa hàng
+          <svg class="w-3.5 h-3.5 group-hover:rotate-180 transition-transform duration-300" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" /></svg>
+        </a>
+        
+        <!-- Dropdown Box (Nền trắng, chữ đen để tương phản) -->
+        <div class="absolute top-full left-0 mt-0 w-52 bg-white text-black shadow-2xl 
+                    opacity-0 invisible translate-y-2 group-hover:opacity-100 group-hover:visible group-hover:translate-y-0 transition-all duration-300 ease-out z-50">
+          <div class="py-2">
+            <a href="/shop" class="block px-6 py-3 text-sm font-bold hover:bg-gray-50 transition-colors border-b border-gray-100">
+              Tất cả sản phẩm
+            </a>
+            {% for cat in global_categories %}
+            <a href="/shop?category={{ cat.slug }}" class="block px-6 py-2.5 text-[13px] font-medium text-gray-500 hover:text-black hover:bg-gray-50 transition-colors">
+              {{ cat.name }}
+            </a>
+            {% endfor %}
+          </div>
+        </div>
       </div>
 
-      {# Giỏ hàng #}
-      <a href="/cart/"
-         aria-label="Giỏ hàng{% if cart_count > 0 %} — {{ cart_count }} sản phẩm{% endif %}"
-         class="relative p-2 text-stone-700 hover:text-stone-900 transition-colors">
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 10.5V6a3.75 3.75 0 10-7.5 0v4.5m11.356-1.993l1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 01-1.12-1.243l1.264-12A1.125 1.125 0 015.513 7.5h12.974c.576 0 1.059.435 1.119 1.007zM8.625 10.5a.375.375 0 11-.75 0 .375.375 0 01.75 0zm7.5 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z"/>
-        </svg>
+      <a href="/about" class="hover:text-gray-300 transition-colors py-6">Giới thiệu</a>
+      <a href="/contact" class="hover:text-gray-300 transition-colors py-6">Liên hệ</a>
+      
+      {# KHUYẾN MÃI #}
+      <a href="/promotions" class="hover:text-gray-300 transition-colors flex items-center gap-1.5 py-6">
+        Khuyến mãi
+        <span class="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse"></span>
+      </a>
+    </div>
+
+    {# 3. LOGO (Ở giữa - Căn giữa tuyệt đối) #}
+    <div class="flex justify-center flex-1 lg:flex-none lg:absolute lg:left-1/2 lg:-translate-x-1/2">
+      <a href="/" aria-label="GUA — Trang chủ" class="text-4xl font-black tracking-tighter uppercase hover:opacity-80 transition-opacity">
+        GUA
+      </a>
+    </div>
+
+    {# 4. KHU VỰC TIỆN ÍCH (Bên phải - Căn lề phải) #}
+    <div class="flex flex-1 items-center justify-end gap-5 sm:gap-6">
+      
+      {# Icon Tìm kiếm #}
+      <button aria-label="Tìm kiếm" class="hover:text-gray-300 transition-colors p-1">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"/></svg>
+      </button>
+
+      {# Visual Search (Ẩn input file, chỉ hiện icon camera/scan) #}
+      <form action="/visual-search" method="POST" enctype="multipart/form-data" class="flex items-center">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <input type="file" name="image" id="visual-search-input" class="sr-only" accept="image/*" onchange="this.form.submit()">
+        <label for="visual-search-input" title="Tìm bằng hình ảnh" class="cursor-pointer hover:text-gray-300 transition-colors p-1">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6.827 6.175A2.31 2.31 0 015.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 00-1.134-.175 2.31 2.31 0 01-1.64-1.055l-.822-1.316a2.192 2.192 0 00-1.736-1.039 48.774 48.774 0 00-5.232 0 2.192 2.192 0 00-1.736 1.039l-.821 1.316z"/><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 12.75a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0z"/></svg>
+        </label>
+      </form>
+
+      {# Icon Giỏ hàng #}
+      <a href="/cart/" aria-label="Giỏ hàng" class="relative hover:text-gray-300 transition-colors p-1">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 10.5V6a3.75 3.75 0 10-7.5 0v4.5m11.356-1.993l1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 01-1.12-1.243l1.264-12A1.125 1.125 0 015.513 7.5h12.974c.576 0 1.059.435 1.119 1.007zM8.625 10.5a.375.375 0 11-.75 0 .375.375 0 01.75 0z"/></svg>
         {% if cart_count > 0 %}
-        <span aria-hidden="true"
-              class="absolute top-0 right-0 bg-emerald-500 text-white text-[9px] font-bold
-                     w-4 h-4 flex items-center justify-center rounded-full border-2 border-white">
+        <span class="absolute -top-1.5 -right-1.5 bg-red-600 text-white text-[9px] font-bold w-4 h-4 flex items-center justify-center rounded-full">
           {{ cart_count }}
         </span>
         {% endif %}
       </a>
 
-      {# Tài khoản #}
-      {% if current_user.id %}
+      {# Icon Tài khoản #}
       <div class="relative group hidden sm:block">
-        <button aria-label="Tài khoản"
-                class="flex items-center gap-2.5 h-9 pl-3 pr-1 rounded-full border border-stone-200/60 bg-stone-50
-                       hover:border-stone-300 hover:bg-white hover:shadow-sm transition-all cursor-pointer">
-          <span class="hidden lg:block text-xs font-bold text-stone-700 max-w-[80px] truncate">
-            {{ current_user.full_name.split()[0] }}
-          </span>
-          <div class="w-7 h-7 bg-stone-900 rounded-full flex items-center justify-center
-                      text-white text-[11px] font-bold uppercase shrink-0">
-            {{ current_user.full_name[0].upper() if current_user.full_name else 'U' }}
-          </div>
-        </button>
+        <a href="{% if current_user.id %}/profile/{% else %}/auth/login{% endif %}" aria-label="Tài khoản" class="hover:text-gray-300 transition-colors p-1 block">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z"/></svg>
+        </a>
 
-        {# Dropdown #}
-        <div class="absolute right-0 top-full mt-2 w-56 bg-white border border-stone-100 rounded-2xl
-                    shadow-[0_8px_30px_rgb(0,0,0,0.08)] opacity-0 invisible translate-y-2
-                    group-hover:opacity-100 group-hover:visible group-hover:translate-y-0
-                    transition-all duration-300 ease-out z-50 overflow-hidden">
-          <div class="px-5 py-4 bg-stone-50/50 border-b border-stone-100">
-            <p class="text-sm font-bold text-stone-900 truncate">{{ current_user.full_name }}</p>
-            <p class="text-[11px] font-medium text-stone-400 truncate mt-0.5">{{ current_user.email }}</p>
+        {# Dropdown Tài Khoản (Nền trắng, chữ đen) #}
+        {% if current_user.id %}
+        <div class="absolute right-0 top-full mt-0 w-56 bg-white text-black shadow-2xl opacity-0 invisible translate-y-2 group-hover:opacity-100 group-hover:visible group-hover:translate-y-0 transition-all duration-300 ease-out z-50">
+          <div class="px-6 py-4 bg-gray-50 border-b border-gray-100">
+            <p class="text-sm font-bold truncate">{{ current_user.full_name }}</p>
+            <p class="text-[11px] font-medium text-gray-500 truncate mt-0.5">{{ current_user.email }}</p>
           </div>
           <div class="py-2">
-            <a href="/profile/"
-               class="flex items-center justify-between px-5 py-2.5 text-xs font-bold text-stone-600
-                      hover:bg-stone-50 hover:text-stone-900 transition-colors">
-              Hồ sơ cá nhân
-              <svg class="w-3.5 h-3.5 text-stone-400" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5"/></svg>
-            </a>
-            <a href="/profile/orders"
-               class="flex items-center justify-between px-5 py-2.5 text-xs font-bold text-stone-600
-                      hover:bg-stone-50 hover:text-stone-900 transition-colors">
-              Lịch sử đơn hàng
-              <svg class="w-3.5 h-3.5 text-stone-400" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5"/></svg>
-            </a>
-            {% if current_user.role == 'admin' %}
-            <div class="h-px bg-stone-100 mx-4 my-1.5"></div>
-            <a href="/admin/"
-               class="flex items-center justify-between px-5 py-2.5 text-xs font-bold text-emerald-600
-                      hover:bg-emerald-50 transition-colors">
-              Quản trị hệ thống
-              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5"/></svg>
-            </a>
-            {% endif %}
-            <div class="h-px bg-stone-100 mx-4 my-1.5"></div>
+            <a href="/profile/" class="block px-6 py-2.5 text-[13px] font-medium hover:bg-gray-50 transition-colors">Hồ sơ cá nhân</a>
+            <a href="/profile/orders" class="block px-6 py-2.5 text-[13px] font-medium hover:bg-gray-50 transition-colors">Lịch sử đơn hàng</a>
+            <div class="h-px bg-gray-100 mx-4 my-1.5"></div>
             <form action="/auth/logout" method="POST">
               <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-              <button type="submit"
-                      class="w-full flex items-center justify-between px-5 py-2.5 text-xs font-bold text-red-500
-                             hover:bg-red-50 transition-colors text-left cursor-pointer">
+              <button type="submit" class="w-full text-left px-6 py-2.5 text-[13px] font-medium text-red-500 hover:bg-red-50 transition-colors cursor-pointer">
                 Đăng xuất
-                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" aria-hidden="true">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75"/>
-                </svg>
               </button>
             </form>
           </div>
         </div>
+        {% endif %}
       </div>
-
-      {% else %}
-      <div class="flex items-center gap-3">
-        <a href="/auth/login"
-           class="hidden md:block text-[13px] font-bold text-stone-500 hover:text-stone-900 transition-colors">
-          Đăng nhập
-        </a>
-        <a href="/auth/register"
-           class="bg-stone-900 text-white text-[13px] font-bold px-4 py-2 rounded-full
-                  hover:bg-stone-700 hover:shadow-md transition-all active:scale-95">
-          Đăng ký
-        </a>
-      </div>
-      {% endif %}
-
     </div>
+
   </div>
 </nav>
 
-{# Spacer cho fixed navbar #}
-<div class="h-16 w-full" aria-hidden="true"></div>
+{# Bỏ Spacer div h-[72px] ở dưới nếu bạn muốn Hero banner chui vào dưới navbar #}
