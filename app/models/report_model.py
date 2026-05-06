@@ -1,9 +1,11 @@
 """
 app/models/report_model.py
-Xử lý dữ liệu Báo cáo & Thống kê Omnichannel bằng Pandas.
+Xử lý dữ liệu Báo cáo & Thống kê Omnichannel bằng Pure Python (Tối ưu cho Vercel Serverless).
+Không sử dụng Pandas để tránh lỗi vượt dung lượng và tối ưu tốc độ.
 """
-import pandas as pd
 import logging
+from collections import defaultdict
+from datetime import datetime
 from app.utils.supabase_client import get_supabase
 
 logger = logging.getLogger(__name__)
@@ -16,156 +18,158 @@ class ReportModel:
         db = get_supabase()
         try:
             # ── Kéo dữ liệu từ các bảng cần thiết ──
-            analytics_res = (
-                db.table("product_analytics")
-                .select("*, products(name)")
-                .execute()
-            )
-            orders_res = (
-                db.table("orders")
-                .select("id, total_amount, sales_channel, created_at, status, payment_status")
-                .execute()
-            )
-            # Kéo order_items để tính số lượng bán thực tế theo sản phẩm
-            order_items_res = (
-                db.table("order_items")
-                .select("order_id, product_id, quantity, unit_price, products(name)")
-                .execute()
-            )
+            analytics_res = db.table("product_analytics").select("*, products(name)").execute()
+            orders_res = db.table("orders").select("id, total_amount, sales_channel, created_at, status, payment_status").execute()
+            order_items_res = db.table("order_items").select("order_id, product_id, quantity, unit_price, products(name)").execute()
 
-            df_ana = pd.DataFrame(analytics_res.data or [])
-            df_ord = pd.DataFrame(orders_res.data or [])
-            df_items = pd.DataFrame(order_items_res.data or [])
+            analytics_data = analytics_res.data or []
+            orders_data = orders_res.data or []
+            order_items_data = order_items_res.data or []
 
-            if df_ana.empty and df_ord.empty:
+            if not analytics_data and not orders_data:
                 return ReportModel._get_fallback_data()
 
-            channel_revenue = {}
-            monthly_stats = []
-            funnel_data = []
-            best_production = []
-            most_liked = []
-
-            # ── BƯỚC 1: Lọc đơn hợp lệ (completed/delivered + paid) ──
             valid_order_ids = set()
-            if not df_ord.empty:
-                is_delivered = df_ord["status"].isin(["delivered", "completed"])
-                is_paid = df_ord["payment_status"] == "paid"
-                df_valid = df_ord[is_delivered | is_paid].copy()
+            channel_revenue = defaultdict(float)
+            monthly_dict = defaultdict(float)
+            order_channel_map = {}
 
-                if not df_valid.empty:
-                    valid_order_ids = set(df_valid["id"].tolist())
-
-                    df_valid["sales_channel"] = df_valid["sales_channel"].fillna("web")
-
+            # ── BƯỚC 1: Lọc đơn hợp lệ và Tính doanh thu ──
+            for o in orders_data:
+                status = o.get("status")
+                payment_status = o.get("payment_status")
+                
+                # Điều kiện hợp lệ: Đã giao/hoàn thành HOẶC đã thanh toán
+                if status in ["delivered", "completed"] or payment_status == "paid":
+                    oid = o.get("id")
+                    valid_order_ids.add(oid)
+                    
                     # Doanh thu theo kênh
-                    channel_revenue = (
-                        df_valid.groupby("sales_channel")["total_amount"]
-                        .sum()
-                        .to_dict()
-                    )
+                    channel = o.get("sales_channel") or "web"
+                    order_channel_map[oid] = channel
+                    amt = float(o.get("total_amount") or 0)
+                    channel_revenue[channel] += amt
+                    
+                    # Doanh thu theo tháng
+                    created_at_str = o.get("created_at")
+                    if created_at_str:
+                        try:
+                            dt = datetime.fromisoformat(created_at_str.replace('Z', '+00:00'))
+                            month_key = dt.strftime("%Y-%m")  # Lưu YYYY-MM để sort cho chuẩn
+                            monthly_dict[month_key] += amt
+                        except ValueError:
+                            pass
 
-                    # Doanh thu theo tháng (12 tháng gần nhất)
-                    if "created_at" in df_valid.columns:
-                        df_valid["created_at"] = pd.to_datetime(df_valid["created_at"])
-                        df_valid["month"] = df_valid["created_at"].dt.strftime("%m/%Y")
-                        monthly = (
-                            df_valid.groupby("month")["total_amount"]
-                            .sum()
-                            .reset_index()
-                        )
-                        monthly = monthly.sort_values("month").tail(12)
-                        monthly.rename(columns={"total_amount": "revenue"}, inplace=True)
-                        monthly_stats = monthly.to_dict("records")
+            # Sắp xếp và lấy 12 tháng gần nhất
+            sorted_months = sorted(monthly_dict.keys())[-12:]
+            monthly_stats = []
+            for ym in sorted_months:
+                dt_obj = datetime.strptime(ym, "%Y-%m")
+                monthly_stats.append({
+                    "month": dt_obj.strftime("%m/%Y"),  # Đổi lại thành MM/YYYY cho UI
+                    "revenue": monthly_dict[ym]
+                })
 
-            # ── BƯỚC 2: Tính số lượng bán thực tế từ order_items (chỉ đơn hợp lệ) ──
-            # Đây là nguồn sự thật cho "sold" — đặc biệt quan trọng với kênh POS
-            sold_by_product = {}
-            if not df_items.empty and valid_order_ids:
-                df_valid_items = df_items[df_items["order_id"].isin(valid_order_ids)].copy()
-                if not df_valid_items.empty:
-                    sold_by_product = (
-                        df_valid_items.groupby("product_id")["quantity"]
-                        .sum()
-                        .to_dict()
-                    )
+            # ── BƯỚC 2: Tính số lượng bán thực tế từ order_items ──
+            sold_by_product = defaultdict(int)
+            for item in order_items_data:
+                if item.get("order_id") in valid_order_ids:
+                    sold_by_product[item.get("product_id")] += int(item.get("quantity") or 0)
 
             # ── BƯỚC 3: Funnel & AI Score từ product_analytics ──
-            if not df_ana.empty:
-                df_ana["product_name"] = df_ana["products"].apply(
-                    lambda x: x.get("name") if isinstance(x, dict) else "Unknown"
-                )
+            funnel_by_channel = defaultdict(lambda: {"views": 0, "add_to_carts": 0, "sold": 0})
+            best_production_dict = {}
+            product_likes = defaultdict(int)
 
-                # Ghi đè cột "sold" trong analytics bằng số liệu thực từ order_items
-                # để đảm bảo dữ liệu nhất quán giữa POS và các kênh online
-                if sold_by_product:
-                    df_ana["sold_actual"] = df_ana["product_id"].map(sold_by_product).fillna(0)
-                    # Lấy MAX giữa sold trong analytics (tracking online) và sold_actual (đơn thực)
-                    # vì một số kênh (shopee, tiktok) tự tracking, không qua order_items
-                    df_ana["sold"] = df_ana[["sold", "sold_actual"]].max(axis=1)
+            if analytics_data:
+                for a in analytics_data:
+                    channel = a.get("channel") or "web"
+                    prod_data = a.get("products")
+                    prod_name = prod_data.get("name") if isinstance(prod_data, dict) else "Unknown"
+                    pid = a.get("product_id")
+                    
+                    views = int(a.get("views") or 0)
+                    carts = int(a.get("add_to_carts") or 0)
+                    likes = int(a.get("wishlist_count") or 0)
+                    
+                    # Hợp nhất sold (Lấy MAX giữa tracking online và thực tế)
+                    sold_actual = sold_by_product.get(pid, 0)
+                    sold_tracking = int(a.get("sold") or 0)
+                    final_sold = max(sold_actual, sold_tracking)
 
-                # Phễu chuyển đổi theo kênh
-                funnel_df = (
-                    df_ana.groupby("channel")[["views", "add_to_carts", "sold"]]
-                    .sum()
-                    .reset_index()
-                )
-                funnel_df["cr_view_to_cart"] = (
-                    funnel_df["add_to_carts"] / funnel_df["views"].replace(0, 1) * 100
-                ).round(1)
-                funnel_df["cr_cart_to_order"] = (
-                    funnel_df["sold"] / funnel_df["add_to_carts"].replace(0, 1) * 100
-                ).round(1)
-                funnel_df["cr_total"] = (
-                    funnel_df["sold"] / funnel_df["views"].replace(0, 1) * 100
-                ).round(1)
-                funnel_data = funnel_df.to_dict("records")
+                    # Funnel Aggregation
+                    funnel_by_channel[channel]["views"] += views
+                    funnel_by_channel[channel]["add_to_carts"] += carts
+                    funnel_by_channel[channel]["sold"] += final_sold
 
-                # AI Score = (sold x 0.5) + (wishlist x 0.3) + (views x 0.2)
-                df_ana["ai_score"] = (
-                    df_ana["sold"] * 0.5
-                    +df_ana["wishlist_count"] * 0.3
-                    +df_ana["views"] * 0.2
-                )
-                idx = df_ana.groupby("channel")["ai_score"].idxmax()
-                best_production = (
-                    df_ana.loc[idx, ["channel", "product_name", "ai_score", "sold", "views"]]
-                    .to_dict("records")
-                )
+                    # AI Score Calculation
+                    ai_score = (final_sold * 0.5) + (likes * 0.3) + (views * 0.2)
+                    
+                    # Tìm best product per channel
+                    if channel not in best_production_dict or ai_score > best_production_dict[channel]["ai_score"]:
+                        best_production_dict[channel] = {
+                            "channel": channel,
+                            "product_name": prod_name,
+                            "ai_score": ai_score,
+                            "sold": final_sold,
+                            "views": views
+                        }
+                        
+                    # Yêu thích
+                    product_likes[prod_name] += likes
 
-                top_liked_df = (
-                    df_ana.groupby("product_name")["wishlist_count"]
-                    .sum()
-                    .nlargest(5)
-                    .reset_index()
-                )
-                top_liked_df.columns = ["product_name", "likes"]
-                most_liked = top_liked_df[top_liked_df["likes"] > 0].to_dict("records")
+                # Format Funnel Data
+                funnel_data = []
+                for ch, data in funnel_by_channel.items():
+                    v = max(data["views"], 1)  # Chống lỗi chia cho 0
+                    c = max(data["add_to_carts"], 1)
+                    funnel_data.append({
+                        "channel": ch,
+                        "views": data["views"],
+                        "add_to_carts": data["add_to_carts"],
+                        "sold": data["sold"],
+                        "cr_view_to_cart": round((data["add_to_carts"] / v) * 100, 1),
+                        "cr_cart_to_order": round((data["sold"] / c) * 100, 1),
+                        "cr_total": round((data["sold"] / v) * 100, 1)
+                    })
+                
+                best_production = list(best_production_dict.values())
+                
+                # Top 5 most liked
+                sorted_likes = sorted(product_likes.items(), key=lambda x: x[1], reverse=True)
+                most_liked = [{"product_name": k, "likes": v} for k, v in sorted_likes if v > 0][:5]
 
-            # ── BƯỚC 4: Nếu analytics rỗng nhưng có order_items, tổng hợp sold từ đó ──
-            elif sold_by_product and not df_items.empty and valid_order_ids:
-                df_valid_items = df_items[df_items["order_id"].isin(valid_order_ids)].copy()
-                df_valid_items["product_name"] = df_valid_items["products"].apply(
-                    lambda x: x.get("name") if isinstance(x, dict) else "Unknown"
-                )
-                # Merge với channel từ orders
-                df_ord_channel = df_ord[["id", "sales_channel"]].rename(columns={"id": "order_id"})
-                df_valid_items = df_valid_items.merge(df_ord_channel, on="order_id", how="left")
-                df_valid_items["sales_channel"] = df_valid_items["sales_channel"].fillna("pos")
-
-                funnel_df = (
-                    df_valid_items.groupby("sales_channel")
-                    .agg(sold=("quantity", "sum"), views=("quantity", "count"), add_to_carts=("quantity", "sum"))
-                    .reset_index()
-                    .rename(columns={"sales_channel": "channel"})
-                )
-                funnel_df["cr_view_to_cart"] = 100.0
-                funnel_df["cr_cart_to_order"] = 100.0
-                funnel_df["cr_total"] = 100.0
-                funnel_data = funnel_df.to_dict("records")
+            # ── BƯỚC 4: Fallback nếu không có analytics nhưng có order ──
+            elif sold_by_product and order_items_data and valid_order_ids:
+                for item in order_items_data:
+                    oid = item.get("order_id")
+                    if oid in valid_order_ids:
+                        ch = order_channel_map.get(oid, "pos")
+                        qty = int(item.get("quantity") or 0)
+                        funnel_by_channel[ch]["sold"] += qty
+                        funnel_by_channel[ch]["views"] += 1
+                        funnel_by_channel[ch]["add_to_carts"] += qty
+                        
+                funnel_data = []
+                for ch, data in funnel_by_channel.items():
+                    funnel_data.append({
+                        "channel": ch,
+                        "views": data["views"],
+                        "add_to_carts": data["add_to_carts"],
+                        "sold": data["sold"],
+                        "cr_view_to_cart": 100.0,
+                        "cr_cart_to_order": 100.0,
+                        "cr_total": 100.0
+                    })
+                best_production = []
+                most_liked = []
+            else:
+                funnel_data = []
+                best_production = []
+                most_liked = []
 
             return {
-                "channel_revenue": channel_revenue,
+                "channel_revenue": dict(channel_revenue),
                 "monthly_stats": monthly_stats,
                 "funnel": funnel_data,
                 "production_suggestions": best_production,
@@ -173,7 +177,7 @@ class ReportModel:
             }
 
         except Exception as e:
-            logger.error(f"[ReportModel] Lỗi xử lý Pandas: {e}", exc_info=True)
+            logger.error(f"[ReportModel] Lỗi xử lý báo cáo: {e}", exc_info=True)
             return ReportModel._get_fallback_data()
 
     @staticmethod
