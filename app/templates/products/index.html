@@ -3,130 +3,125 @@
 
 {% block extra_head %}
 <style>
-  /* =========================================
-     CUSTOM CURSOR - ĐẶC SẢN WEB STUDIO
-     ========================================= */
-  /* Ẩn con trỏ mặc định trên Desktop (thiết bị có chuột chính xác) */
-  @media (pointer: fine) {
-    body { cursor: none; }
-    a, button, input, textarea, select, .swiper-wrapper { cursor: none !important; }
-  }
-
-  /* Styling con trỏ tùy chỉnh */
-  .custom-cursor {
-    position: fixed;
-    top: 0; left: 0;
-    width: 12px; height: 12px;
-    background-color: #000;
-    border-radius: 50%;
-    pointer-events: none; /* Không ngăn cản click chuột */
-    z-index: 999999;
-    transform: translate(-50%, -50%);
-    transition: width 0.3s cubic-bezier(0.16, 1, 0.3, 1), 
-                height 0.3s cubic-bezier(0.16, 1, 0.3, 1), 
-                background-color 0.3s;
-    mix-blend-mode: difference; /* Tự động đổi màu Trắng/Đen tùy theo nền đè lên */
-  }
-
-  /* Trạng thái khi di chuột vào nút/link */
-  .custom-cursor.hovering {
-    width: 60px; height: 60px;
-    background-color: transparent;
-    border: 1px solid #fff;
-    mix-blend-mode: difference;
-  }
+  .no-scrollbar::-webkit-scrollbar { display: none; }
+  .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 </style>
 {% endblock %}
 
 {% block content %}
-  <!-- CON TRỎ CHUỘT CUSTOM (Chỉ hiện trên màn hình to / có chuột) -->
-  <div class="custom-cursor hidden md:block" id="custom-cursor"></div>
 
-  {# =========================================
-     1. HERO VIDEO TỈ LỆ FULL MÀN HÌNH
-     ========================================= #}
-  {% include 'components/home/_hero_slider.html' ignore missing %}
+{# ── GÁN BIẾN DANH MỤC TỪ ADMIN (Bắt đầu lấy từ 0 vì Hero Tĩnh không dùng) ── #}
+{% set grid_cats = categories[0:4] %}
+{% set banner2 = (categories[4:5] | first) | default(None) %}
+{% set split1 = (categories[5:6] | first) | default(None) %}
+{% set split2 = (categories[6:7] | first) | default(None) %}
+{% set banner3 = (categories[7:8] | first) | default(None) %}
 
-  {# =========================================
-     2. LƯỚT NGANG SẢN PHẨM MỚI (SWIPER JS)
-     ========================================= #}
-  {% if featured_products %}
-    <div class="pt-16 md:pt-24 pb-8">
-      {% include 'components/home/_featured.html' ignore missing %}
+<div class="bg-white text-black font-sans w-full">
+
+  {# ══ 1. HERO VIDEO TĨNH (GIỮ NGUYÊN HOÀN TOÀN KHÔNG ĐỔI) ══ #}
+  <section class="relative w-full h-[85vh] md:h-screen overflow-hidden bg-neutral-900 flex items-end">
+    <video autoplay muted loop playsinline class="absolute inset-0 w-full h-full object-cover scale-105">
+      <source src="https://cdn.hstatic.net/files/200001029438/file/ef7df01e-38a3-4b59-b7ae-79757c79a37b.mp4" type="video/mp4"/>
+    </video>
+    <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent"></div>
+    <div class="relative z-10 w-full px-6 pb-12 md:px-12 md:pb-20 text-white animate-fade-in-up">
+      <h1 class="text-4xl md:text-6xl font-black uppercase tracking-wide mb-2 drop-shadow-md">
+        New Collection
+      </h1>
+      <p class="text-xs md:text-sm font-medium tracking-wide mb-6 max-w-md drop-shadow">
+        Nơi quần áo không còn là vật thể — mà là nhịp điệu, chuyển động, và cảm xúc.
+      </p>
+      <a href="/shop" class="inline-block text-[11px] font-bold uppercase tracking-widest border-b-2 border-white pb-1 hover:text-neutral-300 transition-colors">
+        Shop Now
+      </a>
     </div>
-  {% endif %}
-
-  {# =========================================
-     3. BẢN BANNER CAMPAIGN (ĐIỂM NHẤN THỊ GIÁC)
-     ========================================= #}
-  <section class="w-full aspect-square md:aspect-[21/9] overflow-hidden relative reveal">
-     <!-- Ảnh bìa Lookbook/Campaign -->
-     <img src="https://images.unsplash.com/photo-1556821840-3a63f95609a7?q=80&w=2000" 
-          class="w-full h-full object-cover scale-105 hover:scale-100 transition-transform duration-[2.5s] ease-out" 
-          loading="lazy" alt="Campaign 2026" />
-          
-     <!-- Overlay tối màu & Typo nghệ thuật -->
-     <div class="absolute inset-0 flex items-center justify-center pointer-events-none bg-black/10">
-         <h2 class="text-white text-5xl md:text-8xl lg:text-[10rem] font-black uppercase tracking-tighter mix-blend-overlay opacity-90 drop-shadow-sm">
-             Street Culture
-         </h2>
-     </div>
   </section>
 
-  {# =========================================
-     4. KHÁM PHÁ INSTAGRAM ILLUSION (ẢO GIÁC)
-     ========================================= #}
-  {% if categories and featured_products %}
-    <!-- Margin top âm một chút để tạo độ kết nối với banner trên -->
-    <div class="mt-8 md:mt-16">
-      {% include 'components/home/_instagram_illusion.html' ignore missing %}
+  {# ══ 2. CATEGORY GRID (Lấy danh mục Admin: 1, 2, 3, 4) ══ #}
+  <section class="w-full p-1 md:p-2 grid grid-cols-2 md:grid-cols-4 gap-1 md:gap-2">
+    {% for i in range(4) %}
+      {% set cat = grid_cats[i] if grid_cats|length > i else None %}
+      <a href="/shop{% if cat %}?category={{ cat.slug }}{% endif %}" class="relative group block aspect-[3/4] overflow-hidden bg-neutral-100">
+        <img src="{{ cat.image_url if cat and cat.image_url else 'https://placehold.co/600x800/ede4d8/1a1714?text=Category+' ~ (i+1) }}" alt="Category" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700">
+        <div class="absolute bottom-4 left-4 z-10">
+          <h3 class="text-[10px] md:text-[11px] font-bold uppercase tracking-widest text-black bg-white/80 px-2 py-1">
+            {{ cat.name if cat else 'Upcoming' }}
+          </h3>
+        </div>
+      </a>
+    {% endfor %}
+  </section>
+
+  {# ══ 3. BANNER 2 (Lấy danh mục Admin số 5) ══ #}
+  <section class="relative w-full h-[70vh] md:h-[85vh] mt-1 md:mt-2 overflow-hidden bg-neutral-100">
+    <img src="{{ banner2.image_url if banner2 and banner2.image_url else 'https://hbt001.ccis.chiefappc.com/cac/EcmAdver/navy-top_221018103443_X_v1_1.jpg?2022122210Thu+Dec+08+16%3A50%3A49+CST+2022' }}" alt="Banner" class="absolute inset-0 w-full h-full object-cover">
+    <div class="absolute bottom-12 left-6 text-white z-10">
+      <h2 class="text-3xl md:text-5xl font-black uppercase tracking-wide">{{ banner2.name if banner2 else '' }}</h2>
+      <a href="/shop{% if banner2 %}?category={{ banner2.slug }}{% endif %}" class="text-[11px] font-bold uppercase tracking-widest border-b-2 border-white pb-1">Shop Now</a>
     </div>
+  </section>
+
+  {# ══ 4. SPLIT BANNERS (Lấy danh mục Admin số 6 và 7) ══ #}
+  <section class="w-full p-1 md:p-2 grid grid-cols-1 md:grid-cols-2 gap-1 md:gap-2">
+    <div class="relative w-full h-[60vh] md:h-[80vh] group overflow-hidden bg-neutral-100">
+      <img src="{{ split1.image_url if split1 and split1.image_url else 'https://i.pinimg.com/1200x/4f/9c/5f/4f9c5f21c55a7df83a8b35d49518a688.jpg' }}" alt="Split" class="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-all duration-700">
+      <div class="absolute inset-0 bg-black/10 group-hover:bg-black/20 transition duration-500"></div>
+      <div class="absolute bottom-8 left-6 text-white z-10">
+        <h2 class="text-2xl md:text-3xl font-black uppercase tracking-wide">{{ split1.name if split1 else '' }}</h2>
+        <a href="/shop{% if split1 %}?category={{ split1.slug }}{% endif %}" class="text-[10px] font-bold uppercase tracking-widest border-b-2 border-white pb-1">Shop Now</a>
+      </div>
+    </div>
+    <div class="relative w-full h-[60vh] md:h-[80vh] group overflow-hidden bg-neutral-100">
+      <img src="{{ split2.image_url if split2 and split2.image_url else 'https://wdiscoveryimg.wconcept.co.kr/tos-sgcomm1-v-662e29308768f11b-sg/oMkytUpZpEYAZEAgmBeKyT3OI6nCY7ATZQeQ7B~tplv-vod-noop.image' }}" alt="Split" class="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-all duration-700">
+      <div class="absolute inset-0 bg-black/10 group-hover:bg-black/20 transition duration-500"></div>
+      <div class="absolute bottom-8 left-6 text-white z-10">
+        <h2 class="text-2xl md:text-3xl font-black uppercase tracking-wide">{{ split2.name if split2 else '' }}</h2>
+        <a href="/shop{% if split2 %}?category={{ split2.slug }}{% endif %}" class="text-[10px] font-bold uppercase tracking-widest border-b-2 border-white pb-1">Shop Now</a>
+      </div>
+    </div>
+  </section>
+
+  {# ══ 5. BANNER 4 (Lấy danh mục Admin số 8) ══ #}
+  <section class="relative w-full h-[70vh] md:h-[85vh] mt-1 md:mt-2 overflow-hidden bg-neutral-100">
+    <img src="{{ banner3.image_url if banner3 and banner3.image_url else 'https://wimage.wconcept.co.kr/msa-event/event/default/20260503205519630_6934.png?RS=1680' }}" alt="Banner" class="absolute inset-0 w-full h-full object-cover">
+    <div class="absolute bottom-12 left-6 text-white z-10">
+      <h2 class="text-3xl md:text-5xl font-black uppercase tracking-wide">{{ banner3.name if banner3 else 'Best Sellers' }}</h2>
+      <a href="/shop{% if banner3 %}?category={{ banner3.slug }}{% endif %}" class="text-[11px] font-bold uppercase tracking-widest border-b-2 border-white pb-1">Shop Now</a>
+    </div>
+  </section>
+
+  {# ══ 6. TRENDING SLIDER ══ #}
+  {% if featured_products %}
+  <section class="w-full py-16 px-4 md:px-8 border-t border-neutral-200 mt-2 text-center">
+    <h2 class="text-sm md:text-base font-black uppercase tracking-[0.2em] text-black mb-10">Trending</h2>
+    <div class="flex overflow-x-auto gap-4 md:gap-8 snap-x snap-mandatory no-scrollbar pb-8">
+      {% for product in featured_products %}
+      <a href="/product/{{ product.slug or product.id }}" class="flex-shrink-0 w-[60vw] md:w-[20vw] snap-center group block text-left">
+        <div class="aspect-square bg-[#f5f5f5] mb-4 overflow-hidden relative">
+          <img src="{{ product.thumbnail_url }}" alt="{{ product.name }}" class="w-full h-full object-cover mix-blend-multiply group-hover:scale-105 transition duration-500" loading="lazy">
+        </div>
+        <p class="text-[10px] font-medium text-neutral-500 uppercase tracking-widest mb-1">{{ product.categories.name if product.categories else 'Core' }}</p>
+        <h3 class="text-xs font-bold uppercase tracking-wide text-black truncate">{{ product.name }}</h3>
+        <p class="text-xs font-medium text-black mt-1">₫{{ "{:,.0f}".format(product.price) }}</p>
+      </a>
+      {% endfor %}
+    </div>
+  </section>
   {% endif %}
 
-  {# =========================================
-     5. MARQUEE CHỮ CHẠY VÔ TẬN
-     ========================================= #}
-  <div class="mt-auto">
-    {% include 'components/home/_benefits.html' ignore missing %}
-  </div>
+  {# ══ 7. NEWSLETTER CTA ══ #}
+  {% include 'components/home/_cta_register.html' ignore missing %}
 
-  {# =========================================
-     6. MODAL XEM NHANH SẢN PHẨM
-     ========================================= #}
-  {% include 'components/modals/_quick_view.html' ignore missing %}
+</div>
 
-{% endblock %}
-
-{% block extra_scripts %}
-<script>
-  // ==========================================
-  // LOGIC ĐIỀU KHIỂN CUSTOM CURSOR (CON TRỎ CHUỘT)
-  // ==========================================
-  document.addEventListener('DOMContentLoaded', () => {
-    const cursor = document.getElementById('custom-cursor');
-    if (!cursor) return;
-
-    // Kiểm tra xem thiết bị có dùng chuột không (bỏ qua màn hình cảm ứng)
-    if (window.matchMedia("(pointer: fine)").matches) {
-        
-        // Cập nhật vị trí con trỏ theo tọa độ chuột
-        document.addEventListener('mousemove', (e) => {
-            cursor.style.left = e.clientX + 'px';
-            cursor.style.top = e.clientY + 'px';
-        });
-
-        // Bắt sự kiện hover vào các thẻ có thể tương tác (Link, Nút, Ảnh Swiper...)
-        const interactables = document.querySelectorAll('a, button, input, select, .swiper-wrapper, .group');
-        
-        interactables.forEach(el => {
-            el.addEventListener('mouseenter', () => {
-                cursor.classList.add('hovering');
-            });
-            el.addEventListener('mouseleave', () => {
-                cursor.classList.remove('hovering');
-            });
-        });
-    }
-  });
-</script>
+<style>
+  .animate-fade-in-up {
+    animation: fadeInUp 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+  @keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+</style>
 {% endblock %}

@@ -39,11 +39,29 @@ class ProductModel:
         slug = re.sub(r'[\s-]+', '-', slug).strip('-')
         return slug
 
+    # Bảng từ điển màu chuẩn Fashion (Fallback nếu DB bị thiếu mã HEX)
+    COLOR_DICT = {
+        'đen': '#000000', 'black': '#000000',
+        'trắng': '#ffffff', 'white': '#ffffff',
+        'đỏ': '#dc2626', 'red': '#dc2626',
+        'xanh dương': '#2563eb', 'blue': '#2563eb',
+        'xanh navy': '#1e3a8a', 'navy': '#1e3a8a',
+        'xanh lá': '#16a34a', 'green': '#16a34a',
+        'vàng': '#eab308', 'yellow': '#eab308',
+        'cam': '#ea580c', 'orange': '#ea580c',
+        'hồng': '#ec4899', 'pink': '#ec4899',
+        'tím': '#9333ea', 'purple': '#9333ea',
+        'xám': '#6b7280', 'gray': '#6b7280', 'grey': '#6b7280',
+        'nâu': '#78350f', 'brown': '#78350f',
+        'be': '#f5f5dc', 'beige': '#f5f5dc',
+        'kem': '#fef3c7', 'cream': '#fef3c7'
+    }
+
     @staticmethod
     def _format_product(product: dict) -> dict:
         """
         Hàm dùng chung để format dữ liệu 1 sản phẩm: 
-        Sắp xếp ảnh, gán ảnh fallback, tính % giảm giá cho UI.
+        Sắp xếp ảnh, gán ảnh fallback, tính % giảm giá, và Map màu sắc.
         """
         if not product:
             return product
@@ -51,22 +69,30 @@ class ProductModel:
         # 1. Xử lý hình ảnh
         imgs = sorted(product.get("product_images") or [], key=lambda x: x.get("sort_order", 0))
         product["product_images"] = imgs
-        product["images"] = imgs  # Đồng bộ biến "images" cho Jinja2 UI
+        product["images"] = imgs
         
-        # 2. Logic Fallback an toàn cho ảnh bìa (thumbnail)
         if not product.get("thumbnail_url"):
             primary = next((img["url"] for img in imgs if img.get("is_primary")), None)
-            # Dùng placehold.co với tone màu xám Studio nếu không có ảnh
             product["thumbnail_url"] = primary or (imgs[0]["url"] if imgs else "https://placehold.co/600x800/f8f8f8/cccccc?text=GUA")
 
-        # 3. Tự động tính phần trăm giảm giá (Discount Percent) cho UI
+        # 2. Tự động tính phần trăm giảm giá
         price = product.get("price")
         old_price = product.get("old_price")
         if price and old_price and old_price > price:
-            percent = int(100 - (price / old_price * 100))
-            product["discount_percent"] = percent
+            product["discount_percent"] = int(100 - (price / old_price * 100))
         else:
             product["discount_percent"] = None
+
+        # 🔴 3. VÁ LỖI MÀU SẮC BIẾN THỂ (Tự động nhận diện màu)
+        variants = product.get("product_variants") or []
+        for v in variants:
+            c_hex = v.get("color_hex")
+            # Nếu DB thiếu màu, hoặc đang bị lưu nhầm thành đen mặc định (#1a1a1a)
+            if not c_hex or c_hex == "#1a1a1a":
+                c_name = (v.get("color_name") or "").lower().strip()
+                v["color_hex"] = ProductModel.COLOR_DICT.get(c_name, "#e5e5e5")
+
+        product["product_variants"] = variants
 
         return product
 

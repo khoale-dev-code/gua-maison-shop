@@ -1,89 +1,240 @@
 {% extends "admin/admin_base.html" %}
-{% block title %}Chỉnh sửa danh mục | GUA Admin{% endblock %}
+{% block title %}Thiết lập danh mục | GUA Admin{% endblock %}
 
 {% block content %}
-<div class="min-h-[calc(100vh-4rem)] bg-stone-50 text-stone-900 flex items-center justify-center py-12 px-4 sm:px-6 font-sans">
+<div class="min-h-[calc(100vh-4rem)] bg-white text-black py-12 px-4 sm:px-6 font-sans selection:bg-black selection:text-white">
 
-  <div class="w-full max-w-[600px] reveal">
+  <div class="w-full max-w-[800px] mx-auto reveal">
 
+    {# ── NAVIGATION ── #}
     <a href="/admin/categories"
-       class="inline-flex items-center gap-2 text-xs font-semibold text-stone-500 hover:text-stone-900 transition-colors mb-8 group">
-      <svg class="w-4 h-4 group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+       class="inline-flex items-center gap-3 text-[10px] font-bold uppercase tracking-[0.2em] text-neutral-400 hover:text-black transition-colors mb-12 group">
+      <svg class="w-4 h-4 group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/>
       </svg>
-      Quay lại danh sách
+      Trở lại danh sách
     </a>
 
-    <div class="mb-8">
-      <h1 class="text-2xl md:text-3xl font-bold tracking-tight text-stone-900 mb-2">
-        Chỉnh sửa danh mục
+    {# ── HEADER ── #}
+    <div class="mb-12">
+      <h1 class="text-3xl md:text-5xl font-light tracking-tight text-black uppercase leading-tight">
+        Quản lý <span class="font-black italic">Danh mục</span>
       </h1>
-      <div class="flex items-center gap-2">
+      <p class="mt-4 text-[10px] font-bold uppercase tracking-[0.3em] text-stone-400 flex items-center gap-3">
         <span class="w-2 h-2 bg-amber-400 rounded-full animate-pulse"></span>
-        <p class="text-sm font-medium text-stone-500">
-          Đang cập nhật: <span class="font-bold text-stone-800">{{ cat.name }}</span>
-        </p>
+        {% if cat and cat.id %}
+          Đang chỉnh sửa: <span class="text-black">{{ cat.name }}</span>
+        {% else %}
+          Tạo danh mục mới
+        {% endif %}
+      </p>
+    </div>
+
+    <form method="post" enctype="multipart/form-data" id="categoryForm" class="space-y-8">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+      {# SECTION 1: CẤU HÌNH CƠ BẢN #}
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-10 p-8 border border-stone-200">
+        
+        <div class="space-y-4">
+          <label class="block text-[10px] font-black uppercase tracking-[0.2em]">Tên danh mục *</label>
+          <input type="text" name="name" id="category_name" required value="{{ cat.name if cat else '' }}" 
+            class="w-full text-base font-medium border-0 border-b border-stone-200 focus:border-black transition-colors py-3 outline-none bg-transparent placeholder:text-stone-300" 
+            placeholder="Vd: Essentials 2026" />
+        </div>
+
+        <div class="space-y-4">
+          <label class="block text-[10px] font-black uppercase tracking-[0.2em]">Đường dẫn (Slug)</label>
+          <input type="text" name="slug" id="category_slug" value="{{ cat.slug if cat else '' }}"
+            class="w-full text-base font-mono border-0 border-b border-stone-200 focus:border-black transition-colors py-3 outline-none bg-transparent placeholder:text-stone-300" 
+            placeholder="tu-dong-tao-slug" />
+        </div>
+
+        <div class="space-y-4 md:col-span-2 mt-2">
+          <label class="block text-[10px] font-black uppercase tracking-[0.2em]">Mô tả danh mục</label>
+          <textarea name="description" rows="2"
+            class="w-full text-sm font-medium border-0 border-b border-stone-200 focus:border-black transition-colors py-3 outline-none bg-transparent placeholder:text-stone-300 resize-none" 
+            placeholder="Nhập mô tả ngắn gọn về bộ sưu tập hoặc danh mục này...">{{ cat.description if cat else '' }}</textarea>
+        </div>
+
       </div>
-    </div>
 
-    <div class="bg-white rounded-2xl shadow-[0_4px_20px_rgb(0,0,0,0.03)] border border-stone-100 p-8 md:p-10 relative overflow-hidden">
-      
-      <div class="absolute -top-10 -right-10 w-40 h-40 bg-stone-50 rounded-full blur-3xl pointer-events-none"></div>
-
-      <form method="post" class="space-y-6 relative z-10">
-        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-
-        {# Tên danh mục #}
-        <div>
-          <label class="block text-xs font-semibold text-stone-600 mb-2 uppercase tracking-wider">
-            Tên danh mục <span class="text-red-500">*</span>
-          </label>
-          <input type="text" name="name" required value="{{ cat.name }}" placeholder="Nhập tên danh mục"
-            class="w-full text-sm text-stone-800 border border-stone-200 rounded-lg px-4 py-3 outline-none focus:border-stone-400 focus:ring-1 focus:ring-stone-400 transition-all bg-stone-50/50 focus:bg-white placeholder:text-stone-400" />
-        </div>
-
-        {# URL Slug #}
-        <div>
-          <div class="flex justify-between items-end mb-2">
-            <label class="block text-xs font-semibold text-stone-600 uppercase tracking-wider">
-              Đường dẫn (Slug) <span class="text-red-500">*</span>
-            </label>
-            <span class="text-[10px] font-medium text-stone-400">Tự động định dạng</span>
+      {# SECTION 2: THIẾT LẬP HIỂN THỊ (VISIBILITY) #}
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-10 p-8 border border-stone-200 bg-stone-50/50">
+        
+        {# Nút Toggle: Hiển thị/Ẩn danh mục #}
+        <label class="flex items-start gap-4 cursor-pointer group">
+          <div class="relative flex items-center justify-center w-5 h-5 mt-0.5">
+            <input type="checkbox" name="is_active" value="true" 
+              {% if not cat or cat.is_active != false %}checked{% endif %}
+              class="peer appearance-none w-5 h-5 border border-stone-300 checked:bg-black checked:border-black transition-colors cursor-pointer" />
+            <svg class="absolute w-3 h-3 text-white opacity-0 peer-checked:opacity-100 pointer-events-none" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
           </div>
-          <input type="text" name="slug" required value="{{ cat.slug }}" placeholder="duong-dan-danh-muc"
-            oninput="this.value=this.value.toLowerCase().replace(/[^a-z0-9-]/g,'-')"
-            class="w-full text-sm text-stone-600 font-mono border border-stone-200 rounded-lg px-4 py-3 outline-none focus:border-stone-400 focus:ring-1 focus:ring-stone-400 transition-all bg-stone-50/50 focus:bg-white placeholder:text-stone-300" />
-          
-          <p class="text-[11px] font-medium text-stone-400 mt-2.5 flex items-start gap-1.5">
-            <svg class="w-3.5 h-3.5 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-            VD: gua.com/shop?category=<span class="font-bold text-stone-700">{{ cat.slug }}</span>
-          </p>
+          <div>
+            <p class="text-[10px] font-black uppercase tracking-[0.2em] group-hover:text-stone-600 transition-colors">Hiển thị danh mục</p>
+            <p class="text-[10px] text-stone-400 mt-1 font-medium leading-relaxed">Bật để khách hàng có thể nhìn thấy danh mục này trên cửa hàng.</p>
+          </div>
+        </label>
+
+        {# Nút Toggle: Ghim lên trang chủ #}
+        <label class="flex items-start gap-4 cursor-pointer group">
+          <div class="relative flex items-center justify-center w-5 h-5 mt-0.5">
+            <input type="checkbox" name="show_on_home" value="true" 
+              {% if cat and cat.show_on_home %}checked{% endif %}
+              class="peer appearance-none w-5 h-5 border border-stone-300 checked:bg-black checked:border-black transition-colors cursor-pointer" />
+            <svg class="absolute w-3 h-3 text-white opacity-0 peer-checked:opacity-100 pointer-events-none" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+          </div>
+          <div>
+            <p class="text-[10px] font-black uppercase tracking-[0.2em] group-hover:text-stone-600 transition-colors">Ghim lên trang chủ</p>
+            <p class="text-[10px] text-stone-400 mt-1 font-medium leading-relaxed">Hình ảnh của danh mục này sẽ được kéo tự động vào các Banner ngoài trang chủ.</p>
+          </div>
+        </label>
+
+      </div>
+
+      {# SECTION 3: MEDIA (HÌNH ẢNH / VIDEO) #}
+      <div class="space-y-6 pt-4">
+        <div class="flex items-center justify-between border-b border-stone-100 pb-4">
+          <h3 class="text-[11px] font-black uppercase tracking-[0.3em]">Cover Media</h3>
+          <span class="text-[9px] text-stone-400 font-bold uppercase tracking-widest italic">Hỗ trợ Image hoặc MP4</span>
         </div>
 
-        {# Buttons #}
-        <div class="flex flex-col sm:flex-row gap-3 pt-4">
-          <button type="submit"
-            class="flex-[2] bg-stone-900 text-white text-sm font-semibold py-3 rounded-lg hover:bg-stone-700 active:scale-[0.98] transition-all duration-200 shadow-md">
-            Lưu thay đổi
-          </button>
-          <a href="/admin/categories"
-            class="flex-1 flex items-center justify-center bg-white border border-stone-200 text-stone-600 text-sm font-semibold py-3 rounded-lg hover:bg-stone-50 hover:text-stone-900 transition-all duration-200">
-            Hủy bỏ
-          </a>
+        {# PREVIEW DYNAMIC #}
+        <div id="media-preview-container" class="relative w-full aspect-video md:aspect-[21/9] bg-stone-50 overflow-hidden border border-stone-200 group flex items-center justify-center">
+          {% if cat and cat.video_url %}
+            <video src="{{ cat.video_url }}" id="preview-video" autoplay loop muted playsinline class="w-full h-full object-cover"></video>
+            <img id="preview-img" class="hidden w-full h-full object-cover" />
+          {% elif cat and cat.image_url %}
+            <img src="{{ cat.image_url }}" id="preview-img" class="w-full h-full object-cover" />
+            <video id="preview-video" autoplay loop muted playsinline class="hidden w-full h-full object-cover"></video>
+          {% else %}
+            <div id="preview-placeholder" class="text-[10px] font-bold uppercase tracking-widest text-stone-300">Chưa có media</div>
+            <img id="preview-img" class="hidden w-full h-full object-cover" />
+            <video id="preview-video" autoplay loop muted playsinline class="hidden w-full h-full object-cover"></video>
+          {% endif %}
+          <div id="preview-label" class="absolute top-4 left-4 bg-black text-white text-[8px] font-black px-2 py-1 tracking-widest uppercase shadow-sm">
+            Current Media
+          </div>
         </div>
-      </form>
-    </div>
 
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-12 pt-2">
+          {# CÁCH 1: LINK DẪN TRỰC TIẾP #}
+          <div class="space-y-6">
+            <p class="text-[10px] font-black uppercase tracking-widest flex items-center gap-3">
+              <span class="w-4 h-[2px] bg-black"></span> Thêm qua URL
+            </p>
+            <div class="flex gap-2">
+              <input type="url" name="external_url" id="external_url"
+                class="flex-1 text-sm border-0 border-b border-stone-200 focus:border-black transition-colors py-2 outline-none bg-transparent placeholder:text-stone-300" 
+                placeholder="Dán link ảnh hoặc video mp4..." />
+              <button type="button" onclick="applyMediaLink()" 
+                class="bg-black text-white text-[9px] font-black uppercase tracking-widest px-4 py-2 hover:bg-stone-800 transition-all">
+                Thêm
+              </button>
+            </div>
+            <p class="text-[9px] text-stone-400 leading-relaxed italic">
+              * Hệ thống sẽ tự động nhận diện nếu link kết thúc bằng .mp4, .jpg, .png...
+            </p>
+          </div>
+
+          {# CÁCH 2: TẢI FILE LÊN #}
+          <div class="space-y-6">
+            <p class="text-[10px] font-black uppercase tracking-widest flex items-center gap-3 text-stone-400">
+              <span class="w-4 h-[1px] bg-stone-200"></span> Hoặc Tải file mới
+            </p>
+            <input type="file" name="category_media" id="file_input" accept="image/*,video/mp4" 
+              class="w-full text-[11px] text-stone-400 file:mr-4 file:py-2.5 file:px-6 file:border file:border-stone-200 file:bg-white file:text-black file:text-[9px] file:font-black file:uppercase file:tracking-widest hover:file:bg-black hover:file:text-white transition-all cursor-pointer" />
+          </div>
+        </div>
+      </div>
+
+      {# ACTIONS #}
+      <div class="pt-10 flex flex-col sm:flex-row gap-4 border-t border-stone-100 mt-8">
+        <button type="submit"
+          class="flex-[2] bg-black text-white text-[11px] font-black uppercase tracking-[0.3em] py-5 hover:bg-neutral-800 active:scale-[0.98] transition-all">
+          Lưu thiết lập
+        </button>
+        <a href="/admin/categories"
+          class="flex-1 flex items-center justify-center border border-stone-200 text-stone-400 text-[11px] font-black uppercase tracking-[0.3em] py-5 hover:border-black hover:text-black transition-all">
+          Hủy bỏ
+        </a>
+      </div>
+    </form>
   </div>
 </div>
 
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const nameInput = document.getElementById('category_name');
+    const slugInput = document.getElementById('category_slug');
+    const fileInput = document.getElementById('file_input');
+    const previewImg = document.getElementById('preview-img');
+    const previewVid = document.getElementById('preview-video');
+    const placeholder = document.getElementById('preview-placeholder');
+    const previewLabel = document.getElementById('preview-label');
+
+    // 1. TỰ ĐỘNG TẠO SLUG
+    function convertToSlug(text) {
+      let slug = text.toLowerCase();
+      const from = "áàảãạăắằẳẵặâấầẩẫậéèẻẽẹêếềểễệíìỉĩịóòỏõọôốồổỗộơớờởỡợúùủũụưứừửữựýỳỷỹỵđ";
+      const to   = "aaaaaaaaaaaaaaaaaeeeeeeeeeeeiiiiiooooooooooooooooouuuuuuuuuuuyyyyyd";
+      for (let i = 0; i < from.length; i++) {
+        slug = slug.replace(new RegExp(from[i], 'g'), to[i]);
+      }
+      slug = slug.replace(/[^a-z0-9\s-]/g, '').replace(/[\s-]+/g, '-').trim().replace(/^-+|-+$/g, '');
+      return slug;
+    }
+
+    let isSlugManual = slugInput.value.trim() !== "";
+    slugInput.addEventListener('input', () => isSlugManual = slugInput.value.trim() !== "");
+    nameInput.addEventListener('input', () => {
+      if (!isSlugManual) slugInput.value = convertToSlug(nameInput.value);
+    });
+
+    // 2. XỬ LÝ PREVIEW KHI CHỌN FILE
+    fileInput.addEventListener('change', function() {
+      const file = this.files[0];
+      if (file) {
+        const url = URL.createObjectURL(file);
+        previewLabel.innerText = "File Selected";
+        if (file.type.includes('video')) {
+          showPreview(url, 'video');
+        } else {
+          showPreview(url, 'image');
+        }
+      }
+    });
+
+    // 3. XỬ LÝ PREVIEW KHI DÁN LINK
+    window.applyMediaLink = function() {
+      const url = document.getElementById('external_url').value.trim();
+      if (!url) return alert("Vui lòng nhập đường dẫn");
+
+      previewLabel.innerText = "URL Applied";
+      if (url.toLowerCase().endsWith('.mp4') || url.includes('video')) {
+        showPreview(url, 'video');
+      } else {
+        showPreview(url, 'image');
+      }
+    };
+
+    function showPreview(src, type) {
+      if(placeholder) placeholder.classList.add('hidden');
+      if (type === 'video') {
+        previewVid.src = src;
+        previewVid.classList.remove('hidden');
+        previewImg.classList.add('hidden');
+      } else {
+        previewImg.src = src;
+        previewImg.classList.remove('hidden');
+        previewVid.classList.add('hidden');
+      }
+    }
+  });
+</script>
+
 <style>
-  .reveal {
-    animation: revealUp 0.5s ease-out forwards;
-  }
-  @keyframes revealUp {
-    from { opacity: 0; transform: translateY(20px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
+  .reveal { animation: revealUp 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+  @keyframes revealUp { from { opacity: 0; transform: translateY(40px); } to { opacity: 1; transform: translateY(0); } }
 </style>
 {% endblock %}

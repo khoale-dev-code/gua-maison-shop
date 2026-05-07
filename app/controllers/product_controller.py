@@ -15,7 +15,7 @@ from flask import (
 from typing import Optional
 from app.models.product_model import ProductModel
 from app.utils.supabase_client import get_supabase
-
+from app.models.category_model import CategoryModel
 products_bp = Blueprint("products", __name__)
 logger = logging.getLogger(__name__)
 
@@ -68,13 +68,26 @@ def _clean_str(val) -> Optional[str]:
 def index():
     """Trang chủ — Hiển thị sản phẩm nổi bật."""
     try:
+        # Lấy sản phẩm nổi bật
         res = ProductModel.get_all(page=1, per_page=8, admin_mode=False)
         featured = res.get("items", [])
     except Exception as e:
         logger.error(f"[index] Lỗi kéo sản phẩm nổi bật: {e}")
         featured = []
 
-    return render_template("products/index.html", featured_products=featured)
+    try:
+        # Lấy 9 danh mục đã được ghim lên trang chủ
+        homepage_categories = CategoryModel.get_homepage_categories(limit=9)
+    except Exception as e:
+        logger.error(f"[index] Lỗi kéo danh mục trang chủ: {e}")
+        homepage_categories = []
+
+    # TRUYỀN CẢ 2 BIẾN RA NGOÀI HTML
+    return render_template(
+        "products/index.html",
+        featured_products=featured,
+        categories=homepage_categories  # <-- Biến này sẽ giúp sửa triệt để lỗi UndefinedError
+    )
 
 
 @products_bp.route("/shop")

@@ -96,15 +96,17 @@ def _save_product_variants(db, pid: str) -> None:
     total_stock, variants = 0, []
 
     for i in range(len(sizes)):
-        s, c = sizes[i].strip(), colors[i].strip()
+        s, c = sizes[i].strip(), colors[i].strip() if i < len(colors) else ""
         if not s or not c:
             continue
 
         stk = _safe_int(stocks[i] if i < len(stocks) else "")
         po = _safe_float(prices[i] if i < len(prices) else "")
-        hex_color = (hexes[i].strip() if i < len(hexes) else "") or "#1a1a1a"
+        
+        # 🔴 BẢN CẬP NHẬT: Không ép mặc định thành #1a1a1a nữa
+        hex_color = hexes[i].strip() if i < len(hexes) else ""
         if not hex_color.startswith("#"):
-            hex_color = "#1a1a1a"
+            hex_color = None  # Để rỗng (null) để Model xử lý tự động
 
         total_stock += stk
         variants.append({
@@ -229,7 +231,7 @@ def delete_product(pid):
         flash("Lỗi khi xóa.", "danger")
     return redirect(url_for("admin.products"))
 
-# ── Categories (giữ trong products vì ít route) ──────────────────
+# ── Categories Routes ──────────────────
 
 
 @admin_bp.route("/categories")
@@ -243,19 +245,114 @@ def categories():
 def add_category():
     form = _form()
     name = form.get("name", "").strip()
-    slug = form.get("slug", "").strip()
-    if name and slug and SLUG_RE.match(slug):
-        CategoryModel.create({"name": name, "slug": slug})
+    slug = form.get("slug", "").strip() or ProductModel.generate_slug(name)
+    
+    # 🔴 ĐÃ THÊM: Hứng dữ liệu từ giao diện Admin
+    description = form.get("description", "").strip()
+    is_active = "is_active" in form
+    show_on_home = "show_on_home" in form
+    
+    external_url = form.get("external_url", "").strip()
+    image_url = None
+    video_url = None
+
+    # Xử lý: Ưu tiên nhận link dán vào
+    if external_url:
+        if external_url.lower().endswith('.mp4') or 'video' in external_url.lower():
+            video_url = external_url
+        else:
+            image_url = external_url
+            
+    # Xử lý: Hứng file upload từ máy tính
+    elif "category_media" in request.files:
+        file = request.files["category_media"]
+        if file and file.filename:
+            url = CategoryModel.upload_media(file.read(), file.filename, file.content_type)
+            if url:
+                if "video" in (file.content_type or ""):
+                    video_url = url
+                else:
+                    image_url = url
+
+    if name and slug:
+        # 🔴 ĐÃ THÊM: Lưu các trường mới vào Database
+        CategoryModel.create({
+            "name": name,
+            "slug": slug,
+            "description": description,
+            "is_active": is_active,
+            "show_on_home": show_on_home,
+            "image_url": image_url,
+            "video_url": video_url
+        })
         flash(f"Đã thêm danh mục: {name}", "success")
     else:
-        flash("Dữ liệu danh mục không hợp lệ.", "danger")
+        flash("Tên danh mục không hợp lệ.", "danger")
+        
     return redirect(url_for("admin.categories"))
+
+
+@admin_bp.route("/categories/edit/<cat_id>", methods=["GET", "POST"])
+@admin_required
+@handle_errors("Lỗi chỉnh sửa danh mục.", "admin.categories")
+def edit_category(cat_id):
+    cat = CategoryModel.get_by_id(cat_id)
+    if not cat:
+        flash("Danh mục không tồn tại.", "danger")
+        return redirect(url_for("admin.categories"))
+
+    if request.method == "POST":
+        form = _form()
+        name = form.get("name", "").strip()
+        slug = form.get("slug", "").strip() or ProductModel.generate_slug(name)
+        
+        # 🔴 ĐÃ THÊM: Hứng dữ liệu từ giao diện Admin
+        description = form.get("description", "").strip()
+        is_active = "is_active" in form
+        show_on_home = "show_on_home" in form
+        
+        external_url = form.get("external_url", "").strip()
+        image_url = None
+        video_url = None
+
+        if external_url:
+            if external_url.lower().endswith('.mp4') or 'video' in external_url.lower():
+                video_url = external_url
+            else:
+                image_url = external_url
+        elif "category_media" in request.files:
+            file = request.files["category_media"]
+            if file and file.filename:
+                url = CategoryModel.upload_media(file.read(), file.filename, file.content_type)
+                if url:
+                    if "video" in (file.content_type or ""):
+                        video_url = url
+                    else:
+                        image_url = url
+
+        if name and slug:
+            # 🔴 ĐÃ THÊM: Lưu các trường mới vào Database
+            CategoryModel.update(cat_id, {
+                "name": name,
+                "slug": slug,
+                "description": description,
+                "is_active": is_active,
+                "show_on_home": show_on_home,
+                "image_url": image_url,
+                "video_url": video_url
+            })
+            flash("Cập nhật danh mục thành công!", "success")
+            return redirect(url_for("admin.categories"))
+        else:
+            flash("Tên danh mục không hợp lệ.", "danger")
+
+    return render_template("admin/category_form.html", cat=cat)
 
 
 @admin_bp.route("/categories/delete/<cat_id>", methods=["POST"])
 @admin_required
 @handle_errors("Lỗi xóa danh mục.", "admin.categories")
 def delete_category(cat_id):
-    _db().table("categories").delete().eq("id", cat_id).execute()
+    CategoryModel.delete(cat_id)
     flash("Đã xóa danh mục.", "success")
     return redirect(url_for("admin.categories"))
