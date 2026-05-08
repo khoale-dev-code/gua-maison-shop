@@ -1,0 +1,50 @@
+{# ═══════════════════════════════════════════════════════════
+   HERO VIDEO BANNER — GUA Maison
+   Phong cách Modern Minimalist (SKIMS Style)
+   ═══════════════════════════════════════════════════════════ #}
+
+<section class="relative w-full h-[85vh] md:h-screen overflow-hidden bg-neutral-900 flex items-end">
+  
+  {# ── Video Nền Tràn Viền ── #}
+  <video 
+    autoplay 
+    muted 
+    loop 
+    playsinline 
+    class="absolute inset-0 w-full h-full object-cover scale-105"
+  >
+    <source src="https://cdn.hstatic.net/files/200001029438/file/ef7df01e-38a3-4b59-b7ae-79757c79a37b.mp4" type="video/mp4"/>
+  </video>
+
+  {# ── Lớp phủ (Overlay) để làm nổi bật chữ ── #}
+  <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent"></div>
+
+  {# ── Nội dung chữ (Góc trái dưới cùng) ── #}
+  <div class="relative z-10 w-full px-6 pb-12 md:px-12 md:pb-20 text-white animate-fade-in-up">
+    
+    <h1 class="text-4xl md:text-6xl font-black uppercase tracking-wide mb-2 drop-shadow-md">
+      New Collection
+    </h1>
+    
+    <p class="text-xs md:text-sm font-medium tracking-wide mb-6 max-w-md drop-shadow">
+      Nơi quần áo không còn là vật thể — mà là nhịp điệu, chuyển động, và cảm xúc.
+    </p>
+    
+    <a href="/shop" class="inline-block text-[11px] font-bold uppercase tracking-widest border-b-2 border-white pb-1 hover:text-neutral-300 transition-colors">
+      Shop Now
+    </a>
+    
+  </div>
+
+</section>
+
+<style>
+  /* Chỉ thêm 1 class animation nhỏ bằng CSS thuần cho mượt mà khi load trang */
+  .animate-fade-in-up {
+    animation: fadeInUp 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+  @keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+</style>

@@ -1,0 +1,317 @@
+{# ═══════════════════════════════════════════════════════════
+   CATEGORIES — GUA Maison | SKIMS-Style 2-Tier Layout
+   Tầng 1: 1 banner lớn full-width hoặc split 60/40
+   Tầng 2: Các danh mục nhỏ grid ngang (3–4 cột)
+   ═══════════════════════════════════════════════════════════ #}
+
+<style>
+  /* ─── Tokens ─── */
+  :root {
+    --cat-radius: 0px;
+    --cat-overlay-from: rgba(10,8,6,.62);
+    --cat-overlay-to: transparent;
+    --cat-text: #f8f4ef;
+    --cat-accent: #c9b99a;
+    --cat-transition: 2.4s cubic-bezier(.16,1,.3,1);
+  }
+
+  /* ─── Section wrapper ─── */
+  .gua-cats-wrap { background:#fff; }
+
+  /* ─── Section header ─── */
+  .gua-cats-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 52px clamp(20px,5vw,72px) 24px;
+  }
+  .gua-cats-header__title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(20px,2.6vw,30px);
+    font-weight: 300;
+    letter-spacing: .04em;
+    color: #1a1714;
+  }
+  .gua-cats-header__link {
+    font-size: 9.5px;
+    letter-spacing: .28em;
+    text-transform: uppercase;
+    color: #9c9189;
+    text-decoration: none;
+    border-bottom: 1px solid currentColor;
+    padding-bottom: 2px;
+    transition: color .25s;
+  }
+  .gua-cats-header__link:hover { color: #1a1714; }
+
+  /* ════════════════════════════════
+     TẦNG 1 — Hero splits (1–2 ảnh lớn)
+     ════════════════════════════════ */
+  .gua-tier1 {
+    display: grid;
+    gap: 2px;
+    background: rgba(0,0,0,.05);
+  }
+  /* 1 danh mục → full-width */
+  .gua-tier1.cols-1 { grid-template-columns: 1fr; }
+  /* 2 danh mục → 60 / 40 */
+  .gua-tier1.cols-2 { grid-template-columns: 3fr 2fr; }
+  /* fallback 3 → equal */
+  .gua-tier1.cols-3 { grid-template-columns: repeat(3, 1fr); }
+
+  @media (max-width: 640px) {
+    .gua-tier1 { grid-template-columns: 1fr !important; }
+  }
+
+  .gua-hero-card {
+    position: relative;
+    overflow: hidden;
+    display: block;
+    text-decoration: none;
+    aspect-ratio: 4/5;
+  }
+  .gua-tier1.cols-1 .gua-hero-card { aspect-ratio: 21/9; }
+  .gua-tier1.cols-2 .gua-hero-card:first-child { aspect-ratio: 3/4; }
+  .gua-tier1.cols-2 .gua-hero-card:last-child  { aspect-ratio: 4/5; }
+
+  @media (max-width: 640px) {
+    .gua-hero-card, .gua-tier1.cols-1 .gua-hero-card,
+    .gua-tier1.cols-2 .gua-hero-card { aspect-ratio: 3/4 !important; }
+  }
+
+  .gua-hero-card__img {
+    position: absolute; inset: 0;
+    width: 100%; height: 100%;
+    object-fit: cover;
+    transform: scale(1.04);
+    transition: transform var(--cat-transition);
+    will-change: transform;
+  }
+  .gua-hero-card:hover .gua-hero-card__img { transform: scale(1.1); }
+
+  .gua-hero-card__ov {
+    position: absolute; inset: 0;
+    background: linear-gradient(to top,
+      rgba(10,8,6,.68) 0%,
+      rgba(10,8,6,.1)  45%,
+      transparent 100%);
+    transition: opacity .5s;
+  }
+  .gua-hero-card:hover .gua-hero-card__ov { opacity: .85; }
+
+  .gua-hero-card__body {
+    position: absolute; bottom: 0; left: 0; right: 0;
+    padding: clamp(28px,4vw,52px);
+    z-index: 2;
+  }
+  .gua-hero-card__label {
+    display: block;
+    font-size: 9px;
+    letter-spacing: .34em;
+    text-transform: uppercase;
+    color: rgba(248,244,239,.5);
+    margin-bottom: 10px;
+  }
+  .gua-hero-card__name {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(34px,5vw,68px);
+    font-weight: 300;
+    color: #f8f4ef;
+    line-height: .9;
+    letter-spacing: -.01em;
+    margin: 0 0 20px;
+    text-shadow: 0 4px 20px rgba(0,0,0,.18);
+  }
+  .gua-hero-card__cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 9px;
+    letter-spacing: .34em;
+    text-transform: uppercase;
+    color: rgba(248,244,239,.7);
+    transition: color .3s, gap .35s;
+  }
+  .gua-hero-card:hover .gua-hero-card__cta { color: #f8f4ef; gap: 18px; }
+  .gua-hero-card__cta-line {
+    display: inline-block;
+    width: 20px; height: 1px;
+    background: currentColor;
+    transition: width .45s cubic-bezier(.16,1,.3,1);
+  }
+  .gua-hero-card:hover .gua-hero-card__cta-line { width: 32px; }
+
+  /* ════════════════════════════════
+     TẦNG 2 — Thumbnail strip (3–5 cột)
+     ════════════════════════════════ */
+  .gua-tier2 {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(180px, 100%), 1fr));
+    gap: 2px;
+    background: rgba(0,0,0,.05);
+    margin-top: 2px;
+  }
+
+  .gua-thumb-card {
+    position: relative;
+    overflow: hidden;
+    display: block;
+    text-decoration: none;
+    aspect-ratio: 3/4;
+    background: #f0ebe3;
+  }
+  @media (max-width: 480px) {
+    .gua-tier2 { grid-template-columns: repeat(2, 1fr); }
+    .gua-thumb-card { aspect-ratio: 1/1; }
+  }
+
+  .gua-thumb-card__img {
+    position: absolute; inset: 0;
+    width: 100%; height: 100%;
+    object-fit: cover;
+    transition: transform var(--cat-transition);
+    will-change: transform;
+  }
+  .gua-thumb-card:hover .gua-thumb-card__img { transform: scale(1.07); }
+
+  .gua-thumb-card__ov {
+    position: absolute; inset: 0;
+    background: linear-gradient(to top,
+      rgba(10,8,6,.55) 0%,
+      transparent 55%);
+    transition: opacity .4s;
+  }
+  .gua-thumb-card:hover .gua-thumb-card__ov { opacity: .75; }
+
+  .gua-thumb-card__body {
+    position: absolute; bottom: 0; left: 0; right: 0;
+    padding: clamp(14px,2vw,24px);
+    z-index: 2;
+  }
+  .gua-thumb-card__name {
+    font-size: clamp(11px,1.1vw,13px);
+    font-weight: 700;
+    letter-spacing: .22em;
+    text-transform: uppercase;
+    color: #f8f4ef;
+    margin: 0 0 8px;
+  }
+  .gua-thumb-card__shop {
+    font-size: 8.5px;
+    letter-spacing: .28em;
+    text-transform: uppercase;
+    color: rgba(248,244,239,.55);
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    transition: color .3s;
+  }
+  .gua-thumb-card:hover .gua-thumb-card__shop { color: #f8f4ef; }
+  .gua-thumb-card__shop::after {
+    content: '';
+    display: inline-block;
+    width: 14px; height: 1px;
+    background: currentColor;
+    transition: width .4s;
+  }
+  .gua-thumb-card:hover .gua-thumb-card__shop::after { width: 22px; }
+
+  /* ─── Count badge ─── */
+  .gua-badge {
+    position: absolute;
+    top: clamp(14px,2vw,24px);
+    right: clamp(14px,2vw,24px);
+    font-size: 8px;
+    letter-spacing: .22em;
+    text-transform: uppercase;
+    color: rgba(248,244,239,.5);
+    background: rgba(0,0,0,.25);
+    backdrop-filter: blur(4px);
+    padding: 4px 10px;
+    z-index: 3;
+  }
+
+  /* Divider between tiers */
+  .gua-tier-divider {
+    height: 1px;
+    background: rgba(0,0,0,.05);
+    margin: 0;
+  }
+</style>
+
+<section class="gua-cats-wrap">
+
+  {# ── Header ── #}
+  <div class="gua-cats-header reveal">
+    <h2 class="gua-cats-header__title">Danh Mục</h2>
+    <a href="/shop" class="gua-cats-header__link">Xem tất cả &rarr;</a>
+  </div>
+
+  {# ── Phân loại danh mục thành Tầng 1 (nổi bật) và Tầng 2 (còn lại) ── #}
+  {# Tầng 1: 2 danh mục đầu tiên hoặc có is_featured=True; Tầng 2: còn lại #}
+
+  {% set tier1_cats = [] %}
+  {% set tier2_cats = [] %}
+
+  {% for cat in categories %}
+    {% if loop.index <= 2 %}
+      {% set _ = tier1_cats.append(cat) %}
+    {% else %}
+      {% set _ = tier2_cats.append(cat) %}
+    {% endif %}
+  {% endfor %}
+
+  {# ═══ TẦNG 1: Hero Banners ═══ #}
+  {% if tier1_cats %}
+  <div class="gua-tier1 cols-{{ tier1_cats|length if tier1_cats|length <= 3 else '2' }}">
+    {% for cat in tier1_cats %}
+    <a href="/shop?category={{ cat.slug }}" class="gua-hero-card reveal">
+      <img
+        src="{{ cat.image_url or 'https://placehold.co/1200x1500/ede4d8/1a1714?text=' ~ (cat.name|urlencode) }}"
+        alt="{{ cat.name }}"
+        class="gua-hero-card__img"
+        loading="{{ 'eager' if loop.first else 'lazy' }}"
+      />
+      <div class="gua-hero-card__ov"></div>
+      {% if cat.product_count %}
+      <div class="gua-badge">{{ cat.product_count }} sản phẩm</div>
+      {% endif %}
+      <div class="gua-hero-card__body">
+        <span class="gua-hero-card__label">GUA Maison — SS 2026</span>
+        <h3 class="gua-hero-card__name">{{ cat.name }}</h3>
+        <span class="gua-hero-card__cta">
+          Khám phá
+          <span class="gua-hero-card__cta-line"></span>
+        </span>
+      </div>
+    </a>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  {# ═══ TẦNG 2: Thumbnail Grid ═══ #}
+  {% if tier2_cats %}
+  <div class="gua-tier-divider"></div>
+  <div class="gua-tier2">
+    {% for cat in tier2_cats %}
+    <a href="/shop?category={{ cat.slug }}" class="gua-thumb-card reveal">
+      <img
+        src="{{ cat.image_url or 'https://placehold.co/600x800/e8e0d5/1a1714?text=' ~ (cat.name|urlencode) }}"
+        alt="{{ cat.name }}"
+        class="gua-thumb-card__img"
+        loading="lazy"
+      />
+      <div class="gua-thumb-card__ov"></div>
+      {% if cat.product_count %}
+      <div class="gua-badge">{{ cat.product_count }}</div>
+      {% endif %}
+      <div class="gua-thumb-card__body">
+        <p class="gua-thumb-card__name">{{ cat.name }}</p>
+        <span class="gua-thumb-card__shop">Shop now</span>
+      </div>
+    </a>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+</section>

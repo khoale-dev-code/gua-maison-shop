@@ -6,365 +6,247 @@
   {% endif %} | GUA Maison
 {% endblock %}
 
+{% block extra_head %}
+<style>
+  :root { --font-display: 'Cormorant Garamond', serif; }
+  .line-clamp-1 { display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden; }
+  .no-scrollbar::-webkit-scrollbar { display: none; }
+  .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+  .hidden-product { display: none !important; }
+  .animate-fade-in-up { animation: fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+  @keyframes fadeInUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+
+  /* Quick View overlay hiện khi hover card */
+  .product-card .qv-overlay-btn {
+    transform: translateY(100%);
+    opacity: 0;
+    transition: transform .3s cubic-bezier(.16,1,.3,1), opacity .3s ease;
+  }
+  .product-card:hover .qv-overlay-btn {
+    transform: translateY(0);
+    opacity: 1;
+  }
+</style>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;1,300&display=swap" rel="stylesheet">
+{% endblock %}
+
 {% block content %}
-<div class="bg-stone-50 min-h-screen font-sans pb-16">
-  <div class="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
+<div class="bg-white min-h-screen font-sans pb-24">
 
-    {# ── Tiêu đề trang ── #}
-    <header class="pt-12 pb-8 border-b border-stone-200">
-      <h1 class="text-3xl md:text-4xl font-bold tracking-tight text-stone-900 mb-2">
-        {% if keyword %}
-          Kết quả cho "<span class="text-stone-500">{{ keyword }}</span>"
-        {% elif category %}
-          {{ category | title }}
-        {% else %}
-          Khám phá Cửa hàng
-        {% endif %}
-      </h1>
-      <div class="flex items-center gap-2">
-        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-        <p class="text-sm font-medium text-stone-500">Hiển thị {{ total }} sản phẩm</p>
+  {# ── HEADER ── #}
+  <div class="w-full bg-white border-b border-neutral-100 pt-16 pb-8">
+    <div class="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-10">
+
+      <div class="flex flex-col md:flex-row items-baseline justify-between mb-10 gap-4">
+        <div>
+          <p class="text-[9px] font-black uppercase tracking-[0.3em] text-neutral-400 mb-3">SS 2026 Collection</p>
+          <h1 class="text-4xl md:text-5xl text-black tracking-wide" style="font-family: var(--font-display); font-weight: 300;">
+            {% if keyword %}
+              Search: <span class="italic">"{{ keyword }}"</span>
+            {% elif category %}
+              {% set active_cat = global_categories | selectattr("slug", "equalto", category) | first %}
+              {{ active_cat.name if active_cat else category | title }}
+            {% else %}
+              Explore <span class="italic">All Pieces</span>
+            {% endif %}
+          </h1>
+        </div>
+        <p class="text-[10px] font-bold tracking-[0.2em] uppercase text-neutral-400">
+          {{ total if total else products|length }} Thiết kế có sẵn
+        </p>
       </div>
-    </header>
 
-    {# ── Bộ lọc & tìm kiếm ── #}
-    <div class="sticky top-16 z-40 bg-stone-50/95 backdrop-blur-md py-4 transition-all">
-      <div class="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
-
-        {# Tab danh mục #}
-        <div class="flex items-center gap-2 overflow-x-auto no-scrollbar w-full md:w-auto">
-          <a href="/shop"
-             class="whitespace-nowrap px-4 py-2 rounded-lg text-xs font-bold transition-all shadow-sm
-                    {% if not category %}bg-stone-900 text-white{% else %}bg-white border border-stone-200 text-stone-600 hover:text-stone-900 hover:border-stone-400{% endif %}">
+      <div class="flex flex-col md:flex-row gap-8 items-center justify-between">
+        {# Tabs #}
+        <div class="flex items-center gap-6 md:gap-10 overflow-x-auto no-scrollbar w-full md:w-auto">
+          <a href="/shop{% if keyword %}?q={{ keyword }}{% endif %}"
+             class="whitespace-nowrap text-[10px] font-bold uppercase tracking-[0.2em] transition-colors pb-1 border-b-2
+                    {% if not category %}border-black text-black{% else %}border-transparent text-neutral-400 hover:text-black{% endif %}">
             Tất cả
           </a>
           {% for cat in global_categories %}
-          <a href="/shop?category={{ cat.slug }}"
-             class="whitespace-nowrap px-4 py-2 rounded-lg text-xs font-bold transition-all shadow-sm
-                    {% if category == cat.slug %}bg-stone-900 text-white{% else %}bg-white border border-stone-200 text-stone-600 hover:text-stone-900 hover:border-stone-400{% endif %}">
+          <a href="/shop?category={{ cat.slug }}{% if keyword %}&q={{ keyword }}{% endif %}"
+             class="whitespace-nowrap text-[10px] font-bold uppercase tracking-[0.2em] transition-colors pb-1 border-b-2
+                    {% if category == cat.slug %}border-black text-black{% else %}border-transparent text-neutral-400 hover:text-black{% endif %}">
             {{ cat.name }}
           </a>
           {% endfor %}
         </div>
 
-        {# Ô tìm kiếm #}
-        <form action="/shop" method="get" class="flex items-center w-full md:w-auto shrink-0 relative">
-          {% if category %}
-          <input type="hidden" name="category" value="{{ category }}">
-          {% endif %}
-          <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-            <svg class="w-4 h-4 text-stone-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path stroke-linecap="round" stroke-linejoin="round" d="m21 21-4.35-4.35"/></svg>
-          </div>
-          <input name="q" value="{{ keyword }}" placeholder="Tìm sản phẩm..." aria-label="Tìm kiếm"
-                 class="h-10 pl-10 pr-20 text-sm font-medium text-stone-800 bg-white border border-stone-200 rounded-xl outline-none w-full md:w-64 lg:w-72 focus:border-stone-400 focus:ring-1 focus:ring-stone-400 transition-all shadow-sm placeholder:text-stone-400" />
-          <button type="submit" aria-label="Tìm kiếm"
-                  class="absolute right-1.5 top-1/2 -translate-y-1/2 h-7 px-3 bg-stone-100 text-stone-600 text-xs font-bold rounded-lg hover:bg-stone-200 hover:text-stone-900 transition-colors">
-            Tìm
+        {# Search #}
+        <form action="/shop" method="get" class="relative flex items-center w-full md:w-72 shrink-0">
+          {% if category %}<input type="hidden" name="category" value="{{ category }}">{% endif %}
+          <input name="q" value="{{ keyword or '' }}" placeholder="TÌM KIẾM..." aria-label="Tìm kiếm"
+                 class="w-full bg-transparent border-0 border-b border-neutral-300 text-[10px] font-bold uppercase tracking-[0.2em] text-black placeholder:text-neutral-400 pb-2 pr-8 focus:outline-none focus:ring-0 focus:border-black transition-colors" />
+          <button type="submit" aria-label="Tìm kiếm" class="absolute right-0 bottom-2 text-black hover:text-neutral-500 transition-colors">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"/>
+            </svg>
           </button>
         </form>
       </div>
     </div>
+  </div>
 
-    {# ── Lưới sản phẩm ── #}
+  <div class="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-10 pt-16">
+
     {% if products %}
-    <ul class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-6 py-8"
-        role="list" aria-label="Danh sách sản phẩm">
+    <ul id="product-grid" class="grid grid-cols-2 lg:grid-cols-4 gap-x-4 gap-y-16 md:gap-x-8" role="list">
 
       {% for product in products %}
-      <li class="group">
-        <div class="bg-white border border-stone-100 rounded-2xl overflow-hidden hover:border-stone-300 hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] transition-all duration-300">
 
-          <a href="/product/{{ product.id }}" class="block relative aspect-[3/4] bg-stone-100 overflow-hidden group/img">
+      {# ── Chuẩn bị dữ liệu biến thể & ảnh cho Quick View ── #}
+      {# Model trả về key "product_variants" và "product_images" #}
+      {% set _variants = product.product_variants or [] %}
+      {% set _images   = product.product_images or [] %}
+      {% set variants_json  = _variants | tojson %}
+      {% set images_json    = _images | map(attribute='url') | list | tojson %}
+      {% set first_image    = product.thumbnail_url or '' %}
+      {# Tổng stock = tổng các biến thể, hoặc field stock trực tiếp nếu sản phẩm đơn giản #}
+      {% set product_stock  = (_variants | sum(attribute='stock')) if _variants else (product.stock or 0) %}
 
-            {# ── Đổi ảnh khi Hover ── #}
-            {% if product.images and product.images|length > 1 %}
-              <img src="{{ product.thumbnail_url or product.images[0].url }}" alt="{{ product.name }}"
-                   class="absolute inset-0 w-full h-full object-cover transition-all duration-700 ease-out group-hover/img:opacity-0 group-hover/img:scale-105" loading="lazy" />
-              <img src="{{ product.images[1].url }}" alt="{{ product.name }} hover view"
-                   class="absolute inset-0 w-full h-full object-cover opacity-0 transition-all duration-700 ease-out group-hover/img:opacity-100 group-hover/img:scale-105" loading="lazy" />
-            {% elif product.thumbnail_url %}
+      <li class="product-card group flex flex-col {% if loop.index > 10 %}hidden-product{% endif %}">
+
+        {# ── Khung ảnh ── #}
+        <div class="relative aspect-[3/4] bg-[#f5f5f5] overflow-hidden">
+          <a href="/product/{{ product.slug }}" class="block absolute inset-0">
+            {% if product.thumbnail_url %}
               <img src="{{ product.thumbnail_url }}" alt="{{ product.name }}"
-                   class="absolute inset-0 w-full h-full object-cover transition-transform duration-700 ease-out group-hover/img:scale-105" loading="lazy" />
+                   class="absolute inset-0 w-full h-full object-cover mix-blend-multiply transition-transform duration-700 group-hover:scale-105"
+                   loading="lazy" />
             {% else %}
-              <div class="w-full h-full flex items-center justify-center text-stone-300 text-xs font-bold select-none uppercase tracking-widest">
-                No Image
-              </div>
+              <div class="w-full h-full flex items-center justify-center text-neutral-300 text-[9px] font-black uppercase tracking-[0.3em]">GUA MAISON</div>
             {% endif %}
-
-            {# ── Badges ── #}
-            <div class="absolute top-3 left-3 flex flex-col gap-2 z-30">
-              {% if product.stock == 0 %}
-              <span class="bg-red-50 text-red-600 border border-red-100 text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded-md shadow-sm">
-                Hết hàng
-              </span>
-              {% elif product.is_featured %}
-              <span class="bg-amber-100 text-amber-700 border border-amber-200/50 text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded-md shadow-sm">
-                Nổi bật
-              </span>
-              {% endif %}
-            </div>
-
-            {# ── Nút Yêu thích (Tích hợp Logic API) ── #}
-            <button aria-label="Thêm vào yêu thích"
-                    onclick="toggleHeart('{{ product.id }}', this)"
-                    class="absolute top-3 right-3 w-8 h-8 bg-white/90 backdrop-blur-sm rounded-full border border-stone-200 text-stone-300
-                           flex items-center justify-center shadow-sm opacity-0 group-hover/img:opacity-100 transition-all duration-300
-                           hover:bg-red-50 hover:border-red-200 hover:scale-110 z-30">
-              <svg class="w-5 h-5 heart-icon transition-colors" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                <path d="M11.645 20.91l-.007-.003-.022-.012a15.247 15.247 0 01-.383-.218 25.18 25.18 0 01-4.244-3.17C4.688 15.36 2.25 12.174 2.25 8.25 2.25 5.322 4.714 3 7.688 3A5.5 5.5 0 0112 5.052 5.5 5.5 0 0116.313 3c2.973 0 5.437 2.322 5.437 5.25 0 3.925-2.438 7.111-4.739 9.256a25.175 25.175 0 01-4.244 3.17 15.247 15.247 0 01-.383.219l-.022.012-.007.004-.003.001a.752.752 0 01-.704 0l-.003-.001z" />
-              </svg>
-            </button>
-
-            {# ── Nút Xem Nhanh ── #}
-            <div class="absolute inset-x-0 bottom-0 p-3 translate-y-full opacity-0 group-hover/img:translate-y-0 group-hover/img:opacity-100 transition-all duration-300 ease-out z-20">
-              <button type="button" 
-                      data-id="{{ product.id }}"
-                      data-name="{{ product.name }}"
-                      data-price="{{ product.price }}"
-                      data-image="{{ product.thumbnail_url or '' }}"
-                      data-category="{{ product.categories.name if product.categories else 'Chưa phân loại' }}"
-                      data-stock="{{ product.stock }}"
-                      onclick="event.preventDefault(); triggerQuickView(this);"
-                      class="w-full bg-white/95 backdrop-blur-sm text-stone-900 font-bold text-[11px] uppercase tracking-wider py-3 rounded-xl shadow-md hover:bg-stone-900 hover:text-white transition-colors cursor-pointer">
-                Xem nhanh
-              </button>
-            </div>
           </a>
 
-          {# ── Thông tin sản phẩm ── #}
-          <div class="p-4 md:p-5">
-            <p class="text-[10px] text-stone-400 font-mono mb-1.5 uppercase tracking-widest font-semibold flex items-center gap-1">
-              <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5.25 8.25h15m-16.5 7.5h15m-1.8-13.5l-3.9 19.5m-2.1-19.5l-3.9 19.5"/></svg>
-              {{ product.id[:8] }}
-            </p>
-            <a href="/product/{{ product.id }}" class="block">
-              <h3 class="text-sm font-bold text-stone-900 leading-snug mb-1.5 line-clamp-1 group-hover:text-stone-500 transition-colors">
-                {{ product.name }}
-              </h3>
-            </a>
-            <p class="text-[15px] font-bold text-stone-900 tabular-nums">
-              {{ "{:,.0f}".format(product.price) }}<span class="text-xs font-medium text-stone-400 ml-0.5">₫</span>
-            </p>
+          {# Nút Quick View — hiện khi hover, ẩn trên mobile #}
+          <div class="absolute inset-x-0 bottom-0 p-3 z-20 hidden lg:block">
+            <button
+              type="button"
+              class="qv-overlay-btn w-full bg-white/95 border border-neutral-200 text-black py-3 text-[10px] uppercase tracking-[0.2em] font-black hover:bg-black hover:text-white transition-colors cursor-pointer"
+              data-id="{{ product.id }}"
+              data-slug="{{ product.slug }}"
+              data-name="{{ product.name }}"
+              data-price="{{ product.price }}"
+              data-image="{{ first_image }}"
+              data-images='{{ images_json }}'
+              data-category="{{ product.categories.name if product.categories else 'Core' }}"
+              data-stock="{{ product_stock }}"
+              data-variants='{{ variants_json }}'
+              onclick="triggerQuickView(this)"
+            >
+              Xem nhanh
+            </button>
           </div>
 
+          {# Nút Quick View mobile (icon) #}
+          <button
+            type="button"
+            class="lg:hidden absolute bottom-3 right-3 z-20 w-9 h-9 bg-white/90 border border-neutral-200 flex items-center justify-center shadow-sm"
+            data-id="{{ product.id }}"
+            data-slug="{{ product.slug }}"
+            data-name="{{ product.name }}"
+            data-price="{{ product.price }}"
+            data-image="{{ first_image }}"
+            data-images='{{ images_json }}'
+            data-category="{{ product.categories.name if product.categories else 'Core' }}"
+            data-stock="{{ product_stock }}"
+            data-variants='{{ variants_json }}'
+            onclick="triggerQuickView(this)"
+            aria-label="Xem nhanh {{ product.name }}"
+          >
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12c0-5.195 7.5-9 9.75-9s9.75 3.805 9.75 9-7.5 9-9.75 9-9.75-3.805-9.75-9z"/>
+              <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+            </svg>
+          </button>
         </div>
+
+        {# ── Thông tin sản phẩm ── #}
+        <div class="pt-5 flex justify-between items-start">
+          <div class="flex flex-col gap-1 pr-2">
+            <p class="text-[9px] font-bold text-neutral-400 uppercase tracking-[0.1em]">{{ product.categories.name if product.categories else 'Core' }}</p>
+            <a href="/product/{{ product.slug }}">
+              <h3 class="text-[11px] font-black uppercase tracking-wider text-black line-clamp-1 hover:text-neutral-600 transition-colors">{{ product.name }}</h3>
+            </a>
+            <span class="text-[11px] font-medium text-black mt-1">₫{{ "{:,.0f}".format(product.price) }}</span>
+          </div>
+        </div>
+
       </li>
       {% endfor %}
     </ul>
 
-    {% else %}
-    {# ── Trạng thái Trống (Empty State) ── #}
-    <div class="flex flex-col items-center justify-center py-24 md:py-32 text-center bg-white rounded-3xl border border-stone-200 border-dashed mt-8">
-      <div class="w-20 h-20 bg-stone-50 rounded-full flex items-center justify-center text-stone-300 mb-6">
-        <svg class="w-10 h-10" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"/></svg>
-      </div>
-      <h2 class="text-xl font-bold text-stone-900 mb-2">Không tìm thấy sản phẩm</h2>
-      <p class="text-sm font-medium text-stone-500 mb-8 max-w-sm">Có vẻ như chúng tôi không tìm thấy kết quả nào phù hợp. Vui lòng thử lại với từ khóa khác.</p>
-      <a href="/shop" class="bg-stone-900 text-white px-8 py-3.5 rounded-xl text-sm font-bold hover:bg-stone-700 transition-all shadow-md active:scale-95">
-        Xem toàn bộ cửa hàng
-      </a>
+    {# Spinner #}
+    <div id="scroll-spinner" class="hidden py-24 flex-col items-center justify-center">
+      <div class="w-6 h-6 border-2 border-neutral-200 border-t-black rounded-full animate-spin"></div>
+      <p class="text-[9px] font-black uppercase tracking-[0.3em] mt-4 text-neutral-400">Discovering more pieces...</p>
     </div>
-    {% endif %}
 
-    {# ── Phân trang (Pagination) ── #}
-    {% if total_pages > 1 %}
-    <nav aria-label="Phân trang" class="flex justify-center items-center gap-2 pt-10 pb-6">
+    {# Pagination #}
+    {% if total_pages and total_pages > 1 %}
+    <nav id="pagination-block" aria-label="Phân trang" class="{% if products|length > 10 %}hidden{% endif %} flex justify-center items-center gap-8 pt-20 pb-12 border-t border-neutral-100 mt-20">
       {% if page > 1 %}
       <a href="/shop?page={{ page - 1 }}{% if category %}&category={{ category }}{% endif %}{% if keyword %}&q={{ keyword }}{% endif %}"
-         aria-label="Trang trước"
-         class="w-10 h-10 flex items-center justify-center rounded-lg bg-white border border-stone-200 text-stone-600 hover:bg-stone-50 hover:border-stone-400 hover:text-stone-900 transition-all shadow-sm">
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
-      </a>
+         class="text-[9px] font-bold uppercase tracking-[0.2em] text-neutral-400 hover:text-black transition-colors">&larr; Previous</a>
       {% endif %}
-
-      {% for p in range(1, total_pages + 1) %}
-      <a href="/shop?page={{ p }}{% if category %}&category={{ category }}{% endif %}{% if keyword %}&q={{ keyword }}{% endif %}"
-         aria-label="Trang {{ p }}"
-         aria-current="{% if p == page %}page{% endif %}"
-         class="w-10 h-10 flex items-center justify-center rounded-lg text-sm font-bold transition-all shadow-sm
-                {% if p == page %}bg-stone-900 text-white border border-stone-900
-                {% else %}bg-white border border-stone-200 text-stone-600 hover:bg-stone-50 hover:border-stone-400 hover:text-stone-900{% endif %}">
-        {{ p }}
-      </a>
-      {% endfor %}
-
+      <div class="flex items-center gap-6">
+        {% for p in range(1, total_pages + 1) %}
+        <a href="/shop?page={{ p }}{% if category %}&category={{ category }}{% endif %}{% if keyword %}&q={{ keyword }}{% endif %}"
+           class="text-[11px] font-bold transition-colors {% if p == page %}text-black border-b-2 border-black pb-0.5{% else %}text-neutral-400 hover:text-black{% endif %}">{{ p }}</a>
+        {% endfor %}
+      </div>
       {% if page < total_pages %}
       <a href="/shop?page={{ page + 1 }}{% if category %}&category={{ category }}{% endif %}{% if keyword %}&q={{ keyword }}{% endif %}"
-         aria-label="Trang tiếp"
-         class="w-10 h-10 flex items-center justify-center rounded-lg bg-white border border-stone-200 text-stone-600 hover:bg-stone-50 hover:border-stone-400 hover:text-stone-900 transition-all shadow-sm">
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
-      </a>
+         class="text-[9px] font-bold uppercase tracking-[0.2em] text-neutral-400 hover:text-black transition-colors">Next &rarr;</a>
       {% endif %}
     </nav>
     {% endif %}
 
+    {% else %}
+    <div class="flex flex-col items-center justify-center py-40 text-center border-t border-neutral-100">
+      <h2 class="text-3xl text-black mb-6" style="font-family: var(--font-display);">No results found.</h2>
+      <a href="/shop" class="border-b border-black text-[10px] font-bold uppercase tracking-[0.2em]">Reset All</a>
+    </div>
+    {% endif %}
+
   </div>
 </div>
+{% endblock %}
 
-{# ════════════════════════════════════════════════════════════
-   POPUP MODAL XEM NHANH 
-   ════════════════════════════════════════════════════════════ #}
-<div id="quick-view-modal" class="fixed inset-0 z-[200] hidden items-center justify-center opacity-0 transition-opacity duration-300 px-4 sm:px-6 font-sans">
-  
-  <div class="absolute inset-0 bg-stone-900/60 backdrop-blur-md cursor-pointer transition-opacity" onclick="closeQuickView()"></div>
-
-  <div class="relative bg-white w-full max-w-[900px] max-h-[90vh] min-h-[60vh] rounded-3xl shadow-[0_20px_60px_-15px_rgba(0,0,0,0.3)] overflow-hidden flex flex-col md:flex-row transform scale-95 transition-transform duration-300 z-10">
-    
-    <button onclick="closeQuickView()" class="absolute top-4 right-4 w-10 h-10 bg-white/80 backdrop-blur-sm rounded-full flex items-center justify-center text-stone-500 hover:text-stone-900 hover:bg-stone-100 transition-all z-50 shadow-sm cursor-pointer">
-      <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
-    </button>
-
-    <div class="w-full md:w-1/2 bg-stone-50 relative overflow-hidden flex items-center justify-center p-8">
-      <img id="qv-image" src="" class="max-h-[60vh] max-w-full object-contain mix-blend-multiply z-10 transition-all duration-500" alt="Quick View Product">
-      <div class="absolute inset-0 bg-gradient-to-t from-stone-100/50 to-transparent pointer-events-none"></div>
-    </div>
-
-    <div class="w-full md:w-1/2 p-8 md:p-10 flex flex-col overflow-y-auto no-scrollbar bg-white">
-      <div class="mb-8">
-        <p id="qv-category" class="text-xs font-semibold text-stone-400 uppercase tracking-wider mb-2">Danh mục</p>
-        <h2 id="qv-name" class="text-2xl md:text-3xl font-bold text-stone-900 tracking-tight mb-2 leading-snug">Tên sản phẩm</h2>
-        <div class="flex items-center gap-2 mb-6">
-          <svg class="w-3.5 h-3.5 text-stone-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5.25 8.25h15m-16.5 7.5h15m-1.8-13.5l-3.9 19.5m-2.1-19.5l-3.9 19.5"/></svg>
-          <p id="qv-id-text" class="text-xs font-mono font-medium text-stone-400">12345678</p>
-        </div>
-        <div class="flex items-end gap-4 border-b border-stone-100 pb-6">
-          <span id="qv-price" class="text-3xl font-bold text-stone-900 tracking-tight">
-            0 <span class="text-base font-medium text-stone-500">₫</span>
-          </span>
-          <div id="qv-stock-status" class="mb-1.5"></div>
-        </div>
-      </div>
-
-      <form action="/cart/add" method="POST" class="space-y-6 mt-auto">
-        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-        <input type="hidden" name="product_id" id="qv-input-id" value="">
-
-        <div>
-          <div class="flex justify-between items-center mb-3">
-            <label class="text-sm font-bold text-stone-900">Kích thước</label>
-            <span class="text-xs font-semibold text-stone-500 underline underline-offset-4 cursor-pointer hover:text-stone-900 transition-colors">Bảng size</span>
-          </div>
-          <div class="flex flex-wrap gap-2">
-            {% for size in ['XS','S','M','L','XL'] %}
-            <label class="cursor-pointer">
-              <input type="radio" name="size" value="{{ size }}" class="sr-only peer" {% if size == 'M' %}checked{% endif %}>
-              <span class="flex items-center justify-center w-12 h-12 rounded-xl border border-stone-200 text-sm font-bold text-stone-600 peer-checked:bg-stone-900 peer-checked:text-white peer-checked:border-stone-900 hover:border-stone-400 transition-all shadow-sm peer-checked:shadow-md">
-                {{ size }}
-              </span>
-            </label>
-            {% endfor %}
-          </div>
-        </div>
-
-        <div class="flex flex-col gap-3 pt-2">
-          <div class="flex gap-3">
-            <div class="flex items-center bg-stone-50 border border-stone-200 rounded-xl h-14 w-32 shadow-sm">
-              <button type="button" onclick="qvChangeQty(-1)" class="flex-1 h-full text-xl font-medium text-stone-500 hover:text-stone-900 hover:bg-stone-100 transition-colors rounded-l-xl">−</button>
-              <input type="number" name="quantity" id="qv-qty" value="1" min="1" readonly class="w-10 text-center font-bold text-stone-900 bg-transparent outline-none pointer-events-none tabular-nums">
-              <button type="button" onclick="qvChangeQty(1)" class="flex-1 h-full text-xl font-medium text-stone-500 hover:text-stone-900 hover:bg-stone-100 transition-colors rounded-r-xl">+</button>
-            </div>
-            <button type="submit" name="action" value="add_to_cart" class="flex-1 bg-stone-900 text-white rounded-xl h-14 text-sm font-bold uppercase tracking-wider shadow-md hover:bg-stone-700 active:scale-[0.98] transition-all">
-              Thêm vào giỏ
-            </button>
-          </div>
-          <a href="#" id="qv-detail-link" class="block w-full text-center py-3.5 rounded-xl border border-stone-200 text-xs font-bold text-stone-600 uppercase tracking-wider hover:bg-stone-50 hover:text-stone-900 transition-colors mt-2 shadow-sm">
-            Xem chi tiết đầy đủ
-          </a>
-        </div>
-      </form>
-    </div>
-  </div>
-</div>
-
-<style>
-  .line-clamp-1 { 
-    display: -webkit-box; 
-    -webkit-line-clamp: 1;
-    line-clamp: 1; /* Fix cảnh báo vendor prefix */
-    -webkit-box-orient: vertical; 
-    overflow: hidden; 
-  }
-  .no-scrollbar::-webkit-scrollbar { display: none; }
-  .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-</style>
-
+{% block extra_scripts %}
 <script>
-  let qvMaxStock = 1;
+  document.addEventListener('DOMContentLoaded', () => {
+    const allProducts = Array.from(document.querySelectorAll('.product-card'));
+    const spinner = document.getElementById('scroll-spinner');
+    const pagination = document.getElementById('pagination-block');
+    let visibleCount = 10;
+    const step = 10;
 
-  // Xử lý nút bấm đọc data-*
-  function triggerQuickView(btn) {
-    const id = btn.getAttribute('data-id');
-    const name = btn.getAttribute('data-name');
-    const price = btn.getAttribute('data-price');
-    const image = btn.getAttribute('data-image');
-    const category = btn.getAttribute('data-category');
-    const stock = parseInt(btn.getAttribute('data-stock')) || 0;
-    
-    openQuickView(id, name, price, image, category, stock);
-  }
-
-  // HÀM MỞ POPUP XEM NHANH
-  function openQuickView(id, name, price, image, category, stock) {
-    const modal = document.getElementById('quick-view-modal');
-    const content = modal.querySelector('.relative');
-    
-    document.getElementById('qv-input-id').value = id;
-    document.getElementById('qv-id-text').innerText = id.substring(0, 8).toUpperCase();
-    document.getElementById('qv-name').innerText = name;
-    document.getElementById('qv-price').innerHTML = `${Number(price).toLocaleString('en-US')} <span class="text-base font-medium text-stone-500">₫</span>`;
-    document.getElementById('qv-category').innerText = category;
-    
-    const imgEl = document.getElementById('qv-image');
-    imgEl.src = image || 'https://placehold.co/600x800/f5f5f4/a8a29e?text=GUA_NO_IMAGE';
-    imgEl.classList.remove('opacity-100');
-    imgEl.classList.add('opacity-0');
-    imgEl.onload = () => {
-      imgEl.classList.remove('opacity-0');
-      imgEl.classList.add('opacity-100');
-    };
-
-    document.getElementById('qv-detail-link').href = `/product/${id}`;
-    
-    const stockEl = document.getElementById('qv-stock-status');
-    if (stock > 0) {
-        qvMaxStock = stock;
-        stockEl.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> <span class="text-emerald-700">Trực tuyến</span>`;
-        stockEl.className = "text-xs font-bold uppercase tracking-wider bg-emerald-100 px-2.5 py-1 rounded-md flex items-center gap-1.5";
-    } else {
-        qvMaxStock = 1;
-        stockEl.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-red-500"></span> <span class="text-red-700">Hết hàng</span>`;
-        stockEl.className = "text-xs font-bold uppercase tracking-wider bg-red-100 px-2.5 py-1 rounded-md flex items-center gap-1.5";
+    if (allProducts.length <= visibleCount) {
+      if (pagination) pagination.classList.remove('hidden');
+      return;
     }
-    
-    document.getElementById('qv-qty').value = 1;
-    
-    modal.classList.remove('hidden');
-    modal.classList.add('flex');
-    setTimeout(() => {
-      modal.classList.remove('opacity-0');
-      content.classList.remove('scale-95');
-      content.classList.add('scale-100');
-    }, 10);
-    document.body.style.overflow = 'hidden';
-  }
 
-  function closeQuickView() {
-    const modal = document.getElementById('quick-view-modal');
-    const content = modal.querySelector('.relative');
-    modal.classList.add('opacity-0');
-    content.classList.remove('scale-100');
-    content.classList.add('scale-95');
-    setTimeout(() => {
-      modal.classList.add('hidden');
-      modal.classList.remove('flex');
-      document.body.style.overflow = ''; 
-    }, 300);
-  }
+    const observer = new IntersectionObserver((entries) => {
+      if (!entries[0].isIntersecting) return;
+      observer.unobserve(entries[0].target);
+      if (spinner) { spinner.classList.remove('hidden'); spinner.classList.add('flex'); }
 
-  function qvChangeQty(delta) {
-    const el = document.getElementById('qv-qty');
-    let val = parseInt(el.value) + delta;
-    if (val >= 1 && val <= qvMaxStock) el.value = val;
-  }
+      setTimeout(() => {
+        const batch = allProducts.slice(visibleCount, visibleCount + step);
+        batch.forEach(p => { p.classList.remove('hidden-product'); p.classList.add('animate-fade-in-up'); });
+        visibleCount += batch.length;
+        if (spinner) spinner.classList.add('hidden');
+        if (visibleCount >= allProducts.length) {
+          if (pagination) pagination.classList.remove('hidden');
+        } else {
+          observer.observe(allProducts[visibleCount - 1]);
+        }
+      }, 800);
+    }, { rootMargin: '150px' });
+
+    observer.observe(allProducts[visibleCount - 1]);
+  });
 </script>
 {% endblock %}

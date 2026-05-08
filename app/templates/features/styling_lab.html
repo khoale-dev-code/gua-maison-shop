@@ -1,4 +1,4 @@
-    {% extends "base.html" %}
+{% extends "base.html" %}
 {% block title %}Phòng Thử Đồ AI | GUA Maison{% endblock %}
 
 {% block content %}
@@ -24,135 +24,34 @@
         Tải ảnh lên · AI phân tích hình thể · Nhận gợi ý trang phục cá nhân hoá
       </p>
       <div class="lab-hero__stats anim-in" style="--i:3">
-        <div class="lab-stat">
-          <span class="lab-stat__num">98%</span>
-          <span class="lab-stat__lbl">Độ chính xác</span>
-        </div>
+        <div class="lab-stat"><span class="lab-stat__num">98%</span><span class="lab-stat__lbl">Độ chính xác</span></div>
         <div class="lab-stat__div"></div>
-        <div class="lab-stat">
-          <span class="lab-stat__num">&lt; 5 giây</span>
-          <span class="lab-stat__lbl">Thời gian phân tích</span>
-        </div>
+        <div class="lab-stat"><span class="lab-stat__num">&lt;5 giây</span><span class="lab-stat__lbl">Thời gian phân tích</span></div>
         <div class="lab-stat__div"></div>
-        <div class="lab-stat">
-          <span class="lab-stat__num">500+</span>
-          <span class="lab-stat__lbl">Mẫu sản phẩm</span>
-        </div>
+        <div class="lab-stat"><span class="lab-stat__num">500+</span><span class="lab-stat__lbl">Mẫu sản phẩm</span></div>
       </div>
     </div>
-    <a href="#huong-dan" class="lab-hero__scroll">
-      <span>Xem hướng dẫn</span>
+    <a href="#thu-do" class="lab-hero__scroll">
+      <span>Thử ngay</span>
       <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 3v10M4 9l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
     </a>
   </header>
 
-  {# ══ HƯỚNG DẪN SỬ DỤNG ══ #}
-  <section id="huong-dan" class="lab-guide">
-    <div class="lab-guide__inner">
-      <div class="lab-guide__head">
-        <span class="lab-section-pill">Hướng dẫn sử dụng</span>
-        <h2 class="lab-guide__title">Chỉ 3 bước đơn giản</h2>
-        <p class="lab-guide__sub">Không cần tài khoản, không cần kiến thức thời trang — AI làm tất cả cho bạn.</p>
-      </div>
-
-      <div class="lab-steps">
-        <div class="lab-step anim-in" style="--i:0">
-          <div class="lab-step__num">01</div>
-          <div class="lab-step__icon">
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6.827 6.175A2.31 2.31 0 015.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 00-1.134-.175 2.31 2.31 0 01-1.64-1.055l-.822-1.316a2.192 2.192 0 00-1.736-1.039 48.774 48.774 0 00-5.232 0 2.192 2.192 0 00-1.736 1.039l-.821 1.316z"/><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 12.75a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0z"/></svg>
-          </div>
-          <h3 class="lab-step__title">Tải ảnh của bạn lên</h3>
-          <p class="lab-step__desc">Chụp ảnh toàn thân hoặc ảnh từ vai trở xuống. Ảnh chụp thẳng, nền sáng, nhìn rõ vóc dáng sẽ cho kết quả tốt nhất.</p>
-          <div class="lab-step__tip">
-            <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><circle cx="6" cy="6" r="5" stroke="currentColor" stroke-width="1"/><path d="M6 5.5v3M6 4h.01" stroke="currentColor" stroke-width="1" stroke-linecap="round"/></svg>
-            <span>Mẹo: Ảnh selfie gương toàn thân rất phù hợp!</span>
-          </div>
-        </div>
-
-        <div class="lab-step__arrow">→</div>
-
-        <div class="lab-step anim-in" style="--i:1">
-          <div class="lab-step__num">02</div>
-          <div class="lab-step__icon">
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9.53 16.122a3 3 0 00-5.78 1.128 2.25 2.25 0 01-2.4 2.245 4.5 4.5 0 008.4-2.245c0-.399-.078-.78-.22-1.128zm0 0a15.998 15.998 0 003.388-1.62m-5.043-.025a15.994 15.994 0 011.622-3.395m3.42 3.42a15.995 15.995 0 004.764-4.648l3.876-5.814a1.151 1.151 0 00-1.597-1.597L14.146 6.32a15.996 15.996 0 00-4.649 4.763m3.42 3.42a6.776 6.776 0 00-3.42-3.42"/></svg>
-          </div>
-          <h3 class="lab-step__title">Chọn phong cách yêu thích</h3>
-          <p class="lab-step__desc">Chọn một trong 4 phong cách: Đường phố năng động, Tối giản thanh lịch, Kỹ thuật hiện đại, hoặc Lịch sự thoải mái.</p>
-          <div class="lab-step__tip">
-            <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><circle cx="6" cy="6" r="5" stroke="currentColor" stroke-width="1"/><path d="M6 5.5v3M6 4h.01" stroke="currentColor" stroke-width="1" stroke-linecap="round"/></svg>
-            <span>Mẹo: Không chắc? Thử lần lượt từng phong cách!</span>
-          </div>
-        </div>
-
-        <div class="lab-step__arrow">→</div>
-
-        <div class="lab-step anim-in" style="--i:2">
-          <div class="lab-step__num">03</div>
-          <div class="lab-step__icon">
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09l2.846.813-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456z"/></svg>
-          </div>
-          <h3 class="lab-step__title">Nhận gợi ý trang phục</h3>
-          <p class="lab-step__desc">AI phân tích và đề xuất bộ trang phục hoàn chỉnh từ sản phẩm GUA Maison, kèm điểm phù hợp và lý do cụ thể.</p>
-          <div class="lab-step__tip">
-            <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><circle cx="6" cy="6" r="5" stroke="currentColor" stroke-width="1"/><path d="M6 5.5v3M6 4h.01" stroke="currentColor" stroke-width="1" stroke-linecap="round"/></svg>
-            <span>Mẹo: Nhấn "Tạo lại" để xem thêm lựa chọn!</span>
-          </div>
-        </div>
-      </div>
-
-      {# Câu hỏi thường gặp #}
-      <div class="lab-faq">
-        <h3 class="lab-faq__title">Câu hỏi thường gặp</h3>
-        <div class="lab-faq__grid">
-          <div class="lab-faq__item">
-            <div class="lab-faq__q">
-              <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="6" stroke="currentColor" stroke-width="1"/><path d="M7 6v4M7 4.5h.01" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
-              Ảnh của tôi có được lưu lại không?
-            </div>
-            <p class="lab-faq__a">Không. Ảnh chỉ được xử lý tạm thời trong phiên làm việc và không lưu trên máy chủ của chúng tôi. Quyền riêng tư của bạn được bảo vệ tuyệt đối.</p>
-          </div>
-          <div class="lab-faq__item">
-            <div class="lab-faq__q">
-              <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="6" stroke="currentColor" stroke-width="1"/><path d="M7 6v4M7 4.5h.01" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
-              Ảnh nào cho kết quả tốt nhất?
-            </div>
-            <p class="lab-faq__a">Ảnh chụp toàn thân hoặc từ đầu đến đầu gối, đứng thẳng, nền tường trơn màu sáng, ánh sáng đều. Tránh ảnh mờ, tối hoặc góc chụp nghiêng nhiều.</p>
-          </div>
-          <div class="lab-faq__item">
-            <div class="lab-faq__q">
-              <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="6" stroke="currentColor" stroke-width="1"/><path d="M7 6v4M7 4.5h.01" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
-              Tôi có thể dùng mà không cần tải ảnh không?
-            </div>
-            <p class="lab-faq__a">Có! Bạn chỉ cần chọn phong cách yêu thích và nhấn phân tích — AI sẽ đề xuất bộ trang phục dựa trên phong cách đó mà không cần ảnh.</p>
-          </div>
-          <div class="lab-faq__item">
-            <div class="lab-faq__q">
-              <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="6" stroke="currentColor" stroke-width="1"/><path d="M7 6v4M7 4.5h.01" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
-              Điểm phù hợp được tính như thế nào?
-            </div>
-            <p class="lab-faq__a">AI phân tích tỉ lệ hình thể, tông màu da, phong cách chọn và so sánh với database sản phẩm để tính ra điểm tương thích từ 0–100%.</p>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-
   {# ══ KHU VỰC LÀM VIỆC ══ #}
   <section class="lab-workspace" id="thu-do">
     <div class="lab-workspace__label">
-      <span class="lab-section-pill">Thử ngay</span>
+      <span class="lab-section-pill">✦ Thử ngay miễn phí</span>
     </div>
     <div class="lab-grid">
 
       {# ── CỘT TRÁI: NHẬP LIỆU ── #}
       <aside class="lab-panel lab-panel--left anim-in" style="--i:0">
-
         <div class="lab-panel__header">
           <h2 class="lab-panel__title">Thông tin của bạn</h2>
-          <p class="lab-panel__sub">Điền thông tin để AI gợi ý chính xác hơn</p>
+          <p class="lab-panel__sub">AI sẽ cá nhân hoá gợi ý theo vóc dáng và phong cách</p>
         </div>
 
-        {# Tải ảnh #}
+        {# ① Tải ảnh #}
         <div class="lab-field">
           <div class="lab-field__label">
             <span class="lab-field__num">①</span>
@@ -160,30 +59,30 @@
             <span class="lab-field__opt">Không bắt buộc</span>
           </div>
           <div class="lab-upload" id="upload-zone">
-            <input type="file" id="user-image" accept="image/*" class="lab-upload__input" onchange="previewImage(this)">
+            <input type="file" id="user-image" accept="image/*" class="lab-upload__input" onchange="handleImageSelect(this)">
             <div class="lab-upload__placeholder" id="upload-placeholder">
               <div class="lab-upload__circle">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5"/></svg>
               </div>
               <p class="lab-upload__main">Nhấn để chọn ảnh</p>
-              <p class="lab-upload__hint">hoặc kéo thả ảnh vào đây</p>
+              <p class="lab-upload__hint">hoặc kéo thả vào đây</p>
               <p class="lab-upload__fmt">JPG, PNG, WEBP · Tối đa 10MB</p>
             </div>
             <img id="image-preview" class="lab-upload__preview" alt="Ảnh xem trước">
             <div id="scanner-line" class="lab-scanner hidden"></div>
             <div id="upload-badge" class="lab-upload__ok hidden">
               <svg width="11" height="11" viewBox="0 0 11 11" fill="none"><path d="M2 5.5l2.5 2.5 4.5-4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-              Đã tải ảnh thành công
+              Đã tải ảnh — AI sẽ phân tích hình thể
             </div>
-            <button id="remove-img-btn" class="lab-upload__remove hidden" onclick="removeImage(event)">✕ Xoá ảnh</button>
+            <button id="remove-img-btn" class="lab-upload__remove hidden" onclick="removeImage(event)">✕ Xoá</button>
           </div>
           <p class="lab-field__note">
             <svg width="11" height="11" viewBox="0 0 11 11" fill="none"><circle cx="5.5" cy="5.5" r="4.5" stroke="currentColor"/><path d="M5.5 5v2.5M5.5 3.5h.01" stroke="currentColor" stroke-linecap="round"/></svg>
-            Ảnh của bạn không được lưu lại — chỉ dùng trong phiên này
+            Ảnh không lưu lại — chỉ dùng trong phiên này
           </p>
         </div>
 
-        {# Chọn phong cách #}
+        {# ② Chọn phong cách #}
         <div class="lab-field">
           <div class="lab-field__label">
             <span class="lab-field__num">②</span>
@@ -191,10 +90,10 @@
           </div>
           <div class="lab-style-grid">
             {% set styles = [
-              ('streetwear', 'Đường phố', 'Năng động, cá tính, trẻ trung', '🏙️'),
-              ('minimalist', 'Tối giản', 'Tinh tế, sang trọng, nhẹ nhàng', '◻'),
-              ('techwear',   'Kỹ thuật',  'Hiện đại, chức năng, tương lai', '⚙'),
-              ('smart_casual','Lịch sự thoải mái','Chỉn chu nhưng không cứng nhắc','✦'),
+              ('streetwear',   'Đường phố',        'Năng động, cá tính, trẻ trung', '🏙️'),
+              ('minimalist',   'Tối giản',          'Tinh tế, sang trọng, nhẹ nhàng', '◻'),
+              ('techwear',     'Kỹ thuật',          'Hiện đại, chức năng, tương lai', '⚙'),
+              ('smart_casual', 'Lịch sự thoải mái', 'Chỉn chu nhưng không cứng nhắc', '✦'),
             ] %}
             {% for val, lbl, desc, ico in styles %}
             <label class="lab-style">
@@ -212,23 +111,24 @@
             </label>
             {% endfor %}
           </div>
+          {# Thông báo AI auto-override vibe #}
+          <div id="auto-vibe-notice" class="lab-auto-vibe hidden">
+            <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><circle cx="6.5" cy="6.5" r="5.5" stroke="currentColor"/><path d="M4 6.5l2 2 3-3" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <span id="auto-vibe-text">AI đề xuất phong cách phù hợp hơn với vóc dáng của bạn</span>
+          </div>
         </div>
 
-        {# Sản phẩm tham khảo #}
+        {# ③ Sản phẩm tham khảo #}
         <div class="lab-field">
           <div class="lab-field__label">
             <span class="lab-field__num">③</span>
-            <span>Sản phẩm muốn phối (tuỳ chọn)</span>
+            <span>Sản phẩm muốn phối</span>
             <span class="lab-field__opt">Không bắt buộc</span>
           </div>
           <button class="lab-anchor" type="button">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
             Chọn sản phẩm GUA làm điểm xuất phát...
           </button>
-          <p class="lab-field__note">
-            <svg width="11" height="11" viewBox="0 0 11 11" fill="none"><circle cx="5.5" cy="5.5" r="4.5" stroke="currentColor"/><path d="M5.5 5v2.5M5.5 3.5h.01" stroke="currentColor" stroke-linecap="round"/></svg>
-            AI sẽ tìm các sản phẩm phối đẹp nhất với món đồ bạn chọn
-          </p>
         </div>
 
         {# Nút phân tích #}
@@ -239,25 +139,23 @@
           </svg>
           <span id="text-analyze">✨ Phân tích &amp; Gợi ý trang phục</span>
         </button>
-
       </aside>
 
       {# ── CỘT PHẢI: KẾT QUẢ ── #}
       <section class="lab-panel lab-panel--right anim-in" style="--i:1">
 
-        {# Thanh tab #}
         <div class="lab-tabs">
           <button class="lab-tab lab-tab--active" id="tab-recommend" onclick="switchTab('recommend')">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909"/></svg>
             Gợi ý trang phục
           </button>
-          <button class="lab-tab" id="tab-tryon" onclick="switchTab('tryon')">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z"/></svg>
-            Thử đồ ảo
+          <button class="lab-tab" id="tab-body" onclick="switchTab('body')" style="display:none" id="tab-body">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0"/></svg>
+            Phân tích hình thể
           </button>
         </div>
 
-        {# ─ Trạng thái: Chờ ─ #}
+        {# Trạng thái: Chờ #}
         <div id="ai-empty" class="lab-state">
           <div class="lab-state__illo">
             <div class="lab-state__circle lab-state__circle--1"></div>
@@ -267,7 +165,7 @@
             </svg>
           </div>
           <p class="lab-state__title">Sẵn sàng phân tích</p>
-          <p class="lab-state__body">Hoàn thành các bước bên trái và nhấn nút<br><strong>Phân tích &amp; Gợi ý trang phục</strong> để bắt đầu.</p>
+          <p class="lab-state__body">Chọn phong cách và nhấn nút<br><strong>Phân tích &amp; Gợi ý trang phục</strong> để bắt đầu.</p>
           <div class="lab-checklist">
             <div class="lab-checklist__item lab-checklist__item--done" id="check-style">
               <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><circle cx="6" cy="6" r="5.5" stroke="currentColor"/><path d="M3.5 6l2 2 3-3" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
@@ -275,12 +173,12 @@
             </div>
             <div class="lab-checklist__item" id="check-img">
               <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><circle cx="6" cy="6" r="5.5" stroke="currentColor" stroke-dasharray="2 2"/></svg>
-              Ảnh (tuỳ chọn)
+              Ảnh (tuỳ chọn — tăng độ chính xác)
             </div>
           </div>
         </div>
 
-        {# ─ Trạng thái: Đang xử lý ─ #}
+        {# Trạng thái: Đang xử lý #}
         <div id="ai-loading" class="lab-state hidden">
           <div class="lab-loader">
             <svg class="lab-loader__svg" viewBox="0 0 72 72">
@@ -296,18 +194,20 @@
           <p id="loading-step-desc" class="lab-loading__desc">Vui lòng đợi trong giây lát</p>
         </div>
 
-        {# ─ Trạng thái: Lỗi ─ #}
+        {# Trạng thái: Lỗi #}
         <div id="ai-error" class="lab-state hidden">
           <div class="lab-state__err-ico">
             <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"/></svg>
           </div>
           <p class="lab-state__title">Có lỗi xảy ra</p>
-          <p id="error-message" class="lab-state__body">Không thể kết nối đến máy chủ. Vui lòng thử lại.</p>
-          <button class="lab-retry" onclick="runAIEngine()">Thử lại ngay →</button>
+          <p id="error-message" class="lab-state__body">Không thể kết nối. Vui lòng thử lại.</p>
+          <button class="lab-retry" onclick="runAIEngine()">Thử lại →</button>
         </div>
 
-        {# ─ Kết quả: Gợi ý ─ #}
+        {# Kết quả: Gợi ý trang phục #}
         <div id="content-recommend" class="hidden">
+          {# Source badge: supabase vs mock #}
+          <div id="source-badge" class="lab-source-badge hidden"></div>
 
           {# Banner phong cách #}
           <div class="lab-profile" id="style-profile-banner">
@@ -345,45 +245,19 @@
 
           {# Chân trang #}
           <div class="lab-result-footer">
-            <button class="lab-btn-cart">
+            <button class="lab-btn-cart" onclick="addAllToCart()">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 00-3 3h15.75m-12.75-3h11.218c1.121-2.3 2.1-4.684 2.924-7.138a60.114 60.114 0 00-16.536-1.84M7.5 14.25L5.106 5.272M6 20.25a.75.75 0 11-1.5 0 .75.75 0 011.5 0zm12.75 0a.75.75 0 11-1.5 0 .75.75 0 011.5 0z"/></svg>
               Thêm cả bộ vào giỏ hàng
             </button>
-            <button class="lab-btn-save" title="Lưu bộ trang phục">
+            <button class="lab-btn-save" title="Lưu bộ trang phục" onclick="saveOutfit()">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M17.593 3.322c1.1.128 1.907 1.077 1.907 2.185V21L12 17.25 4.5 21V5.507c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0111.186 0z"/></svg>
             </button>
           </div>
         </div>
 
-        {# ─ Kết quả: Thử đồ ảo ─ #}
-        <div id="content-tryon" class="hidden">
-          <div class="lab-tryon">
-            <div class="lab-tryon__frame">
-              <img src="https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=600&q=80" class="lab-tryon__img" alt="Ảnh thử đồ ảo">
-              <div class="lab-tryon__stamp">
-                <span class="lab-dot lab-dot--sm"></span>
-                AI Tạo Ra
-              </div>
-              <div class="lab-tryon__caption">
-                <p class="lab-tryon__cap-title">Kết quả thử đồ ảo</p>
-                <p class="lab-tryon__cap-sub">Công nghệ GUA Vision 2.0</p>
-              </div>
-            </div>
-            <div class="lab-tryon__note">
-              <svg width="13" height="13" viewBox="0 0 13 13" fill="none"><circle cx="6.5" cy="6.5" r="5.5" stroke="currentColor"/><path d="M6.5 6v3M6.5 4.5h.01" stroke="currentColor" stroke-linecap="round"/></svg>
-              <span>Hình ảnh được tạo bằng AI — chỉ mang tính tham khảo, màu sắc thực tế có thể khác nhẹ</span>
-            </div>
-            <div class="lab-tryon__actions">
-              <button class="lab-tryon__btn lab-tryon__btn--out">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3"/></svg>
-                Lưu hình ảnh
-              </button>
-              <button class="lab-tryon__btn lab-tryon__btn--fill">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M7.217 10.907a2.25 2.25 0 100 2.186m0-2.186c.18.324.283.696.283 1.093s-.103.77-.283 1.093m0-2.186l9.566-5.314m-9.566 7.5l9.566 5.314m0 0a2.25 2.25 0 103.935 2.186 2.25 2.25 0 00-3.935-2.186zm0-12.814a2.25 2.25 0 103.933-2.185 2.25 2.25 0 00-3.933 2.185z"/></svg>
-                Chia sẻ với bạn bè
-              </button>
-            </div>
-          </div>
+        {# Kết quả: Phân tích hình thể (tab ẩn, hiện khi có ảnh) #}
+        <div id="content-body" class="hidden">
+          <div class="lab-body-analysis" id="body-analysis-content"></div>
         </div>
 
       </section>
@@ -395,411 +269,138 @@
 {# ══════════ STYLES ══════════ #}
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-
 .lab-root{
   --font-d:'Playfair Display',Georgia,serif;
   --font-b:'Be Vietnam Pro',system-ui,sans-serif;
   --font-m:'Space Mono',monospace;
-  --cr:#0f0d0b;
-  --cr2:#3d3830;
-  --cr3:#7a7268;
-  --cr4:#c2bcb3;
-  --cr5:#e8e3dc;
-  --bg:#faf8f5;
-  --bg2:#f3f0ea;
-  --bg3:#ece8e1;
-  --wh:#ffffff;
-  --acc:#0f0d0b;
-  --grn:#16a34a;
-  --grn-bg:rgba(22,163,74,.1);
-  --red:#dc2626;
-  --red-bg:#fef2f2;
-  --brd:rgba(15,13,11,.08);
-  --brd2:rgba(15,13,11,.15);
+  --cr:#0f0d0b;--cr2:#3d3830;--cr3:#7a7268;--cr4:#c2bcb3;--cr5:#e8e3dc;
+  --bg:#faf8f5;--bg2:#f3f0ea;--bg3:#ece8e1;--wh:#ffffff;
+  --acc:#0f0d0b;--grn:#16a34a;--grn-bg:rgba(22,163,74,.1);
+  --red:#dc2626;--red-bg:#fef2f2;
+  --amber:#d97706;--amber-bg:rgba(217,119,6,.1);
+  --brd:rgba(15,13,11,.08);--brd2:rgba(15,13,11,.15);
   --sh-sm:0 1px 4px rgba(0,0,0,.05),0 1px 2px rgba(0,0,0,.04);
   --sh-md:0 4px 20px rgba(0,0,0,.07),0 1px 4px rgba(0,0,0,.05);
   --sh-lg:0 16px 48px rgba(0,0,0,.09),0 4px 12px rgba(0,0,0,.05);
   --r-sm:8px;--r-md:14px;--r-lg:22px;--r-xl:32px;
-  font-family:var(--font-b);
-  background:var(--bg);
-  color:var(--cr);
-  min-height:100vh;
+  font-family:var(--font-b);background:var(--bg);color:var(--cr);min-height:100vh;
 }
-
-/* Hiệu ứng xuất hiện */
 .anim-in{opacity:0;transform:translateY(20px);animation:ai-up .65s cubic-bezier(.22,1,.36,1) calc(var(--i,0)*80ms) forwards}
 @keyframes ai-up{to{opacity:1;transform:none}}
 
-/* ── Anh hùng ── */
-.lab-hero{
-  background:var(--cr);color:var(--wh);
-  padding:96px 24px 120px;
-  position:relative;overflow:hidden;text-align:center;
-}
-.lab-hero__bg{
-  position:absolute;inset:0;
-  background:radial-gradient(ellipse 80% 60% at 50% 110%,rgba(255,255,255,.04),transparent);
-  pointer-events:none;
-}
-.lab-hero__decor{
-  position:absolute;border-radius:50%;
-  background:rgba(255,255,255,.03);
-  pointer-events:none;
-}
+/* Hero */
+.lab-hero{background:var(--cr);color:var(--wh);padding:96px 24px 120px;position:relative;overflow:hidden;text-align:center}
+.lab-hero__bg{position:absolute;inset:0;background:radial-gradient(ellipse 80% 60% at 50% 110%,rgba(255,255,255,.04),transparent);pointer-events:none}
+.lab-hero__decor{position:absolute;border-radius:50%;background:rgba(255,255,255,.03);pointer-events:none}
 .lab-hero__decor--1{width:600px;height:600px;top:-200px;right:-150px}
 .lab-hero__decor--2{width:400px;height:400px;bottom:-100px;left:-100px}
 .lab-hero__inner{position:relative;z-index:2;max-width:700px;margin:0 auto}
-.lab-hero__title{
-  font-family:var(--font-d);
-  font-size:clamp(48px,8vw,88px);
-  font-weight:700;line-height:.95;
-  letter-spacing:-.02em;
-  margin:18px 0 20px;
-}
+.lab-hero__title{font-family:var(--font-d);font-size:clamp(48px,8vw,88px);font-weight:700;line-height:.95;letter-spacing:-.02em;margin:18px 0 20px}
 .lab-hero__title em{color:rgba(255,255,255,.45);font-style:italic;font-weight:400}
 .lab-hero__tagline{font-size:14px;color:rgba(255,255,255,.5);letter-spacing:.05em}
-.lab-hero__stats{
-  display:flex;align-items:center;justify-content:center;
-  gap:24px;margin-top:36px;flex-wrap:wrap;
-}
+.lab-hero__stats{display:flex;align-items:center;justify-content:center;gap:24px;margin-top:36px;flex-wrap:wrap}
 .lab-stat{display:flex;flex-direction:column;align-items:center;gap:3px}
 .lab-stat__num{font-family:var(--font-m);font-size:18px;font-weight:700;color:var(--wh)}
 .lab-stat__lbl{font-size:11px;color:rgba(255,255,255,.4);letter-spacing:.04em}
 .lab-stat__div{width:1px;height:36px;background:rgba(255,255,255,.12)}
-.lab-hero__scroll{
-  position:absolute;bottom:24px;left:50%;transform:translateX(-50%);
-  display:flex;align-items:center;gap:6px;
-  font-size:11px;font-family:var(--font-m);
-  color:rgba(255,255,255,.3);text-decoration:none;
-  letter-spacing:.1em;
-  animation:bounce 2.4s ease-in-out infinite;
-}
+.lab-hero__scroll{position:absolute;bottom:24px;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:6px;font-size:11px;font-family:var(--font-m);color:rgba(255,255,255,.3);text-decoration:none;letter-spacing:.1em;animation:bounce 2.4s ease-in-out infinite}
 @keyframes bounce{0%,100%{transform:translateX(-50%) translateY(0)}50%{transform:translateX(-50%) translateY(6px)}}
-
-/* Viên đặc trưng */
-.lab-badge{
-  display:inline-flex;align-items:center;gap:8px;
-  background:rgba(255,255,255,.07);
-  border:1px solid rgba(255,255,255,.12);
-  backdrop-filter:blur(8px);
-  padding:6px 16px;border-radius:999px;
-  font-size:11px;font-family:var(--font-m);
-  letter-spacing:.12em;color:rgba(255,255,255,.55);
-  margin-bottom:12px;
-}
+.lab-badge{display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);backdrop-filter:blur(8px);padding:6px 16px;border-radius:999px;font-size:11px;font-family:var(--font-m);letter-spacing:.12em;color:rgba(255,255,255,.55);margin-bottom:12px}
 .lab-dot{width:7px;height:7px;border-radius:50%;background:var(--grn);animation:pulse 2s ease-in-out infinite}
-.lab-dot--sm{width:5px;height:5px}
 @keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(22,163,74,.3)}50%{box-shadow:0 0 0 5px rgba(22,163,74,0)}}
+.lab-section-pill{display:inline-flex;align-items:center;gap:6px;background:var(--bg3);border:1px solid var(--brd2);padding:5px 14px;border-radius:999px;font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--cr2)}
 
-.lab-section-pill{
-  display:inline-flex;align-items:center;gap:6px;
-  background:var(--bg3);border:1px solid var(--brd2);
-  padding:5px 14px;border-radius:999px;
-  font-size:11px;font-weight:600;letter-spacing:.1em;
-  text-transform:uppercase;color:var(--cr2);
-}
-
-/* ── Hướng dẫn ── */
-.lab-guide{background:var(--wh);padding:80px 24px}
-.lab-guide__inner{max-width:1200px;margin:0 auto}
-.lab-guide__head{text-align:center;margin-bottom:52px}
-.lab-guide__title{
-  font-family:var(--font-d);
-  font-size:clamp(32px,4vw,48px);
-  font-weight:700;margin:12px 0 10px;
-  letter-spacing:-.01em;
-}
-.lab-guide__sub{font-size:14px;color:var(--cr3);max-width:480px;margin:0 auto}
-
-/* Các bước */
-.lab-steps{
-  display:grid;
-  grid-template-columns:1fr auto 1fr auto 1fr;
-  gap:0;align-items:start;
-  margin-bottom:64px;
-}
-@media(max-width:768px){
-  .lab-steps{grid-template-columns:1fr;gap:20px}
-  .lab-step__arrow{display:none}
-}
-.lab-step{
-  background:var(--bg);border:1.5px solid var(--brd);
-  border-radius:var(--r-lg);padding:28px 24px;
-  position:relative;transition:border-color .2s,box-shadow .2s;
-}
-.lab-step:hover{border-color:var(--brd2);box-shadow:var(--sh-md)}
-.lab-step__num{
-  position:absolute;top:-14px;left:24px;
-  background:var(--cr);color:var(--wh);
-  font-family:var(--font-m);font-size:11px;
-  padding:3px 10px;border-radius:999px;letter-spacing:.1em;
-}
-.lab-step__icon{
-  width:52px;height:52px;border-radius:50%;
-  background:var(--bg3);
-  display:flex;align-items:center;justify-content:center;
-  margin-bottom:14px;color:var(--cr2);
-}
-.lab-step__title{font-size:15px;font-weight:700;margin-bottom:8px;color:var(--cr)}
-.lab-step__desc{font-size:13px;color:var(--cr3);line-height:1.6;margin-bottom:12px}
-.lab-step__tip{
-  display:flex;align-items:flex-start;gap:6px;
-  font-size:11px;color:var(--grn);font-weight:500;
-  background:var(--grn-bg);border-radius:var(--r-sm);padding:7px 10px;
-}
-.lab-step__arrow{
-  font-size:22px;color:var(--cr4);
-  display:flex;align-items:center;justify-content:center;
-  padding:0 12px;margin-top:60px;
-}
-
-/* FAQ */
-.lab-faq__title{font-size:20px;font-weight:700;margin-bottom:20px;color:var(--cr)}
-.lab-faq__grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px}
-.lab-faq__item{
-  background:var(--bg);border:1.5px solid var(--brd);
-  border-radius:var(--r-md);padding:18px 20px;
-  transition:border-color .2s;
-}
-.lab-faq__item:hover{border-color:var(--brd2)}
-.lab-faq__q{
-  display:flex;align-items:center;gap:7px;
-  font-size:13px;font-weight:600;color:var(--cr);
-  margin-bottom:8px;
-}
-.lab-faq__a{font-size:12px;color:var(--cr3);line-height:1.65}
-
-/* ── Khu vực làm việc ── */
+/* Workspace */
 .lab-workspace{max-width:1400px;margin:0 auto;padding:64px 24px 96px}
 .lab-workspace__label{text-align:center;margin-bottom:36px}
 .lab-grid{display:grid;grid-template-columns:1fr;gap:20px}
 @media(min-width:1024px){.lab-grid{grid-template-columns:440px 1fr}}
 
-/* ── Bảng điều khiển ── */
-.lab-panel{
-  background:var(--wh);border:1.5px solid var(--brd);
-  border-radius:var(--r-xl);padding:28px;
-  box-shadow:var(--sh-lg);
-  display:flex;flex-direction:column;gap:22px;
-}
+/* Panels */
+.lab-panel{background:var(--wh);border:1.5px solid var(--brd);border-radius:var(--r-xl);padding:28px;box-shadow:var(--sh-lg);display:flex;flex-direction:column;gap:22px}
 .lab-panel--right{min-height:600px}
-.lab-panel__header{}
 .lab-panel__title{font-family:var(--font-d);font-size:22px;font-weight:700;margin-bottom:4px}
 .lab-panel__sub{font-size:13px;color:var(--cr3)}
 
-/* Nhãn trường */
+/* Fields */
 .lab-field{display:flex;flex-direction:column;gap:8px}
-.lab-field__label{
-  display:flex;align-items:center;gap:8px;
-  font-size:12px;font-weight:700;
-  letter-spacing:.08em;text-transform:uppercase;color:var(--cr2);
-}
-.lab-field__num{
-  width:22px;height:22px;border-radius:50%;
-  background:var(--cr);color:var(--wh);
-  display:flex;align-items:center;justify-content:center;
-  font-size:11px;font-family:var(--font-m);flex-shrink:0;
-}
-.lab-field__opt{
-  margin-left:auto;font-size:10px;font-weight:500;
-  color:var(--cr4);text-transform:none;letter-spacing:0;
-}
-.lab-field__note{
-  display:flex;align-items:center;gap:5px;
-  font-size:11px;color:var(--cr4);
-}
+.lab-field__label{display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--cr2)}
+.lab-field__num{width:22px;height:22px;border-radius:50%;background:var(--cr);color:var(--wh);display:flex;align-items:center;justify-content:center;font-size:11px;font-family:var(--font-m);flex-shrink:0}
+.lab-field__opt{margin-left:auto;font-size:10px;font-weight:500;color:var(--cr4);text-transform:none;letter-spacing:0}
+.lab-field__note{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--cr4)}
 
-/* Vùng tải ảnh */
-.lab-upload{
-  position:relative;min-height:200px;
-  border:2px dashed var(--brd2);border-radius:var(--r-lg);
-  background:var(--bg2);cursor:pointer;overflow:hidden;
-  display:flex;align-items:center;justify-content:center;
-  transition:border-color .2s,background .2s;
-}
+/* Upload */
+.lab-upload{position:relative;min-height:200px;border:2px dashed var(--brd2);border-radius:var(--r-lg);background:var(--bg2);cursor:pointer;overflow:hidden;display:flex;align-items:center;justify-content:center;transition:border-color .2s,background .2s}
 .lab-upload:hover{border-color:var(--cr);background:var(--bg3)}
 .lab-upload__input{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;z-index:5}
 .lab-upload__placeholder{display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center;padding:24px;transition:opacity .3s}
-.lab-upload__circle{
-  width:56px;height:56px;border-radius:50%;
-  background:var(--wh);border:1.5px solid var(--brd2);
-  display:flex;align-items:center;justify-content:center;
-  box-shadow:var(--sh-sm);margin-bottom:4px;
-  transition:transform .2s;
-}
+.lab-upload__circle{width:56px;height:56px;border-radius:50%;background:var(--wh);border:1.5px solid var(--brd2);display:flex;align-items:center;justify-content:center;box-shadow:var(--sh-sm);margin-bottom:4px;transition:transform .2s}
 .lab-upload:hover .lab-upload__circle{transform:scale(1.07)}
 .lab-upload__main{font-size:14px;font-weight:600;color:var(--cr)}
 .lab-upload__hint{font-size:12px;color:var(--cr3)}
 .lab-upload__fmt{font-size:10px;color:var(--cr4);font-family:var(--font-m)}
 .lab-upload__preview{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:none;z-index:2}
-.lab-upload__ok{
-  position:absolute;bottom:10px;right:10px;z-index:6;
-  display:flex;align-items:center;gap:5px;
-  background:var(--wh);border:1px solid var(--brd);
-  border-radius:999px;padding:4px 10px;
-  font-size:11px;font-weight:600;color:var(--grn);
-  box-shadow:var(--sh-sm);
-}
-.lab-upload__remove{
-  position:absolute;top:10px;right:10px;z-index:8;
-  background:rgba(0,0,0,.55);color:#fff;border:none;
-  border-radius:999px;padding:4px 10px;
-  font-size:11px;font-weight:600;cursor:pointer;
-  transition:background .2s;
-}
+.lab-upload__ok{position:absolute;bottom:10px;right:10px;z-index:6;display:flex;align-items:center;gap:5px;background:var(--wh);border:1px solid var(--brd);border-radius:999px;padding:4px 10px;font-size:11px;font-weight:600;color:var(--grn);box-shadow:var(--sh-sm)}
+.lab-upload__remove{position:absolute;top:10px;right:10px;z-index:8;background:rgba(0,0,0,.55);color:#fff;border:none;border-radius:999px;padding:4px 10px;font-size:11px;font-weight:600;cursor:pointer;transition:background .2s}
 .lab-upload__remove:hover{background:rgba(0,0,0,.8)}
-
-/* Đường quét scanner */
-.lab-scanner{
-  position:absolute;inset-x:0;height:3px;z-index:10;
-  background:linear-gradient(90deg,transparent,var(--grn),transparent);
-  animation:scan 2s ease-in-out infinite;
-}
+.lab-scanner{position:absolute;inset-x:0;height:3px;z-index:10;background:linear-gradient(90deg,transparent,var(--grn),transparent);animation:scan 2s ease-in-out infinite}
 @keyframes scan{0%{top:0;opacity:0}10%{opacity:1}90%{opacity:1}100%{top:100%;opacity:0}}
 
-/* Lưới phong cách */
+/* Auto-vibe notice */
+.lab-auto-vibe{display:flex;align-items:flex-start;gap:6px;background:var(--amber-bg);border:1px solid rgba(217,119,6,.25);border-radius:var(--r-sm);padding:8px 11px;font-size:11px;color:var(--amber);font-weight:500;line-height:1.45}
+
+/* Style grid */
 .lab-style-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.lab-style input:checked+.lab-style__card{
-  background:var(--cr);color:var(--wh);border-color:var(--cr);
-}
+.lab-style input:checked+.lab-style__card{background:var(--cr);color:var(--wh);border-color:var(--cr)}
 .lab-style input:checked+.lab-style__card .lab-style__check{opacity:1}
 .lab-style input:checked+.lab-style__card .lab-style__desc{color:rgba(255,255,255,.55)}
-.lab-style__card{
-  display:flex;flex-direction:column;gap:3px;
-  border:1.5px solid var(--brd2);border-radius:var(--r-md);
-  padding:12px 12px;cursor:pointer;
-  transition:all .2s;
-}
+.lab-style__card{display:flex;flex-direction:column;gap:3px;border:1.5px solid var(--brd2);border-radius:var(--r-md);padding:12px;cursor:pointer;transition:all .2s}
 .lab-style__card:hover{border-color:var(--cr);background:var(--bg2)}
 .lab-style__top{display:flex;align-items:center;justify-content:space-between;margin-bottom:2px}
 .lab-style__ico{font-size:16px}
-.lab-style__check{
-  width:18px;height:18px;border-radius:50%;
-  background:rgba(255,255,255,.2);
-  display:flex;align-items:center;justify-content:center;
-  opacity:0;transition:opacity .2s;
-  color:var(--wh);
-}
+.lab-style__check{width:18px;height:18px;border-radius:50%;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .2s;color:var(--wh)}
 .lab-style__name{font-size:13px;font-weight:700;color:inherit}
 .lab-style__desc{font-size:11px;color:var(--cr3);line-height:1.4}
-
-/* Nút sản phẩm neo */
-.lab-anchor{
-  display:flex;align-items:center;gap:8px;
-  border:1.5px dashed var(--brd2);border-radius:var(--r-md);
-  padding:10px 14px;background:none;cursor:pointer;
-  font-size:12px;font-family:var(--font-b);font-weight:500;
-  color:var(--cr3);transition:all .2s;text-align:left;width:100%;
-}
+.lab-anchor{display:flex;align-items:center;gap:8px;border:1.5px dashed var(--brd2);border-radius:var(--r-md);padding:10px 14px;background:none;cursor:pointer;font-size:12px;font-family:var(--font-b);font-weight:500;color:var(--cr3);transition:all .2s;text-align:left;width:100%}
 .lab-anchor:hover{border-color:var(--cr);color:var(--cr);background:var(--bg2)}
 
-/* Nút CTA chính */
-.lab-cta{
-  position:relative;overflow:hidden;
-  display:flex;align-items:center;justify-content:center;gap:10px;
-  background:var(--cr);color:var(--wh);border:none;
-  border-radius:var(--r-md);padding:17px 24px;cursor:pointer;
-  font-family:var(--font-b);font-size:14px;font-weight:700;
-  letter-spacing:.04em;
-  transition:background .2s,transform .1s;
-  box-shadow:0 6px 24px rgba(0,0,0,.2);
-}
+/* CTA Button */
+.lab-cta{position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center;gap:10px;background:var(--cr);color:var(--wh);border:none;border-radius:var(--r-md);padding:17px 24px;cursor:pointer;font-family:var(--font-b);font-size:14px;font-weight:700;letter-spacing:.04em;transition:background .2s,transform .1s;box-shadow:0 6px 24px rgba(0,0,0,.2)}
 .lab-cta:hover{background:var(--cr2)}
 .lab-cta:active{transform:scale(.98)}
-.lab-cta__glow{
-  position:absolute;inset:0;width:55%;
-  background:linear-gradient(90deg,transparent,rgba(255,255,255,.1),transparent);
-  transform:translateX(-200%);
-}
+.lab-cta__glow{position:absolute;inset:0;width:55%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.1),transparent);transform:translateX(-200%)}
 .lab-cta:hover .lab-cta__glow{animation:shimmer 1.3s ease forwards}
 @keyframes shimmer{to{transform:translateX(300%)}}
-.lab-cta__ico{flex-shrink:0}
 .lab-cta__ico.spin{animation:spin .7s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
 .lab-cta:disabled{opacity:.6;cursor:not-allowed}
 
-/* ── Tabs ── */
-.lab-tabs{
-  display:flex;background:var(--bg2);
-  border-radius:var(--r-md);padding:4px;gap:2px;
-}
-.lab-tab{
-  flex:1;display:flex;align-items:center;justify-content:center;gap:6px;
-  padding:9px 12px;border:none;border-radius:var(--r-sm);
-  background:none;cursor:pointer;
-  font-family:var(--font-b);font-size:12px;font-weight:600;
-  color:var(--cr3);transition:all .2s;
-}
+/* Tabs */
+.lab-tabs{display:flex;background:var(--bg2);border-radius:var(--r-md);padding:4px;gap:2px}
+.lab-tab{flex:1;display:flex;align-items:center;justify-content:center;gap:6px;padding:9px 12px;border:none;border-radius:var(--r-sm);background:none;cursor:pointer;font-family:var(--font-b);font-size:12px;font-weight:600;color:var(--cr3);transition:all .2s}
 .lab-tab--active{background:var(--wh);color:var(--cr);box-shadow:var(--sh-sm)}
 
-/* ── Các trạng thái ── */
-.lab-state{
-  flex:1;display:flex;flex-direction:column;
-  align-items:center;justify-content:center;
-  text-align:center;padding:48px 24px;gap:10px;
-  min-height:400px;
-}
-.lab-state__illo{
-  position:relative;width:80px;height:80px;margin-bottom:8px;
-  display:flex;align-items:center;justify-content:center;
-}
-.lab-state__circle{
-  position:absolute;border-radius:50%;
-}
-.lab-state__circle--1{
-  width:80px;height:80px;
-  background:var(--bg3);
-  animation:orbit-1 6s linear infinite;
-}
-.lab-state__circle--2{
-  width:56px;height:56px;
-  background:var(--bg2);border:1px solid var(--brd2);
-}
+/* States */
+.lab-state{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:48px 24px;gap:10px;min-height:400px}
+.lab-state__illo{position:relative;width:80px;height:80px;margin-bottom:8px;display:flex;align-items:center;justify-content:center}
+.lab-state__circle{position:absolute;border-radius:50%}
+.lab-state__circle--1{width:80px;height:80px;background:var(--bg3);animation:orbit-1 6s linear infinite}
+.lab-state__circle--2{width:56px;height:56px;background:var(--bg2);border:1px solid var(--brd2)}
 @keyframes orbit-1{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}
 .lab-state__illo svg{position:relative;z-index:2;color:var(--cr3)}
-.lab-state__err-ico{
-  width:64px;height:64px;border-radius:50%;
-  background:var(--red-bg);color:var(--red);
-  display:flex;align-items:center;justify-content:center;
-  margin-bottom:8px;
-}
+.lab-state__err-ico{width:64px;height:64px;border-radius:50%;background:var(--red-bg);color:var(--red);display:flex;align-items:center;justify-content:center;margin-bottom:8px}
 .lab-state__title{font-size:16px;font-weight:700;color:var(--cr)}
 .lab-state__body{font-size:13px;color:var(--cr3);line-height:1.65}
-.lab-retry{
-  margin-top:8px;padding:9px 20px;
-  border-radius:var(--r-sm);background:var(--cr);color:var(--wh);
-  border:none;font-family:var(--font-b);font-size:13px;font-weight:600;
-  cursor:pointer;transition:background .2s;
-}
-
-/* Danh sách kiểm tra */
-.lab-checklist{
-  display:flex;flex-direction:column;gap:6px;
-  margin-top:8px;width:100%;max-width:240px;
-}
-.lab-checklist__item{
-  display:flex;align-items:center;gap:8px;
-  font-size:12px;font-weight:500;color:var(--cr3);
-  padding:7px 12px;background:var(--bg2);
-  border-radius:var(--r-sm);
-}
+.lab-retry{margin-top:8px;padding:9px 20px;border-radius:var(--r-sm);background:var(--cr);color:var(--wh);border:none;font-family:var(--font-b);font-size:13px;font-weight:600;cursor:pointer}
+.lab-checklist{display:flex;flex-direction:column;gap:6px;margin-top:8px;width:100%;max-width:260px}
+.lab-checklist__item{display:flex;align-items:center;gap:8px;font-size:12px;font-weight:500;color:var(--cr3);padding:7px 12px;background:var(--bg2);border-radius:var(--r-sm)}
 .lab-checklist__item--done{color:var(--grn);background:var(--grn-bg)}
-.lab-checklist__item--done svg circle{stroke:var(--grn)}
-.lab-checklist__item--done svg path{stroke:var(--grn)}
 
-/* Vòng xử lý */
-.lab-loader{
-  position:relative;width:80px;height:80px;
-  display:flex;align-items:center;justify-content:center;
-}
+/* Loader */
+.lab-loader{position:relative;width:80px;height:80px;display:flex;align-items:center;justify-content:center}
 .lab-loader__svg{position:absolute;inset:0;transform:rotate(-90deg)}
 .lab-loader__track{fill:none;stroke:var(--bg3)}
-.lab-loader__fill{
-  fill:none;stroke:var(--cr);
-  stroke-dasharray:188;stroke-dashoffset:188;
-  stroke-linecap:round;
-  transition:stroke-dashoffset .5s ease;
-}
+.lab-loader__fill{fill:none;stroke:var(--cr);stroke-dasharray:188;stroke-dashoffset:188;stroke-linecap:round;transition:stroke-dashoffset .5s ease}
 .lab-loader__pct{font-family:var(--font-m);font-size:14px;font-weight:700;color:var(--cr)}
 .lab-progress-wrap{width:220px;margin-top:12px}
 .lab-progress{height:3px;background:var(--bg3);border-radius:999px;overflow:hidden}
@@ -807,17 +408,17 @@
 .lab-loading__title{font-size:14px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--cr);margin-top:6px}
 .lab-loading__desc{font-family:var(--font-m);font-size:10px;color:var(--cr3)}
 
-/* Biểu ngữ phong cách */
-.lab-profile{
-  display:flex;align-items:center;justify-content:space-between;
-  background:var(--cr);color:var(--wh);
-  border-radius:var(--r-lg);padding:18px 22px;margin-bottom:14px;
-}
+/* Source badge */
+.lab-source-badge{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:999px;font-size:10px;font-weight:700;letter-spacing:.08em;margin-bottom:10px}
+.lab-source-badge--real{background:var(--grn-bg);color:var(--grn);border:1px solid rgba(22,163,74,.2)}
+.lab-source-badge--mock{background:var(--amber-bg);color:var(--amber);border:1px solid rgba(217,119,6,.2)}
+
+/* Profile banner */
+.lab-profile{display:flex;align-items:center;justify-content:space-between;background:var(--cr);color:var(--wh);border-radius:var(--r-lg);padding:18px 22px;margin-bottom:14px}
 .lab-profile__eyebrow{font-size:10px;font-family:var(--font-m);letter-spacing:.14em;color:rgba(255,255,255,.4);margin-bottom:3px;text-transform:uppercase}
 .lab-profile__name{font-family:var(--font-d);font-size:22px;font-weight:700;line-height:1.1}
 .lab-profile__desc{font-size:11px;color:rgba(255,255,255,.45);margin-top:3px}
 .lab-profile__right{display:flex;flex-direction:column;align-items:center;gap:4px}
-
 .lab-ring{position:relative;width:56px;height:56px;display:flex;align-items:center;justify-content:center}
 .lab-ring svg{position:absolute;inset:0;transform:rotate(-90deg)}
 .lab-ring__track{fill:none;stroke:rgba(255,255,255,.15)}
@@ -825,30 +426,17 @@
 .lab-ring__pct{font-family:var(--font-m);font-size:13px;font-weight:700;color:var(--wh)}
 .lab-ring__lbl{font-size:9px;color:rgba(255,255,255,.4);font-family:var(--font-m);letter-spacing:.08em;text-transform:uppercase}
 
-/* Tóm tắt giá */
+/* Summary */
 .lab-summary{display:flex;align-items:center;gap:8px;margin-bottom:14px}
 .lab-summary__left{flex:1;display:flex;flex-direction:column;gap:2px}
 .lab-summary__lbl{font-size:11px;color:var(--cr3)}
 .lab-summary__price{font-family:var(--font-m);font-size:16px;font-weight:700;color:var(--cr)}
-.lab-regen{
-  display:flex;align-items:center;gap:5px;
-  padding:7px 14px;border-radius:var(--r-sm);
-  background:var(--bg2);border:1.5px solid var(--brd);
-  font-family:var(--font-b);font-size:12px;font-weight:600;
-  color:var(--cr2);cursor:pointer;transition:all .2s;
-  white-space:nowrap;
-}
+.lab-regen{display:flex;align-items:center;gap:5px;padding:7px 14px;border-radius:var(--r-sm);background:var(--bg2);border:1.5px solid var(--brd);font-family:var(--font-b);font-size:12px;font-weight:600;color:var(--cr2);cursor:pointer;transition:all .2s;white-space:nowrap}
 .lab-regen:hover{background:var(--bg3);color:var(--cr)}
 
-/* Lưới sản phẩm */
+/* Product cards */
 .lab-cards{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px}
-.lab-card{
-  display:flex;flex-direction:column;
-  border:1.5px solid var(--brd);border-radius:var(--r-lg);
-  overflow:hidden;text-decoration:none;color:inherit;
-  background:var(--wh);
-  transition:border-color .2s,box-shadow .2s,transform .2s;
-}
+.lab-card{display:flex;flex-direction:column;border:1.5px solid var(--brd);border-radius:var(--r-lg);overflow:hidden;text-decoration:none;color:inherit;background:var(--wh);transition:border-color .2s,box-shadow .2s,transform .2s;cursor:pointer}
 .lab-card:hover{border-color:var(--brd2);box-shadow:var(--sh-md);transform:translateY(-2px)}
 .lab-card--main{grid-column:span 2;flex-direction:row}
 .lab-card__img{position:relative;background:var(--bg2);overflow:hidden}
@@ -856,13 +444,7 @@
 .lab-card:not(.lab-card--main) .lab-card__img{aspect-ratio:1}
 .lab-card__img img{width:100%;height:100%;object-fit:cover;transition:transform .5s;mix-blend-mode:multiply}
 .lab-card:hover .lab-card__img img{transform:scale(1.04)}
-.lab-card__badge{
-  position:absolute;top:8px;left:8px;
-  border-radius:999px;padding:3px 9px;
-  font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
-  background:var(--wh);border:1px solid var(--brd);color:var(--cr);
-  box-shadow:var(--sh-sm);
-}
+.lab-card__badge{position:absolute;top:8px;left:8px;border-radius:999px;padding:3px 9px;font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;background:var(--wh);border:1px solid var(--brd);color:var(--cr);box-shadow:var(--sh-sm)}
 .lab-card__badge--main{background:var(--cr);color:var(--wh);border-color:var(--cr)}
 .lab-card__body{padding:14px;display:flex;flex-direction:column;gap:4px;flex:1}
 .lab-card--main .lab-card__body{padding:18px;justify-content:center}
@@ -872,67 +454,26 @@
 .lab-card__reason{font-size:11px;color:var(--cr3);line-height:1.55}
 .lab-card__foot{display:flex;align-items:center;justify-content:space-between;margin-top:auto;padding-top:8px}
 .lab-card__price{font-family:var(--font-m);font-size:12px;font-weight:700;color:var(--cr)}
-.lab-card__score{
-  font-size:10px;font-weight:700;color:var(--grn);
-  background:var(--grn-bg);padding:2px 7px;border-radius:999px;
-}
+.lab-card__score{font-size:10px;font-weight:700;color:var(--grn);background:var(--grn-bg);padding:2px 7px;border-radius:999px}
 
-/* Chân kết quả */
+/* Footer */
 .lab-result-footer{display:flex;gap:8px}
-.lab-btn-cart{
-  flex:1;display:flex;align-items:center;justify-content:center;gap:8px;
-  background:var(--cr);color:var(--wh);border:none;
-  border-radius:var(--r-md);padding:14px;
-  font-family:var(--font-b);font-size:13px;font-weight:700;
-  letter-spacing:.04em;cursor:pointer;
-  transition:background .2s,transform .1s;
-}
+.lab-btn-cart{flex:1;display:flex;align-items:center;justify-content:center;gap:8px;background:var(--cr);color:var(--wh);border:none;border-radius:var(--r-md);padding:14px;font-family:var(--font-b);font-size:13px;font-weight:700;letter-spacing:.04em;cursor:pointer;transition:background .2s,transform .1s}
 .lab-btn-cart:hover{background:var(--cr2)}
 .lab-btn-cart:active{transform:scale(.98)}
-.lab-btn-save{
-  width:48px;height:48px;border-radius:var(--r-md);
-  background:var(--bg2);border:1.5px solid var(--brd);
-  display:flex;align-items:center;justify-content:center;
-  cursor:pointer;color:var(--cr2);transition:all .2s;flex-shrink:0;
-}
+.lab-btn-save{width:48px;height:48px;border-radius:var(--r-md);background:var(--bg2);border:1.5px solid var(--brd);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--cr2);transition:all .2s;flex-shrink:0}
 .lab-btn-save:hover{background:var(--bg3);color:var(--cr)}
+.lab-btn-save.saved svg{fill:var(--cr)}
 
-/* Thử đồ ảo */
-.lab-tryon{display:flex;flex-direction:column;align-items:center;gap:16px;padding:8px 0}
-.lab-tryon__frame{position:relative;width:100%;max-width:340px;border-radius:var(--r-xl);overflow:hidden;border:1.5px solid var(--brd);box-shadow:var(--sh-lg)}
-.lab-tryon__img{width:100%;display:block;aspect-ratio:3/4;object-fit:cover}
-.lab-tryon__stamp{
-  position:absolute;top:14px;right:14px;
-  background:rgba(255,255,255,.9);backdrop-filter:blur(8px);
-  border-radius:999px;padding:5px 11px;
-  font-size:10px;font-weight:700;color:var(--cr);
-  display:flex;align-items:center;gap:5px;
-}
-.lab-tryon__caption{
-  position:absolute;bottom:0;inset-x:0;
-  background:linear-gradient(to top,rgba(0,0,0,.65),transparent);
-  padding:28px 16px 14px;
-}
-.lab-tryon__cap-title{font-size:14px;font-weight:600;color:#fff}
-.lab-tryon__cap-sub{font-size:10px;color:rgba(255,255,255,.5);font-family:var(--font-m);margin-top:2px}
-.lab-tryon__note{
-  display:flex;align-items:flex-start;gap:7px;
-  background:var(--bg2);border:1px solid var(--brd);
-  border-radius:var(--r-sm);padding:10px 12px;
-  font-size:11px;color:var(--cr3);max-width:360px;
-  line-height:1.5;
-}
-.lab-tryon__actions{display:flex;gap:10px}
-.lab-tryon__btn{
-  display:flex;align-items:center;gap:7px;
-  padding:11px 20px;border-radius:var(--r-md);
-  font-family:var(--font-b);font-size:12px;font-weight:600;
-  cursor:pointer;transition:all .15s;
-}
-.lab-tryon__btn--out{background:var(--wh);border:1.5px solid var(--brd2);color:var(--cr)}
-.lab-tryon__btn--out:hover{border-color:var(--cr)}
-.lab-tryon__btn--fill{background:var(--cr);border:1.5px solid var(--cr);color:var(--wh)}
-.lab-tryon__btn--fill:hover{background:var(--cr2)}
+/* Body analysis tab */
+.lab-body-analysis{padding:8px 0}
+.lab-body-card{background:var(--bg2);border:1px solid var(--brd);border-radius:var(--r-lg);padding:20px;margin-bottom:12px}
+.lab-body-card__title{font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--cr3);margin-bottom:14px}
+.lab-body-attrs{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.lab-body-attr{display:flex;flex-direction:column;align-items:center;gap:4px;background:var(--wh);border-radius:var(--r-md);padding:12px 8px;text-align:center}
+.lab-body-attr__icon{font-size:20px}
+.lab-body-attr__val{font-size:13px;font-weight:700;color:var(--cr)}
+.lab-body-attr__key{font-size:10px;color:var(--cr3);font-family:var(--font-m)}
 
 .hidden{display:none!important}
 .sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap}
@@ -943,194 +484,356 @@
 (function(){
 "use strict";
 
-var hasImage = false;
+/* ─── State ─────────────────────────────────────────────────── */
+var hasImage   = false;
+var imageB64   = null;   // [FIX] lưu base64 để gửi lên API
+var lastResult = null;   // lưu response cho cart / save
 
-/* ── Xem trước ảnh ── */
-window.previewImage = function(input) {
+/* ─── Xử lý ảnh ─────────────────────────────────────────────── */
+// [FIX] đọc cả base64 để gửi lên backend
+window.handleImageSelect = function(input) {
   if (!input.files || !input.files[0]) return;
+  var file = input.files[0];
+
+  // Kiểm tra kích thước tối đa 10MB
+  if (file.size > 10 * 1024 * 1024) {
+    alert('Ảnh quá lớn (tối đa 10MB). Vui lòng chọn ảnh khác.');
+    return;
+  }
+
   var reader = new FileReader();
   reader.onload = function(e) {
-    document.getElementById('image-preview').src = e.target.result;
-    document.getElementById('image-preview').style.display = 'block';
+    var dataUrl = e.target.result;      // "data:image/jpeg;base64,..."
+    imageB64    = dataUrl;              // [FIX] lưu toàn bộ data-URI
+
+    // Hiển thị preview
+    var preview = document.getElementById('image-preview');
+    preview.src = dataUrl;
+    preview.style.display = 'block';
     document.getElementById('upload-placeholder').style.opacity = '0';
     document.getElementById('upload-badge').classList.remove('hidden');
     document.getElementById('remove-img-btn').classList.remove('hidden');
     hasImage = true;
     updateChecklist();
   };
-  reader.readAsDataURL(input.files[0]);
+  reader.readAsDataURL(file);
 };
 
-/* ── Xoá ảnh ── */
 window.removeImage = function(e) {
   e.preventDefault(); e.stopPropagation();
-  document.getElementById('image-preview').src = '';
-  document.getElementById('image-preview').style.display = 'none';
+  var preview = document.getElementById('image-preview');
+  preview.src = '';
+  preview.style.display = 'none';
   document.getElementById('upload-placeholder').style.opacity = '1';
   document.getElementById('upload-badge').classList.add('hidden');
   document.getElementById('remove-img-btn').classList.add('hidden');
   document.getElementById('user-image').value = '';
-  hasImage = false;
+  document.getElementById('auto-vibe-notice').classList.add('hidden');
+  hasImage  = false;
+  imageB64  = null;
   updateChecklist();
 };
 
-/* ── Cập nhật checklist ── */
 function updateChecklist() {
   var imgItem = document.getElementById('check-img');
   if (!imgItem) return;
   if (hasImage) {
     imgItem.classList.add('lab-checklist__item--done');
-    imgItem.innerHTML = '<svg width="12" height="12" viewBox="0 0 12 12" fill="none"><circle cx="6" cy="6" r="5.5" stroke="currentColor"/><path d="M3.5 6l2 2 3-3" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg> Ảnh đã tải lên';
+    imgItem.innerHTML = '<svg width="12" height="12" viewBox="0 0 12 12" fill="none"><circle cx="6" cy="6" r="5.5" stroke="currentColor"/><path d="M3.5 6l2 2 3-3" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg> Ảnh đã tải — AI sẽ phân tích hình thể';
   } else {
     imgItem.classList.remove('lab-checklist__item--done');
-    imgItem.innerHTML = '<svg width="12" height="12" viewBox="0 0 12 12" fill="none"><circle cx="6" cy="6" r="5.5" stroke="currentColor" stroke-dasharray="2 2"/></svg> Ảnh (tuỳ chọn)';
+    imgItem.innerHTML = '<svg width="12" height="12" viewBox="0 0 12 12" fill="none"><circle cx="6" cy="6" r="5.5" stroke="currentColor" stroke-dasharray="2 2"/></svg> Ảnh (tuỳ chọn — tăng độ chính xác)';
   }
 }
 
-/* ── Chuyển tab ── */
+/* ─── Tab switching ──────────────────────────────────────────── */
 window.switchTab = function(name) {
-  ['recommend','tryon'].forEach(function(k) {
-    document.getElementById('tab-'+k).classList.toggle('lab-tab--active', k===name);
-    document.getElementById('content-'+k).classList.toggle('hidden', k!==name);
+  ['recommend','body'].forEach(function(k) {
+    var tabEl = document.getElementById('tab-'+k);
+    var conEl = document.getElementById('content-'+k);
+    if (tabEl) tabEl.classList.toggle('lab-tab--active', k === name);
+    if (conEl) conEl.classList.toggle('hidden', k !== name);
   });
 };
 
-/* ── Các bước tải ── */
-var STEPS = [
-  {p:10, t:'Đang quét hình thể...', d:'Nhận diện tỉ lệ và số đo cơ thể'},
-  {p:28, t:'Áp dụng phong cách đã chọn', d:'Khớp với tiêu chí phong cách của bạn'},
-  {p:50, t:'Tìm kiếm sản phẩm phù hợp', d:'Lọc qua 500+ sản phẩm GUA Maison'},
-  {p:72, t:'Tính toán điểm phù hợp', d:'Chạy thuật toán tương thích AI'},
-  {p:90, t:'Đang dựng bộ trang phục', d:'Chuẩn bị hiển thị kết quả'},
-  {p:100,t:'Hoàn tất!',              d:'Kết quả sẵn sàng'}
+/* ─── Loading steps ──────────────────────────────────────────── */
+var STEPS_NO_IMG = [
+  {p:15, t:'Áp dụng phong cách đã chọn',    d:'Khớp với tiêu chí phong cách của bạn'},
+  {p:40, t:'Tìm kiếm sản phẩm phù hợp',     d:'Lọc qua 500+ sản phẩm GUA Maison'},
+  {p:65, t:'Tính toán điểm phù hợp',         d:'Chạy thuật toán tương thích AI'},
+  {p:88, t:'Đang dựng bộ trang phục',        d:'Chuẩn bị hiển thị kết quả'},
+  {p:100,t:'Hoàn tất!',                       d:'Kết quả sẵn sàng'},
+];
+var STEPS_WITH_IMG = [
+  {p:10, t:'Đang đọc ảnh của bạn...',        d:'Chuẩn bị gửi đến AI engine'},
+  {p:25, t:'AI phân tích hình thể',           d:'CLIP Vision Model đang xử lý'},
+  {p:45, t:'Nhận diện vóc dáng & tỉ lệ',    d:'Ước lượng shape · height · build'},
+  {p:62, t:'Khớp với phong cách yêu thích',  d:'Body affinity scoring'},
+  {p:78, t:'Tìm sản phẩm từ Supabase',       d:'Lọc qua 500+ sản phẩm GUA Maison'},
+  {p:92, t:'Tính điểm cá nhân hoá',          d:'Finalising match scores'},
+  {p:100,t:'Hoàn tất!',                       d:'Kết quả sẵn sàng'},
 ];
 
 function applyStep(s) {
-  var c=188, off=c-(s.p/100)*c;
-  document.getElementById('loading-percent').textContent=s.p+'%';
-  document.getElementById('loading-bar').style.width=s.p+'%';
-  document.getElementById('loading-step-title').textContent=s.t;
-  document.getElementById('loading-step-desc').textContent=s.d;
-  var fc=document.getElementById('loader-circle');
-  if(fc) fc.style.strokeDashoffset=off;
+  var C = 188, off = C - (s.p / 100) * C;
+  document.getElementById('loading-percent').textContent = s.p + '%';
+  document.getElementById('loading-bar').style.width     = s.p + '%';
+  document.getElementById('loading-step-title').textContent = s.t;
+  document.getElementById('loading-step-desc').textContent  = s.d;
+  var fc = document.getElementById('loader-circle');
+  if (fc) fc.style.strokeDashoffset = off;
 }
 
-function fakeProgress(cb) {
-  var i=0;
-  var tid=setInterval(function(){
-    if(i>=STEPS.length){clearInterval(tid);cb();return}
-    applyStep(STEPS[i++]);
-  },540);
+function fakeProgress(withImage, cb) {
+  var steps = withImage ? STEPS_WITH_IMG : STEPS_NO_IMG;
+  var i = 0;
+  var delay = withImage ? 700 : 480;   // Ảnh → mỗi bước dài hơn (HF thật tốn ~3-5s)
+  var tid = setInterval(function() {
+    if (i >= steps.length - 1) { clearInterval(tid); cb(); return; }
+    applyStep(steps[i++]);
+  }, delay);
 }
 
-/* ── Ẩn/hiện trạng thái ── */
+/* ─── Hiển thị / ẩn trạng thái ──────────────────────────────── */
 function show(id) {
-  ['ai-empty','ai-loading','ai-error','content-recommend','content-tryon'].forEach(function(s){
-    document.getElementById(s).classList.add('hidden');
+  ['ai-empty','ai-loading','ai-error','content-recommend','content-body'].forEach(function(s) {
+    var el = document.getElementById(s);
+    if (el) el.classList.add('hidden');
   });
-  document.getElementById(id).classList.remove('hidden');
+  var target = document.getElementById(id);
+  if (target) target.classList.remove('hidden');
 }
 
-/* ── Định dạng giá tiền Việt Nam ── */
-function vnd(n) { return n.toLocaleString('vi-VN')+'&nbsp;₫'; }
+/* ─── Format VND ─────────────────────────────────────────────── */
+function vnd(n) {
+  return Number(n).toLocaleString('vi-VN') + ' ₫';
+}
 
-/* ── Vẽ thẻ sản phẩm ── */
+/* ─── Render thẻ sản phẩm ────────────────────────────────────── */
 function renderCards(items) {
-  var g=document.getElementById('recommendation-grid');
-  g.innerHTML='';
-  items.forEach(function(item,i){
-    var main=i===0;
-    var bdg=item.badge
-      ?('<span class="lab-card__badge'+(main?' lab-card__badge--main':'')+'">'+item.badge+'</span>')
-      :'';
-    var el=document.createElement('a');
-    el.href='/product/'+item.id;
-    el.className='lab-card'+(main?' lab-card--main':'');
-    el.innerHTML=
-      '<div class="lab-card__img">'+
-        '<img src="'+item.image+'" alt="'+item.name+'" loading="lazy">'+bdg+
-      '</div>'+
-      '<div class="lab-card__body">'+
-        '<span class="lab-card__cat">'+item.category+'</span>'+
-        '<p class="lab-card__name">'+item.name+'</p>'+
-        (item.reason?'<p class="lab-card__reason">'+item.reason+'</p>':'')+
-        '<div class="lab-card__foot">'+
-          '<span class="lab-card__price">'+item.price.toLocaleString('vi-VN')+' ₫</span>'+
-          '<span class="lab-card__score">'+item.match_score+'% phù hợp</span>'+
-        '</div>'+
+  var g = document.getElementById('recommendation-grid');
+  g.innerHTML = '';
+  items.forEach(function(item, i) {
+    var isMain = (i === 0);
+    var badge  = item.badge
+      ? '<span class="lab-card__badge' + (isMain ? ' lab-card__badge--main' : '') + '">' + item.badge + '</span>'
+      : '';
+
+    var el = document.createElement('a');
+    // [FIX] dùng slug nếu có, fallback sang id
+    el.href      = item.slug ? '/product/' + item.slug : '/product/' + item.id;
+    el.className = 'lab-card' + (isMain ? ' lab-card--main' : '');
+    el.setAttribute('data-id', item.id);
+
+    el.innerHTML =
+      '<div class="lab-card__img">' +
+        '<img src="' + item.image + '" alt="' + escHtml(item.name) + '" loading="lazy" onerror="this.src=\'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=500&q=80\'">' +
+        badge +
+      '</div>' +
+      '<div class="lab-card__body">' +
+        '<span class="lab-card__cat">' + escHtml(item.category) + '</span>' +
+        '<p class="lab-card__name">'   + escHtml(item.name)     + '</p>' +
+        (item.reason ? '<p class="lab-card__reason">' + escHtml(item.reason) + '</p>' : '') +
+        '<div class="lab-card__foot">' +
+          '<span class="lab-card__price">' + vnd(item.price) + '</span>' +
+          '<span class="lab-card__score">' + item.match_score + '% phù hợp</span>' +
+        '</div>' +
       '</div>';
     g.appendChild(el);
   });
 }
 
-/* ── Vẽ vòng điểm ── */
+function escHtml(s) {
+  return String(s || '')
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;');
+}
+
+/* ─── Vẽ vòng điểm ───────────────────────────────────────────── */
 function drawScore(score) {
-  var arc=document.getElementById('score-arc');
-  var lbl=document.getElementById('overall-score');
-  if(!arc) return;
-  requestAnimationFrame(function(){
-    arc.style.strokeDashoffset=150-(score/100)*150;
-    lbl.textContent=score+'%';
+  var arc = document.getElementById('score-arc');
+  var lbl = document.getElementById('overall-score');
+  if (!arc) return;
+  requestAnimationFrame(function() {
+    arc.style.strokeDashoffset = 150 - (score / 100) * 150;
+    lbl.textContent = score + '%';
   });
 }
 
-/* ── Máy AI chính ── */
-window.runAIEngine = function() {
-  var btn=document.getElementById('btn-analyze');
-  var ico=document.getElementById('icon-analyze');
-  var txt=document.getElementById('text-analyze');
-  var scn=document.getElementById('scanner-line');
+/* ─── Render body analysis ───────────────────────────────────── */
+function renderBodyAnalysis(body) {
+  if (!body) return;
 
-  btn.disabled=true;
+  var shapeMap  = {inverted_triangle:'Vai Rộng ▲', rectangle:'Chữ Nhật ▭', triangle:'Hông Rộng ▽', hourglass:'Đồng Hồ ✦'};
+  var heightMap = {tall:'Cao', average:'Trung Bình', petite:'Nhỏ Nhắn'};
+  var buildMap  = {slim:'Mảnh Mai', athletic:'Thể Thao', regular:'Cân Đối', plus:'Đầy Đặn'};
+
+  var html =
+    '<div class="lab-body-card">' +
+      '<div class="lab-body-card__title">Kết quả phân tích hình thể</div>' +
+      '<div class="lab-body-attrs">' +
+        '<div class="lab-body-attr"><span class="lab-body-attr__icon">📐</span><span class="lab-body-attr__val">' + (shapeMap[body.shape]  || body.shape)  + '</span><span class="lab-body-attr__key">Vóc dáng</span></div>' +
+        '<div class="lab-body-attr"><span class="lab-body-attr__icon">📏</span><span class="lab-body-attr__val">' + (heightMap[body.height]|| body.height) + '</span><span class="lab-body-attr__key">Chiều cao</span></div>' +
+        '<div class="lab-body-attr"><span class="lab-body-attr__icon">💪</span><span class="lab-body-attr__val">' + (buildMap[body.build]  || body.build)  + '</span><span class="lab-body-attr__key">Thể trạng</span></div>' +
+      '</div>' +
+    '</div>' +
+    '<p style="font-size:11px;color:var(--cr3);line-height:1.65;padding:0 4px">' +
+      'Kết quả phân tích dựa trên heuristic hình ảnh — mang tính tham khảo. ' +
+      'AI đã dùng thông tin này để cá nhân hoá điểm phù hợp của từng sản phẩm.' +
+    '</p>';
+
+  var container = document.getElementById('body-analysis-content');
+  if (container) container.innerHTML = html;
+}
+
+/* ─── Hiện/ẩn tab Body ───────────────────────────────────────── */
+function showBodyTab(show) {
+  var tab = document.getElementById('tab-body');
+  if (!tab) return;
+  tab.style.display = show ? '' : 'none';
+}
+
+/* ─── Hiện auto-vibe notice ──────────────────────────────────── */
+function showAutoVibeNotice(autoVibe, suggestedVibe) {
+  var el = document.getElementById('auto-vibe-notice');
+  if (!el) return;
+  if (autoVibe && suggestedVibe) {
+    var profiles = {streetwear:'Đường phố', minimalist:'Tối giản', techwear:'Kỹ thuật', smart_casual:'Lịch sự thoải mái'};
+    document.getElementById('auto-vibe-text').textContent =
+      'AI đề xuất phong cách "' + (profiles[suggestedVibe] || suggestedVibe) + '" phù hợp hơn với vóc dáng của bạn';
+    el.classList.remove('hidden');
+  } else {
+    el.classList.add('hidden');
+  }
+}
+
+/* ─── [FIX] Máy AI chính: gửi image_b64 ─────────────────────── */
+window.runAIEngine = async function() {
+  var btn = document.getElementById('btn-analyze');
+  var ico = document.getElementById('icon-analyze');
+  var txt = document.getElementById('text-analyze');
+  var scn = document.getElementById('scanner-line');
+
+  btn.disabled = true;
   ico.classList.add('spin');
-  txt.textContent='Đang xử lý...';
-  scn.classList.remove('hidden');
+  txt.textContent = 'Đang xử lý...';
+  if (scn) scn.classList.remove('hidden');
   show('ai-loading');
-  applyStep(STEPS[0]);
+  applyStep({p:5, t:'Đang khởi động...', d:'Vui lòng đợi trong giây lát'});
 
-  fakeProgress(async function(){
-    try{
-      var vibe=(document.querySelector('input[name="style_vibe"]:checked')||{}).value||'streetwear';
-      var csrf=(document.querySelector('input[name="csrf_token"]')||{}).value||'';
-      var resp=await fetch('/api/recommend_outfit',{
-        method:'POST',
-        headers:{'Content-Type':'application/json','X-CSRFToken':csrf},
-        body:JSON.stringify({product_id:null,vibe:vibe})
+  fakeProgress(hasImage, async function() {
+    try {
+      var vibe = (document.querySelector('input[name="style_vibe"]:checked') || {}).value || 'streetwear';
+      var csrf = (document.querySelector('input[name="csrf_token"]') || {}).value || '';
+
+      // [FIX CHÍNH] Xây dựng payload có image_b64
+      var payload = {
+        vibe:        vibe,
+        image_b64:   imageB64 || null,    // ← trước đây luôn là null
+        product_id:  null,
+      };
+
+      var resp = await fetch('/api/recommend_outfit', {
+        method:  'POST',
+        headers: {'Content-Type':'application/json', 'X-CSRFToken': csrf},
+        body:    JSON.stringify(payload),
       });
-      if(!resp.ok) throw new Error('Lỗi máy chủ ('+resp.status+')');
-      var res=await resp.json();
-      if(res.status!=='success') throw new Error(res.message||'Lỗi không xác định');
 
-      var p=res.style_profile||{};
-      document.getElementById('profile-name').textContent=p.label||vibe;
-      document.getElementById('profile-desc').textContent=p.desc||'';
-      document.getElementById('total-price').innerHTML=vnd(res.total_look_price||0);
-      renderCards(res.data||[]);
-      drawScore(res.overall_match||0);
+      if (!resp.ok) throw new Error('Lỗi máy chủ (' + resp.status + ')');
+      var res = await resp.json();
+      if (res.status !== 'success') throw new Error(res.message || 'Lỗi không xác định');
+
+      // ── Cập nhật UI ──
+      lastResult = res;
+
+      // Source badge
+      var sb = document.getElementById('source-badge');
+      if (sb) {
+        sb.textContent = res.source === 'supabase' ? '✓ Sản phẩm thật từ GUA Maison' : '⚠ Đang dùng dữ liệu mẫu';
+        sb.className   = 'lab-source-badge ' + (res.source === 'supabase' ? 'lab-source-badge--real' : 'lab-source-badge--mock');
+        sb.classList.remove('hidden');
+      }
+
+      // Profile banner
+      var p = res.style_profile || {};
+      document.getElementById('profile-name').textContent = p.label || vibe;
+      document.getElementById('profile-desc').textContent = p.desc  || '';
+      document.getElementById('total-price').textContent  = vnd(res.total_look_price || 0);
+
+      // Auto-vibe notice
+      showAutoVibeNotice(res.auto_vibe, res.suggested_vibe);
+
+      // Cards + score
+      renderCards(res.data || []);
+      drawScore(res.overall_match || 0);
+
+      // Body analysis tab (chỉ hiện nếu có ảnh và phân tích được)
+      if (res.image_analyzed && res.body_data) {
+        renderBodyAnalysis(res.body_data);
+        showBodyTab(true);
+      } else {
+        showBodyTab(false);
+      }
+
       show('content-recommend');
 
-    }catch(err){
-      console.error('[GUA AI]',err);
-      document.getElementById('error-message').textContent=err.message;
+    } catch(err) {
+      console.error('[GUA AI]', err);
+      document.getElementById('error-message').textContent = err.message;
       show('ai-error');
-    }finally{
-      btn.disabled=false;
+    } finally {
+      btn.disabled = false;
       ico.classList.remove('spin');
-      txt.textContent='✨ Phân tích & Gợi ý trang phục';
-      scn.classList.add('hidden');
+      txt.textContent = '✨ Phân tích & Gợi ý trang phục';
+      if (scn) scn.classList.add('hidden');
     }
   });
 };
 
-/* ── Khởi tạo checklist theo dõi vibe ── */
-document.querySelectorAll('input[name="style_vibe"]').forEach(function(r){
-  r.addEventListener('change', function(){
-    var ci=document.getElementById('check-style');
-    if(ci){
-      ci.classList.add('lab-checklist__item--done');
+/* ─── Cart & Save ────────────────────────────────────────────── */
+window.addAllToCart = function() {
+  if (!lastResult || !lastResult.data) return;
+  var ids = lastResult.data.map(function(p){ return p.id; });
+  fetch('/api/cart/add-multiple', {
+    method: 'POST',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({product_ids: ids}),
+  }).then(function(r){ return r.json(); })
+    .then(function(r){
+      if (r.status === 'success') {
+        var btn = document.querySelector('.lab-btn-cart');
+        if (btn) { btn.textContent = '✓ Đã thêm vào giỏ hàng!'; btn.disabled = true; }
+      }
+    }).catch(function(){});
+};
+
+window.saveOutfit = function() {
+  var btn = document.querySelector('.lab-btn-save');
+  if (btn) btn.classList.toggle('saved');
+};
+
+/* ─── Drag & drop ────────────────────────────────────────────── */
+(function setupDnD(){
+  var zone = document.getElementById('upload-zone');
+  if (!zone) return;
+  zone.addEventListener('dragover',  function(e){ e.preventDefault(); zone.style.borderColor='var(--cr)'; });
+  zone.addEventListener('dragleave', function(){ zone.style.borderColor=''; });
+  zone.addEventListener('drop', function(e){
+    e.preventDefault();
+    zone.style.borderColor = '';
+    var files = e.dataTransfer && e.dataTransfer.files;
+    if (files && files[0]) {
+      var inp = document.getElementById('user-image');
+      // Gán file và trigger xử lý
+      try {
+        var dt = new DataTransfer();
+        dt.items.add(files[0]);
+        inp.files = dt.files;
+      } catch(_){}
+      handleImageSelect({files: files});
     }
   });
-});
+})();
 
 })();
 </script>

@@ -1,308 +1,359 @@
+"""
+app/models/product_model.py
+Quản lý dữ liệu Sản phẩm, Biến thể (Variants) và SEO chuẩn E-commerce.
+Hỗ trợ Soft Delete, Slug generation, tự động tính Discount và đồng bộ hình ảnh.
+"""
+
 import logging
-from typing import Dict, List, Any, Optional
+import re
+from datetime import datetime
 from app.utils.supabase_client import get_supabase
 
 logger = logging.getLogger(__name__)
 
 
 class ProductModel:
-    db = get_supabase()
 
-    ALLOWED_SORT = {
-        "price_asc": ("price", {"desc": False}),
-        "price_desc": ("price", {"desc": True}),
-        "newest": ("created_at", {"desc": True}),
+    @staticmethod
+    def _db():
+        return get_supabase()
+
+    # ═══════════════════════════════════════════════════════════════
+    #  UTILITIES & FORMATTERS
+    # ═══════════════════════════════════════════════════════════════
+
+    @staticmethod
+    def generate_slug(name: str) -> str:
+        """Tạo slug không dấu chuẩn SEO: 'Áo Thun GUA' -> 'ao-thun-gua'"""
+        if not name:
+            return ""
+        slug = name.lower()
+        slug = re.sub(r'[áàảãạăắằẳẵặâấầẩẫậ]', 'a', slug)
+        slug = re.sub(r'[éèẻẽẹêếềểễệ]', 'e', slug)
+        slug = re.sub(r'[íìỉĩị]', 'i', slug)
+        slug = re.sub(r'[óòỏõọôốồổỗộơớờởỡợ]', 'o', slug)
+        slug = re.sub(r'[úùủũụưứừửữự]', 'u', slug)
+        slug = re.sub(r'[ýỳỷỹỵ]', 'y', slug)
+        slug = re.sub(r'[đ]', 'd', slug)
+        slug = re.sub(r'[^a-z0-9\s-]', '', slug)
+        slug = re.sub(r'[\s-]+', '-', slug).strip('-')
+        return slug
+
+    # Bảng từ điển màu chuẩn Fashion (Fallback nếu DB bị thiếu mã HEX)
+    COLOR_DICT = {
+        'đen': '#000000', 'black': '#000000',
+        'trắng': '#ffffff', 'white': '#ffffff',
+        'đỏ': '#dc2626', 'red': '#dc2626',
+        'xanh dương': '#2563eb', 'blue': '#2563eb',
+        'xanh navy': '#1e3a8a', 'navy': '#1e3a8a',
+        'xanh lá': '#16a34a', 'green': '#16a34a',
+        'vàng': '#eab308', 'yellow': '#eab308',
+        'cam': '#ea580c', 'orange': '#ea580c',
+        'hồng': '#ec4899', 'pink': '#ec4899',
+        'tím': '#9333ea', 'purple': '#9333ea',
+        'xám': '#6b7280', 'gray': '#6b7280', 'grey': '#6b7280',
+        'nâu': '#78350f', 'brown': '#78350f',
+        'be': '#f5f5dc', 'beige': '#f5f5dc',
+        'kem': '#fef3c7', 'cream': '#fef3c7'
     }
 
-    # ─── DANH SÁCH SẢN PHẨM ───────────────────────────────────────
-
     @staticmethod
-    def get_all(
-        page: int=1,
-        per_page: int=12,
-        category: Optional[str]=None,
-        keyword: Optional[str]=None,
-        sort: Optional[str]="newest",
-        admin_mode: bool=False,
-    ) -> Dict[str, Any]:
-        """Lấy danh sách sản phẩm có filter, search, sort và phân trang."""
-        try:
-            offset = (page - 1) * per_page
-            q = ProductModel.db.table("products").select(
-                "*, categories!inner(name, slug)", count="exact"
-            )
-
-            if not admin_mode:
-                q = q.eq("is_active", True)
-            if category:
-                q = q.eq("categories.slug", category)
-            if keyword:
-                q = q.ilike("name", f"%{keyword}%")
-
-            sort_col, sort_opts = ProductModel.ALLOWED_SORT.get(
-                sort, ProductModel.ALLOWED_SORT["newest"]
-            )
-            r = q.order(sort_col, **sort_opts).range(offset, offset + per_page - 1).execute()
-
-            return {"items": r.data, "total": r.count or 0, "page": page, "per_page": per_page}
-        except Exception:
-            logger.exception(f"Lỗi get_all. Page={page}")
-            return {"items": [], "total": 0}
-
-    # ─── CHI TIẾT SẢN PHẨM ────────────────────────────────────────
-
-    @staticmethod
-    def get_by_id(pid: str) -> Optional[Dict]:
-        """Lấy chi tiết sản phẩm kèm danh sách ảnh (sắp xếp theo sort_order)."""
-        try:
-            r = (
-                ProductModel.db.table("products")
-                .select("*, categories(name, slug)")
-                .eq("id", pid)
-                .limit(1)
-                .execute()
-            )
-            if not r.data:
-                return None
-
-            product = r.data[0]
-            product["images"] = ProductModel.get_images(pid)
+    def _format_product(product: dict) -> dict:
+        """
+        Hàm dùng chung để format dữ liệu 1 sản phẩm: 
+        Sắp xếp ảnh, gán ảnh fallback, tính % giảm giá, và Map màu sắc.
+        """
+        if not product:
             return product
-        except Exception:
-            logger.exception(f"Lỗi get_by_id. ID={pid}")
-            return None
 
-    # ─── SẢN PHẨM NỔI BẬT ────────────────────────────────────────
+        # 1. Xử lý hình ảnh
+        imgs = sorted(product.get("product_images") or [], key=lambda x: x.get("sort_order", 0))
+        product["product_images"] = imgs
+        product["images"] = imgs
+        
+        if not product.get("thumbnail_url"):
+            primary = next((img["url"] for img in imgs if img.get("is_primary")), None)
+            product["thumbnail_url"] = primary or (imgs[0]["url"] if imgs else "https://placehold.co/600x800/f8f8f8/cccccc?text=GUA")
+
+        # 2. Tự động tính phần trăm giảm giá
+        price = product.get("price")
+        old_price = product.get("old_price")
+        if price and old_price and old_price > price:
+            product["discount_percent"] = int(100 - (price / old_price * 100))
+        else:
+            product["discount_percent"] = None
+
+        # 🔴 3. VÁ LỖI MÀU SẮC BIẾN THỂ (Tự động nhận diện màu)
+        variants = product.get("product_variants") or []
+        for v in variants:
+            c_hex = v.get("color_hex")
+            # Nếu DB thiếu màu, hoặc đang bị lưu nhầm thành đen mặc định (#1a1a1a)
+            if not c_hex or c_hex == "#1a1a1a":
+                c_name = (v.get("color_name") or "").lower().strip()
+                v["color_hex"] = ProductModel.COLOR_DICT.get(c_name, "#e5e5e5")
+
+        product["product_variants"] = variants
+
+        return product
 
     @staticmethod
-    def get_featured(limit: int=8) -> List[Dict]:
-        """Lấy sản phẩm nổi bật cho trang chủ, kèm ảnh đầu tiên."""
+    def fix_missing_slugs() -> int:
+        """Backfill slug cho các sản phẩm bị thiếu trong DB."""
+        db = ProductModel._db()
+        fixed = 0
         try:
-            r = (
-                ProductModel.db.table("products")
-                .select("*")
-                .eq("is_featured", True)
+            res = db.table("products").select("id, name, slug").execute()
+            for p in (res.data or []):
+                slug_val = p.get("slug")
+                if slug_val and slug_val not in ("None", "null", ""):
+                    continue
+                new_slug = ProductModel.generate_slug(p.get("name", ""))
+                if not new_slug:
+                    continue
+                db.table("products").update({"slug": new_slug}).eq("id", p["id"]).execute()
+                logger.info(f"Fixed slug: '{p['name']}' -> '{new_slug}'")
+                fixed += 1
+            return fixed
+        except Exception as e:
+            logger.error(f"Lỗi fix_missing_slugs: {e}")
+            return 0
+
+    # ═══════════════════════════════════════════════════════════════
+    #  READ (GET)
+    # ═══════════════════════════════════════════════════════════════
+
+    @staticmethod
+    def get_categories(limit: int=3) -> list:
+        """Lấy danh sách Danh mục nổi bật cho trang chủ."""
+        db = ProductModel._db()
+        try:
+            # Nếu DB bạn có cột is_active cho bảng categories, có thể thêm .eq("is_active", True)
+            res = db.table("categories").select("*").limit(limit).execute()
+            return res.data or []
+        except Exception as e:
+            logger.error(f"Lỗi get_categories: {e}")
+            return []
+
+    @staticmethod
+    def get_featured(limit: int=8) -> list:
+        """Lấy danh sách sản phẩm nổi bật / mới nhất cho trang chủ (Swiper UI)."""
+        db = ProductModel._db()
+        try:
+            res = (
+                db.table("products")
+                .select("*, categories(name, slug), product_images(*), product_variants(*)")
+                .is_("deleted_at", "null")
                 .eq("is_active", True)
                 .order("created_at", desc=True)
                 .limit(limit)
                 .execute()
             )
-            products = r.data
-            # Gắn ảnh primary (hoặc ảnh đầu tiên) vào từng sản phẩm
-            for p in products:
-                imgs = ProductModel.get_images(p["id"])
-                p["images"] = imgs
-            return products
-        except Exception:
-            logger.exception("Lỗi get_featured")
-            return []
-
-    # ─── TẠO / CẬP NHẬT / XÓA SẢN PHẨM ─────────────────────────
-
-    @staticmethod
-    def create(data: Dict[str, Any]) -> Dict:
-        """Tạo sản phẩm mới."""
-        try:
-            r = ProductModel.db.table("products").insert(data).execute()
-            return r.data[0] if r.data else {}
-        except Exception:
-            logger.exception("Lỗi create product")
-            return {}
-
-    @staticmethod
-    def update(pid: str, data: Dict[str, Any]) -> Dict:
-        """Cập nhật thông tin sản phẩm."""
-        try:
-            r = ProductModel.db.table("products").update(data).eq("id", pid).execute()
-            return r.data[0] if r.data else {}
-        except Exception:
-            logger.exception(f"Lỗi update product. ID={pid}")
-            return {}
-
-    @staticmethod
-    def delete(pid: str) -> bool:
-        """Soft delete: đánh dấu is_active = False."""
-        try:
-            r = ProductModel.db.table("products").update({"is_active": False}).eq("id", pid).execute()
-            return bool(r.data)
-        except Exception:
-            logger.exception(f"Lỗi delete product. ID={pid}")
-            return False
-
-    # ─── QUẢN LÝ ẢNH SẢN PHẨM ────────────────────────────────────
-
-    @staticmethod
-    def get_images(pid: str) -> List[Dict]:
-        """Lấy toàn bộ ảnh của 1 sản phẩm, sắp xếp theo sort_order tăng dần."""
-        try:
-            r = (
-                ProductModel.db.table("product_images")
-                .select("*")
-                .eq("product_id", pid)
-                .order("sort_order", desc=False)
-                .execute()
-            )
-            return r.data or []
-        except Exception:
-            logger.exception(f"Lỗi get_images. Product ID={pid}")
+            items = res.data or []
+            return [ProductModel._format_product(item) for item in items]
+        except Exception as e:
+            logger.error(f"Lỗi get_featured: {e}")
             return []
 
     @staticmethod
-    def add_image(pid: str, url: str, is_primary: bool=False, sort_order: int=0) -> Dict:
-        """Thêm 1 ảnh vào sản phẩm."""
-        try:
-            # Nếu đánh dấu là ảnh chính → bỏ flag primary của các ảnh cũ
-            if is_primary:
-                ProductModel._clear_primary(pid)
+    def get_all(
+        page: int=1,
+        per_page: int=12,
+        category_slug: str=None,
+        gender: str=None,
+        keyword: str=None,
+        admin_mode: bool=False,
+    ) -> dict:
+        """Lấy danh sách sản phẩm có phân trang và bộ lọc (Dùng cho trang Cửa hàng)."""
+        db = ProductModel._db()
+        offset = (page - 1) * per_page
 
-            r = (
-                ProductModel.db.table("product_images")
-                .insert({
-                    "product_id": pid,
-                    "url": url,
-                    "is_primary": is_primary,
-                    "sort_order": sort_order,
-                })
+        try:
+            query = db.table("products").select(
+                "*, categories(name, slug), product_variants(*), product_images(*)", count="exact"
+            )
+
+            if not admin_mode:
+                query = query.is_("deleted_at", "null").eq("is_active", True)
+
+            # ── Filter theo danh mục ──
+            if category_slug:
+                try:
+                    cat_res = db.table("categories").select("id").eq("slug", category_slug).limit(1).execute()
+                    if cat_res.data:
+                        category_id = cat_res.data[0]["id"]
+                        query = query.eq("category_id", category_id)
+                    else:
+                        return {"items": [], "total": 0, "page": page, "per_page": per_page}
+                except Exception as cat_err:
+                    logger.error(f"Lỗi resolve category_slug '{category_slug}': {cat_err}")
+
+            if gender:
+                query = query.eq("gender", gender)
+
+            if keyword:
+                query = query.ilike("name", f"%{keyword}%")
+
+            res = (
+                query.order("created_at", desc=True)
+                .range(offset, offset + per_page - 1)
                 .execute()
             )
-            return r.data[0] if r.data else {}
-        except Exception:
-            logger.exception(f"Lỗi add_image. Product ID={pid}")
-            return {}
+
+            items = [ProductModel._format_product(item) for item in (res.data or [])]
+
+            return {
+                "items": items,
+                "total": res.count or 0,
+                "page": page,
+                "per_page": per_page,
+            }
+        except Exception as e:
+            logger.error(f"Lỗi get_all products: {e}")
+            return {"items": [], "total": 0, "page": page, "per_page": per_page}
 
     @staticmethod
-    def delete_image(image_id: str) -> bool:
-        """Xóa 1 ảnh theo image_id."""
+    def get_by_id(pid: str):
+        if not pid:
+            return None
+        db = ProductModel._db()
         try:
-            r = ProductModel.db.table("product_images").delete().eq("id", image_id).execute()
-            return bool(r.data)
-        except Exception:
-            logger.exception(f"Lỗi delete_image. Image ID={image_id}")
-            return False
-
-    @staticmethod
-    def set_primary_image(image_id: str, pid: str) -> bool:
-        """Đặt 1 ảnh làm ảnh chính, bỏ flag primary của các ảnh còn lại."""
-        try:
-            ProductModel._clear_primary(pid)
-            r = (
-                ProductModel.db.table("product_images")
-                .update({"is_primary": True})
-                .eq("id", image_id)
+            res = (
+                db.table("products")
+                .select("*, categories(name, slug), product_images(*), product_variants(*)")
+                .eq("id", pid)
+                .limit(1)
                 .execute()
             )
-            return bool(r.data)
-        except Exception:
-            logger.exception(f"Lỗi set_primary_image. Image ID={image_id}")
-            return False
-
-    @staticmethod
-    def reorder_images(image_orders: List[Dict]) -> bool:
-        """
-        Cập nhật sort_order cho nhiều ảnh cùng lúc.
-        image_orders: [{"id": "uuid", "sort_order": 0}, ...]
-        """
-        try:
-            for item in image_orders:
-                ProductModel.db.table("product_images").update(
-                    {"sort_order": item["sort_order"]}
-                ).eq("id", item["id"]).execute()
-            return True
-        except Exception:
-            logger.exception("Lỗi reorder_images")
-            return False
-
-    @staticmethod
-    def sync_images(pid: str, urls: List[str]) -> None:
-        """
-        Đồng bộ toàn bộ ảnh của 1 sản phẩm từ danh sách URL:
-        - Thêm URL mới chưa có trong DB.
-        - Giữ nguyên URL đã tồn tại (không xóa để bảo toàn is_primary / sort_order).
-        - Xóa URL không còn trong danh sách.
-        """
-        try:
-            existing = ProductModel.get_images(pid)
-            existing_urls = {img["url"] for img in existing}
-            submitted_urls = set(urls)
-
-            # Thêm ảnh mới
-            for idx, url in enumerate(urls):
-                if url and url not in existing_urls:
-                    is_first = (idx == 0 and not existing_urls)
-                    ProductModel.add_image(pid, url, is_primary=is_first, sort_order=idx)
-
-            # Xóa ảnh không còn trong danh sách
-            for img in existing:
-                if img["url"] not in submitted_urls:
-                    ProductModel.delete_image(img["id"])
-
-            # Cập nhật sort_order theo thứ tự form
-            updated = ProductModel.get_images(pid)
-            url_to_img = {img["url"]: img for img in updated}
-            for idx, url in enumerate(urls):
-                if url and url in url_to_img:
-                    ProductModel.db.table("product_images").update(
-                        {"sort_order": idx}
-                    ).eq("id", url_to_img[url]["id"]).execute()
-
-        except Exception:
-            logger.exception(f"Lỗi sync_images. Product ID={pid}")
-
-    # ─── UPLOAD LÊN SUPABASE STORAGE ─────────────────────────────
-
-    @staticmethod
-    def upload_to_storage(file_bytes: bytes, filename: str, content_type: str) -> Optional[str]:
-        """
-        Upload file ảnh lên Supabase Storage bucket 'product-images'.
-        Trả về public URL nếu thành công, None nếu thất bại.
-        """
-        import uuid
-        try:
-            # Tạo tên file duy nhất để tránh trùng lặp
-            ext = filename.rsplit(".", 1)[-1].lower() if "." in filename else "jpg"
-            unique_name = f"{uuid.uuid4().hex}.{ext}"
-
-            ProductModel.db.storage.from_("product-images").upload(
-                path=unique_name,
-                file=file_bytes,
-                file_options={"content-type": content_type},
-            )
-
-            # Lấy public URL
-            result = ProductModel.db.storage.from_("product-images").get_public_url(unique_name)
-            return result
-        except Exception:
-            logger.exception(f"Lỗi upload_to_storage. File={filename}")
+            return ProductModel._format_product(res.data[0]) if res.data else None
+        except Exception as e:
+            logger.error(f"Lỗi get_by_id product '{pid}': {e}")
             return None
 
-    # ─── THỐNG KÊ ─────────────────────────────────────────────────
-
     @staticmethod
-    def count_by_category() -> List[Dict]:
-        """Thống kê số lượng sản phẩm mỗi danh mục cho Dashboard."""
+    def get_by_slug(slug: str):
+        if not slug or slug in ("None", "null", "undefined", ""):
+            return None
+        db = ProductModel._db()
         try:
-            from collections import Counter
-            r = (
-                ProductModel.db.table("products")
-                .select("categories(name)")
-                .eq("is_active", True)
+            res = (
+                db.table("products")
+                .select("*, categories(name, slug), product_images(*), product_variants(*)")
+                .eq("slug", slug)
+                .is_("deleted_at", "null")
+                .limit(1)
                 .execute()
             )
-            counts = Counter(
-                item["categories"]["name"]
-                for item in r.data
-                if item.get("categories")
-            )
-            return [{"name": k, "count": v} for k, v in counts.items()]
-        except Exception:
-            logger.exception("Lỗi count_by_category")
-            return []
+            return ProductModel._format_product(res.data[0]) if res.data else None
+        except Exception as e:
+            logger.error(f"Lỗi get_by_slug '{slug}': {e}")
+            return None
 
-    # ─── PRIVATE HELPERS ──────────────────────────────────────────
+    # ═══════════════════════════════════════════════════════════════
+    #  WRITE (POST / PUT / DELETE)
+    # ═══════════════════════════════════════════════════════════════
 
     @staticmethod
-    def _clear_primary(pid: str) -> None:
-        """Bỏ flag is_primary của tất cả ảnh thuộc sản phẩm."""
-        ProductModel.db.table("product_images").update(
-            {"is_primary": False}
-        ).eq("product_id", pid).execute()
+    def create(data: dict) -> dict:
+        db = ProductModel._db()
+        if not data.get("slug") and data.get("name"):
+            data["slug"] = ProductModel.generate_slug(data["name"])
+
+        try:
+            res = db.table("products").insert(data).execute()
+            return res.data[0] if res.data else None
+        except Exception as e:
+            logger.error(f"Lỗi tạo sản phẩm: {e}")
+            return None
+
+    @staticmethod
+    def update(pid: str, data: dict) -> bool:
+        if not pid:
+            return False
+
+        if "slug" in data and not data["slug"]:
+            data.pop("slug") 
+
+        try:
+            res = (
+                ProductModel._db()
+                .table("products")
+                .update(data)
+                .eq("id", pid)
+                .execute()
+            )
+            return len(res.data) > 0
+        except Exception as e:
+            logger.error(f"Lỗi cập nhật sản phẩm '{pid}': {e}")
+            return False
+
+    @staticmethod
+    def delete(pid: str, permanent: bool=False) -> bool:
+        db = ProductModel._db()
+        try:
+            if permanent:
+                res = db.table("products").delete().eq("id", pid).execute()
+            else:
+                res = db.table("products").update({
+                    "deleted_at": datetime.now().isoformat(),
+                    "is_active": False,
+                }).eq("id", pid).execute()
+            return len(res.data) > 0
+        except Exception as e:
+            logger.error(f"Lỗi xóa sản phẩm '{pid}': {e}")
+            return False
+
+    # ═══════════════════════════════════════════════════════════════
+    #  IMAGES PROCESSING
+    # ═══════════════════════════════════════════════════════════════
+
+    @staticmethod
+    def get_images(pid: str) -> list:
+        try:
+            res = (
+                ProductModel._db()
+                .table("product_images")
+                .select("*")
+                .eq("product_id", pid)
+                .order("sort_order")
+                .execute()
+            )
+            return res.data or []
+        except Exception as e:
+            logger.error(f"Lỗi get_images '{pid}': {e}")
+            return []
+
+    @staticmethod
+    def sync_images(pid: str, urls: list) -> bool:
+        db = ProductModel._db()
+        try:
+            db.table("product_images").delete().eq("product_id", pid).execute()
+
+            if urls:
+                image_data = [
+                    {
+                        "product_id": pid,
+                        "url": url,
+                        "sort_order": i,
+                        "is_primary": (i == 0),
+                    }
+                    for i, url in enumerate(urls)
+                ]
+                db.table("product_images").insert(image_data).execute()
+
+            return True
+        except Exception as e:
+            logger.error(f"Lỗi sync_images cho '{pid}': {e}")
+            return False
+
+    @staticmethod
+    def upload_to_storage(file_bytes: bytes, filename: str, content_type: str) -> str:
+        db = ProductModel._db()
+        try:
+            path = f"products/{datetime.now().strftime('%Y%m%d_%H%M%S')}_{filename}"
+            db.storage.from_("products").upload(
+                path, file_bytes, {"content-type": content_type}
+            )
+            return db.storage.from_("products").get_public_url(path)
+        except Exception as e:
+            logger.error(f"Lỗi upload storage: {e}")
+            return ""

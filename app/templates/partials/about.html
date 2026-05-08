@@ -1,0 +1,236 @@
+{% extends "base.html" %}
+{% block title %}Về Chúng Tôi | GUA Maison{% endblock %}
+
+{% block extra_head %}
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;1,400;1,500&family=DM+Sans:wght@300;400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --display: 'Playfair Display', Georgia, serif;
+    --body: 'DM Sans', sans-serif;
+    --ink: #0e0e0e;
+    --dust: #f5f2ee;
+    --warm: #6d1f1f;
+    --muted: #8a8580;
+    --line: rgba(14,14,14,0.1);
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body { background: #faf8f5; color: var(--ink); font-family: var(--body); }
+
+  .section { max-width: 1320px; margin: 0 auto; padding: 0 48px; }
+  @media(max-width:768px){ .section { padding: 0 24px; } }
+
+  /* HERO */
+  .hero { padding-top: 120px; padding-bottom: 0; }
+  .hero-eyebrow {
+    display: flex; align-items: center; gap: 12px;
+    font-size: 10px; letter-spacing: .25em; text-transform: uppercase;
+    color: var(--muted); margin-bottom: 32px;
+  }
+  .hero-eyebrow::before { content:''; display:block; width:40px; height:1px; background:var(--warm); }
+  .hero-title {
+    font-family: var(--display); font-weight: 400;
+    font-size: clamp(52px, 8vw, 104px); line-height: 1.0;
+    letter-spacing: -.01em; margin-bottom: 64px;
+  }
+  .hero-title em { font-style: italic; color: var(--warm); }
+  .hero-img-wrap { position: relative; overflow: hidden; }
+  .hero-img-wrap img { width:100%; height:70vh; object-fit:cover; display:block; filter:brightness(.93); }
+  .hero-caption {
+    position: absolute; bottom: 32px; right: 40px;
+    font-size: 11px; letter-spacing:.18em; text-transform:uppercase;
+    color: rgba(255,255,255,.65);
+  }
+
+  /* MANIFESTO */
+  .manifesto { padding: 100px 0; border-bottom: 1px solid var(--line); }
+  .manifesto-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: start; }
+  @media(max-width:900px){ .manifesto-grid { grid-template-columns: 1fr; gap: 48px; } }
+  .manifesto-label {
+    font-size:10px; letter-spacing:.22em; text-transform:uppercase;
+    color: var(--warm); margin-bottom: 20px;
+  }
+  .manifesto-quote {
+    font-family: var(--display); font-weight: 400;
+    font-size: clamp(24px,3.5vw,38px); line-height: 1.3;
+  }
+  .manifesto-body { font-size: 15px; line-height: 1.85; color: #444; font-weight:300; }
+  .manifesto-body + .manifesto-body { margin-top: 20px; }
+
+  /* NUMBERS */
+  .numbers { padding: 80px 0; border-bottom: 1px solid var(--line); }
+  .numbers-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 1px; background: var(--line); }
+  @media(max-width:700px){ .numbers-grid { grid-template-columns: repeat(2,1fr); } }
+  .number-cell {
+    background: #faf8f5; padding: 48px 32px;
+    display: flex; flex-direction:column; gap:8px;
+  }
+  .number-val {
+    font-family: var(--display); font-weight:400; font-size: 52px;
+    line-height:1; letter-spacing:-.02em;
+  }
+  .number-val span { font-size: 28px; color: var(--warm); }
+  .number-desc { font-size:12px; letter-spacing:.12em; text-transform:uppercase; color:var(--muted); }
+
+  /* PILLARS */
+  .pillars { padding: 100px 0; }
+  .pillars-header { margin-bottom: 64px; }
+  .pillars-header h2 {
+    font-family: var(--display); font-weight:400;
+    font-size: clamp(28px, 4vw, 48px); max-width: 600px; line-height:1.25;
+  }
+  .pillars-grid { display:grid; grid-template-columns: repeat(3,1fr); gap:2px; background: var(--line); }
+  @media(max-width:800px){ .pillars-grid { grid-template-columns:1fr; } }
+  .pillar {
+    background: #faf8f5; padding: 48px 40px;
+    display:flex; flex-direction:column; gap:16px;
+    transition: background .3s;
+  }
+  .pillar:hover { background: var(--dust); }
+  .pillar-num {
+    font-size:10px; letter-spacing:.2em; text-transform:uppercase;
+    color:var(--warm);
+  }
+  .pillar-title {
+    font-family: var(--display); font-style:italic; font-size:26px; font-weight:400;
+  }
+  .pillar-text { font-size:14px; line-height:1.8; color:#555; font-weight:300; }
+  .pillar-arrow {
+    margin-top: auto; font-size:20px; color:var(--warm);
+    align-self: flex-end;
+  }
+
+  /* ATELIER STRIP */
+  .atelier { padding: 0 0 100px; }
+  .atelier-inner {
+    background: var(--ink); padding: 80px 80px;
+    display:grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items:center;
+  }
+  @media(max-width:900px){ .atelier-inner { grid-template-columns:1fr; padding:48px 32px; gap:40px; } }
+  .atelier-label { font-size:10px; letter-spacing:.22em; text-transform:uppercase; color:var(--warm); margin-bottom:20px; }
+  .atelier-title {
+    font-family:var(--display); font-weight:400; color:#fff;
+    font-size:clamp(26px,3.5vw,42px); line-height:1.3; margin-bottom:24px;
+  }
+  .atelier-text { font-size:14px; line-height:1.85; color:rgba(255,255,255,.55); font-weight:300; }
+  .atelier-img img { width:100%; aspect-ratio:4/5; object-fit:cover; filter:brightness(.85); }
+  .atelier-cta {
+    display:inline-flex; align-items:center; gap:12px;
+    margin-top:36px; font-size:12px; letter-spacing:.18em;
+    text-transform:uppercase; color:#fff; text-decoration:none;
+    border-bottom:1px solid rgba(255,255,255,.25); padding-bottom:4px;
+    transition: border-color .3s;
+  }
+  .atelier-cta:hover { border-color: var(--warm); color: var(--warm); }
+
+  /* PAGE LOAD ANIMATION */
+  @keyframes rise { from{opacity:0;transform:translateY(28px)} to{opacity:1;transform:none} }
+  .rise { animation: rise .9s cubic-bezier(.16,1,.3,1) both; }
+  .rise-1 { animation-delay:.05s } .rise-2 { animation-delay:.15s } .rise-3 { animation-delay:.28s }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- HERO -->
+<section class="section hero">
+  <div class="rise rise-1">
+    <p class="hero-eyebrow">Maison — Hà Nội · Thành phố Hồ Chí Minh · Paris</p>
+  </div>
+  <h1 class="hero-title rise rise-2">
+    Vải vóc<br>là ngôn ngữ.<br><em>Chúng tôi</em><br>là giọng nói.
+  </h1>
+  <div class="hero-img-wrap rise rise-3">
+    <img src="https://i.pinimg.com/1200x/a0/13/d8/a013d8bf134dae9b286de014958b18ba.jpg" alt="GUA Maison Atelier — Xuân Hè 2026">
+    <span class="hero-caption">Atelier GUA — Bộ sưu tập Xuân Hè 2026</span>
+  </div>
+</section>
+
+<!-- MANIFESTO -->
+<section class="section manifesto">
+  <div class="manifesto-grid">
+    <div>
+      <p class="manifesto-label">Triết học thiết kế</p>
+      <h2 class="manifesto-quote">
+        Trang phục không che đậy cơ thể — nó kể câu chuyện mà lời nói không thể diễn đạt.
+      </h2>
+    </div>
+    <div>
+      <p class="manifesto-body">
+        <strong>GUA Maison</strong> ra đời từ niềm tin rằng thời trang cao cấp Việt Nam xứng đáng có tiếng nói trên bản đồ toàn cầu. Không sao chép, không chạy theo xu hướng — chúng tôi tạo ra chúng.
+      </p>
+      <p class="manifesto-body">
+        Mỗi bộ sưu tập là một luận văn về chuyển động: cách vải rủ khi người mặc bước đi, cách một đường cắt bất đối xứng giải phóng vai trái đồng thời tôn lên đường cong vai phải. Đây là Haute Couture của thế kỷ 21 — tinh tế, có chủ đích, và hoàn toàn là bản thân bạn.
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- NUMBERS -->
+<section class="section numbers">
+  <div class="numbers-grid">
+    <div class="number-cell">
+      <div class="number-val">12<span>+</span></div>
+      <div class="number-desc">Năm nghề thủ công</div>
+    </div>
+    <div class="number-cell">
+      <div class="number-val">340<span></span></div>
+      <div class="number-desc">Nghệ nhân đồng hành</div>
+    </div>
+    <div class="number-cell">
+      <div class="number-val">6<span></span></div>
+      <div class="number-desc">Bộ sưu tập mỗi năm</div>
+    </div>
+    <div class="number-cell">
+      <div class="number-val">0<span>%</span></div>
+      <div class="number-desc">Lãng phí vải trong atelier</div>
+    </div>
+  </div>
+</section>
+
+<!-- THREE PILLARS -->
+<section class="section pillars">
+  <div class="pillars-header">
+    <p class="manifesto-label">Cột trụ thương hiệu</p>
+    <h2>Ba cam kết không bao giờ thỏa hiệp của GUA</h2>
+  </div>
+  <div class="pillars-grid">
+    <div class="pillar">
+      <span class="pillar-num">Một — Craftsmanship</span>
+      <h3 class="pillar-title">Đôi tay nghệ nhân</h3>
+      <p class="pillar-text">Mỗi thiết kế được hoàn thiện bởi bàn tay của những nghệ nhân may đo lành nghề tại Hà Nội và TP. HCM. Không dây chuyền sản xuất đại trà. Từng mũi chỉ là một quyết định có chủ đích.</p>
+      <span class="pillar-arrow">→</span>
+    </div>
+    <div class="pillar">
+      <span class="pillar-num">Hai — Sustainability</span>
+      <h3 class="pillar-title">Thời trang có trách nhiệm</h3>
+      <p class="pillar-text">Chúng tôi chỉ làm việc với các nhà cung cấp vải được chứng nhận GOTS và OEKO-TEX. Phần vải dư từ mỗi bộ sưu tập được tái sử dụng thành phụ kiện hoặc tặng cho các xưởng thủ công địa phương.</p>
+      <span class="pillar-arrow">→</span>
+    </div>
+    <div class="pillar">
+      <span class="pillar-num">Ba — Avant-Garde</span>
+      <h3 class="pillar-title">Phá vỡ khuôn mẫu</h3>
+      <p class="pillar-text">Thời trang Việt không cần phải là bản sao của phương Tây. GUA Maison lấy cảm hứng từ kiến trúc đình làng Bắc Bộ, đường cong áo dài Nguyễn triều và nhịp điệu của đô thị đương đại.</p>
+      <span class="pillar-arrow">→</span>
+    </div>
+  </div>
+</section>
+
+<!-- ATELIER DARK STRIP -->
+<div class="section atelier">
+  <div class="atelier-inner">
+    <div>
+      <p class="atelier-label">Không gian sáng tạo</p>
+      <h2 class="atelier-title">Atelier của chúng tôi là nơi tĩnh lặng gặp gỡ sự táo bạo</h2>
+      <p class="atelier-text">
+        Nằm trong một căn nhà phố Pháp hơn trăm tuổi tại phố Hàng Trống, Hà Nội — atelier GUA là nơi mỗi thiết kế từ phác thảo đến thành phẩm đều được chắt lọc qua hàng chục lần thử nghiệm. Khách hàng được mời vào không gian này không phải để mua sắm, mà để trải nghiệm.
+      </p>
+      <a href="#" class="atelier-cta">Đặt lịch tham quan atelier &nbsp;↗</a>
+    </div>
+    <div class="atelier-img">
+      <img src="https://i.pinimg.com/originals/a0/26/d6/a026d6cb8c2e9bccb2ab82e805edd658.gif" alt="Atelier GUA Maison Hà Nội">
+    </div>
+  </div>
+</div>
+
+{% endblock %}

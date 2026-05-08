@@ -1,0 +1,142 @@
+{% extends "admin/admin_base.html" %}
+{% block title %}Danh sách Khách hàng | GUA Admin{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+    body { font-family: 'Plus Jakarta Sans', sans-serif; }
+    .glass-header { background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }
+    .table-container { @apply bg-white rounded-[2.5rem] shadow-sm border border-stone-200 overflow-hidden; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-[#f9fafb] pb-20">
+
+    <div class="glass-header border-b border-stone-200 sticky top-0 z-40 shadow-sm">
+        <div class="max-w-screen-2xl mx-auto px-6 lg:px-10 py-6 flex items-center justify-between">
+            <div>
+                <h1 class="text-2xl font-black text-stone-900 tracking-tight uppercase">Quản lý Khách hàng</h1>
+                <p class="text-stone-500 text-xs font-bold mt-1 uppercase tracking-widest">
+                    <i class="fa-solid fa-users mr-1"></i> Tổng số: {{ customers|length }} thành viên
+                </p>
+            </div>
+            
+            <div class="hidden md:flex items-center bg-stone-100 rounded-2xl px-4 py-2 border border-stone-200 focus-within:border-stone-900 focus-within:bg-white transition-all">
+                <i class="fa-solid fa-magnifying-glass text-stone-400 text-sm mr-3"></i>
+                <input type="text" placeholder="Tìm tên hoặc email..." class="bg-transparent border-none outline-none text-sm font-bold text-stone-800 placeholder-stone-400 w-64">
+            </div>
+        </div>
+    </div>
+
+    <div class="max-w-screen-2xl mx-auto px-6 lg:px-10 mt-10">
+
+        <div class="table-container">
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-stone-50/50 text-stone-400 text-[10px] font-black uppercase tracking-[0.2em] border-b border-stone-100">
+                            <th class="px-8 py-5">Thông tin Khách hàng</th>
+                            <th class="px-8 py-5">Số điện thoại</th>
+                            <th class="px-8 py-5">Địa chỉ mặc định</th>
+                            <th class="px-8 py-5">Ngày gia nhập</th>
+                            <th class="px-8 py-5 text-right">Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-stone-100">
+                        {% for user in customers %}
+                        <tr class="hover:bg-stone-50/50 transition-colors group">
+                            <td class="px-8 py-6">
+                                <div class="flex items-center gap-4">
+                                    <div class="w-12 h-12 bg-stone-900 text-white rounded-2xl flex items-center justify-center font-bold text-lg shadow-lg shadow-stone-200 border-2 border-white ring-1 ring-stone-100 shrink-0">
+                                        {{ user.full_name[0].upper() if user.full_name else '?' }}
+                                    </div>
+                                    <div>
+                                        <p class="font-black text-stone-900 text-sm leading-tight">{{ user.full_name }}</p>
+                                        <p class="text-[11px] text-stone-400 font-bold mt-1">{{ user.email }}</p>
+                                    </div>
+                                </div>
+                            </td>
+
+                            <td class="px-8 py-6">
+                                <span class="text-sm font-bold text-stone-700 tracking-tight">
+                                    {% if user.phone %}
+                                        {{ user.phone }}
+                                    {% else %}
+                                        <span class="text-stone-300 italic font-medium">Chưa cập nhật</span>
+                                    {% endif %}
+                                </span>
+                            </td>
+
+                            <td class="px-8 py-6">
+                                {% if user.default_address %}
+                                    <div class="max-w-xs">
+                                        <p class="text-xs font-bold text-stone-800 leading-tight">
+                                            {{ user.default_address.address_line }}
+                                        </p>
+                                        <p class="text-[10px] text-stone-400 font-bold uppercase mt-1 tracking-tighter">
+                                            {{ user.default_address.ward }}, {{ user.default_address.district }}, {{ user.default_address.province }}
+                                        </p>
+                                    </div>
+                                {% else %}
+                                    <span class="inline-flex items-center gap-1.5 px-2 py-1 bg-stone-100 text-stone-400 text-[9px] font-black uppercase rounded-lg">
+                                        <i class="fa-solid fa-location-dot"></i> Trống
+                                    </span>
+                                {% endif %}
+                            </td>
+
+                            <td class="px-8 py-6">
+                                <p class="text-[11px] font-black text-stone-400 uppercase tracking-widest">
+                                    {{ user.created_at[:10] if user.created_at else '—' }}
+                                </p>
+                            </td>
+
+                            <td class="px-8 py-6 text-right">
+                                <div class="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <a href="{{ url_for('admin.edit_customer', user_id=user.id) }}" 
+                                       class="w-9 h-9 bg-white border border-stone-200 text-stone-400 hover:text-blue-600 hover:border-blue-600 rounded-xl flex items-center justify-center transition-all shadow-sm"
+                                       title="Sửa hồ sơ">
+                                        <i class="fa-solid fa-user-pen text-xs"></i>
+                                    </a>
+                                    
+                                    <form action="{{ url_for('admin.delete_customer', user_id=user.id) }}" method="POST" 
+                                          onsubmit="return confirm('CẢNH BÁO: Bạn có chắc chắn muốn xóa khách hàng này? Mọi thông tin địa chỉ sẽ bị xóa vĩnh viễn.')">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                        <button type="submit" 
+                                                class="w-9 h-9 bg-white border border-stone-200 text-stone-300 hover:text-red-500 hover:border-red-500 rounded-xl flex items-center justify-center transition-all shadow-sm"
+                                                title="Xóa khách hàng">
+                                            <i class="fa-solid fa-trash-can text-xs"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="5" class="px-8 py-32 text-center">
+                                <div class="w-20 h-20 bg-stone-50 rounded-[2rem] border-2 border-dashed border-stone-200 flex items-center justify-center mx-auto mb-6">
+                                    <i class="fa-solid fa-users-slash text-3xl text-stone-300"></i>
+                                </div>
+                                <h3 class="text-xl font-black text-stone-900 uppercase">Chưa có khách hàng</h3>
+                                <p class="text-stone-400 text-sm font-medium mt-2">Dữ liệu thành viên sẽ xuất hiện tại đây khi có người đăng ký.</p>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="mt-8 flex items-center gap-3 p-6 bg-blue-50 border border-blue-100 rounded-[2rem]">
+            <div class="w-10 h-10 bg-blue-600 text-white rounded-xl flex items-center justify-center shrink-0 shadow-lg shadow-blue-100">
+                <i class="fa-solid fa-circle-info"></i>
+            </div>
+            <p class="text-xs font-bold text-blue-900 leading-relaxed">
+                <span class="uppercase">Mẹo quản trị:</span> Số điện thoại hiển thị tại đây là số điện thoại từ <strong>Địa chỉ mặc định</strong> của khách hàng. Nếu khách hàng phát hiện sai sót, bạn có thể bấm nút Sửa hồ sơ để cập nhật nhanh theo yêu cầu Hotline.
+            </p>
+        </div>
+
+    </div>
+</div>
+{% endblock %}

@@ -4,13 +4,14 @@ Quản lý hồ sơ cá nhân, bảo mật tài khoản, lịch sử giao dịch
 """
 
 import logging
-from flask import Blueprint, render_template, redirect, url_for, session, flash, abort, request
+from flask import Blueprint, render_template, redirect, url_for, session, flash, abort, request, jsonify
 
 from app.models.user_model import UserModel
 from app.models.order_model import OrderModel
 from app.models.address_model import AddressModel
 from app.utils.security import hash_password, verify_password
 from app.middleware.auth_required import login_required
+from app.models.shipment_model import ShipmentModel
 
 profile_bp = Blueprint("profile", __name__, url_prefix="/profile")
 logger = logging.getLogger(__name__)
@@ -46,49 +47,143 @@ def index():
         return abort(500)
 
 # ═══════════════════════════════════════════════════════════════
-#  LỊCH SỬ ĐƠN HÀNG (ARCHIVE)
+#  LỊCH SỬ ĐƠN HÀNG & THEO DÕI VẬN CHUYỂN
 # ═══════════════════════════════════════════════════════════════
 
 
 @profile_bp.route("/orders")
 @login_required
-def orders():
+def my_orders():
+    """Trang danh sách Lịch sử giao dịch của Khách hàng"""
     user_id = session.get("user_id")
-    try:
-        # Gán request.args ra biến để thỏa mãn Linter
-        req_args = request.args
-        page = req_args.get("page", 1, type=int)
-        
-        result = OrderModel.get_user_orders_paginated(user_id, page=page, per_page=10)
-        
-        return render_template("profile/orders.html",
-                               orders=result.get("items", []),
-                               pagination=result.get("pagination", {}))
-    except Exception as e:
-        logger.warning(f"Pagination failed, falling back to full list: {e}")
-        all_orders = OrderModel.get_user_orders(user_id)
-        return render_template("profile/orders.html", orders=all_orders, pagination=None)
+    page = request.args.get("page", 1, type=int)
+    
+    # Lấy danh sách đơn hàng có phân trang
+    result = OrderModel.get_user_orders_paginated(user_id, page=page, per_page=10)
+    
+    return render_template(
+        "profile/order/orders.html",
+        orders=result["items"],
+        pagination=result["pagination"]
+    )
 
 
 @profile_bp.route("/orders/<order_id>")
 @login_required
 def order_detail(order_id):
+    """Trang chi tiết và theo dõi hành trình vận chuyển của 1 đơn hàng"""
     user_id = session.get("user_id")
-    try:
-        order = OrderModel.get_by_id(order_id)
+    order = OrderModel.get_by_id(order_id)
+    
+    # BẢO MẬT: Chỉ cho phép người dùng xem đơn hàng của chính họ
+    if not order or order.get("user_id") != user_id:
+        flash("Không tìm thấy đơn hàng hoặc bạn không có quyền xem.", "danger")
+        return redirect(url_for("profile.my_orders"))
         
-        if not order or str(order.get("user_id")) != str(user_id):
-            logger.warning(f"Unauthorized access attempt: User {user_id} -> Order {order_id}")
-            flash("Không tìm thấy dữ liệu đơn hàng hoặc quyền truy cập bị từ chối.", "danger")
-            return redirect(url_for("profile.orders"))
-
-        return render_template("profile/order_detail.html", order=order)
-    except Exception as e:
-        logger.error(f"Error loading order detail {order_id}: {e}")
-        abort(404)
+    # Kéo thêm dữ liệu vận chuyển (Timeline) để khách hàng theo dõi (Live Tracking)
+    shipment = ShipmentModel.get_by_order_id(order_id)
+    if shipment:
+        order["shipments"] = shipment
+        
+    return render_template("profile/order/order_detail.html", order=order)
 
 # ═══════════════════════════════════════════════════════════════
-#  QUẢN LÝ THÔNG TIN (SECURITY & DATA)
+#  HỦY ĐƠN HÀNG (CUSTOMER SELF-CANCEL)
+# ═══════════════════════════════════════════════════════════════
+
+
+@profile_bp.route("/orders/<order_id>/cancel", methods=["POST"])
+@login_required
+def cancel_order(order_id):
+    """
+    Khách hàng tự hủy đơn trong vòng 3 giờ đầu. 
+    Hỗ trợ cả JSON (fetch API) và form submit thông thường.
+    """
+    user_id = session.get("user_id")
+    is_ajax = request.headers.get("X-Requested-With") == "XMLHttpRequest" \
+              or request.accept_mimetypes.accept_json
+
+    try:
+        # Guard an toàn đã nằm trong model cancel_order_by_user (check pending & < 3 giờ)
+        success, message = OrderModel.cancel_order_by_user(order_id, user_id)
+
+        if is_ajax:
+            return jsonify({"success": success, "message": message}), (200 if success else 400)
+
+        # Fallback: form submit thông thường
+        flash(message, "success" if success else "danger")
+        return redirect(url_for("profile.order_detail", order_id=order_id))
+
+    except Exception as e:
+        logger.error(f"Cancel order error [{order_id}]: {e}")
+        if is_ajax:
+            return jsonify({"success": False, "message": "Lỗi hệ thống, vui lòng thử lại."}), 500
+        flash("Lỗi hệ thống, vui lòng thử lại.", "danger")
+        return redirect(url_for("profile.order_detail", order_id=order_id))
+
+# ═══════════════════════════════════════════════════════════════
+#  YÊU CẦU ĐỔI / TRẢ HÀNG (RETURN REQUEST)
+# ═══════════════════════════════════════════════════════════════
+
+
+@profile_bp.route("/orders/<order_id>/return", methods=["POST"])
+@login_required
+def request_return(order_id):
+    """
+    Khách hàng gửi yêu cầu đổi/trả sau khi nhận hàng.
+    Nhận: reason (text), image_url (link ảnh upload từ client hoặc Cloudinary).
+    Hỗ trợ cả JSON (fetch API) và form submit thông thường.
+    """
+    user_id = session.get("user_id")
+    is_ajax = request.headers.get("X-Requested-With") == "XMLHttpRequest" \
+              or request.accept_mimetypes.accept_json
+
+    # Lấy dữ liệu — ưu tiên JSON body, fallback sang form
+    if request.is_json:
+        payload = request.get_json(silent=True) or {}
+        reason = payload.get("reason", "").strip()
+        image_url = payload.get("image_url", "").strip()
+    else:
+        form_data = request.form
+        reason = form_data.get("reason", "").strip()
+        image_url = form_data.get("image_url", "").strip()
+
+    # Validate
+    if not reason:
+        msg = "Vui lòng mô tả lý do đổi/trả hàng."
+        if is_ajax:
+            return jsonify({"success": False, "message": msg}), 400
+        flash(msg, "danger")
+        return redirect(url_for("profile.order_detail", order_id=order_id))
+
+    if not image_url:
+        msg = "Vui lòng đính kèm hình ảnh sản phẩm để hoàn tất yêu cầu."
+        if is_ajax:
+            return jsonify({"success": False, "message": msg}), 400
+        flash(msg, "danger")
+        return redirect(url_for("profile.order_detail", order_id=order_id))
+
+    try:
+        success, msg_model = OrderModel.request_return(order_id, user_id, reason, image_url)
+        
+        # Thông báo chi tiết lấy từ Model nếu có, nếu không lấy mặc định
+        msg = msg_model if msg_model else ("Yêu cầu đổi/trả đã được ghi nhận. Đội ngũ GUA sẽ liên hệ bạn trong 24 giờ." if success else "Không thể gửi yêu cầu.")
+
+        if is_ajax:
+            return jsonify({"success": success, "message": msg}), (200 if success else 400)
+
+        flash(msg, "success" if success else "danger")
+        return redirect(url_for("profile.order_detail", order_id=order_id))
+
+    except Exception as e:
+        logger.error(f"Return request error [{order_id}]: {e}")
+        if is_ajax:
+            return jsonify({"success": False, "message": "Lỗi hệ thống, vui lòng thử lại."}), 500
+        flash("Lỗi hệ thống, vui lòng thử lại.", "danger")
+        return redirect(url_for("profile.order_detail", order_id=order_id))
+
+# ═══════════════════════════════════════════════════════════════
+#  QUẢN LÝ THÔNG TIN BẢO MẬT & TÀI KHOẢN
 # ═══════════════════════════════════════════════════════════════
 
 
@@ -111,7 +206,7 @@ def edit():
             update_data = {"full_name": full_name, "phone": phone}
             if UserModel.update_profile(user_id, update_data):
                 session["full_name"] = full_name
-                flash("Hồ sơ Maison đã được đồng bộ hóa.", "success")
+                flash("Hồ sơ cá nhân đã được đồng bộ hóa.", "success")
                 return redirect(url_for("profile.index"))
         except Exception as e:
             logger.error(f"Profile Sync Failed: {e}")
@@ -162,11 +257,10 @@ def addresses():
     if request.method == "POST":
         form_data = request.form
         
-        # Lấy dữ liệu từ Form
         data = {
             "full_name": form_data.get("full_name", "").strip(),
             "phone": form_data.get("phone", "").strip(),
-            "province": form_data.get("province_name", "").strip(),  # Lấy tên (Text) thay vì ID
+            "province": form_data.get("province_name", "").strip(),
             "district": form_data.get("district_name", "").strip(),
             "ward": form_data.get("ward_name", "").strip(),
             "address_line": form_data.get("address_line", "").strip(),
@@ -175,15 +269,12 @@ def addresses():
         
         is_default = form_data.get("is_default") == "on"
         
-        # Validate các trường bắt buộc
         required_fields = ["full_name", "phone", "province", "district", "ward", "address_line"]
         if not all(data[field] for field in required_fields):
             flash("Vui lòng điền đầy đủ thông tin bắt buộc.", "danger")
         else:
-            # Lưu địa chỉ vào DB
             new_addr = AddressModel.add_address(user_id, data)
             
-            # Nếu user tick "Đặt làm mặc định", tự động gọi hàm set_default để đè các địa chỉ cũ
             if is_default and new_addr and new_addr.get("id"):
                 AddressModel.set_default(user_id, new_addr["id"])
                 
@@ -191,7 +282,6 @@ def addresses():
             return redirect(url_for("profile.addresses", next=request.args.get('next')))
 
     user_addresses = AddressModel.get_user_addresses(user_id)
-    # FIX: Đúng path template — file nằm ở app/templates/profile/address/addresses.html
     return render_template("profile/address/addresses.html", addresses=user_addresses)
 
 
@@ -204,7 +294,7 @@ def set_default_address(address_id):
     else:
         flash("Có lỗi xảy ra khi cập nhật địa chỉ, vui lòng thử lại.", "danger")
     
-    form_data = request.form  # FIX: Gán ra biến trung gian
+    form_data = request.form
     next_url = form_data.get("next_url", url_for("profile.addresses"))
     
     return redirect(next_url)
@@ -229,7 +319,6 @@ def edit_address(address_id):
     user_id = session.get("user_id")
     form_data = request.form
     
-    # Lấy dữ liệu từ Form (giống hệt lúc Thêm mới)
     data = {
         "full_name": form_data.get("full_name", "").strip(),
         "phone": form_data.get("phone", "").strip(),
@@ -242,21 +331,17 @@ def edit_address(address_id):
     
     is_default = form_data.get("is_default") == "on"
     
-    # Validate
     required_fields = ["full_name", "phone", "province", "district", "ward", "address_line"]
     if not all(data[field] for field in required_fields):
         flash("Vui lòng điền đầy đủ thông tin bắt buộc.", "danger")
     else:
-        # Gọi Model để update
         if AddressModel.update_address(user_id, address_id, data):
-            # Nếu user tick "Đặt làm mặc định", cập nhật luôn
             if is_default:
                 AddressModel.set_default(user_id, address_id)
             flash("Đã cập nhật địa chỉ thành công.", "success")
         else:
             flash("Không thể cập nhật địa chỉ này hoặc bạn không có quyền.", "danger")
             
-    # Điều hướng về lại trang Sổ địa chỉ (hoặc trang thanh toán nếu có next)
     next_url = request.args.get('next')
     if next_url:
         return redirect(url_for("profile.addresses", next=next_url))

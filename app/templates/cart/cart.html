@@ -35,46 +35,67 @@
           {# Header bảng – ẩn trên mobile #}
           <div class="hidden md:grid grid-cols-12 pb-4 text-[10px] font-bold uppercase tracking-widest text-stone-400 border-b border-stone-100">
             <span class="col-span-6">Sản phẩm</span>
-            <span class="col-span-2 text-center">Kích cỡ</span>
+            <span class="col-span-2 text-center">Phân loại</span>
             <span class="col-span-2 text-center">Số lượng</span>
             <span class="col-span-2 text-right">Thành tiền</span>
           </div>
 
           <div class="divide-y divide-stone-100">
             {% for item in items %}
+            
+            {# Thiết lập biến để tái sử dụng nhanh #}
+            {% set prod = item.products %}
+            {% set var = item.product_variants %}
+            {% set item_price = var.price_override if (var and var.price_override is not none) else prod.price %}
+            {% set max_stock = var.stock if var else 0 %}
+            
             <article class="grid grid-cols-1 md:grid-cols-12 gap-5 md:gap-0 items-center py-6 group">
 
               {# Ảnh + Tên #}
               <div class="col-span-6 flex gap-4 items-center">
-                <a href="/product/{{ item.products.id if item.products else '#' }}" class="w-20 md:w-24 aspect-[3/4] bg-stone-50 rounded-xl border border-stone-100/50 overflow-hidden shrink-0 block relative">
-                  {% if item.products and item.products.thumbnail_url %}
-                    <img src="{{ item.products.thumbnail_url }}" alt="{{ item.products.name }}" class="w-full h-full object-cover mix-blend-multiply group-hover:scale-105 transition-transform duration-700 ease-out" loading="lazy">
+                <a href="/product/{{ prod.slug if prod else '#' }}" class="w-20 md:w-24 aspect-[3/4] bg-stone-50 rounded-xl border border-stone-100/50 overflow-hidden shrink-0 block relative">
+                  {% if prod and prod.thumbnail_url %}
+                    <img src="{{ prod.thumbnail_url }}" alt="{{ prod.name }}" class="w-full h-full object-cover mix-blend-multiply group-hover:scale-105 transition-transform duration-700 ease-out" loading="lazy">
                   {% else %}
                     <div class="w-full h-full flex items-center justify-center text-xs font-bold text-stone-300">NO IMG</div>
                   {% endif %}
                 </a>
 
                 <div class="flex-1 min-w-0 pr-2">
-                  <a href="/product/{{ item.products.id if item.products else '#' }}">
+                  <a href="/product/{{ prod.slug if prod else '#' }}">
                     <h3 class="text-sm font-bold text-stone-900 leading-snug mb-1 line-clamp-2 hover:text-stone-600 transition-colors">
-                      {{ item.products.name if item.products else 'Sản phẩm không tồn tại' }}
+                      {{ prod.name if prod else 'Sản phẩm không tồn tại' }}
                     </h3>
                   </a>
+                  
+                  {# Hiển thị Màu và Size trên Mobile #}
+                  <div class="md:hidden flex items-center gap-2 mt-1 mb-2">
+                    <span class="text-[10px] font-bold text-stone-600 bg-stone-100 px-2 py-0.5 rounded uppercase">{{ var.size }}</span>
+                    <span class="text-[10px] font-medium text-stone-500 flex items-center gap-1">
+                      <span class="w-2 h-2 rounded-full border border-stone-200" style="background-color: {{ var.color_hex or '#e7e5e4' }};"></span>
+                      {{ var.color_name }}
+                    </span>
+                  </div>
+
                   <p class="text-[10px] font-mono font-medium text-stone-400 uppercase">
-                    SKU: {{ item.products.id[:8].upper() if item.products else 'N/A' }}
+                    SKU: {{ prod.id[:8].upper() if prod else 'N/A' }}
                   </p>
                   
                   {# Giá hiển thị trên Mobile #}
-                  <p class="text-sm font-bold text-stone-900 mt-2 md:hidden">
-                    {{ '{:,.0f}'.format(item.products.price) }} <span class="text-[10px] font-medium text-stone-500">₫</span>
+                  <p class="text-sm font-bold text-stone-900 mt-1 md:hidden">
+                    {{ '{:,.0f}'.format(item_price) }} <span class="text-[10px] font-medium text-stone-500">₫</span>
                   </p>
                 </div>
               </div>
 
-              {# Kích cỡ #}
-              <div class="col-span-2 text-center hidden md:block">
-                {% if item.size %}
-                  <span class="text-xs font-semibold text-stone-600 bg-stone-50 border border-stone-200 px-3 py-1 rounded-lg uppercase">{{ item.size }}</span>
+              {# Kích cỡ & Màu (Chỉ hiện trên PC) #}
+              <div class="col-span-2 hidden md:flex flex-col items-center justify-center gap-1.5">
+                {% if var %}
+                  <span class="text-xs font-bold text-stone-900 bg-stone-100 px-3 py-1 rounded-lg uppercase">{{ var.size }}</span>
+                  <span class="text-[10px] font-medium text-stone-500 flex items-center gap-1">
+                    <span class="w-2 h-2 rounded-full border border-stone-200 shadow-sm" style="background-color: {{ var.color_hex or '#e7e5e4' }};"></span>
+                    {{ var.color_name }}
+                  </span>
                 {% else %}
                   <span class="text-stone-300 text-sm">—</span>
                 {% endif %}
@@ -82,13 +103,13 @@
 
               {# Số lượng #}
               <div class="col-span-2 flex justify-start md:justify-center">
-                <form action="/cart/update/{{ item.id }}" method="post" class="flex items-center border border-stone-200 rounded-lg overflow-hidden bg-white shadow-sm w-max">
+                <form action="{{ url_for('cart.update_quantity', item_id=item.id) }}" method="post" class="flex items-center border border-stone-200 rounded-lg overflow-hidden bg-white shadow-sm w-max">
                   <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                   
                   <button type="button" onclick="thayDoiSoLuong(this, -1)" class="w-8 h-9 flex items-center justify-center text-stone-500 hover:text-stone-900 hover:bg-stone-50 transition-colors text-lg leading-none">
                     −
                   </button>
-                  <input type="number" name="quantity" value="{{ item.quantity }}" min="0" class="w-10 h-9 bg-transparent text-center text-sm font-bold text-stone-900 outline-none appearance-none border-x border-stone-100" onchange="this.form.submit()">
+                  <input type="number" name="quantity" value="{{ item.quantity }}" min="0" max="{{ max_stock }}" class="w-10 h-9 bg-transparent text-center text-sm font-bold text-stone-900 outline-none appearance-none border-x border-stone-100" onchange="kiemTraTonKho(this)">
                   <button type="button" onclick="thayDoiSoLuong(this, 1)" class="w-8 h-9 flex items-center justify-center text-stone-500 hover:text-stone-900 hover:bg-stone-50 transition-colors text-lg leading-none">
                     +
                   </button>
@@ -98,13 +119,13 @@
               {# Giá tổng + Nút Xóa #}
               <div class="col-span-2 flex flex-col items-start md:items-end gap-2">
                 <p class="text-sm font-bold text-stone-900 hidden md:block">
-                  {{ '{:,.0f}'.format(item.products.price * item.quantity) }} <span class="text-[10px] font-medium text-stone-500">₫</span>
+                  {{ '{:,.0f}'.format(item_price * item.quantity) }} <span class="text-[10px] font-medium text-stone-500">₫</span>
                 </p>
 
-                <form action="/cart/remove/{{ item.id }}" method="post" class="m-0" onsubmit="return confirm('Bạn muốn xóa sản phẩm này khỏi giỏ hàng?');">
+                <form action="{{ url_for('cart.remove_item', item_id=item.id) }}" method="post" class="m-0" onsubmit="return confirm('Bạn muốn xóa sản phẩm này khỏi giỏ hàng?');">
                   <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                  <button type="submit" class="text-xs font-semibold text-stone-400 hover:text-red-500 transition-colors underline underline-offset-4">
-                    Xóa
+                  <button type="submit" class="text-[11px] font-semibold text-stone-400 hover:text-red-500 transition-colors underline underline-offset-4 mt-1">
+                    Xóa khỏi giỏ
                   </button>
                 </form>
               </div>
@@ -176,7 +197,7 @@
         </svg>
       </div>
       <h2 class="text-xl font-bold text-stone-900 mb-2">Giỏ hàng trống</h2>
-      <p class="text-sm font-medium text-stone-500 mb-8 max-w-sm">Chưa có sản phẩm nào trong giỏ hàng. Hãy dạo một vòng cửa hàng và chọn cho mình những sản phẩm ưng ý nhé.</p>
+      <p class="text-sm font-medium text-stone-500 mb-8 max-w-sm">Chưa có sản phẩm nào trong giỏ hàng. Hãy dạo một vòng cửa hàng và chọn cho mình những thiết kế ưng ý nhé.</p>
       <a href="/shop" class="bg-stone-900 text-white px-8 py-3.5 rounded-xl text-sm font-bold shadow-md hover:bg-stone-800 active:scale-95 transition-all">
         Khám phá cửa hàng
       </a>
@@ -199,16 +220,32 @@
     });
   });
 
-  // Tăng giảm số lượng sản phẩm
+  // Tăng giảm số lượng sản phẩm an toàn (Chống vượt kho)
   function thayDoiSoLuong(nut, thayDoi) {
     const form = nut.closest('form');
     const input = form.querySelector('input[name="quantity"]');
+    const maxStock = parseInt(input.max) || 999;
     const giaTriMoi = parseInt(input.value) + thayDoi;
 
-    if (giaTriMoi >= 0) {
+    if (giaTriMoi > maxStock) {
+      alert(`Xin lỗi, sản phẩm này chỉ còn ${maxStock} chiếc trong kho!`);
+      return;
+    }
+
+    if (giaTriMoi >= 0 && giaTriMoi !== parseInt(input.value)) {
       input.value = giaTriMoi;
       form.submit();
     }
+  }
+
+  // Khách gõ số bằng tay cũng chặn lố kho
+  function kiemTraTonKho(input) {
+    const maxStock = parseInt(input.max) || 999;
+    if (parseInt(input.value) > maxStock) {
+        alert(`Xin lỗi, sản phẩm này chỉ còn ${maxStock} chiếc trong kho!`);
+        input.value = maxStock;
+    }
+    input.form.submit();
   }
 
   // Ẩn mũi tên lên xuống của thẻ input type=number

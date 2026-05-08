@@ -1,0 +1,167 @@
+{# ══════════════════════════════════════
+   BENEFITS MARQUEE — GUA Maison 2026
+   Tối giản, chữ nhỏ, nền kem
+   ══════════════════════════════════════ #}
+
+<style>
+  .gua-ticker {
+    background: var(--color-skin, #f5efe8);
+    border-top: 1px solid rgba(0,0,0,0.06);
+    border-bottom: 1px solid rgba(0,0,0,0.06);
+    overflow: hidden;
+    padding: 13px 0;
+    font-family: var(--font-sans);
+    cursor: default;
+  }
+
+  .gua-ticker__track {
+    display: flex;
+    width: max-content;
+    animation: tickerScroll 40s linear infinite;
+  }
+  .gua-ticker:hover .gua-ticker__track {
+    animation-play-state: paused;
+  }
+
+  .gua-ticker__item {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 0 44px;
+    font-size: 9.5px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: rgba(26,23,20,0.6);
+    white-space: nowrap;
+    transition: color 0.25s;
+  }
+  .gua-ticker__item:hover { color: rgba(26,23,20,0.95); }
+
+  .gua-ticker__dot {
+    width: 3px;
+    height: 3px;
+    border-radius: 50%;
+    background: rgba(26,23,20,0.25);
+    flex-shrink: 0;
+  }
+
+  .gua-ticker__icon {
+    width: 12px;
+    height: 12px;
+    color: rgba(26,23,20,0.35);
+    flex-shrink: 0;
+  }
+
+  @keyframes tickerScroll {
+    0%   { transform: translateX(0); }
+    100% { transform: translateX(-50%); }
+  }
+</style>
+
+<div class="gua-ticker" aria-hidden="true">
+  <div class="gua-ticker__track">
+
+    {# ── Set 1 ── #}
+    <span class="gua-ticker__item">
+      <svg class="gua-ticker__icon" viewBox="0 0 20 20" fill="none">
+        <path d="M3 8.5L10 3l7 5.5V17H13v-4H7v4H3V8.5z" stroke="currentColor" stroke-width="1" stroke-linejoin="round"/>
+      </svg>
+      Miễn phí giao hàng từ 1.500.000₫
+    </span>
+    <span class="gua-ticker__dot"></span>
+
+    <span class="gua-ticker__item">
+      <svg class="gua-ticker__icon" viewBox="0 0 20 20" fill="none">
+        <path d="M4 10a6 6 0 1 0 12 0A6 6 0 0 0 4 10zm0 0H2m16 0h-2M10 4V2m0 16v-2" stroke="currentColor" stroke-width="1" stroke-linecap="round"/>
+      </svg>
+      Đổi trả dễ dàng trong 15 ngày
+    </span>
+    <span class="gua-ticker__dot"></span>
+
+    <span class="gua-ticker__item">
+      <svg class="gua-ticker__icon" viewBox="0 0 20 20" fill="none">
+        <path d="M10 2l1.5 5h5l-4 3 1.5 5L10 12l-4 3 1.5-5-4-3h5z" stroke="currentColor" stroke-width="1" stroke-linejoin="round"/>
+      </svg>
+      Thanh toán bảo mật chuẩn SSL
+    </span>
+    <span class="gua-ticker__dot"></span>
+
+    <span class="gua-ticker__item">
+      <svg class="gua-ticker__icon" viewBox="0 0 20 20" fill="none">
+        <path d="M5 4h10a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H7l-4 3V6a2 2 0 0 1 2-2z" stroke="currentColor" stroke-width="1" stroke-linejoin="round"/>
+      </svg>
+      Hỗ trợ tư vấn 24/7
+    </span>
+    <span class="gua-ticker__dot"></span>
+
+    <span class="gua-ticker__item">
+      <svg class="gua-ticker__icon" viewBox="0 0 20 20" fill="none">
+        <rect x="3" y="5" width="14" height="12" rx="1.5" stroke="currentColor" stroke-width="1"/>
+        <path d="M3 9h14M7 5V3m6 2V3" stroke="currentColor" stroke-width="1" stroke-linecap="round"/>
+      </svg>
+      Bộ sưu tập Xuân–Hè 2026 đã ra mắt
+    </span>
+    <span class="gua-ticker__dot"></span>
+
+    <span class="gua-ticker__item">
+      <svg class="gua-ticker__icon" viewBox="0 0 20 20" fill="none">
+        <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" stroke="currentColor" stroke-width="1"/>
+        <path d="M4 12s1.5-5 6-5 6 5 6 5-1.5 5-6 5-6-5-6-5z" stroke="currentColor" stroke-width="1" stroke-linejoin="round"/>
+      </svg>
+      Thiết kế độc quyền — Sản xuất tại Việt Nam
+    </span>
+    <span class="gua-ticker__dot"></span>
+
+    {# ── Set 2 (duplicate for seamless loop) ── #}
+    <span class="gua-ticker__item">
+      <svg class="gua-ticker__icon" viewBox="0 0 20 20" fill="none">
+        <path d="M3 8.5L10 3l7 5.5V17H13v-4H7v4H3V8.5z" stroke="currentColor" stroke-width="1" stroke-linejoin="round"/>
+      </svg>
+      Miễn phí giao hàng từ 1.500.000₫
+    </span>
+    <span class="gua-ticker__dot"></span>
+
+    <span class="gua-ticker__item">
+      <svg class="gua-ticker__icon" viewBox="0 0 20 20" fill="none">
+        <path d="M4 10a6 6 0 1 0 12 0A6 6 0 0 0 4 10zm0 0H2m16 0h-2M10 4V2m0 16v-2" stroke="currentColor" stroke-width="1" stroke-linecap="round"/>
+      </svg>
+      Đổi trả dễ dàng trong 15 ngày
+    </span>
+    <span class="gua-ticker__dot"></span>
+
+    <span class="gua-ticker__item">
+      <svg class="gua-ticker__icon" viewBox="0 0 20 20" fill="none">
+        <path d="M10 2l1.5 5h5l-4 3 1.5 5L10 12l-4 3 1.5-5-4-3h5z" stroke="currentColor" stroke-width="1" stroke-linejoin="round"/>
+      </svg>
+      Thanh toán bảo mật chuẩn SSL
+    </span>
+    <span class="gua-ticker__dot"></span>
+
+    <span class="gua-ticker__item">
+      <svg class="gua-ticker__icon" viewBox="0 0 20 20" fill="none">
+        <path d="M5 4h10a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H7l-4 3V6a2 2 0 0 1 2-2z" stroke="currentColor" stroke-width="1" stroke-linejoin="round"/>
+      </svg>
+      Hỗ trợ tư vấn 24/7
+    </span>
+    <span class="gua-ticker__dot"></span>
+
+    <span class="gua-ticker__item">
+      <svg class="gua-ticker__icon" viewBox="0 0 20 20" fill="none">
+        <rect x="3" y="5" width="14" height="12" rx="1.5" stroke="currentColor" stroke-width="1"/>
+        <path d="M3 9h14M7 5V3m6 2V3" stroke="currentColor" stroke-width="1" stroke-linecap="round"/>
+      </svg>
+      Bộ sưu tập Xuân–Hè 2026 đã ra mắt
+    </span>
+    <span class="gua-ticker__dot"></span>
+
+    <span class="gua-ticker__item">
+      <svg class="gua-ticker__icon" viewBox="0 0 20 20" fill="none">
+        <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" stroke="currentColor" stroke-width="1"/>
+        <path d="M4 12s1.5-5 6-5 6 5 6 5-1.5 5-6 5-6-5-6-5z" stroke="currentColor" stroke-width="1" stroke-linejoin="round"/>
+      </svg>
+      Thiết kế độc quyền — Sản xuất tại Việt Nam
+    </span>
+    <span class="gua-ticker__dot"></span>
+
+  </div>
+</div>  

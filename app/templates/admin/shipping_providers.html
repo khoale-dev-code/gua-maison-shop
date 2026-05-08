@@ -1,0 +1,456 @@
+{% extends "admin/admin_base.html" %}
+{% block title %}Đơn vị vận chuyển{% endblock %}
+
+{% block extra_head %}
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+{# Nếu admin_base.html chưa có meta csrf-token, thêm dòng này vào <head> của base: #}
+{# <meta name="csrf-token" content="{{ csrf_token() }}"> #}
+<style>
+:root {
+  --white:    #ffffff;
+  --bg:       #f5f4f0;
+  --surface:  #ffffff;
+  --border:   #e8e5df;
+  --border2:  #f0ede7;
+  --text:     #1a1814;
+  --text2:    #6b6760;
+  --text3:    #9e9b96;
+  --ink:      #1a1814;
+  --accent:   #2563eb;
+  --accent-s: #eff4ff;
+  --green:    #16a34a;
+  --green-s:  #f0fdf4;
+  --red:      #dc2626;
+  --red-s:    #fff5f5;
+  --amber:    #d97706;
+  --amber-s:  #fffbeb;
+  --r:        8px;
+  --r-lg:     12px;
+  --shadow:   0 1px 3px rgba(0,0,0,.06), 0 1px 2px rgba(0,0,0,.04);
+  --shadow-md:0 4px 16px rgba(0,0,0,.08);
+  --font:     'DM Sans', sans-serif;
+  --mono:     'DM Mono', monospace;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0 }
+
+.sp { font-family: var(--font); color: var(--text); max-width: 1080px; margin: 0 auto; padding: 32px 24px 80px }
+
+/* ── HEADER ── */
+.sp-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px }
+.sp-head h1 { font-size: 20px; font-weight: 600; letter-spacing: -.3px }
+.sp-head p  { font-size: 13px; color: var(--text2); margin-top: 2px }
+
+/* ── STATS ── */
+.sp-stats { display: grid; grid-template-columns: repeat(3,1fr); gap: 12px; margin-bottom: 20px }
+.sp-stat {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--r-lg); padding: 16px 20px;
+  display: flex; align-items: center; gap: 14px;
+  box-shadow: var(--shadow);
+}
+.sp-stat__icon { width: 36px; height: 36px; border-radius: var(--r); display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0 }
+.sp-stat__icon--blue   { background: var(--accent-s) }
+.sp-stat__icon--green  { background: var(--green-s) }
+.sp-stat__icon--red    { background: var(--red-s) }
+.sp-stat__num   { font-size: 22px; font-weight: 600; font-family: var(--mono); line-height: 1 }
+.sp-stat__label { font-size: 11px; color: var(--text2); margin-top: 3px; text-transform: uppercase; letter-spacing: .5px }
+
+/* ── TABLE CARD ── */
+.sp-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-lg); overflow: hidden; box-shadow: var(--shadow) }
+.sp-table { width: 100%; border-collapse: collapse; font-size: 13.5px }
+.sp-table thead { background: var(--bg) }
+.sp-table th { padding: 11px 16px; text-align: left; font-size: 11px; font-weight: 600; color: var(--text2); text-transform: uppercase; letter-spacing: .5px; border-bottom: 1px solid var(--border) }
+.sp-table td { padding: 14px 16px; border-bottom: 1px solid var(--border2) }
+.sp-row:last-child td { border-bottom: none }
+.sp-row { transition: background .12s }
+.sp-row:hover { background: var(--bg) }
+.sp-row--off { opacity: .5 }
+
+/* Provider cell */
+.sp-provider { display: flex; align-items: center; gap: 10px }
+.sp-avatar {
+  width: 34px; height: 34px; border-radius: var(--r); background: var(--bg);
+  border: 1px solid var(--border); display: flex; align-items: center; justify-content: center;
+  font-weight: 600; font-size: 13px; color: var(--text2); overflow: hidden; flex-shrink: 0;
+}
+.sp-avatar img { width: 100%; height: 100%; object-fit: cover }
+.sp-name { font-weight: 500; font-size: 13.5px }
+.sp-desc { font-size: 11.5px; color: var(--text3); margin-top: 1px }
+.sp-code { font-family: var(--mono); font-size: 12px; background: var(--bg); border: 1px solid var(--border); padding: 2px 7px; border-radius: 4px; color: var(--text2) }
+
+/* Toggle */
+.sp-toggle { display: inline-flex; align-items: center; gap: 6px; border: none; cursor: pointer; padding: 4px 10px 4px 6px; border-radius: 20px; font-size: 11.5px; font-weight: 500; font-family: var(--font); transition: all .15s; background: var(--red-s); color: var(--red) }
+.sp-toggle--on { background: var(--green-s); color: var(--green) }
+.sp-dot { width: 8px; height: 8px; border-radius: 50%; background: currentColor; flex-shrink: 0 }
+
+/* Action buttons */
+.sp-actions { display: flex; gap: 4px; justify-content: flex-end }
+.btn-icon { width: 30px; height: 30px; border: 1px solid var(--border); border-radius: var(--r); background: var(--surface); cursor: pointer; display: inline-flex; align-items: center; justify-content: center; color: var(--text2); transition: all .12s }
+.btn-icon:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-s) }
+.btn-icon--del:hover { border-color: var(--red); color: var(--red); background: var(--red-s) }
+
+/* Empty */
+.sp-empty { text-align: center; padding: 40px !important; color: var(--text3); font-size: 13px }
+.sp-empty a { color: var(--accent); text-decoration: none }
+
+/* ── BUTTONS ── */
+.btn-primary { display: inline-flex; align-items: center; gap: 6px; background: var(--ink); color: #fff; border: none; border-radius: var(--r); padding: 8px 16px; font-size: 13px; font-weight: 500; font-family: var(--font); cursor: pointer; transition: opacity .15s }
+.btn-primary:hover { opacity: .85 }
+.btn-ghost { background: var(--surface); border: 1px solid var(--border); color: var(--text); border-radius: var(--r); padding: 8px 16px; font-size: 13px; font-weight: 500; font-family: var(--font); cursor: pointer; transition: border-color .12s }
+.btn-ghost:hover { border-color: var(--text2) }
+
+/* ── MODAL ── */
+.sp-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.3); backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center; z-index: 1000; opacity: 0; pointer-events: none; transition: opacity .2s }
+.sp-overlay.show { opacity: 1; pointer-events: all }
+.sp-modal { background: var(--surface); border-radius: var(--r-lg); box-shadow: var(--shadow-md); width: 480px; max-width: calc(100vw - 32px); transform: translateY(8px) scale(.98); transition: transform .2s; border: 1px solid var(--border) }
+.sp-overlay.show .sp-modal { transform: none }
+.sp-modal--wide { width: 560px }
+.sp-modal__head { display: flex; align-items: center; justify-content: space-between; padding: 18px 20px; border-bottom: 1px solid var(--border2) }
+.sp-modal__title { font-size: 15px; font-weight: 600 }
+.sp-modal__close { background: none; border: none; cursor: pointer; font-size: 18px; color: var(--text3); line-height: 1; padding: 2px 6px; border-radius: 4px }
+.sp-modal__close:hover { background: var(--bg); color: var(--text) }
+.sp-modal__body { padding: 20px }
+.sp-modal__foot { display: flex; gap: 8px; justify-content: flex-end; padding: 16px 20px; border-top: 1px solid var(--border2) }
+
+/* Form */
+.sp-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px }
+.sp-field { display: flex; flex-direction: column; gap: 5px }
+.sp-field--full { grid-column: 1 / -1 }
+.sp-field label { font-size: 12px; font-weight: 500; color: var(--text2) }
+.sp-field label .req { color: var(--red) }
+.sp-field input, .sp-field textarea { border: 1px solid var(--border); border-radius: var(--r); padding: 8px 11px; font-size: 13px; font-family: var(--font); color: var(--text); background: var(--surface); outline: none; transition: border-color .12s }
+.sp-field input:focus, .sp-field textarea:focus { border-color: var(--accent) }
+.sp-field small { font-size: 11px; color: var(--text3) }
+.sp-check { display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 13px; color: var(--text2) }
+.sp-check input { width: 15px; height: 15px; accent-color: var(--accent); cursor: pointer }
+
+/* JSON editor */
+.sp-json { font-family: var(--mono); font-size: 12.5px; line-height: 1.6; resize: vertical; min-height: 140px; background: var(--bg) }
+.sp-json-err { font-size: 11.5px; color: var(--red); margin-top: 4px; min-height: 16px }
+.sp-hint { font-size: 12px; color: var(--text3); margin-bottom: 10px; line-height: 1.5 }
+
+/* Toast */
+.sp-toast {
+  position: fixed; bottom: 24px; right: 24px; z-index: 9999;
+  background: var(--ink); color: #fff; border-radius: var(--r-lg);
+  padding: 11px 18px; font-size: 13px; font-family: var(--font);
+  box-shadow: var(--shadow-md); transform: translateY(8px); opacity: 0;
+  transition: all .22s; pointer-events: none; display: flex; align-items: center; gap: 8px;
+}
+.sp-toast.show { transform: none; opacity: 1 }
+.sp-toast--err { background: var(--red) }
+.sp-toast--ok::before  { content: '✓'; font-weight: 700 }
+.sp-toast--err::before { content: '✕'; font-weight: 700 }
+
+@media (max-width: 600px) {
+  .sp-stats { grid-template-columns: 1fr }
+  .sp-grid  { grid-template-columns: 1fr }
+  .sp-field--full { grid-column: 1 }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="sp">
+
+  <header class="sp-head">
+    <div>
+      <h1>Đơn vị vận chuyển</h1>
+      <p>Quản lý và cấu hình các hãng vận chuyển tích hợp</p>
+    </div>
+    <button class="btn-primary" onclick="openAdd()">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      Thêm mới
+    </button>
+  </header>
+
+  <div class="sp-stats">
+    <div class="sp-stat">
+      <div class="sp-stat__icon sp-stat__icon--blue">📦</div>
+      <div><div class="sp-stat__num" id="sTotal">{{ providers|length }}</div><div class="sp-stat__label">Tổng cộng</div></div>
+    </div>
+    <div class="sp-stat">
+      <div class="sp-stat__icon sp-stat__icon--green">✅</div>
+      <div><div class="sp-stat__num" id="sActive">{{ providers|selectattr('is_active')|list|length }}</div><div class="sp-stat__label">Hoạt động</div></div>
+    </div>
+    <div class="sp-stat">
+      <div class="sp-stat__icon sp-stat__icon--red">⏸</div>
+      <div><div class="sp-stat__num" id="sOff">{{ providers|rejectattr('is_active')|list|length }}</div><div class="sp-stat__label">Tạm dừng</div></div>
+    </div>
+  </div>
+
+  <div class="sp-card">
+    <table class="sp-table">
+      <thead>
+        <tr>
+          <th style="width:44px">TT</th>
+          <th>Hãng vận chuyển</th>
+          <th>ID / Slug</th>
+          <th style="width:110px">Trạng thái</th>
+          <th style="width:130px; text-align:right">Thao tác</th>
+        </tr>
+      </thead>
+      <tbody id="tbody">
+        {% for p in providers %}
+        <tr class="sp-row{% if not p.is_active %} sp-row--off{% endif %}" data-id="{{ p.id }}">
+          <td><span style="font-family:var(--mono);font-size:12px;color:var(--text3)">{{ p.sort_order or 0 }}</span></td>
+          <td>
+            <div class="sp-provider">
+              <div class="sp-avatar">
+                {% if p.icon %}
+                  {% if p.icon.startswith('fa-') or p.icon.startswith('fas ') or p.icon.startswith('far ') %}
+                    <i class="fa-solid {{ p.icon }}" style="font-size:15px;color:var(--accent)"></i>
+                  {% elif p.icon.startswith('http') %}
+                    <img src="{{ p.icon }}" alt="">
+                  {% else %}
+                    <i class="fa-solid fa-{{ p.icon }}" style="font-size:15px;color:var(--accent)"></i>
+                  {% endif %}
+                {% else %}
+                  {{ p.name[0]|upper }}
+                {% endif %}
+              </div>
+              <div>
+                <div class="sp-name">{{ p.name }}</div>
+                {% if p.description %}<div class="sp-desc">{{ p.description }}</div>{% endif %}
+              </div>
+            </div>
+          </td>
+          <td><code class="sp-code">{{ p.id }}</code></td>
+          <td>
+            <button class="sp-toggle{% if p.is_active %} sp-toggle--on{% endif %}" onclick="doToggle('{{ p.id }}', this)">
+              <span class="sp-dot"></span>{% if p.is_active %}Bật{% else %}Tắt{% endif %}
+            </button>
+          </td>
+          <td>
+            <div class="sp-actions">
+              <button class="btn-icon" onclick="openEdit('{{ p.id }}')" title="Chỉnh sửa">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+              </button>
+              <button class="btn-icon" onclick="openConfig('{{ p.id }}')" title="Cấu hình API">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93l-1.41 1.41M4.93 4.93l1.41 1.41M12 2v2M12 20v2M2 12h2M20 12h2M19.07 19.07l-1.41-1.41M4.93 19.07l1.41-1.41"/></svg>
+              </button>
+              <button class="btn-icon btn-icon--del" onclick="doDel('{{ p.id }}','{{ p.name }}')" title="Xóa">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+              </button>
+            </div>
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="5" class="sp-empty">Chưa có hãng nào. <a href="#" onclick="openAdd()">Thêm ngay →</a></td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- MODAL: THÊM / SỬA -->
+<div class="sp-overlay" id="ovMain" onclick="if(e.target===this)closeAll()">
+  <div class="sp-modal">
+    <div class="sp-modal__head">
+      <span class="sp-modal__title" id="mTitle">Thêm đơn vị vận chuyển</span>
+      <button class="sp-modal__close" onclick="closeAll()">✕</button>
+    </div>
+    <div class="sp-modal__body">
+      <form id="mainForm" onsubmit="doSubmit(event)">
+        <input type="hidden" id="fEditId">
+        <div class="sp-grid">
+          <div class="sp-field" id="fIdWrap">
+            <label>ID / Slug <span class="req">*</span></label>
+            <input type="text" id="fId" placeholder="ghn, ghtk, j_and_t" autocomplete="off">
+            <small>Chữ thường, không dấu, không khoảng trắng</small>
+          </div>
+          <div class="sp-field">
+            <label>Tên hãng <span class="req">*</span></label>
+            <input type="text" id="fName" placeholder="Giao Hàng Nhanh">
+          </div>
+          <div class="sp-field sp-field--full">
+            <label>Mô tả</label>
+            <input type="text" id="fDesc" placeholder="Mô tả ngắn...">
+          </div>
+          <div class="sp-field">
+            <label>Icon URL</label>
+            <input type="text" id="fIcon" placeholder="https://...">
+          </div>
+          <div class="sp-field">
+            <label>Thứ tự hiển thị</label>
+            <input type="number" id="fSort" value="0" min="0">
+          </div>
+          <div class="sp-field sp-field--full">
+            <label class="sp-check">
+              <input type="checkbox" id="fActive">
+              Kích hoạt ngay sau khi tạo
+            </label>
+          </div>
+        </div>
+        <div class="sp-modal__foot" style="padding:16px 0 0;border-top:none">
+          <button type="button" class="btn-ghost" onclick="closeAll()">Hủy</button>
+          <button type="submit" class="btn-primary" id="btnOk">Tạo mới</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: CẤU HÌNH API -->
+<div class="sp-overlay" id="ovConfig" onclick="if(e.target===this)closeAll()">
+  <div class="sp-modal sp-modal--wide">
+    <div class="sp-modal__head">
+      <span class="sp-modal__title">Cấu hình API — <span id="cfgName"></span></span>
+      <button class="sp-modal__close" onclick="closeAll()">✕</button>
+    </div>
+    <div class="sp-modal__body">
+      <p class="sp-hint">Lưu API key, token, shop ID vào trường <code>config</code> (JSON).</p>
+      <div class="sp-field">
+        <textarea id="cfgJson" class="sp-json" rows="10" spellcheck="false"></textarea>
+        <div id="cfgErr" class="sp-json-err"></div>
+      </div>
+    </div>
+    <div class="sp-modal__foot">
+      <button type="button" class="btn-ghost" onclick="closeAll()">Hủy</button>
+      <button type="button" class="btn-primary" onclick="saveConfig()">Lưu cấu hình</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast" class="sp-toast"></div>
+
+<script>
+const BASE = '/admin/shipping/providers/api';
+let cfgId = null;
+
+const $  = id => document.getElementById(id);
+
+// ── CSRF: lấy token từ meta tag (Flask-WTF inject sẵn) ──
+const getCsrf = () => document.querySelector('meta[name="csrf-token"]')?.content || '';
+
+// ── api helper: tự động đính kèm CSRF cho mọi request ──
+const api = (url, opt={}) => {
+  const headers = { 'Content-Type': 'application/json', 'X-CSRFToken': getCsrf(), ...opt.headers };
+  return fetch(url, { ...opt, headers }).then(r => r.json());
+};
+
+const toast = (msg, ok=true) => {
+  const el = $('toast');
+  el.textContent = msg;
+  el.className = `sp-toast show sp-toast--${ok?'ok':'err'}`;
+  setTimeout(()=>el.classList.remove('show'), 3000);
+};
+
+const closeAll = () => document.querySelectorAll('.sp-overlay').forEach(o=>o.classList.remove('show'));
+const openOv   = id => $(id).classList.add('show');
+
+// ── Stats refresh ──
+const refreshStats = () => {
+  const rows = document.querySelectorAll('#tbody tr[data-id]');
+  const on   = document.querySelectorAll('#tbody tr[data-id]:not(.sp-row--off)').length;
+  $('sTotal').textContent = rows.length;
+  $('sActive').textContent = on;
+  $('sOff').textContent = rows.length - on;
+};
+
+// ── Add ──
+const openAdd = () => {
+  $('mTitle').textContent = 'Thêm đơn vị vận chuyển';
+  $('btnOk').textContent  = 'Tạo mới';
+  $('fEditId').value = '';
+  $('mainForm').reset();
+  $('fIdWrap').style.display = '';
+  openOv('ovMain');
+  $('fId').focus();
+};
+
+// ── Edit ──
+const openEdit = async id => {
+  const d = await api(`${BASE}/${id}`);
+  if (!d.id) return toast('Không tải được dữ liệu', false);
+  $('mTitle').textContent = 'Chỉnh sửa hãng vận chuyển';
+  $('btnOk').textContent  = 'Lưu thay đổi';
+  $('fEditId').value      = id;
+  $('fIdWrap').style.display = 'none';
+  $('fId').value    = d.id;
+  $('fName').value  = d.name || '';
+  $('fDesc').value  = d.description || '';
+  $('fIcon').value  = d.icon || '';
+  $('fSort').value  = d.sort_order ?? 0;
+  $('fActive').checked = !!d.is_active;
+  openOv('ovMain');
+  $('fName').focus();
+};
+
+// ── Submit ──
+const doSubmit = async e => {
+  e.preventDefault();
+  const editId = $('fEditId').value.trim();
+  const body = {
+    id:          $('fId').value.trim(),
+    name:        $('fName').value.trim(),
+    description: $('fDesc').value.trim(),
+    icon:        $('fIcon').value.trim(),
+    sort_order:  parseInt($('fSort').value) || 0,
+    is_active:   $('fActive').checked,
+  };
+  const res = await api(editId ? `${BASE}/${editId}` : BASE, {
+    method: editId ? 'PUT' : 'POST',
+    body: JSON.stringify(body)
+  });
+  if (!res.success) return toast(res.message || 'Lỗi hệ thống', false);
+  toast(editId ? 'Đã cập nhật!' : 'Tạo mới thành công!');
+  closeAll();
+  setTimeout(()=>location.reload(), 700);
+};
+
+// ── Toggle ──
+const doToggle = async (id, btn) => {
+  const res = await api(`${BASE}/${id}/toggle`, { method:'PATCH' });
+  if (!res.success) return toast('Cập nhật thất bại', false);
+  const on = res.data.is_active;
+  btn.classList.toggle('sp-toggle--on', on);
+  btn.textContent = '';
+  const dot = document.createElement('span'); dot.className='sp-dot'; btn.appendChild(dot);
+  btn.append(on ? 'Bật' : 'Tắt');
+  btn.closest('tr').classList.toggle('sp-row--off', !on);
+  refreshStats();
+  toast(`Đã ${on?'kích hoạt':'tạm dừng'} hãng vận chuyển.`);
+};
+
+// ── Delete ──
+const doDel = async (id, name) => {
+  if (!confirm(`Xóa hãng "${name}"?\n\nHành động không thể hoàn tác.`)) return;
+  const res = await api(`${BASE}/${id}`, { method:'DELETE' });
+  if (!res.success) return toast(res.message || 'Xóa thất bại', false);
+  document.querySelector(`tr[data-id="${id}"]`)?.remove();
+  refreshStats();
+  toast(`Đã xóa "${name}".`);
+};
+
+// ── Config ──
+const openConfig = async id => {
+  const d = await api(`${BASE}/${id}`);
+  if (!d.id) return toast('Không tải được dữ liệu', false);
+  cfgId = id;
+  $('cfgName').textContent = d.name;
+  $('cfgJson').value = JSON.stringify(d.config || {}, null, 2);
+  $('cfgErr').textContent = '';
+  openOv('ovConfig');
+  $('cfgJson').focus();
+};
+
+const saveConfig = async () => {
+  let parsed;
+  try { parsed = JSON.parse($('cfgJson').value) }
+  catch { $('cfgErr').textContent = '⚠ JSON không hợp lệ.'; return }
+  const res = await api(`${BASE}/${cfgId}`, { method:'PUT', body:JSON.stringify({config:parsed}) });
+  if (!res.success) return toast('Lưu thất bại', false);
+  toast('Đã lưu cấu hình!');
+  closeAll();
+};
+
+$('cfgJson')?.addEventListener('input', function() {
+  try { JSON.parse(this.value); $('cfgErr').textContent='' }
+  catch { $('cfgErr').textContent='⚠ JSON chưa hợp lệ...' }
+});
+</script>
+{% endblock %}

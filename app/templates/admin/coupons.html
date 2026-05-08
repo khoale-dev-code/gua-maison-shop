@@ -1,0 +1,375 @@
+{% extends "admin/admin_base.html" %}
+{% block title %}Khuyến mãi | GUA Admin{% endblock %}
+
+{% block content %}
+<div class="ac-page">
+
+  {# ── HEADER ── #}
+  <div class="ac-topbar">
+    <div class="ac-topbar-inner">
+      <div class="ac-topbar-left">
+        <div class="ac-icon-wrap"><i class="fa-solid fa-tag"></i></div>
+        <div>
+          <h1 class="ac-heading">Mã Khuyến Mãi</h1>
+          <p class="ac-subheading">
+            {{ total }} chương trình &middot;
+            <span class="ac-active-count">{{ coupons | selectattr('is_active') | list | length }} đang bật</span>
+          </p>
+        </div>
+      </div>
+      <a href="{{ url_for('admin.add_coupon') }}" class="ac-btn-new">
+        <i class="fa-solid fa-plus"></i> Tạo mã mới
+      </a>
+    </div>
+  </div>
+
+  <div class="ac-body">
+
+    {# ── FILTER TABS ── #}
+    {% set f = request.args.get('filter', 'all') %}
+    <div class="ac-filters">
+      {% for key, label in [('all','Tất cả'),('active','Đang chạy'),('expired','Hết hạn'),('percent','Theo %'),('fixed','Số tiền')] %}
+      <a href="?filter={{ key }}&page=1" class="ac-tab {% if f == key %}ac-tab--active{% endif %}">{{ label }}</a>
+      {% endfor %}
+    </div>
+
+    {# ── TABLE ── #}
+    <div class="ac-table-wrap">
+      <div class="ac-table-scroll">
+        <table class="ac-table">
+          <thead>
+            <tr class="ac-thead-row">
+              <th class="ac-th">Mã / Mô tả</th>
+              <th class="ac-th">Giảm giá</th>
+              <th class="ac-th">Phạm vi</th>
+              <th class="ac-th">Điều kiện</th>
+              <th class="ac-th ac-th--center">Lượt dùng</th>
+              <th class="ac-th ac-th--center">Hạn dùng</th>
+              <th class="ac-th ac-th--center">Trạng thái</th>
+              <th class="ac-th ac-th--center">Thao tác</th>
+            </tr>
+          </thead>
+          <tbody>
+
+            {% for c in coupons %}
+            {% set is_expired = c.expires_at is not none and c.expires_at < now %}
+            {% set is_on      = c.is_active and not is_expired %}
+            {% set used       = c.used_count | default(0) %}
+            {% set pct        = ((used / c.usage_limit) * 100) | int if c.usage_limit else 0 %}
+
+            <tr class="ac-row">
+
+              {# Mã + mô tả #}
+              <td class="ac-td">
+                <button onclick="copyCode('{{ c.code }}')" class="ac-code-btn" title="Click để sao chép">
+                  {{ c.code }} <i class="fa-regular fa-copy ac-copy-icon"></i>
+                </button>
+                {% if c.description %}
+                <p class="ac-desc">{{ c.description }}</p>
+                {% endif %}
+              </td>
+
+              {# Giảm giá #}
+              <td class="ac-td">
+                {% if c.discount_type == 'percent' %}
+                  <span class="ac-discount ac-discount--pct">{{ c.discount_value | int }}%</span>
+                  {% if c.max_discount %}
+                  <p class="ac-hint">Tối đa {{ '{:,.0f}'.format(c.max_discount) }}₫</p>
+                  {% endif %}
+                {% elif c.discount_type == 'fixed' %}
+                  <span class="ac-discount ac-discount--fixed">{{ '{:,.0f}'.format(c.discount_value) }}₫</span>
+                  <p class="ac-hint">Cố định</p>
+                {% elif c.discount_type == 'free_shipping' %}
+                  <span class="ac-discount ac-discount--ship"><i class="fa-solid fa-truck-fast"></i> Miễn ship</span>
+                {% endif %}
+              </td>
+
+              {# Phạm vi #}
+              <td class="ac-td">
+                {% set scope = c.scope | default('all') %}
+                {% if scope == 'category' %}
+                  <span class="ac-badge ac-badge--blue"><i class="fa-solid fa-layer-group"></i> Danh mục</span>
+                {% elif scope == 'product' %}
+                  <span class="ac-badge ac-badge--purple"><i class="fa-solid fa-box"></i> Sản phẩm</span>
+                {% else %}
+                  <span class="ac-badge ac-badge--gray"><i class="fa-solid fa-globe"></i> Tất cả</span>
+                {% endif %}
+              </td>
+
+              {# Điều kiện #}
+              <td class="ac-td ac-td--cond">
+                {% if c.min_order_value and c.min_order_value > 0 %}
+                  <div><i class="fa-solid fa-cart-shopping ac-cond-icon"></i>Đơn từ {{ '{:,.0f}'.format(c.min_order_value) }}₫</div>
+                {% endif %}
+                {% if c.usage_per_user %}
+                  <div class="mt-1"><i class="fa-solid fa-user ac-cond-icon"></i>{{ c.usage_per_user }} lần/khách</div>
+                {% endif %}
+                {% if not c.min_order_value and not c.usage_per_user %}
+                  <span class="ac-no-cond">Không điều kiện</span>
+                {% endif %}
+              </td>
+
+              {# Lượt dùng #}
+              <td class="ac-td ac-td--center">
+                <span class="ac-used-count">{{ used }}</span>
+                {% if c.usage_limit %}
+                  <span class="ac-hint">/ {{ c.usage_limit }}</span>
+                  <div class="ac-bar-track">
+                    <div class="ac-bar-fill {% if pct >= 90 %}ac-bar--red{% elif pct >= 60 %}ac-bar--amber{% else %}ac-bar--green{% endif %}"
+                         style="width: {{ [pct, 100] | min }}%"></div>
+                  </div>
+                {% else %}
+                  <span class="ac-hint">∞</span>
+                {% endif %}
+                <a href="{{ url_for('admin.coupon_usages', coupon_id=c.id) }}" class="ac-history-link">lịch sử</a>
+              </td>
+
+              {# Hạn dùng #}
+              <td class="ac-td ac-td--center">
+                {% if c.expires_at %}
+                  <span class="ac-expiry {% if is_expired %}ac-expiry--expired{% endif %}">{{ c.expires_at[:10] }}</span>
+                  {% if is_expired %}
+                    <p class="ac-badge-expired">Hết hạn</p>
+                  {% else %}
+                    <p class="ac-countdown" data-exp="{{ c.expires_at }}"></p>
+                  {% endif %}
+                {% else %}
+                  <span class="ac-hint ac-hint--italic">Vĩnh viễn</span>
+                {% endif %}
+              </td>
+
+              {# Toggle trạng thái #}
+              <td class="ac-td ac-td--center">
+                {% if is_expired %}
+                  <span class="ac-badge ac-badge--red"><span class="ac-dot ac-dot--red"></span> Hết hạn</span>
+                {% else %}
+                  <form action="{{ url_for('admin.toggle_coupon', coupon_id=c.id) }}" method="POST">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit" class="ac-toggle {% if is_on %}ac-toggle--on{% endif %}"
+                            title="{{ 'Đang bật – Click để tắt' if is_on else 'Đang tắt – Click để bật' }}">
+                      <span class="ac-toggle-knob {% if is_on %}ac-toggle-knob--on{% endif %}"></span>
+                    </button>
+                  </form>
+                  <p class="ac-toggle-label {% if is_on %}ac-toggle-label--on{% endif %}">{{ 'Bật' if is_on else 'Tắt' }}</p>
+                {% endif %}
+              </td>
+
+              {# Thao tác #}
+              <td class="ac-td ac-td--center">
+                <div class="ac-actions">
+                  <a href="{{ url_for('admin.edit_coupon', coupon_id=c.id) }}" class="ac-action-btn" title="Chỉnh sửa">
+                    <i class="fa-solid fa-pen"></i>
+                  </a>
+                  <form action="{{ url_for('admin.delete_coupon', coupon_id=c.id) }}" method="POST"
+                        onsubmit="return confirm('Xóa vĩnh viễn mã {{ c.code }}?')">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit" class="ac-action-btn ac-action-btn--danger" title="Xóa">
+                      <i class="fa-solid fa-trash"></i>
+                    </button>
+                  </form>
+                </div>
+              </td>
+
+            </tr>
+
+            {% else %}
+            <tr>
+              <td colspan="8" class="ac-empty">
+                <div class="ac-empty-icon"><i class="fa-solid fa-tag"></i></div>
+                <p class="ac-empty-title">Chưa có mã nào</p>
+                <p class="ac-empty-sub">Tạo chương trình khuyến mãi đầu tiên.</p>
+                <a href="{{ url_for('admin.add_coupon') }}" class="ac-btn-new">
+                  <i class="fa-solid fa-plus"></i> Tạo mã ngay
+                </a>
+              </td>
+            </tr>
+            {% endfor %}
+
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    {# ── PHÂN TRANG ── #}
+    {% if total_pages > 1 %}
+    <div class="ac-pagination">
+      {% if page > 1 %}
+        <a href="?filter={{ f }}&page={{ page - 1 }}" class="ac-page-btn">
+          <i class="fa-solid fa-chevron-left"></i>
+        </a>
+      {% endif %}
+
+      {% for p in range(1, total_pages + 1) %}
+        {% if p == 1 or p == total_pages or (p >= page - 2 and p <= page + 2) %}
+          <a href="?filter={{ f }}&page={{ p }}" class="ac-page-btn {% if p == page %}ac-page-btn--active{% endif %}">{{ p }}</a>
+        {% elif p == page - 3 or p == page + 3 %}
+          <span class="ac-page-ellipsis">…</span>
+        {% endif %}
+      {% endfor %}
+
+      {% if page < total_pages %}
+        <a href="?filter={{ f }}&page={{ page + 1 }}" class="ac-page-btn">
+          <i class="fa-solid fa-chevron-right"></i>
+        </a>
+      {% endif %}
+    </div>
+    {% endif %}
+
+  </div>
+</div>
+
+{# ── TOAST ── #}
+<div id="toast" class="ac-toast">
+  <i class="fa-solid fa-check ac-toast-icon"></i>
+  <span id="toast-text"></span>
+</div>
+
+{# ══════════════════════════════ STYLES ══════════════════════════════ #}
+<style>
+/* Variables */
+:root {
+  --ink:     #1c1c1a;
+  --muted:   #78716c;
+  --line:    #e7e5e4;
+  --surface: #fafaf9;
+  --white:   #ffffff;
+  --green:   #059669;
+  --amber:   #d97706;
+  --red:     #dc2626;
+  --blue:    #2563eb;
+  --purple:  #7c3aed;
+  --r-card:  1rem;
+  --r-btn:   .625rem;
+}
+
+/* Layout */
+.ac-page        { min-height: 100vh; background: var(--surface); padding-bottom: 4rem; }
+.ac-topbar      { background: var(--white); border-bottom: 1px solid var(--line); position: sticky; top: 0; z-index: 40; box-shadow: 0 1px 4px rgba(0,0,0,.05); }
+.ac-topbar-inner{ max-width: 1280px; margin: 0 auto; padding: 1rem 1.5rem; display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+.ac-topbar-left { display: flex; align-items: center; gap: .75rem; }
+.ac-body        { max-width: 1280px; margin: 0 auto; padding: 1.5rem; }
+
+/* Topbar elements */
+.ac-icon-wrap    { width: 2.5rem; height: 2.5rem; background: var(--ink); color: var(--white); border-radius: .75rem; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.ac-heading      { font-size: 1.125rem; font-weight: 900; color: var(--ink); line-height: 1.2; }
+.ac-subheading   { font-size: .7rem; color: var(--muted); font-weight: 500; margin-top: .1rem; }
+.ac-active-count { color: var(--green); font-weight: 700; }
+.ac-btn-new      { display: inline-flex; align-items: center; gap: .4rem; background: var(--ink); color: var(--white); padding: .6rem 1.25rem; border-radius: var(--r-btn); font-weight: 700; font-size: .8rem; text-decoration: none; transition: opacity .2s; }
+.ac-btn-new:hover { opacity: .8; }
+
+/* Filter tabs */
+.ac-filters   { display: flex; flex-wrap: wrap; gap: .5rem; margin-bottom: 1rem; }
+.ac-tab       { padding: .35rem 1rem; border-radius: 99px; font-size: .72rem; font-weight: 600; border: 1px solid var(--line); background: var(--white); color: var(--muted); text-decoration: none; transition: border-color .15s, background .15s, color .15s; }
+.ac-tab:hover        { border-color: var(--ink); color: var(--ink); }
+.ac-tab--active      { background: var(--ink); color: var(--white); border-color: var(--ink); }
+
+/* Table */
+.ac-table-wrap   { background: var(--white); border-radius: var(--r-card); border: 1px solid var(--line); overflow: hidden; box-shadow: 0 1px 6px rgba(0,0,0,.04); }
+.ac-table-scroll { overflow-x: auto; }
+.ac-table        { width: 100%; border-collapse: collapse; min-width: 860px; font-size: .82rem; }
+.ac-thead-row    { background: var(--surface); border-bottom: 1px solid var(--line); }
+.ac-th           { padding: .875rem 1.25rem; font-size: .65rem; font-weight: 800; text-transform: uppercase; letter-spacing: .07em; color: var(--muted); text-align: left; }
+.ac-th--center   { text-align: center; }
+.ac-row          { border-bottom: 1px solid var(--line); vertical-align: top; transition: background .15s; }
+.ac-row:last-child{ border-bottom: none; }
+.ac-row:hover    { background: rgba(0,0,0,.015); }
+.ac-td           { padding: 1rem 1.25rem; }
+.ac-td--center   { text-align: center; }
+.ac-td--cond     { font-size: .72rem; color: var(--muted); font-weight: 500; }
+
+/* Code button */
+.ac-code-btn   { font-family: monospace; font-weight: 900; font-size: .78rem; background: #fffbeb; border: 1px solid #fcd34d; color: #92400e; padding: .25rem .6rem; border-radius: .4rem; cursor: pointer; transition: background .15s; }
+.ac-code-btn:hover { background: #fef3c7; }
+.ac-copy-icon  { font-size: .65rem; opacity: .4; margin-left: .25rem; }
+.ac-desc       { font-size: .68rem; color: var(--muted); margin-top: .35rem; max-width: 180px; line-height: 1.4; }
+
+/* Discount */
+.ac-discount        { font-weight: 900; }
+.ac-discount--pct   { font-size: 1.1rem; color: var(--green); }
+.ac-discount--fixed { font-size: .9rem; color: var(--ink); }
+.ac-discount--ship  { font-size: .8rem; color: var(--blue); }
+.ac-hint            { font-size: .68rem; color: var(--muted); margin-top: .2rem; }
+.ac-hint--italic    { font-style: italic; }
+
+/* Badges */
+.ac-badge        { display: inline-flex; align-items: center; gap: .3rem; padding: .2rem .6rem; border-radius: .4rem; font-size: .68rem; font-weight: 700; }
+.ac-badge--blue  { background: #eff6ff; color: var(--blue); border: 1px solid #bfdbfe; }
+.ac-badge--purple{ background: #f5f3ff; color: var(--purple); border: 1px solid #ddd6fe; }
+.ac-badge--gray  { background: var(--surface); color: var(--muted); border: 1px solid var(--line); }
+.ac-badge--red   { background: #fef2f2; color: var(--red); border: 1px solid #fecaca; font-size: .68rem; padding: .2rem .6rem; border-radius: 99px; }
+.ac-dot          { width: .4rem; height: .4rem; border-radius: 50%; display: inline-block; }
+.ac-dot--red     { background: var(--red); }
+.ac-cond-icon    { color: var(--line); margin-right: .3rem; width: .875rem; }
+.ac-no-cond      { font-style: italic; font-size: .68rem; color: #d1cdc8; }
+
+/* Usage bar */
+.ac-used-count  { display: block; font-weight: 900; font-size: 1rem; color: var(--ink); line-height: 1; }
+.ac-bar-track   { width: 3.5rem; height: .35rem; background: var(--line); border-radius: 99px; overflow: hidden; margin: .35rem auto; }
+.ac-bar-fill    { height: 100%; border-radius: 99px; transition: width .3s; }
+.ac-bar--green  { background: var(--green); }
+.ac-bar--amber  { background: var(--amber); }
+.ac-bar--red    { background: var(--red); }
+.ac-history-link{ display: block; font-size: .65rem; color: #d1cdc8; text-decoration: underline; text-underline-offset: 2px; margin-top: .25rem; transition: color .15s; }
+.ac-history-link:hover { color: var(--ink); }
+
+/* Expiry */
+.ac-expiry          { font-size: .75rem; font-weight: 600; color: var(--ink); }
+.ac-expiry--expired { color: var(--red); }
+.ac-badge-expired   { font-size: .62rem; font-weight: 800; text-transform: uppercase; letter-spacing: .06em; color: var(--red); margin-top: .2rem; }
+.ac-countdown       { font-size: .65rem; color: var(--muted); margin-top: .2rem; }
+
+/* Toggle switch — NO arbitrary values, pure CSS */
+.ac-toggle         { position: relative; width: 2.75rem; height: 1.5rem; border-radius: 99px; border: none; cursor: pointer; background: var(--line); transition: background .2s; }
+.ac-toggle--on     { background: var(--green); }
+.ac-toggle-knob    { position: absolute; top: .2rem; left: .2rem; width: 1.1rem; height: 1.1rem; background: var(--white); border-radius: 50%; box-shadow: 0 1px 3px rgba(0,0,0,.2); transition: left .2s; }
+.ac-toggle-knob--on{ left: 1.45rem; }  /* FIX: replaces left-[22px] arbitrary Tailwind value */
+.ac-toggle-label   { font-size: .65rem; font-weight: 700; margin-top: .3rem; color: var(--muted); }
+.ac-toggle-label--on { color: var(--green); }
+
+/* Action buttons */
+.ac-actions        { display: inline-flex; align-items: center; gap: .35rem; }
+.ac-action-btn     { width: 2rem; height: 2rem; display: flex; align-items: center; justify-content: center; border: 1px solid var(--line); border-radius: .5rem; color: var(--muted); background: var(--white); cursor: pointer; font-size: .68rem; text-decoration: none; transition: border-color .15s, background .15s, color .15s; }
+.ac-action-btn:hover        { border-color: var(--ink); background: var(--ink); color: var(--white); }
+.ac-action-btn--danger:hover{ border-color: var(--red); background: var(--red); color: var(--white); }
+
+/* Empty state */
+.ac-empty       { padding: 5rem 1rem; text-align: center; }
+.ac-empty-icon  { width: 4rem; height: 4rem; background: var(--surface); border: 2px dashed var(--line); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem; font-size: 1.25rem; color: var(--line); }
+.ac-empty-title { font-weight: 800; color: var(--ink); margin-bottom: .35rem; }
+.ac-empty-sub   { font-size: .8rem; color: var(--muted); margin-bottom: 1.25rem; }
+
+/* Pagination */
+.ac-pagination      { display: flex; justify-content: center; align-items: center; gap: .35rem; margin-top: 2rem; flex-wrap: wrap; }
+.ac-page-btn        { width: 2.25rem; height: 2.25rem; display: flex; align-items: center; justify-content: center; border: 1px solid var(--line); border-radius: .5rem; background: var(--white); color: var(--muted); font-size: .8rem; font-weight: 700; text-decoration: none; transition: border-color .15s, background .15s, color .15s; }
+.ac-page-btn:hover       { border-color: var(--ink); color: var(--ink); }
+.ac-page-btn--active     { background: var(--ink); color: var(--white); border-color: var(--ink); }
+.ac-page-ellipsis        { color: var(--line); padding: 0 .25rem; font-size: .85rem; }
+
+/* Toast */
+.ac-toast      { position: fixed; bottom: 1.5rem; left: 50%; transform: translateX(-50%) translateY(4rem); opacity: 0; background: var(--ink); color: var(--white); font-size: .8rem; font-weight: 600; padding: .75rem 1.25rem; border-radius: .75rem; box-shadow: 0 8px 24px rgba(0,0,0,.2); z-index: 9999; display: flex; align-items: center; gap: .5rem; pointer-events: none; transition: transform .3s, opacity .3s; }
+.ac-toast.ac-toast--show { transform: translateX(-50%) translateY(0); opacity: 1; }
+.ac-toast-icon { color: #6ee7b7; }
+</style>
+
+{# ══════════════════════════════ SCRIPTS ══════════════════════════════ #}
+<script>
+function copyCode(code) {
+  navigator.clipboard.writeText(code).then(() => showToast('Đã sao chép: ' + code));
+}
+
+function showToast(msg) {
+  const toast = document.getElementById('toast');
+  document.getElementById('toast-text').textContent = msg;
+  toast.classList.add('ac-toast--show');
+  setTimeout(() => toast.classList.remove('ac-toast--show'), 2200);
+}
+
+// Countdown cho các mã sắp hết hạn
+document.querySelectorAll('.ac-countdown[data-exp]').forEach(el => {
+  const days = Math.ceil((new Date(el.dataset.exp) - Date.now()) / 86_400_000);
+  if (days <= 0) return;
+  el.textContent = `Còn ${days} ngày`;
+  if (days <= 3) el.style.cssText = 'color: #d97706; font-weight: 700;';
+});
+</script>
+{% endblock %}

@@ -1,19 +1,20 @@
 <!DOCTYPE html>
-<html lang="vi" class="scroll-smooth">
+<html lang="vi">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="GUA — Thời trang kiến trúc Sport-Luxe 2026">
+  <meta name="description" content="{{ system_settings.general.shop_name or 'GUA Maison' }} — Thương hiệu thời trang Sport-Luxe 2026">
+  
+  <script src="https://unpkg.com/@studio-freight/lenis@1.0.34/dist/lenis.min.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   
   <meta name="csrf-token" content="{{ csrf_token() }}">
-  
-  <title>{% block title %}GUA Maison{% endblock %}</title>
-
+  <title>{% block title %}{{ system_settings.general.shop_name or 'GUA Maison' }}{% endblock %}</title>
   <link rel="icon" type="image/png" href="{{ url_for('static', filename='images/favicon.png') }}">
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;700;900&display=swap" rel="stylesheet">
 
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
@@ -21,8 +22,7 @@
       theme: {
         extend: {
           fontFamily: {
-            sans: ['DM Sans', 'sans-serif'],
-            mono: ['ui-monospace', 'SFMono-Regular', 'Menlo', 'Monaco', 'Consolas', 'monospace']
+            sans: ['Inter', 'sans-serif'],
           }
         }
       }
@@ -32,247 +32,254 @@
   <style>
     body {
       -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
       text-rendering: optimizeLegibility;
     }
+    
+    /* =========================================
+       LENIS CORE CSS (CUỘN MƯỢT)
+       ========================================= */
+    html.lenis, html.lenis body { height: auto; }
+    .lenis.lenis-smooth { scroll-behavior: auto !important; }
+    .lenis.lenis-smooth [data-lenis-prevent] { overscroll-behavior: contain; }
+    .lenis.lenis-stopped { overflow: hidden; }
 
-    /* Scroll reveal */
+    /* Minimalist Scrollbar & Reveal */
+    ::-webkit-scrollbar { width: 0px; height: 0px; display: none; }
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
     .reveal {
       opacity: 0;
-      transform: translateY(28px);
-      transition: opacity 0.7s ease, transform 0.7s ease;
+      transform: translateY(20px);
+      transition: all 1s cubic-bezier(0.16, 1, 0.3, 1);
+      will-change: transform, opacity;
     }
     .reveal.active {
       opacity: 1;
       transform: translateY(0);
     }
 
-    /* Scrollbar tối giản */
-    ::-webkit-scrollbar { width: 6px; }
-    ::-webkit-scrollbar-track { background: #f5f5f4; }
-    ::-webkit-scrollbar-thumb { background: #a8a29e; border-radius: 3px; }
-    ::-webkit-scrollbar-thumb:hover { background: #57534e; }
-
-    /* Ẩn spinner input number */
+    /* Forms */
     input[type=number]::-webkit-inner-spin-button,
     input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
     input[type=number] { -moz-appearance: textfield; }
 
-    /* Scrollbar ngang ẩn cho category tab */
-    .no-scrollbar::-webkit-scrollbar { display: none; }
-    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    /* Top Bar Animation (Static for SKIMS style) */
+    .top-bar {
+      background: #f4f2f0;
+      color: #000;
+      font-size: 0.65rem;
+      font-weight: 500;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      text-align: center;
+      padding: 0.5rem;
+    }
   </style>
 
   {% block extra_head %}{% endblock %}
 </head>
 
-<body class="bg-white text-stone-900 flex flex-col min-h-screen">
+<body class="bg-white text-black flex flex-col min-h-screen selection:bg-black selection:text-white">
 
-  {# ══════════════════════════════
-      GỌI NAVBAR TỪ PARTIALS
-     ══════════════════════════════ #}
-  {% include 'partials/navbar.html' %}
+  {# TOP BAR THÔNG BÁO TỪ SYSTEM SETTINGS #}
+  {% if system_settings.storefront.topbar_active == 'true' and system_settings.storefront.topbar_text %}
+  <div class="top-bar">
+    {{ system_settings.storefront.topbar_text }}
+  </div>
+  {% endif %}
 
-  {# Flash messages #}
-  {% include 'flash.html' %}
+  {% include 'partials/navbar.html' ignore missing %}
+  {% include 'flash.html' ignore missing %}
 
-  {# Nội dung trang chính #}
-  <main class="flex-1">
+  <main class="flex-1 w-full relative">
     {% block content %}{% endblock %}
   </main>
 
-  {# ══════════════════════════════
-      FOOTER
-     ══════════════════════════════ #}
-  <footer class="bg-white border-t border-stone-100" aria-label="Footer">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14">
-
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10 mb-12">
-        {# Giới thiệu thương hiệu #}
-        <div class="space-y-4">
-          <a href="/" class="text-xl font-bold tracking-tight text-stone-900">GUA</a>
-          <p class="text-sm text-stone-500 leading-relaxed max-w-xs">
-            Thương hiệu thời trang Sport-Luxe với triết lý kiến trúc — nơi thiết kế gặp gỡ kỹ thuật.
-          </p>
-        </div>
-
-        {# Dịch vụ khách hàng #}
-        <div>
-          <h3 class="text-xs font-semibold uppercase tracking-wider text-stone-400 mb-4">Hỗ trợ</h3>
-          <ul class="space-y-3">
-            <li><a href="#" class="text-sm font-medium text-stone-600 hover:text-stone-900 transition-colors">Vận chuyển & đổi trả</a></li>
-            <li><a href="#" class="text-sm font-medium text-stone-600 hover:text-stone-900 transition-colors">Chính sách bảo hành</a></li>
-            <li><a href="#" class="text-sm font-medium text-stone-600 hover:text-stone-900 transition-colors">Liên hệ chúng tôi</a></li>
-          </ul>
-        </div>
-
-        {# Điều hướng #}
-        <div>
-          <h3 class="text-xs font-semibold uppercase tracking-wider text-stone-400 mb-4">Khám phá</h3>
-          <ul class="space-y-3">
-            <li><a href="/shop" class="text-sm font-medium text-stone-600 hover:text-stone-900 transition-colors">Cửa hàng</a></li>
-            <li><a href="#" class="text-sm font-medium text-stone-600 hover:text-stone-900 transition-colors">Câu lạc bộ thành viên</a></li>
-            <li><a href="#" class="text-sm font-medium text-stone-600 hover:text-stone-900 transition-colors">Bộ sưu tập 2026</a></li>
-          </ul>
-        </div>
-
-        {# Đăng ký nhận tin #}
-        <div>
-          <h3 class="text-xs font-semibold uppercase tracking-wider text-stone-400 mb-4">Nhận tin mới</h3>
-          <p class="text-sm text-stone-500 mb-4">Ưu đãi sớm và thông tin bộ sưu tập mới nhất.</p>
-          <form class="flex gap-2">
-            <input type="email"
-                   placeholder="Email của bạn"
-                   aria-label="Địa chỉ email"
-                   class="flex-1 min-w-0 text-sm border border-stone-200 rounded-md px-3 py-2
-                          placeholder:text-stone-400 outline-none focus:border-stone-400 transition-colors bg-stone-50/50 focus:bg-white" />
-            <button type="submit"
-                    class="bg-stone-900 text-white text-xs font-semibold px-3 py-2 rounded-md
-                           hover:bg-stone-700 transition-colors shrink-0 shadow-sm">
-              Đăng ký
+  <footer class="bg-white pt-16 pb-8 border-t border-neutral-200 mt-auto" aria-label="Footer">
+    <div class="max-w-[1400px] mx-auto px-4 md:px-8">
+      
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-12 md:gap-8 mb-16">
+        
+        <div class="md:col-span-2">
+          <h3 class="text-xs font-bold uppercase tracking-widest text-black mb-4">Đăng Ký Nhận Tin</h3>
+          <p class="text-[11px] text-neutral-500 mb-6 uppercase tracking-wider">Đăng ký để nhận thông báo về bộ sưu tập mới và quyền lợi ưu tiên.</p>
+          <form class="flex w-full max-w-sm border-b border-black pb-2">
+            <input type="email" placeholder="ĐỊA CHỈ EMAIL" required
+                   class="w-full text-xs font-medium tracking-widest uppercase border-0 px-0 py-2 placeholder:text-neutral-400 outline-none focus:ring-0 bg-transparent" />
+            <button type="submit" class="text-xs font-bold uppercase tracking-widest text-black hover:text-neutral-500 transition-colors">
+              Đăng Ký
             </button>
           </form>
         </div>
+
+        <div>
+          <h3 class="text-xs font-bold uppercase tracking-widest text-black mb-6">Hỗ Trợ</h3>
+          <ul class="space-y-4">
+            <li><a href="#" class="text-[11px] uppercase tracking-widest text-neutral-500 hover:text-black transition-colors">Vận chuyển & Giao hàng</a></li>
+            <li><a href="#" class="text-[11px] uppercase tracking-widest text-neutral-500 hover:text-black transition-colors">Đổi trả & Hoàn tiền</a></li>
+            <li><a href="#" class="text-[11px] uppercase tracking-widest text-neutral-500 hover:text-black transition-colors">Chính sách bảo mật</a></li>
+            <li><a href="#" class="text-[11px] uppercase tracking-widest text-neutral-500 hover:text-black transition-colors">Liên hệ</a></li>
+          </ul>
+        </div>
+
+        <div>
+          <h3 class="text-xs font-bold uppercase tracking-widest text-black mb-6">Về {{ system_settings.general.shop_name or 'GUA' }}</h3>
+          <ul class="space-y-4">
+            <li><a href="#" class="text-[11px] uppercase tracking-widest text-neutral-500 hover:text-black transition-colors">Câu chuyện</a></li>
+            <li><a href="#" class="text-[11px] uppercase tracking-widest text-neutral-500 hover:text-black transition-colors">Hệ thống cửa hàng</a></li>
+            <li><a href="#" class="text-[11px] uppercase tracking-widest text-neutral-500 hover:text-black transition-colors">Tuyển dụng</a></li>
+          </ul>
+        </div>
+
       </div>
 
-      {# Dưới footer #}
-      <div class="flex flex-col sm:flex-row justify-between items-center pt-8 border-t border-stone-100 gap-4">
-        <p class="text-xs font-medium text-stone-400">
-          © 2026 GUA Sport-Luxe. Hệ thống phát triển bởi Lê Trần Đăng Khoa.
+      <div class="flex flex-col md:flex-row justify-between items-center gap-4 pt-8">
+        <p class="text-[10px] uppercase tracking-[0.2em] text-neutral-400">
+          &copy; 2026 {{ system_settings.general.shop_name or 'GUA' }}. ALL RIGHTS RESERVED.
         </p>
-        <div class="flex items-center gap-6">
-          <a href="#" class="text-xs font-medium text-stone-500 hover:text-stone-900 transition-colors">Instagram</a>
-          <a href="#" class="text-xs font-medium text-stone-500 hover:text-stone-900 transition-colors">Facebook</a>
+        <div class="flex items-center gap-6 text-black">
+          <a href="#" class="hover:text-neutral-400 transition-colors"><i class="fa-brands fa-instagram"></i></a>
+          <a href="#" class="hover:text-neutral-400 transition-colors"><i class="fa-brands fa-facebook-f"></i></a>
+          <a href="#" class="hover:text-neutral-400 transition-colors"><i class="fa-brands fa-tiktok"></i></a>
         </div>
       </div>
     </div>
   </footer>
 
-  {# ══════════════════════════════
-      GUA AI CHAT ASSISTANT
-     ══════════════════════════════ #}
-  {% include 'chat.html' %}
+  {% include 'chat.html' ignore missing %}
 
-  <script>
-    // ── 1. Logic Menu Mobile ──
+  {# ========================================================= #}
+  {# TÍCH HỢP QUICK VIEW MODAL VÀO BASE ĐỂ SỬ DỤNG TOÀN TRANG #}
+  {# ========================================================= #}
+  {% include 'components/modals/_quick_view.html' ignore missing %}
+
+ <script>
+  document.addEventListener('DOMContentLoaded', () => {
+    // 1. Mobile Menu Logic
     const openBtn  = document.getElementById('openMenu');
     const closeBtn = document.getElementById('closeMenu');
     const menu     = document.getElementById('mobileMenu');
 
     if (openBtn && closeBtn && menu) {
-      openBtn.addEventListener('click', () => {
-        menu.classList.remove('invisible', 'opacity-0');
-        menu.classList.add('opacity-100');
-        openBtn.setAttribute('aria-expanded', 'true');
-        document.body.style.overflow = 'hidden';
-      });
+      const toggleMenu = (show) => {
+        if (show) {
+          menu.classList.remove('invisible', 'opacity-0');
+          menu.classList.add('opacity-100');
+          openBtn.setAttribute('aria-expanded', 'true');
+          document.body.style.overflow = 'hidden';
+        } else {
+          menu.classList.add('opacity-0');
+          openBtn.setAttribute('aria-expanded', 'false');
+          setTimeout(() => menu.classList.add('invisible'), 400);
+          document.body.style.overflow = '';
+        }
+      };
+      openBtn.addEventListener('click', () => toggleMenu(true));
+      closeBtn.addEventListener('click', () => toggleMenu(false));
+    }
 
-      closeBtn.addEventListener('click', () => {
-        menu.classList.add('opacity-0');
-        openBtn.setAttribute('aria-expanded', 'false');
-        setTimeout(() => menu.classList.add('invisible'), 400);
-        document.body.style.overflow = '';
-      });
-
-      document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape' && !menu.classList.contains('invisible')) {
-          closeBtn.click();
+    // 2. Minimalist Scroll Reveal
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('active');
+          observer.unobserve(entry.target);
         }
       });
-    }
+    }, { threshold: 0.1 });
+    document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+  });
 
-    // ── 2. Scroll reveal ──
-    document.addEventListener('DOMContentLoaded', () => {
-      const observer = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-          if (entry.isIntersecting) {
-            entry.target.classList.add('active');
-            observer.unobserve(entry.target);
-          }
+  // ================================
+  // CSRF & TRACKING HELPER
+  // ================================
+  function getCSRFToken() { return document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''; }
+  function trackEvent(data) {
+    return fetch('/api/analytics/track', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCSRFToken() },
+      body: JSON.stringify(data)
+    }).catch(() => {});
+  }
+
+  // ================================
+  // TOAST NOTIFICATION SẠCH HƠN
+  // ================================
+  let toastContainer = null;
+  function showToast(message, isRemoved = false) {
+    if (!toastContainer) {
+      toastContainer = document.createElement('div');
+      toastContainer.className = 'fixed bottom-8 left-1/2 -translate-x-1/2 z-[9999] flex flex-col gap-2 pointer-events-none';
+      document.body.appendChild(toastContainer);
+    }
+    const toast = document.createElement('div');
+    toast.className = 'bg-white text-black px-6 py-3 flex items-center justify-center gap-3 text-[10px] font-bold uppercase tracking-widest shadow-lg border border-neutral-200 transition-all duration-300 transform translate-y-4 opacity-0 pointer-events-auto';
+
+    toast.innerHTML = `<span>${message}</span>`;
+    toastContainer.appendChild(toast);
+
+    requestAnimationFrame(() => toast.classList.remove('translate-y-4', 'opacity-0'));
+
+    setTimeout(() => {
+      toast.classList.add('opacity-0', 'translate-y-4');
+      setTimeout(() => toast.remove(), 300);
+    }, 2500);
+  }
+
+  // ================================
+  // WISHLIST FUNCTION
+  // ================================
+  async function toggleHeart(productId, btnElement) {
+    if (window.event) window.event.preventDefault();
+    const csrfToken = getCSRFToken();
+    const icon = btnElement.querySelector('.heart-icon');
+
+    try {
+        const response = await fetch('/api/favorites/toggle', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrfToken },
+            body: JSON.stringify({ product_id: productId })
         });
-      }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+        const result = await response.json();
 
-      document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
-    });
+        if (response.status === 401) {
+            showToast("VUI LÒNG ĐĂNG NHẬP", true);
+            setTimeout(() => window.location.href = '/auth/login', 1500);
+            return;
+        }
 
-    // ── 3. HỆ THỐNG THÔNG BÁO (TOAST NOTIFICATION) ──
-    function showToast(message, isRemoved = false) {
-      // Tạo một thẻ div chứa thông báo
-      const toast = document.createElement('div');
-      
-      // Class của TailwindCSS giúp thông báo trượt mượt mà từ dưới lên
-      toast.className = 'fixed bottom-6 right-6 z-[9999] bg-stone-900 text-white px-6 py-4 rounded-2xl shadow-2xl flex items-center gap-3 text-sm font-bold tracking-wide transform translate-y-10 opacity-0 transition-all duration-500 ease-out';
-      
-      // Nếu là thêm vào thì icon màu xanh, xóa thì icon màu xám
-      const icon = isRemoved 
-        ? `<svg class="w-5 h-5 text-stone-500" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"/></svg>`
-        : `<svg class="w-5 h-5 text-emerald-400" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>`;
-
-      toast.innerHTML = `${icon} <span>${message}</span>`;
-      document.body.appendChild(toast);
-
-      // Kích hoạt hiệu ứng trượt lên
-      setTimeout(() => {
-        toast.classList.remove('translate-y-10', 'opacity-0');
-      }, 10);
-
-      // Tự động trượt xuống và biến mất sau 3 giây
-      setTimeout(() => {
-        toast.classList.add('translate-y-10', 'opacity-0');
-        setTimeout(() => toast.remove(), 500); // Xóa hẳn khỏi HTML
-      }, 3000);
+        if (result.status === 'success') {
+            trackEvent({ product_id: productId, event_type: "wishlist" });
+            if (result.action === 'added') {
+                if(icon) { icon.classList.remove('text-neutral-300'); icon.classList.add('text-black', 'fill-black'); }
+                showToast("ĐÃ THÊM VÀO YÊU THÍCH");
+            } else {
+                if(icon) { icon.classList.remove('text-black', 'fill-black'); icon.classList.add('text-neutral-300'); }
+                showToast("ĐÃ XÓA KHỎI YÊU THÍCH", true);
+            }
+        }
+    } catch (error) {
+        showToast("LỖI KẾT NỐI", true);
     }
+  }
 
-    // ── 4. Logic: Thêm / Bỏ Sản Phẩm Yêu Thích ──
-    async function toggleHeart(productId, btnElement) {
-      if(event) event.preventDefault(); // Ngăn hành vi chuyển trang nếu nút nằm trong thẻ <a>
-      
-      const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
-      const icon = btnElement.querySelector('.heart-icon');
+  // ================================
+  // SMOOTH SCROLL (LENIS)
+  // ================================
+  const lenis = new Lenis({
+    duration: 1.2, 
+    easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)), 
+    smooth: true,
+  });
+  function raf(time) {
+    lenis.raf(time);
+    requestAnimationFrame(raf);
+  }
+  requestAnimationFrame(raf);
+</script>
 
-      // Tạo hiệu ứng scale nhỏ lại khi vừa click để báo hiệu đang xử lý
-      icon.classList.add('scale-75');
-
-      try {
-          const response = await fetch('/api/favorites/toggle', {
-              method: 'POST',
-              headers: {
-                  'Content-Type': 'application/json',
-                  'X-CSRFToken': csrfToken
-              },
-              body: JSON.stringify({ product_id: productId })
-          });
-
-          const result = await response.json();
-
-          if (response.status === 401) {
-              alert("Vui lòng đăng nhập để lưu vào Bộ sưu tập cá nhân.");
-              window.location.href = '/auth/login';
-              return;
-          }
-
-          if (result.status === 'success') {
-              if (result.action === 'added') {
-                  icon.classList.remove('text-stone-300');
-                  icon.classList.add('text-red-500');
-                  // Gọi Toast thông báo Thêm thành công
-                  showToast("Đã thêm vào bộ sưu tập cá nhân.");
-              } else {
-                  icon.classList.remove('text-red-500');
-                  icon.classList.add('text-stone-300');
-                  // Gọi Toast thông báo Xóa thành công
-                  showToast("Đã xóa khỏi bộ sưu tập.", true);
-              }
-          } else {
-              console.error(result.message);
-              alert(result.message);
-          }
-      } catch (error) {
-          console.error("Lỗi Toggle Yêu Thích:", error);
-      } finally {
-          // Trả lại kích thước ban đầu cho icon
-          setTimeout(() => icon.classList.remove('scale-75'), 150);
-      }
-    }
-  </script>
+  {% block extra_scripts %}{% endblock %}
 </body>
 </html>
