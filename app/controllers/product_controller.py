@@ -6,6 +6,7 @@ Tích hợp AI Visual Search và xử lý Biến thể (Variants) chuẩn E-comm
 """
 
 import logging
+from nicegui import app
 import requests
 from flask import (
     Blueprint, render_template, request,
@@ -110,7 +111,7 @@ def shop():
     try:
         result = ProductModel.get_all(
             page=page,
-            per_page=12,
+            per_page=30,  # 🔴 CẬP NHẬT: Tăng từ 12 lên 30 để phục vụ hiệu ứng Load More
             category_slug=category_slug,
             gender=gender,
             keyword=keyword,
@@ -120,7 +121,8 @@ def shop():
         logger.error(f"[shop] Lỗi ProductModel.get_all: {e}")
         result = {"items": [], "total": 0}
 
-    total_pages = max(1, (result["total"] + 11) // 12)
+    # 🔴 CẬP NHẬT: Thay đổi thuật toán tính tổng số trang khớp với limit 30
+    total_pages = max(1, (result["total"] + 29) // 30)
 
     return render_template(
         "products/shop.html",
@@ -269,3 +271,37 @@ def visual_search():
         page=1,
         total_pages=1,
     )
+
+
+@products_bp.route("/collections")
+def collections():
+    """
+    Trang hiển thị tất cả Bộ sưu tập (Danh mục).
+    Khác với trang chủ (chỉ hiện danh mục ghim), trang này hiện TẤT CẢ danh mục đang Active.
+    """
+    try:
+        # Lấy tất cả danh mục có trạng thái is_active = True
+        all_cats = CategoryModel.get_all(active_only=True)
+    except Exception as e:
+        logger.error(f"[collections] Lỗi kéo danh mục: {e}")
+        all_cats = []
+
+    return render_template("products/collections.html", categories=all_cats)
+     
+# ═══════════════════════════════════════════════════════════════
+#  STATIC PAGES (GIỚI THIỆU & LIÊN HỆ)
+# ═══════════════════════════════════════════════════════════════
+
+
+@products_bp.route("/about")
+def about():
+    """Trang giới thiệu thương hiệu GUA Maison."""
+    # Trỏ đúng vào thư mục partials theo ý bạn
+    return render_template("partials/about.html")
+
+
+@products_bp.route("/contact")
+def contact():
+    """Trang liên hệ chăm sóc khách hàng."""
+    # Trỏ đúng vào thư mục partials theo ý bạn
+    return render_template("partials/contact.html")
