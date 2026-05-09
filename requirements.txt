@@ -1,9 +1,23 @@
-flask>=3.0.0
-supabase>=2.0.0
-python-dotenv>=1.0.0
-flask-session>=0.8.0
+# --- CORE WEB FRAMEWORK ---
+Flask>=3.0.0
+Flask-Session>=0.8.0
+Flask-WTF>=1.2.0
+
+# --- CƠ SỞ DỮ LIỆU & BẢO MẬT ---
+supabase>=2.4.0        # Đã nâng cấp để sửa lỗi httpx proxy
+python-dotenv>=1.2.2   # Tối thiểu 1.2.2 để tương thích với NiceGUI
 bcrypt>=4.1.0
-flask-wtf>=1.2.0
 email-validator>=2.0.0
-pandas >=2.0.0
-nicegui>=1.0.0
+websockets==15.0
+
+# --- GIAO DIỆN ADMIN (DASHBOARD) ---
+nicegui>=3.11.1
+
+# --- TÍNH NĂNG MỞ RỘNG (EMAIL & BACKUP EXCEL) ---
+sendgrid>=6.11.0       # Gửi email khôi phục mật khẩu
+pandas>=2.0.0          # Xử lý dữ liệu báo cáo
+SQLAlchemy>=2.0.0      # Trích xuất dữ liệu Database
+openpyxl>=3.1.0        # Engine để Pandas xuất ra file Excel (.xlsx)
+
+# --- DEPENDENCIES (Thư viện lõi hỗ trợ) ---
+httpx>=0.27.2
