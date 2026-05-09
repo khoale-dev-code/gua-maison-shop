@@ -2,11 +2,12 @@
 {% block title %}Giỏ Hàng | GUA Maison{% endblock %}
 
 {% block content %}
-<div class="min-h-screen bg-stone-50 pb-32">
+{# Fix lỗi bị Navbar đè: Thêm pt-28 (padding-top) trên mobile và pt-32 trên PC #}
+<div class="min-h-screen bg-stone-50 pt-28 md:pt-32 pb-32">
   <div class="max-w-[1200px] mx-auto px-4 md:px-8">
 
     {# ── Tiêu đề trang ── #}
-    <header class="pt-10 pb-8 reveal">
+    <header class="pb-8 reveal">
       <div class="flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
           <p class="text-[10px] font-bold uppercase tracking-[0.3em] text-stone-400 mb-2">Bước 01 / 03</p>
@@ -25,12 +26,12 @@
     </header>
 
     {% if items %}
-    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 mt-6">
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 mt-2 md:mt-6">
 
       {# ── CỘT TRÁI: DANH SÁCH SẢN PHẨM ── #}
       <section class="lg:col-span-8 reveal" style="transition-delay: 100ms;">
         
-        <div class="bg-white rounded-3xl border border-stone-100 p-6 md:p-8 shadow-[0_4px_20px_rgb(0,0,0,0.02)] mb-6">
+        <div class="bg-white rounded-3xl border border-stone-100 p-5 md:p-8 shadow-[0_4px_20px_rgb(0,0,0,0.02)] mb-6">
           
           {# Header bảng – ẩn trên mobile #}
           <div class="hidden md:grid grid-cols-12 pb-4 text-[10px] font-bold uppercase tracking-widest text-stone-400 border-b border-stone-100">
@@ -49,10 +50,11 @@
             {% set item_price = var.price_override if (var and var.price_override is not none) else prod.price %}
             {% set max_stock = var.stock if var else 0 %}
             
-            <article class="grid grid-cols-1 md:grid-cols-12 gap-5 md:gap-0 items-center py-6 group">
+            {# Tối ưu Responsive: Flex dọc trên Mobile, Grid 12 cột trên PC #}
+            <article class="flex flex-col md:grid md:grid-cols-12 gap-4 md:gap-0 md:items-center py-6 group">
 
-              {# Ảnh + Tên #}
-              <div class="col-span-6 flex gap-4 items-center">
+              {# 1. Ảnh + Tên (Mobile: Full width, PC: 6 cột) #}
+              <div class="md:col-span-6 flex gap-4 w-full">
                 <a href="/product/{{ prod.slug if prod else '#' }}" class="w-20 md:w-24 aspect-[3/4] bg-stone-50 rounded-xl border border-stone-100/50 overflow-hidden shrink-0 block relative">
                   {% if prod and prod.thumbnail_url %}
                     <img src="{{ prod.thumbnail_url }}" alt="{{ prod.name }}" class="w-full h-full object-cover mix-blend-multiply group-hover:scale-105 transition-transform duration-700 ease-out" loading="lazy">
@@ -61,7 +63,7 @@
                   {% endif %}
                 </a>
 
-                <div class="flex-1 min-w-0 pr-2">
+                <div class="flex-1 min-w-0 pr-2 flex flex-col justify-center">
                   <a href="/product/{{ prod.slug if prod else '#' }}">
                     <h3 class="text-sm font-bold text-stone-900 leading-snug mb-1 line-clamp-2 hover:text-stone-600 transition-colors">
                       {{ prod.name if prod else 'Sản phẩm không tồn tại' }}
@@ -69,7 +71,7 @@
                   </a>
                   
                   {# Hiển thị Màu và Size trên Mobile #}
-                  <div class="md:hidden flex items-center gap-2 mt-1 mb-2">
+                  <div class="md:hidden flex flex-wrap items-center gap-2 mt-1 mb-2">
                     <span class="text-[10px] font-bold text-stone-600 bg-stone-100 px-2 py-0.5 rounded uppercase">{{ var.size }}</span>
                     <span class="text-[10px] font-medium text-stone-500 flex items-center gap-1">
                       <span class="w-2 h-2 rounded-full border border-stone-200" style="background-color: {{ var.color_hex or '#e7e5e4' }};"></span>
@@ -82,14 +84,14 @@
                   </p>
                   
                   {# Giá hiển thị trên Mobile #}
-                  <p class="text-sm font-bold text-stone-900 mt-1 md:hidden">
+                  <p class="text-sm font-bold text-stone-900 mt-2 md:hidden">
                     {{ '{:,.0f}'.format(item_price) }} <span class="text-[10px] font-medium text-stone-500">₫</span>
                   </p>
                 </div>
               </div>
 
-              {# Kích cỡ & Màu (Chỉ hiện trên PC) #}
-              <div class="col-span-2 hidden md:flex flex-col items-center justify-center gap-1.5">
+              {# 2. Kích cỡ & Màu (Chỉ hiện trên PC: 2 cột) #}
+              <div class="md:col-span-2 hidden md:flex flex-col items-center justify-center gap-1.5">
                 {% if var %}
                   <span class="text-xs font-bold text-stone-900 bg-stone-100 px-3 py-1 rounded-lg uppercase">{{ var.size }}</span>
                   <span class="text-[10px] font-medium text-stone-500 flex items-center gap-1">
@@ -101,51 +103,56 @@
                 {% endif %}
               </div>
 
-              {# Số lượng #}
-              <div class="col-span-2 flex justify-start md:justify-center">
-                <form action="{{ url_for('cart.update_quantity', item_id=item.id) }}" method="post" class="flex items-center border border-stone-200 rounded-lg overflow-hidden bg-white shadow-sm w-max">
-                  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                  
-                  <button type="button" onclick="thayDoiSoLuong(this, -1)" class="w-8 h-9 flex items-center justify-center text-stone-500 hover:text-stone-900 hover:bg-stone-50 transition-colors text-lg leading-none">
-                    −
-                  </button>
-                  <input type="number" name="quantity" value="{{ item.quantity }}" min="0" max="{{ max_stock }}" class="w-10 h-9 bg-transparent text-center text-sm font-bold text-stone-900 outline-none appearance-none border-x border-stone-100" onchange="kiemTraTonKho(this)">
-                  <button type="button" onclick="thayDoiSoLuong(this, 1)" class="w-8 h-9 flex items-center justify-center text-stone-500 hover:text-stone-900 hover:bg-stone-50 transition-colors text-lg leading-none">
-                    +
-                  </button>
-                </form>
+              {# Bao bọc Số lượng và Nút Xóa để hiển thị ngang trên Mobile #}
+              <div class="w-full flex items-center justify-between md:contents mt-2 md:mt-0">
+                
+                {# 3. Số lượng (Mobile: Căn trái, PC: 2 cột căn giữa) #}
+                <div class="md:col-span-2 flex justify-start md:justify-center">
+                  <form action="{{ url_for('cart.update_quantity', item_id=item.id) }}" method="post" class="flex items-center border border-stone-200 rounded-lg overflow-hidden bg-white shadow-sm w-max">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="button" onclick="thayDoiSoLuong(this, -1)" class="w-8 h-9 flex items-center justify-center text-stone-500 hover:text-stone-900 hover:bg-stone-50 transition-colors text-lg leading-none">
+                      −
+                    </button>
+                    <input type="number" name="quantity" value="{{ item.quantity }}" min="0" max="{{ max_stock }}" class="w-10 h-9 bg-transparent text-center text-sm font-bold text-stone-900 outline-none appearance-none border-x border-stone-100" onchange="kiemTraTonKho(this)">
+                    <button type="button" onclick="thayDoiSoLuong(this, 1)" class="w-8 h-9 flex items-center justify-center text-stone-500 hover:text-stone-900 hover:bg-stone-50 transition-colors text-lg leading-none">
+                      +
+                    </button>
+                  </form>
+                </div>
+
+                {# 4. Giá tổng + Nút Xóa (Mobile: Căn phải, PC: 2 cột căn phải) #}
+                <div class="md:col-span-2 flex flex-col items-end gap-1 md:gap-2">
+                  <p class="text-sm font-bold text-stone-900 hidden md:block">
+                    {{ '{:,.0f}'.format(item_price * item.quantity) }} <span class="text-[10px] font-medium text-stone-500">₫</span>
+                  </p>
+
+                  <form action="{{ url_for('cart.remove_item', item_id=item.id) }}" method="post" class="m-0" onsubmit="return confirm('Bạn muốn xóa sản phẩm này khỏi giỏ hàng?');">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit" class="text-[11px] font-semibold text-stone-400 hover:text-red-500 transition-colors underline underline-offset-4">
+                      Xóa khỏi giỏ
+                    </button>
+                  </form>
+                </div>
+
               </div>
-
-              {# Giá tổng + Nút Xóa #}
-              <div class="col-span-2 flex flex-col items-start md:items-end gap-2">
-                <p class="text-sm font-bold text-stone-900 hidden md:block">
-                  {{ '{:,.0f}'.format(item_price * item.quantity) }} <span class="text-[10px] font-medium text-stone-500">₫</span>
-                </p>
-
-                <form action="{{ url_for('cart.remove_item', item_id=item.id) }}" method="post" class="m-0" onsubmit="return confirm('Bạn muốn xóa sản phẩm này khỏi giỏ hàng?');">
-                  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                  <button type="submit" class="text-[11px] font-semibold text-stone-400 hover:text-red-500 transition-colors underline underline-offset-4 mt-1">
-                    Xóa khỏi giỏ
-                  </button>
-                </form>
-              </div>
-
             </article>
             {% endfor %}
           </div>
         </div>
 
         {# Link tiếp tục mua sắm #}
-        <a href="/shop" class="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-stone-500 hover:text-stone-900 transition-colors group px-2">
-          <svg class="w-4 h-4 group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5"/></svg>
-          Tiếp tục mua sắm
-        </a>
+        <div class="flex justify-center md:justify-start">
+          <a href="/shop" class="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-stone-500 hover:text-stone-900 transition-colors group px-2">
+            <svg class="w-4 h-4 group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5"/></svg>
+            Tiếp tục mua sắm
+          </a>
+        </div>
 
       </section>
 
       {# ── CỘT PHẢI: TÓM TẮT ĐƠN HÀNG ── #}
       <aside class="lg:col-span-4 reveal" style="transition-delay: 200ms;">
-        <div class="sticky top-24 bg-white rounded-3xl border border-stone-100 p-8 shadow-[0_4px_20px_rgb(0,0,0,0.02)]">
+        <div class="sticky top-28 bg-white rounded-3xl border border-stone-100 p-6 md:p-8 shadow-[0_4px_20px_rgb(0,0,0,0.02)]">
 
           <h2 class="text-base font-bold text-stone-900 mb-6 pb-4 border-b border-stone-100">
             Thông tin thanh toán
@@ -153,7 +160,7 @@
 
           <div class="space-y-4 mb-6">
             <div class="flex justify-between items-center text-sm font-medium">
-              <span class="text-stone-500">Tạm tính ({{ items|length }} sản phẩm)</span>
+              <span class="text-stone-500">Tạm tính ({{ items|length }} SP)</span>
               <span class="text-stone-900">{{ '{:,.0f}'.format(total) }} ₫</span>
             </div>
             <div class="flex justify-between items-center text-sm font-medium">
@@ -190,7 +197,7 @@
 
     {% else %}
     {# ── TRẠNG THÁI GIỎ HÀNG TRỐNG (EMPTY STATE) ── #}
-    <div class="mt-10 bg-white rounded-3xl border border-stone-100 p-12 md:p-24 flex flex-col items-center justify-center text-center shadow-sm reveal">
+    <div class="mt-4 md:mt-10 bg-white rounded-3xl border border-stone-100 p-10 md:p-24 flex flex-col items-center justify-center text-center shadow-sm reveal">
       <div class="w-20 h-20 bg-stone-50 rounded-full flex items-center justify-center text-stone-300 mb-6">
         <svg class="w-10 h-10" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 10.5V6a3.75 3.75 0 10-7.5 0v4.5m11.356-1.993l1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 01-1.12-1.243l1.264-12A1.125 1.125 0 015.513 7.5h12.974c.576 0 1.059.435 1.119 1.007zM8.625 10.5a.375.375 0 11-.75 0 .375.375 0 01.75 0zm7.5 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />

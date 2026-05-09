@@ -8,6 +8,8 @@ from urllib.parse import urlparse, urljoin
 from flask import Blueprint, render_template, request, redirect, url_for, session, flash
 from app.models.user_model import UserModel
 from app.utils.supabase_client import get_supabase
+from flask import current_app
+from itsdangerous import URLSafeTimedSerializer
 
 auth_bp = Blueprint("auth", __name__, url_prefix="/auth")
 EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
@@ -179,24 +181,6 @@ def login():
     return render_template("auth/login.html", errors={}, form={})
 
 # ═══════════════════════════════════════════════════════════════
-#  FORGOT PASSWORD
-# ═══════════════════════════════════════════════════════════════
-
-
-@auth_bp.route("/forgot-password", methods=["GET", "POST"])
-def forgot_password():
-    if request.method == "POST":
-        form = _get_clean_form()
-        email = form.get("email", "").strip().lower()
-        if not email or not EMAIL_RE.match(email):
-            flash("Vui lòng nhập email hợp lệ.", "danger")
-        else:
-            logger.info(f"Audit [PW RECOVERY]: {email}")
-            flash("Nếu email hợp lệ, hướng dẫn khôi phục sẽ được gửi đến hộp thư của bạn.", "info")
-            return redirect(url_for("auth.login"))
-    return render_template("auth/forgot_password.html")
-
-# ═══════════════════════════════════════════════════════════════
 #  LOGOUT
 # ═══════════════════════════════════════════════════════════════
 
@@ -209,3 +193,93 @@ def logout():
     session.clear()
     flash(f"Đã đăng xuất an toàn. Hẹn gặp lại{(' ' + name.split()[0]) if name else ''}.", "info")
     return redirect(url_for("auth.login"))
+# ═══════════════════════════════════════════════════════════════
+#  FORGOT PASSWORD (GỬI LINK KHÔI PHỤC)
+# ═══════════════════════════════════════════════════════════════
+
+
+@auth_bp.route("/forgot-password", methods=["GET", "POST"])
+def forgot_password():
+    if "user_id" in session:
+        return redirect(url_for("products.index"))
+
+    if request.method == "POST":
+        form = _get_clean_form()
+        email = form.get("email", "").strip().lower()
+
+        if not email or not EMAIL_RE.match(email):
+            flash("Vui lòng nhập email hợp lệ.", "danger")
+        else:
+            try:
+                user = UserModel.get_by_email(email)
+                if user:
+                    # 1. Tạo Token bảo mật sống trong 1 giờ (3600 giây)
+                    s = URLSafeTimedSerializer(current_app.config['SECRET_KEY'])
+                    token = s.dumps(email, salt='gua-password-reset')
+                    
+                    # 2. Tạo link khôi phục
+                    reset_link = url_for("auth.reset_password", token=token, _external=True)
+                    
+                    # 3. Gửi Email (Ở đây giả lập in ra Console để Dev test)
+                    # Thực tế bạn sẽ tích hợp SendGrid / Flask-Mail ở đoạn này
+                    logger.info(f"\n{'='*50}\n[GUA MAISON] LINK KHÔI PHỤC MẬT KHẨU CỦA {email}:\n{reset_link}\n{'='*50}\n")
+                    
+                    flash("Thành công! Link khôi phục đã được gửi đến email của bạn.", "success")
+                else:
+                    # Chống dò quét Email: Luôn báo thành công dù email không tồn tại
+                    flash("Nếu email hợp lệ, hướng dẫn khôi phục sẽ được gửi đến hộp thư của bạn.", "info")
+                    
+                return redirect(url_for("auth.login"))
+            except Exception as e:
+                logger.error(f"Forgot password error: {e}")
+                flash("Hệ thống đang bận. Vui lòng thử lại sau.", "danger")
+
+    return render_template("auth/forgot_password.html")
+
+# ═══════════════════════════════════════════════════════════════
+#  RESET PASSWORD (ĐẶT LẠI MẬT KHẨU MỚI)
+# ═══════════════════════════════════════════════════════════════
+
+
+@auth_bp.route("/reset-password/<token>", methods=["GET", "POST"])
+def reset_password(token):
+    if "user_id" in session:
+        return redirect(url_for("products.index"))
+
+    # 1. Giải mã và kiểm tra thời hạn Token
+    s = URLSafeTimedSerializer(current_app.config['SECRET_KEY'])
+    try:
+        # max_age=3600 nghĩa là link chỉ sống trong 1 giờ
+        email = s.loads(token, salt='gua-password-reset', max_age=3600)
+    except Exception:
+        flash("Link khôi phục đã hết hạn hoặc không hợp lệ. Vui lòng yêu cầu lại.", "danger")
+        return redirect(url_for("auth.forgot_password"))
+
+    # 2. Xử lý đặt mật khẩu mới
+    if request.method == "POST":
+        form = _get_clean_form()
+        password = form.get("password", "")
+        confirm = form.get("confirm_password", "")
+
+        if not password or len(password) < 8:
+            flash("Mật khẩu mới phải có ít nhất 8 ký tự.", "danger")
+        elif password != confirm:
+            flash("Xác nhận mật khẩu không khớp.", "danger")
+        else:
+            try:
+                user = UserModel.get_by_email(email)
+                if user:
+                    from app.utils.security import hash_password
+                    # Lưu mật khẩu mới vào DB
+                    get_supabase().table("users").update({
+                        "password_hash": hash_password(password)
+                    }).eq("email", email).execute()
+                    
+                    logger.info(f"Audit [PW RESET SUCCESS]: {email}")
+                    flash("Mật khẩu đã được thay đổi thành công! Vui lòng đăng nhập lại.", "success")
+                    return redirect(url_for("auth.login"))
+            except Exception as e:
+                logger.error(f"Reset password error: {e}")
+                flash("Lỗi kết nối cơ sở dữ liệu. Vui lòng thử lại.", "danger")
+
+    return render_template("auth/reset_password.html", token=token)

@@ -3,19 +3,17 @@
 
 {% block extra_head %}
 <style>
-  /* Ẩn thanh cuộn nhưng vẫn cho phép cuộn */
+  /* Ẩn thanh cuộn nhưng vẫn cho phép vuốt/cuộn ngang */
   .no-scrollbar::-webkit-scrollbar { display: none; }
   .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
   
   /* Hiệu ứng High-End Hover cho hình ảnh */
   .img-pan { transition: transform 1.5s cubic-bezier(0.16, 1, 0.3, 1); }
   .group:hover .img-pan { transform: scale(1.05); }
-
-  /* Biến CSS cho kích thước Slider Item linh hoạt */
-  :root { --slider-w: 85vw; }
-  @media(min-width: 640px) { :root { --slider-w: 45vw; } }
-  @media(min-width: 960px) { :root { --slider-w: 30vw; } }
-  @media(min-width: 1280px) { :root { --slider-w: 23vw; } }
+  
+  /* Animation cho Hero */
+  .animate-fade-in-up { animation: fadeInUp 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+  @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
 </style>
 {% endblock %}
 
@@ -30,36 +28,36 @@
 
 <div class="bg-white text-black font-sans w-full selection:bg-black selection:text-white">
 
-  {# ══ 1. HERO VIDEO TĨNH ══ #}
+  {# ══ 1. HERO VIDEO TĨNH (Fix lỗi Navbar) ══ #}
   <section class="relative w-full h-[85vh] md:h-screen overflow-hidden bg-neutral-900 flex items-end">
-    <video autoplay muted loop playsinline class="absolute inset-0 w-full h-full object-cover">
-      <source src="https://cdn.hstatic.net/files/200001029438/file/ef7df01e-38a3-4b59-b7ae-79757c79a37b.mp4" type="video/mp4"/>
+    <video autoplay muted loop playsinline class="absolute inset-0 w-full h-full object-cover object-center">
+      <source src="https://www.pexels.com/download/video/8443733/" type="video/mp4"/>
     </video>
-    <!-- Tối ưu lớp phủ gradient cho text rõ hơn -->
-    <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent"></div>
-    <div class="relative z-10 w-full px-6 pb-12 md:px-12 md:pb-20 text-white animate-fade-in-up">
-      <h1 class="text-4xl md:text-6xl font-black uppercase tracking-wide mb-2 drop-shadow-lg">
-        New Collection
+    
+    <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-black/10"></div>
+    
+    <div class="relative z-10 w-full px-6 pt-24 pb-16 md:px-12 md:pb-24 text-white animate-fade-in-up">
+      <h1 class="text-5xl md:text-7xl lg:text-[6rem] font-black uppercase tracking-tight mb-4 drop-shadow-xl leading-none">
+        New <br class="md:hidden">Collection
       </h1>
-      <p class="text-xs md:text-sm font-medium tracking-wide mb-6 max-w-md drop-shadow">
+      <p class="text-xs md:text-sm font-medium tracking-wide mb-8 max-w-md drop-shadow text-neutral-200">
         Nơi quần áo không còn là vật thể — mà là nhịp điệu, chuyển động, và cảm xúc.
       </p>
-      <a href="/shop" class="inline-block text-[11px] font-bold uppercase tracking-widest border-b-2 border-white pb-1 hover:text-neutral-300 transition-colors">
-        Shop Now
+      <a href="/shop" class="inline-block text-[11px] font-bold uppercase tracking-[0.2em] border-b-2 border-white pb-1.5 hover:text-neutral-300 hover:border-neutral-300 transition-colors">
+        Khám phá ngay
       </a>
     </div>
   </section>
 
-  {# ══ 2. CATEGORY GRID (Giữ nguyên, thêm hiệu ứng mượt) ══ #}
-  <section class="w-full p-1 md:p-2 grid grid-cols-2 md:grid-cols-4 gap-1 md:gap-2">
+  {# ══ 2. CATEGORY GRID (Responsive & Object-top) ══ #}
+  <section class="w-full p-1 md:p-2 grid grid-cols-2 lg:grid-cols-4 gap-1 md:gap-2">
     {% for i in range(4) %}
       {% set cat = grid_cats[i] if grid_cats|length > i else None %}
-      <a href="/shop{% if cat %}?category={{ cat.slug }}{% endif %}" class="relative group block aspect-[3/4] overflow-hidden bg-neutral-100">
-        <img src="{{ cat.image_url if cat and cat.image_url else 'https://placehold.co/600x800/ede4d8/1a1714?text=Category+' ~ (i+1) }}" alt="Category" class="w-full h-full object-cover img-pan">
-        <!-- Phủ mờ nhẹ khi hover -->
-        <div class="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-500"></div>
-        <div class="absolute bottom-4 left-4 z-10">
-          <h3 class="text-[10px] md:text-[11px] font-bold uppercase tracking-widest text-black bg-white px-3 py-1.5 shadow-sm">
+      <a href="/shop{% if cat %}?category={{ cat.slug }}{% endif %}" class="relative group block aspect-[3/4] md:aspect-[4/5] overflow-hidden bg-[#f8f8f8]">
+        <img src="{{ cat.image_url if cat and cat.image_url else 'https://placehold.co/600x800/ede4d8/1a1714?text=Category+' ~ (i+1) }}" alt="Category" class="w-full h-full object-cover object-top img-pan">
+        <div class="absolute inset-0 bg-black/5 group-hover:bg-black/20 transition-colors duration-500"></div>
+        <div class="absolute bottom-5 left-5 z-10">
+          <h3 class="text-[10px] md:text-[11px] font-bold uppercase tracking-widest text-black bg-white px-4 py-2 shadow-sm transform group-hover:-translate-y-1 transition-transform duration-300">
             {{ cat.name if cat else 'Upcoming' }}
           </h3>
         </div>
@@ -67,89 +65,102 @@
     {% endfor %}
   </section>
 
-  {# ══ 3. BANNER 2 ══ #}
-  <section class="relative w-full h-[70vh] md:h-[85vh] mt-1 md:mt-2 overflow-hidden bg-neutral-100 group">
-    <img src="{{ banner2.image_url if banner2 and banner2.image_url else 'https://hbt001.ccis.chiefappc.com/cac/EcmAdver/navy-top_221018103443_X_v1_1.jpg?2022122210Thu+Dec+08+16%3A50%3A49+CST+2022' }}" alt="Banner" class="absolute inset-0 w-full h-full object-cover img-pan">
-    <div class="absolute inset-0 bg-black/10"></div>
+  {# ══ 3. BANNER 2 (Full Width) ══ #}
+  <section class="relative w-full h-[65vh] md:h-[120vh] mt-1 md:mt-2 overflow-hidden bg-neutral-100 group">
+    <img src="{{ banner2.image_url if banner2 and banner2.image_url else 'https://i.pinimg.com/1200x/c2/66/05/c2660571733bc9f4b917675c9bfe94f9.jpg' }}" alt="Banner" class="absolute inset-0 w-full h-full object-cover object-center img-pan">
+    <div class="absolute inset-0 bg-black/10 group-hover:bg-black/30 transition-colors duration-700"></div>
     <div class="absolute bottom-12 left-6 md:left-12 text-white z-10">
-      <h2 class="text-3xl md:text-5xl font-black uppercase tracking-wide">{{ banner2.name if banner2 else 'Signature' }}</h2>
-      <a href="/shop{% if banner2 %}?category={{ banner2.slug }}{% endif %}" class="text-[11px] font-bold uppercase tracking-widest border-b-2 border-white pb-1 mt-2 inline-block hover:pr-4 transition-all">Shop Now</a>
+      <h2 class="text-4xl md:text-6xl font-black uppercase tracking-tight">{{ banner2.name if banner2 else 'Signature' }}</h2>
+      <a href="/shop{% if banner2 %}?category={{ banner2.slug }}{% endif %}" class="text-[11px] font-bold uppercase tracking-widest border-b-2 border-white pb-1.5 mt-4 inline-block hover:pr-6 transition-all duration-300">Shop Now</a>
     </div>
   </section>
 
-  {# ══ 4. SPLIT BANNERS ══ #}
+  {# ══ 4. SPLIT BANNERS (Chia đôi tỷ lệ vàng) ══ #}
   <section class="w-full p-1 md:p-2 grid grid-cols-1 md:grid-cols-2 gap-1 md:gap-2">
     <div class="relative w-full h-[60vh] md:h-[80vh] group overflow-hidden bg-neutral-100">
-      <img src="{{ split1.image_url if split1 and split1.image_url else 'https://i.pinimg.com/1200x/4f/9c/5f/4f9c5f21c55a7df83a8b35d49518a688.jpg' }}" alt="Split" class="absolute inset-0 w-full h-full object-cover img-pan">
+      <img src="{{ split1.image_url if split1 and split1.image_url else 'https://i.pinimg.com/1200x/8d/f1/b1/8df1b177ec235f6699a8f56cd324e5e4.jpg' }}" alt="Split" class="absolute inset-0 w-full h-full object-cover object-center img-pan">
       <div class="absolute inset-0 bg-black/10 group-hover:bg-black/30 transition duration-700"></div>
-      <div class="absolute bottom-8 left-6 md:left-10 text-white z-10 transform group-hover:-translate-y-2 transition-transform duration-500">
-        <h2 class="text-2xl md:text-3xl font-black uppercase tracking-wide">{{ split1.name if split1 else 'Essentials' }}</h2>
-        <a href="/shop{% if split1 %}?category={{ split1.slug }}{% endif %}" class="text-[10px] font-bold uppercase tracking-widest border-b-2 border-white pb-1">Explore</a>
+      <div class="absolute bottom-10 left-8 md:left-12 text-white z-10 transform group-hover:-translate-y-3 transition-transform duration-500">
+        <h2 class="text-3xl md:text-4xl font-black uppercase tracking-tight">{{ split1.name if split1 else 'Essentials' }}</h2>
+        <a href="/shop{% if split1 %}?category={{ split1.slug }}{% endif %}" class="text-[10px] font-bold uppercase tracking-widest border-b-2 border-white pb-1 mt-3 inline-block">Explore</a>
       </div>
     </div>
-    <div class="relative w-full h-[60vh] md:h-[80vh] group overflow-hidden bg-neutral-100">
-      <img src="{{ split2.image_url if split2 and split2.image_url else 'https://wdiscoveryimg.wconcept.co.kr/tos-sgcomm1-v-662e29308768f11b-sg/oMkytUpZpEYAZEAgmBeKyT3OI6nCY7ATZQeQ7B~tplv-vod-noop.image' }}" alt="Split" class="absolute inset-0 w-full h-full object-cover img-pan">
-      <div class="absolute inset-0 bg-black/10 group-hover:bg-black/30 transition duration-700"></div>
-      <div class="absolute bottom-8 left-6 md:left-10 text-white z-10 transform group-hover:-translate-y-2 transition-transform duration-500">
-        <h2 class="text-2xl md:text-3xl font-black uppercase tracking-wide">{{ split2.name if split2 else 'Avant-Garde' }}</h2>
-        <a href="/shop{% if split2 %}?category={{ split2.slug }}{% endif %}" class="text-[10px] font-bold uppercase tracking-widest border-b-2 border-white pb-1">Explore</a>
-      </div>
-    </div>
-  </section>
-
-  {# ══ 5. BANNER 4 ══ #}
-  <section class="relative w-full h-[70vh] md:h-[85vh] mt-1 md:mt-2 overflow-hidden bg-neutral-100 group">
-    <img src="{{ banner3.image_url if banner3 and banner3.image_url else 'https://wimage.wconcept.co.kr/msa-event/event/default/20260503205519630_6934.png?RS=1680' }}" alt="Banner" class="absolute inset-0 w-full h-full object-cover img-pan">
-    <div class="absolute inset-0 bg-black/10"></div>
-    <div class="absolute bottom-12 left-6 md:left-12 text-white z-10">
-      <h2 class="text-3xl md:text-5xl font-black uppercase tracking-wide">{{ banner3.name if banner3 else 'Best Sellers' }}</h2>
-      <a href="/shop{% if banner3 %}?category={{ banner3.slug }}{% endif %}" class="text-[11px] font-bold uppercase tracking-widest border-b-2 border-white pb-1 mt-2 inline-block hover:pr-4 transition-all">Shop Now</a>
-    </div>
-  </section>
-
-  {# ══ 6. FEATURED PRODUCTS SLIDER (Giữ đủ mọi tính năng, sửa lỗi click) ══ #}
-  {% if featured_products %}
-  <section class="bg-white relative mt-8 md:mt-16 mb-20">
     
-    <!-- HEADER -->
-    <div class="flex items-end justify-between px-6 md:px-10 py-6">
-      <div class="flex flex-col gap-1">
-        <span class="text-[9px] font-black uppercase tracking-[0.3em] text-neutral-400">Collection</span>
-        <h2 class="text-xl md:text-2xl font-black uppercase tracking-tighter text-black">New Arrivals</h2>
+    <div class="relative w-full h-[60vh] md:h-[80vh] group overflow-hidden bg-neutral-100">
+      <img src="{{ split2.image_url if split2 and split2.image_url else 'https://i.pinimg.com/736x/ad/49/55/ad4955e1f64e66bf775163948ba51a3b.jpg' }}" alt="Split" class="absolute inset-0 w-full h-full object-cover object-center img-pan">
+      <div class="absolute inset-0 bg-black/10 group-hover:bg-black/30 transition duration-700"></div>
+      <div class="absolute bottom-10 left-8 md:left-12 text-white z-10 transform group-hover:-translate-y-3 transition-transform duration-500">
+        <h2 class="text-3xl md:text-4xl font-black uppercase tracking-tight">{{ split2.name if split2 else 'Avant-Garde' }}</h2>
+        <a href="/shop{% if split2 %}?category={{ split2.slug }}{% endif %}" class="text-[10px] font-bold uppercase tracking-widest border-b-2 border-white pb-1 mt-3 inline-block">Explore</a>
       </div>
-      <div class="flex items-center gap-2">
-        <button id="btnPrev" class="w-10 h-10 flex items-center justify-center border border-neutral-200 rounded-full hover:bg-black hover:text-white transition-all disabled:opacity-20" aria-label="Trước">
+    </div>
+  </section>
+
+ {# ══ 5. BANNER 4 (VIDEO VERSION) ══ #}
+<section class="relative w-full h-[65vh] md:h-[80vh] mt-1 md:mt-2 overflow-hidden bg-neutral-900 group">
+  <!-- Video nền -->
+  <video 
+    autoplay 
+    loop 
+    muted 
+    playsinline 
+    class="absolute inset-0 w-full h-full object-cover object-center"
+  >
+    <source src="{{ banner3.video_url if banner3 and banner3.video_url else 'https://www.pexels.com/download/video/10664773/' }}" type="video/mp4">
+    Trình duyệt của bạn không hỗ trợ video HTML5.
+  </video>
+
+  <!-- Lớp phủ (Overlay) để text dễ đọc hơn -->
+  <div class="absolute inset-0 bg-black/30 group-hover:bg-black/40 transition-colors duration-700"></div>
+
+  <!-- Nội dung phía trên video -->
+  <div class="absolute bottom-12 left-6 md:left-12 text-white z-10">
+    <h2 class="text-4xl md:text-6xl font-black uppercase tracking-tight">
+      {{ banner3.name if banner3 else 'Best Sellers' }}
+    </h2>
+    <a href="https://www.pexels.com/download/video/10664773/" 
+       class="text-[11px] font-bold uppercase tracking-widest border-b-2 border-white pb-1.5 mt-4 inline-block hover:pr-6 transition-all duration-300">
+      Shop Now
+    </a>
+  </div>
+</section>
+
+  {# ══ 6. FEATURED PRODUCTS SLIDER ══ #}
+  {% if featured_products %}
+  <section class="bg-white relative mt-16 md:mt-24 mb-24">
+    
+    <div class="flex items-end justify-between px-6 md:px-12 py-6">
+      <div class="flex flex-col gap-1.5">
+        <span class="text-[9px] font-black uppercase tracking-[0.3em] text-neutral-400">Collection</span>
+        <h2 class="text-3xl md:text-4xl font-black uppercase tracking-tighter text-black">New Arrivals</h2>
+      </div>
+      <div class="flex items-center gap-3">
+        <button id="btnPrev" class="w-12 h-12 flex items-center justify-center border border-neutral-200 rounded-full hover:bg-black hover:text-white transition-all disabled:opacity-20" aria-label="Trước">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5"/></svg>
         </button>
-        <button id="btnNext" class="w-10 h-10 flex items-center justify-center border border-neutral-200 rounded-full hover:bg-black hover:text-white transition-all disabled:opacity-20" aria-label="Tiếp">
+        <button id="btnNext" class="w-12 h-12 flex items-center justify-center border border-neutral-200 rounded-full hover:bg-black hover:text-white transition-all disabled:opacity-20" aria-label="Tiếp">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5"/></svg>
         </button>
       </div>
     </div>
 
-    <!-- TRACK WRAPPER -->
-    <!-- Dùng CSS Snap để mượt mà, loại bỏ transform bằng JS gây lỗi click -->
-    <div id="slider-container" class="relative overflow-x-auto snap-x snap-mandatory scroll-smooth no-scrollbar px-6 md:px-10 pb-4">
+    <div id="slider-container" class="relative overflow-x-auto snap-x snap-mandatory scroll-smooth no-scrollbar px-6 md:px-12 pb-4">
       <div class="flex gap-4 md:gap-6 w-max">
         
         {% for product in featured_products %}
-        <!-- Giữ nguyên chiều rộng biến linh hoạt -->
-        <div class="slider-item snap-start flex-shrink-0 flex flex-col bg-white group" style="width: var(--slider-w);">
+        <div class="slider-item snap-start shrink-0 flex flex-col bg-white group w-[80vw] sm:w-[45vw] lg:w-[28vw] xl:w-[22vw]">
           
-          <!-- IMAGE AREA -->
-          <div class="relative overflow-hidden bg-neutral-50" style="aspect-ratio:3/4;">
+          <div class="relative overflow-hidden bg-[#f8f8f8] aspect-[3/4]">
             <a href="/product/{{ product.slug or product.id }}" class="block h-full w-full" draggable="false">
-              <img src="{{ product.thumbnail_url }}" alt="{{ product.name }}" class="w-full h-full object-cover img-pan" draggable="false" loading="lazy"/>
+              <img src="{{ product.thumbnail_url }}" alt="{{ product.name }}" class="w-full h-full object-cover object-top img-pan mix-blend-multiply" draggable="false" loading="lazy"/>
             </a>
             
-            <!-- BADGE -->
             {% if loop.index <= 3 %}
-            <span class="absolute top-4 left-4 text-[8px] font-black uppercase tracking-[0.18em] bg-white text-black px-3 py-1.5 shadow-sm pointer-events-none">
+            <span class="absolute top-4 left-4 text-[9px] font-black uppercase tracking-[0.2em] bg-white text-black px-3 py-1.5 shadow-sm pointer-events-none">
               Mới
             </span>
             {% endif %}
 
-            <!-- QUICK ADD (Desktop) - Giữ đủ 100% Data Attributes -->
             <div class="absolute inset-x-4 bottom-4 translate-y-8 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300 hidden md:block z-20">
               <button onclick="triggerQuickView(this);"
                 data-id="{{ product.id }}"
@@ -160,25 +171,25 @@
                 data-category="{{ product.categories.name if product.categories else 'GUA Maison' }}"
                 data-stock="{{ product.stock_quantity | default(10) }}"
                 data-variants='{{ product.product_variants | tojson | safe if product.product_variants else "[]" }}'
-                class="w-full bg-black/95 text-white text-[9px] font-black uppercase tracking-[0.2em] py-3.5 shadow-xl hover:bg-neutral-800 transition-colors">
-                Quick Add
+                class="w-full bg-black/95 text-white text-[10px] font-black uppercase tracking-[0.2em] py-4 shadow-xl hover:bg-neutral-800 transition-colors">
+                Quick Add +
               </button>
             </div>
           </div>
 
-          <!-- INFO AREA - Giữ nguyên Nút Thả Tim -->
-          <div class="pt-4 pb-2 flex justify-between items-start gap-3 flex-1">
+          <div class="pt-5 pb-2 flex justify-between items-start gap-4 flex-1">
             <div class="min-w-0 flex-1">
-              <p class="text-[8px] font-black uppercase tracking-[0.16em] text-neutral-400 mb-1 truncate">
+              <p class="text-[9px] font-black uppercase tracking-[0.2em] text-neutral-400 mb-1.5 truncate">
                 {{ product.categories.name if product.categories else 'Core Collection' }}
               </p>
               <a href="/product/{{ product.slug or product.id }}" class="block">
-                <h3 class="text-[11px] font-black uppercase tracking-[0.08em] text-black hover:text-neutral-500 transition-colors line-clamp-1 leading-snug">
+                <h3 class="text-xs font-bold uppercase tracking-widest text-black hover:text-neutral-500 transition-colors line-clamp-1 leading-snug">
                   {{ product.name }}
                 </h3>
               </a>
-              <p class="text-[12px] font-medium text-black mt-1.5">₫{{ "{:,.0f}".format(product.price) }}</p>
+              <p class="text-[13px] font-medium text-black mt-2">₫{{ "{:,.0f}".format(product.price) }}</p>
             </div>
+            
             <button onclick="toggleHeart('{{ product.id }}', this)" class="shrink-0 mt-0.5 text-neutral-300 hover:text-black transition-colors duration-200 group/h" aria-label="Yêu thích">
               <svg class="w-5 h-5 transition-transform duration-150 group-active/h:scale-75 heart-icon" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z"/>
@@ -186,7 +197,6 @@
             </button>
           </div>
 
-          <!-- MOBILE ADD BTN - Giữ nguyên cho Giao diện Mobile -->
           <div class="pt-2 md:hidden">
             <button onclick="triggerQuickView(this);"
               data-id="{{ product.id }}" data-slug="{{ product.slug }}"
@@ -195,7 +205,7 @@
               data-category="{{ product.categories.name if product.categories else 'GUA Maison' }}"
               data-stock="{{ product.stock_quantity | default(10) }}"
               data-variants='{{ product.product_variants | tojson | safe if product.product_variants else "[]" }}'
-              class="w-full border border-neutral-200 py-3 text-[9px] uppercase tracking-[0.2em] font-black text-black hover:bg-black hover:text-white transition-all duration-200">
+              class="w-full border border-neutral-200 py-3 text-[10px] uppercase tracking-[0.2em] font-black text-black hover:bg-black hover:text-white transition-all duration-200">
               Thêm vào giỏ
             </button>
           </div>
@@ -206,8 +216,7 @@
       </div>
     </div>
 
-    <!-- PROGRESS BAR -->
-    <div class="h-[1px] bg-neutral-100 mx-6 md:mx-10 mt-6 relative overflow-hidden">
+    <div class="h-[2px] bg-neutral-100 mx-6 md:mx-12 mt-8 relative overflow-hidden">
       <div id="progressBar" class="absolute top-0 left-0 h-full bg-black w-0 transition-all duration-200"></div>
     </div>
 
@@ -218,11 +227,6 @@
   {% include 'components/home/_cta_register.html' ignore missing %}
 
 </div>
-
-<style>
-  .animate-fade-in-up { animation: fadeInUp 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-  @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-</style>
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
@@ -236,7 +240,6 @@ document.addEventListener('DOMContentLoaded', function() {
     // 1. Đồng bộ Progress Bar & Nút
     const updateUI = () => {
         const maxScroll = container.scrollWidth - container.clientWidth;
-        // Tránh lỗi chia cho 0 nếu nội dung không đủ dài
         if (maxScroll <= 0) {
             progressBar.style.width = '100%';
             btnPrev.disabled = true;
@@ -251,15 +254,13 @@ document.addEventListener('DOMContentLoaded', function() {
     };
 
     container.addEventListener('scroll', updateUI, { passive: true });
-    
-    // Khởi tạo trạng thái ban đầu
     setTimeout(updateUI, 100);
     window.addEventListener('resize', updateUI);
 
     // 2. Logic Nút Điều Hướng (Cuộn bằng CSS Smooth)
     const getScrollStep = () => {
         const item = container.querySelector('.slider-item');
-        return item ? item.offsetWidth + 24 : container.clientWidth * 0.5; // 24px là gap
+        return item ? item.offsetWidth + 24 : container.clientWidth * 0.5;
     };
 
     btnNext.addEventListener('click', () => {
@@ -270,7 +271,7 @@ document.addEventListener('DOMContentLoaded', function() {
         container.scrollBy({ left: -getScrollStep(), behavior: 'smooth' });
     });
 
-    // 3. Logic Drag To Scroll (Giữ cảm giác vuốt cho Desktop)
+    // 3. Logic Drag To Scroll
     let isDown = false;
     let startX;
     let scrollLeft;
@@ -279,7 +280,7 @@ document.addEventListener('DOMContentLoaded', function() {
     container.addEventListener('mousedown', (e) => {
         isDown = true;
         isDragging = false;
-        container.classList.remove('scroll-smooth'); // Tắt mượt khi kéo để phản hồi lập tức
+        container.classList.remove('scroll-smooth');
         container.style.cursor = 'grabbing';
         startX = e.pageX - container.offsetLeft;
         scrollLeft = container.scrollLeft;
@@ -288,26 +289,25 @@ document.addEventListener('DOMContentLoaded', function() {
     window.addEventListener('mouseup', () => {
         isDown = false;
         container.style.cursor = 'auto';
-        container.classList.add('scroll-smooth'); // Bật lại mượt cho nút bấm
-        // Snap về item gần nhất nếu kéo lỡ dở
+        container.classList.add('scroll-smooth');
         if(isDragging) {
             const step = getScrollStep();
             const snapPoint = Math.round(container.scrollLeft / step) * step;
             container.scrollTo({ left: snapPoint, behavior: 'smooth' });
         }
-        setTimeout(() => { isDragging = false; }, 50); // Delay nhẹ để click hoạt động
+        setTimeout(() => { isDragging = false; }, 50);
     });
 
     container.addEventListener('mousemove', (e) => {
         if (!isDown) return;
         e.preventDefault();
         const x = e.pageX - container.offsetLeft;
-        const walk = (x - startX) * 1.5; // Tốc độ kéo
-        if (Math.abs(walk) > 5) isDragging = true; // Phân biệt Click và Drag
+        const walk = (x - startX) * 1.5;
+        if (Math.abs(walk) > 5) isDragging = true;
         container.scrollLeft = scrollLeft - walk;
     });
 
-    // Chống Click vào link/nút khi đang Drag
+    // Chống Click nhầm khi đang vuốt kéo Slider
     const clickableElements = container.querySelectorAll('a, button');
     clickableElements.forEach(el => {
         el.addEventListener('click', (e) => {

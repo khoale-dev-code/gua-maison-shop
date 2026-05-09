@@ -2,31 +2,35 @@
 {% block title %}Quản lý Đơn hàng | GUA Admin{% endblock %}
 
 {% block content %}
-<div class="min-h-screen bg-[#f8faf9] pb-24 font-sans selection:bg-stone-900 selection:text-white">
+<div class="min-h-screen bg-[#f8f8f8] pb-24 font-sans selection:bg-black selection:text-white">
 
   {# ── HEADER ── #}
-  <div class="bg-white/80 backdrop-blur-xl border-b border-stone-200 sticky top-0 z-40 shadow-sm">
-    <div class="max-w-[1600px] mx-auto px-6 lg:px-10 py-5 flex items-center justify-between gap-4">
-      <div>
-        <h1 class="text-2xl font-black tracking-tight text-stone-900 uppercase">Điều phối Đơn hàng</h1>
-        <p class="text-[10px] font-bold text-stone-400 uppercase tracking-[0.2em] mt-0.5 flex items-center gap-2">
-          <span class="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse inline-block"></span>
-          {{ total }} giao dịch trong hệ thống
-        </p>
+  <div class="bg-white border-b border-neutral-200 sticky top-0 z-40">
+    <div class="max-w-[1600px] mx-auto px-4 lg:px-8 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div class="flex items-center gap-4">
+        <div class="w-10 h-10 bg-black text-white flex items-center justify-center rounded-sm">
+          <i class="fa-solid fa-boxes-packing"></i>
+        </div>
+        <div>
+          <h1 class="text-lg font-bold tracking-tight text-black uppercase">Điều phối Đơn hàng</h1>
+          <p class="text-[9px] font-bold text-neutral-400 uppercase tracking-[0.2em] mt-0.5 flex items-center gap-1.5">
+            <span class="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse"></span>
+            {{ total }} giao dịch trong hệ thống
+          </p>
+        </div>
       </div>
       <div class="flex items-center gap-3">
-        <button class="inline-flex items-center gap-2 bg-white border border-stone-200 text-stone-600 px-5 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-stone-50 transition-all shadow-sm active:scale-95">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3"/></svg>
-          Xuất Excel
+        <button class="inline-flex items-center gap-2 bg-white border border-neutral-200 text-black px-5 py-2.5 rounded-sm text-[10px] font-bold uppercase tracking-widest hover:bg-neutral-50 transition-colors shadow-sm">
+          <i class="fa-solid fa-file-excel"></i> Xuất Excel
         </button>
       </div>
     </div>
   </div>
 
-  <div class="max-w-[1600px] mx-auto px-6 lg:px-10 mt-8 space-y-6">
+  <div class="max-w-[1600px] mx-auto px-4 lg:px-8 mt-6 space-y-6">
 
-    {# ── TAB TRẠNG THÁI (SHOPEE STYLE) ── #}
-    <div class="bg-white rounded-[2rem] p-2 shadow-[0_4px_20px_rgb(0,0,0,0.03)] border border-stone-100 flex overflow-x-auto no-scrollbar fade-up">
+    {# ── TAB TRẠNG THÁI ── #}
+    <div class="bg-white p-1 border border-neutral-200 flex overflow-x-auto no-scrollbar shadow-sm rounded-sm">
       {% set tabs = [
         ('', 'Tất cả'),
         ('pending', 'Chờ xác nhận'),
@@ -41,176 +45,195 @@
       
       {% for val, label in tabs %}
       <a href="{{ url_for('admin.orders', status=val, q=request.args.get('q','')) }}"
-         class="shrink-0 px-6 py-3.5 rounded-[1.5rem] text-[11px] font-black uppercase tracking-widest transition-all
+         class="shrink-0 px-6 py-3 text-[10px] font-bold uppercase tracking-widest transition-colors rounded-sm
          {% if current_status == val or (not current_status and not val) %}
-           bg-stone-900 text-white shadow-md
+           bg-black text-white
          {% else %}
-           text-stone-400 hover:bg-stone-50 hover:text-stone-900
+           text-neutral-500 hover:bg-neutral-100 hover:text-black
          {% endif %}">
         {{ label }}
       </a>
       {% endfor %}
     </div>
 
-    {# ── THANH TÌM KIẾM & BỘ LỌC TỔNG HỢP ── #}
-    <div class="bg-white rounded-[2rem] p-4 shadow-[0_4px_20px_rgb(0,0,0,0.03)] border border-stone-100 flex flex-col lg:flex-row gap-4 justify-between items-center fade-up delay-1">
+    {# ── THANH TÌM KIẾM & BỘ LỌC ── #}
+    <div class="bg-white p-4 border border-neutral-200 flex flex-col lg:flex-row gap-4 justify-between items-center shadow-sm rounded-sm">
       
       <form action="{{ url_for('admin.orders') }}" method="GET" class="w-full lg:w-1/2 relative group">
         <input type="hidden" name="status" value="{{ current_status or '' }}">
-        <svg class="w-[18px] h-[18px] absolute left-5 top-1/2 -translate-y-1/2 text-stone-300 group-focus-within:text-stone-900 transition-colors z-10 pointer-events-none" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"/></svg>
+        <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-neutral-400 group-focus-within:text-black transition-colors z-10 pointer-events-none"></i>
         <input type="text" name="q" value="{{ request.args.get('q', '') }}"
-               placeholder="Tìm Mã đơn, Tên KH, SĐT..."
-               class="w-full bg-[#fafaf8] border-2 border-stone-100 rounded-[1.25rem] pl-[3.25rem] pr-24 py-3 text-sm font-bold text-stone-900 focus:border-stone-900 focus:bg-white outline-none transition-all placeholder-stone-400">
-        <button type="submit" class="absolute right-1.5 top-1/2 -translate-y-1/2 bg-stone-900 text-white px-5 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-stone-800 transition-all shadow-sm">
+               placeholder="Mã đơn, Tên khách hàng, Số điện thoại..."
+               class="w-full bg-[#f8f8f8] border border-neutral-200 rounded-sm pl-11 pr-24 py-2.5 text-xs font-bold text-black focus:border-black focus:bg-white outline-none transition-colors placeholder-neutral-400">
+        <button type="submit" class="absolute right-1 top-1/2 -translate-y-1/2 bg-black text-white px-4 py-1.5 rounded-sm text-[9px] font-bold uppercase tracking-widest hover:bg-neutral-800 transition-colors">
           Tìm kiếm
         </button>
       </form>
 
-      {# Khối Thao tác hàng loạt (ẩn đi, chỉ hiện khi có Checkbox được chọn) #}
-      <div id="bulk-actions" class="hidden items-center gap-3 w-full lg:w-auto p-2 bg-stone-50 border border-stone-200 rounded-[1.25rem]">
-        <span class="px-3 text-[10px] font-black text-stone-500 uppercase tracking-widest border-r border-stone-200">Đã chọn <span id="selected-count" class="text-stone-900">0</span></span>
-        <button class="px-4 py-2 bg-white text-stone-900 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-stone-200 transition-all border border-stone-200 shadow-sm">
+      {# Khối Thao tác hàng loạt #}
+      <div id="bulk-actions" class="hidden items-center gap-3 w-full lg:w-auto p-2 bg-neutral-50 border border-neutral-200 rounded-sm">
+        <span class="px-3 text-[9px] font-bold text-neutral-500 uppercase tracking-widest border-r border-neutral-200">Đã chọn <span id="selected-count" class="text-black font-black">0</span></span>
+        <button class="px-4 py-2 bg-white text-black rounded-sm text-[9px] font-bold uppercase tracking-widest hover:bg-neutral-100 transition-colors border border-neutral-200">
           In phiếu giao
         </button>
-        <button class="px-4 py-2 bg-stone-900 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-stone-800 transition-all shadow-sm">
+        <button class="px-4 py-2 bg-black text-white rounded-sm text-[9px] font-bold uppercase tracking-widest hover:bg-neutral-800 transition-colors">
           Xác nhận loạt
         </button>
       </div>
     </div>
 
-    {# ── BẢNG DỮ LIỆU ĐƠN HÀNG THUẦN VIỆT ── #}
-    <div class="bg-white rounded-[2.5rem] shadow-[0_4px_20px_rgb(0,0,0,0.03)] border border-stone-100 overflow-hidden fade-up delay-2">
-      <div class="overflow-x-auto">
+    {# ── BẢNG DỮ LIỆU ĐƠN HÀNG ── #}
+    <div class="bg-white border border-neutral-200 overflow-hidden shadow-sm rounded-sm">
+      <div class="overflow-x-auto no-scrollbar">
         <table class="w-full text-left border-collapse min-w-[1000px]">
           <thead>
-            <tr class="bg-[#fafaf8] border-b border-stone-100 text-[10px] uppercase tracking-[0.15em] text-stone-400 font-black">
-              <th class="px-6 py-5 w-12 text-center">
-                <input type="checkbox" id="checkAll" class="w-4 h-4 rounded border-stone-300 text-stone-900 focus:ring-stone-900 cursor-pointer accent-stone-900">
+            <tr class="bg-neutral-50 border-b border-neutral-200 text-[9px] uppercase tracking-[0.2em] text-neutral-400 font-black">
+              <th class="px-5 py-4 w-12 text-center">
+                <input type="checkbox" id="checkAll" class="w-3.5 h-3.5 border-neutral-300 rounded-sm text-black focus:ring-black cursor-pointer accent-black">
               </th>
-              <th class="px-4 py-5 w-40">Mã đơn / Ngày</th>
-              <th class="px-4 py-5 w-72">Sản phẩm</th>
-              <th class="px-4 py-5">Khách hàng</th>
-              <th class="px-4 py-5">Thanh toán</th>
-              <th class="px-4 py-5">Trạng thái Kho</th>
-              <th class="px-6 py-5 text-right w-36">Tổng tiền</th>
-              <th class="px-6 py-5 text-center w-20"></th>
+              <th class="px-4 py-4 w-40">Mã đơn / Kênh</th>
+              <th class="px-4 py-4 w-64">Sản phẩm</th>
+              <th class="px-4 py-4">Khách hàng</th>
+              <th class="px-4 py-4">Thanh toán</th>
+              <th class="px-4 py-4 text-center">Tiến độ</th>
+              <th class="px-5 py-4 text-right w-32">Tổng tiền</th>
+              <th class="px-5 py-4 text-center w-16"></th>
             </tr>
           </thead>
-          <tbody class="text-sm divide-y divide-stone-100">
+          <tbody class="text-sm divide-y divide-neutral-100">
             {% for o in orders %}
-            <tr class="hover:bg-[#fafaf8] transition-colors group {% if o.status in ['cancelled', 'returned'] %}opacity-60 grayscale-[30%]{% endif %}">
+            <tr class="hover:bg-neutral-50 transition-colors group {% if o.status in ['cancelled', 'returned'] %}opacity-60{% endif %}">
               
               {# Checkbox #}
-              <td class="px-6 py-5 text-center align-top pt-6">
-                <input type="checkbox" value="{{ o.id }}" class="order-checkbox w-4 h-4 rounded border-stone-300 text-stone-900 focus:ring-stone-900 cursor-pointer accent-stone-900">
+              <td class="px-5 py-4 text-center align-top pt-5">
+                <input type="checkbox" value="{{ o.id }}" class="order-checkbox w-3.5 h-3.5 border-neutral-300 rounded-sm text-black focus:ring-black cursor-pointer accent-black">
               </td>
 
-              {# ID & Date #}
-              <td class="px-4 py-5 align-top pt-6">
-                <a href="{{ url_for('admin.order_detail', order_id=o.id) }}" class="font-mono font-bold text-stone-900 hover:text-blue-600 transition-colors">
-                  #{{ o.id[:8].upper() }}
+              {# ID & Kênh bán #}
+              <td class="px-4 py-4 align-top pt-5">
+                <a href="{{ url_for('admin.order_detail', order_id=o.id) }}" class="text-xs font-bold text-black uppercase hover:underline">
+                  #{{ o.code or o.id[:8]|upper }}
                 </a>
-                <p class="text-[10px] font-bold text-stone-400 mt-1 uppercase tracking-wider">{{ o.created_at[:10] }}<br>{{ o.created_at[11:16] }}</p>
+                <div class="mt-2 flex flex-col items-start gap-1.5">
+                  {% if o.source == 'pos' %}
+                    <span class="inline-flex items-center gap-1 bg-neutral-100 border border-neutral-200 text-black px-2 py-0.5 text-[8px] font-bold uppercase tracking-widest rounded-sm">
+                      <i class="fa-solid fa-store text-neutral-400"></i> POS
+                    </span>
+                  {% else %}
+                    <span class="inline-flex items-center gap-1 bg-black text-white px-2 py-0.5 text-[8px] font-bold uppercase tracking-widest rounded-sm">
+                      <i class="fa-solid fa-globe text-neutral-300"></i> WEB
+                    </span>
+                  {% endif %}
+                  
+                  {# Xử lý ngày giờ an toàn #}
+                  {% if o.created_at and 'T' in o.created_at %}
+                    {% set dt_parts = o.created_at.split('T') %}
+                    {% set ymd = dt_parts[0].split('-') %}
+                    <span class="text-[9px] font-bold text-neutral-400 tracking-wider">
+                      {{ ymd[2] }}/{{ ymd[1] }} - {{ dt_parts[1].split('+')[0].split('.')[0][:5] }}
+                    </span>
+                  {% endif %}
+                </div>
               </td>
 
-              {# Sản phẩm (Hiển thị ảnh và item đầu tiên) #}
-             <td class="px-4 py-5">
+              {# Sản phẩm #}
+              <td class="px-4 py-4 align-top pt-5">
                 {% if o.order_items and o.order_items|length > 0 %}
                   {% set first_item = o.order_items[0] %}
-                  
-                  {# XỬ LÝ AN TOÀN: Chống crash nếu sản phẩm đã bị xóa khỏi CSDL #}
                   {% set prod_info = first_item.get('products') or {} %}
                   
                   <div class="flex items-start gap-3">
-                    <div class="w-12 h-16 rounded-lg bg-stone-50 border border-stone-100 overflow-hidden shrink-0">
-                      <img src="{{ prod_info.get('thumbnail_url') or 'https://placehold.co/100x133' }}" class="w-full h-full object-cover">
+                    <div class="w-12 h-16 bg-[#f8f8f8] border border-neutral-200 overflow-hidden shrink-0 rounded-sm">
+                      <img src="{{ prod_info.get('thumbnail_url') or 'https://placehold.co/100x133' }}" class="w-full h-full object-cover mix-blend-multiply">
                     </div>
                     <div class="flex-1 min-w-0 pt-0.5">
-                      <p class="text-sm font-bold text-stone-900 line-clamp-2 leading-snug hover:line-clamp-none transition-all">
+                      <p class="text-xs font-bold text-black uppercase line-clamp-2 leading-snug">
                         {{ prod_info.get('name', 'Sản phẩm (Đã xóa)') }}
                       </p>
                       
                       {% if o.order_items|length > 1 %}
-                        <p class="text-[10px] font-black text-blue-600 bg-blue-50 px-2 py-0.5 rounded inline-block mt-2 tracking-widest uppercase">
+                        <p class="text-[9px] font-black text-blue-600 bg-blue-50 px-2 py-1 rounded-sm inline-block mt-1.5 tracking-widest uppercase border border-blue-100">
                           +{{ o.order_items|length - 1 }} mặt hàng khác
                         </p>
                       {% else %}
-                        <p class="text-[10px] font-black text-stone-400 mt-1.5 uppercase tracking-widest">
-                          SL: {{ first_item.quantity }}
+                        <p class="text-[9px] font-bold text-neutral-400 mt-1 uppercase tracking-widest">
+                          Số lượng: {{ first_item.quantity }}
                         </p>
                       {% endif %}
                     </div>
                   </div>
                 {% else %}
-                  <span class="text-xs text-stone-400 italic">Không có SP</span>
+                  <span class="text-[10px] text-neutral-400 italic uppercase tracking-widest">Không có dữ liệu SP</span>
                 {% endif %}
               </td>
 
-              {# Khách hàng #}
-              <td class="px-4 py-5 align-top pt-6">
-                <p class="font-bold text-stone-900 text-sm truncate max-w-[140px]" title="{{ o.shipping_address.get('full_name', '') if o.shipping_address else 'N/A' }}">
-                  {{ o.shipping_address.get('full_name', 'N/A') if o.shipping_address else 'N/A' }}
-                </p>
-                <p class="text-[11px] font-bold text-stone-500 mt-1 tracking-wide">{{ o.shipping_address.get('phone', 'N/A') if o.shipping_address else 'N/A' }}</p>
+              {# Khách hàng (Sử dụng Logic Fallback an toàn) #}
+              <td class="px-4 py-4 align-top pt-5">
+                {% set c_name = o.customer_name %}
+                {% if not c_name and o.users %} {% set c_name = o.users.full_name %} {% endif %}
+                {% if not c_name and o.shipping_address %} {% set c_name = o.shipping_address.get('full_name') %} {% endif %}
+                
+                {% set c_phone = o.customer_phone %}
+                {% if not c_phone and o.users %} {% set c_phone = o.users.phone %} {% endif %}
+                {% if not c_phone and o.shipping_address %} {% set c_phone = o.shipping_address.get('phone') %} {% endif %}
+
+                <p class="font-bold text-black text-xs uppercase truncate max-w-[140px]">{{ c_name or 'Khách lẻ' }}</p>
+                <p class="text-[10px] font-medium text-neutral-500 mt-1">{{ c_phone or '---' }}</p>
               </td>
 
               {# Thanh toán #}
-              <td class="px-4 py-5 align-top pt-6">
+              <td class="px-4 py-4 align-top pt-5">
                 {% if o.payment_status == 'paid' %}
-                  <span class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-emerald-50 text-emerald-600 rounded-lg text-[9px] font-black uppercase tracking-wider border border-emerald-100">
-                    <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>
-                    Đã thanh toán
+                  <span class="inline-flex items-center gap-1 px-2 py-1 bg-emerald-50 text-emerald-600 rounded-sm text-[8px] font-black uppercase tracking-widest border border-emerald-200">
+                    <i class="fa-solid fa-check"></i> Đã thanh toán
                   </span>
                 {% else %}
-                  <span class="inline-flex items-center gap-1.5 px-2.5 py-1 bg-amber-50 text-amber-600 rounded-lg text-[9px] font-black uppercase tracking-wider border border-amber-100">
-                    <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
-                    Chờ COD
+                  <span class="inline-flex items-center gap-1 px-2 py-1 bg-amber-50 text-amber-600 rounded-sm text-[8px] font-black uppercase tracking-widest border border-amber-200">
+                    <span class="w-1 h-1 rounded-full bg-amber-500 animate-pulse"></span> Chờ thu tiền
                   </span>
                 {% endif %}
-                <p class="text-[10px] font-bold text-stone-400 mt-1.5 uppercase tracking-wider">{{ o.payment_method }}</p>
+                <p class="text-[9px] font-bold text-neutral-400 mt-1.5 uppercase tracking-widest">{{ o.payment_method }}</p>
               </td>
 
-              {# Kho vận (Trạng thái) #}
-              <td class="px-4 py-5 align-top pt-6">
+              {# Trạng thái #}
+              <td class="px-4 py-4 align-top pt-5 text-center">
                 {% set s_map = {
-                  'pending': ('Chờ xác nhận', 'bg-orange-50 text-orange-600 border-orange-100'),
-                  'confirmed': ('Đã xác nhận', 'bg-blue-50 text-blue-600 border-blue-100'),
-                  'packed': ('Đã đóng gói', 'bg-indigo-50 text-indigo-600 border-indigo-100'),
-                  'shipped': ('Đang giao', 'bg-purple-50 text-purple-600 border-purple-100'),
-                  'completed': ('Hoàn tất', 'bg-emerald-50 text-emerald-600 border-emerald-100'),
-                  'delivered': ('Hoàn tất', 'bg-emerald-50 text-emerald-600 border-emerald-100'),
-                  'cancelled': ('Đã hủy', 'bg-stone-100 text-stone-500 border-stone-200'),
-                  'failed': ('Thất bại', 'bg-red-50 text-red-600 border-red-100'),
-                  'returned': ('Hoàn hàng', 'bg-orange-50 text-orange-600 border-orange-200')
+                  'pending': ('Chờ xác nhận', 'bg-orange-50 text-orange-600 border-orange-200'),
+                  'confirmed': ('Đã xác nhận', 'bg-blue-50 text-blue-600 border-blue-200'),
+                  'packed': ('Đã đóng gói', 'bg-indigo-50 text-indigo-600 border-indigo-200'),
+                  'shipped': ('Đang giao', 'bg-purple-50 text-purple-600 border-purple-200'),
+                  'completed': ('Hoàn tất', 'bg-emerald-50 text-emerald-600 border-emerald-200'),
+                  'delivered': ('Đã giao', 'bg-emerald-50 text-emerald-600 border-emerald-200'),
+                  'cancelled': ('Đã hủy', 'bg-neutral-100 text-neutral-500 border-neutral-200'),
+                  'failed': ('Thất bại', 'bg-red-50 text-red-600 border-red-200'),
+                  'returned': ('Hoàn hàng', 'bg-rose-50 text-rose-600 border-rose-200')
                 } %}
-                {% set st = s_map.get(o.status, ('N/A', 'bg-stone-50 text-stone-500')) %}
-                <span class="inline-block px-2.5 py-1 rounded-lg text-[9px] font-black uppercase tracking-wider border {{ st[1] }}">
+                {% set st = s_map.get(o.status, ('N/A', 'bg-neutral-50 text-neutral-500')) %}
+                <span class="inline-block px-2 py-1 rounded-sm text-[8px] font-black uppercase tracking-widest border {{ st[1] }}">
                   {{ st[0] }}
                 </span>
               </td>
 
               {# Tổng tiền #}
-              <td class="px-6 py-5 text-right align-top pt-6">
-                <p class="font-black text-stone-900 text-sm tabular-nums">{{ "{:,.0f}".format(o.total_amount) }} ₫</p>
-                <p class="text-[10px] font-bold text-stone-400 mt-1 uppercase">{{ o.order_items|length }} mặt hàng</p>
+              <td class="px-5 py-4 text-right align-top pt-5">
+                <p class="font-bold text-black text-xs tabular-nums">{{ "{:,.0f}".format(o.total_amount) }} ₫</p>
+                <p class="text-[9px] font-bold text-neutral-400 mt-1 uppercase tracking-widest">{{ o.order_items|length }} sản phẩm</p>
               </td>
 
               {# Thao tác #}
-              <td class="px-6 py-5 text-center align-top pt-6">
+              <td class="px-5 py-4 text-center align-top pt-5">
                 <a href="{{ url_for('admin.order_detail', order_id=o.id) }}" title="Xử lý đơn"
-                   class="inline-flex w-8 h-8 rounded-xl bg-white border border-stone-200 text-stone-400 items-center justify-center hover:bg-stone-900 hover:text-white hover:border-stone-900 transition-all shadow-sm active:scale-95">
-                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5"/></svg>
+                   class="inline-flex w-7 h-7 rounded-sm bg-white border border-neutral-200 text-neutral-400 items-center justify-center hover:bg-black hover:text-white transition-colors shadow-sm">
+                  <i class="fa-solid fa-arrow-right -rotate-45 text-xs"></i>
                 </a>
               </td>
             </tr>
             {% else %}
             <tr>
-              <td colspan="8" class="px-6 py-32 text-center bg-[#fafaf8]">
-                <div class="flex flex-col items-center justify-center gap-4">
-                  <div class="w-16 h-16 bg-white border border-stone-200 rounded-[1.25rem] flex items-center justify-center text-stone-300 shadow-sm">
-                    <svg class="w-8 h-8" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z"/></svg>
-                  </div>
-                  <p class="text-xs font-bold text-stone-400 uppercase tracking-widest">Không tìm thấy đơn hàng nào.</p>
+              <td colspan="8" class="px-6 py-24 text-center bg-[#f8f8f8]">
+                <div class="flex flex-col items-center justify-center gap-3">
+                  <i class="fa-solid fa-box-open text-3xl text-neutral-300"></i>
+                  <p class="text-[10px] font-bold text-neutral-400 uppercase tracking-[0.2em]">Không tìm thấy đơn hàng nào.</p>
                 </div>
               </td>
             </tr>
@@ -222,29 +245,29 @@
 
     {# ── PHÂN TRANG (PAGINATION) ── #}
     {% if total_pages > 1 %}
-    <div class="flex justify-center items-center gap-2 mt-8 fade-up delay-3">
+    <div class="flex justify-center items-center gap-1 mt-6">
       {% if page > 1 %}
       <a href="{{ url_for('admin.orders', page=page-1, status=current_status, q=request.args.get('q','')) }}"
-         class="w-10 h-10 flex items-center justify-center rounded-xl bg-white border border-stone-200 text-stone-500 hover:bg-stone-900 hover:text-white hover:border-stone-900 transition-all shadow-sm">
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5"/></svg>
+         class="w-8 h-8 flex items-center justify-center rounded-sm bg-white border border-neutral-200 text-black hover:bg-neutral-100 transition-colors">
+        <i class="fa-solid fa-chevron-left text-[10px]"></i>
       </a>
       {% endif %}
 
       {% for pg in range(1, total_pages + 1) %}
         {% if pg == page %}
-          <span class="w-10 h-10 flex items-center justify-center rounded-xl bg-stone-900 text-white text-sm font-black shadow-md">{{ pg }}</span>
+          <span class="w-8 h-8 flex items-center justify-center rounded-sm bg-black text-white text-xs font-bold">{{ pg }}</span>
         {% elif pg == 1 or pg == total_pages or (pg >= page - 2 and pg <= page + 2) %}
           <a href="{{ url_for('admin.orders', page=pg, status=current_status, q=request.args.get('q','')) }}"
-             class="w-10 h-10 flex items-center justify-center rounded-xl bg-white text-stone-500 border border-stone-200 hover:bg-stone-50 hover:text-stone-900 text-sm font-bold transition-all shadow-sm">{{ pg }}</a>
+             class="w-8 h-8 flex items-center justify-center rounded-sm bg-white text-neutral-500 border border-neutral-200 hover:bg-neutral-50 hover:text-black text-xs font-bold transition-colors">{{ pg }}</a>
         {% elif pg == page - 3 or pg == page + 3 %}
-          <span class="text-stone-300 font-bold px-1">…</span>
+          <span class="text-neutral-300 font-bold px-1 text-xs">…</span>
         {% endif %}
       {% endfor %}
 
       {% if page < total_pages %}
       <a href="{{ url_for('admin.orders', page=page+1, status=current_status, q=request.args.get('q','')) }}"
-         class="w-10 h-10 flex items-center justify-center rounded-xl bg-white border border-stone-200 text-stone-500 hover:bg-stone-900 hover:text-white hover:border-stone-900 transition-all shadow-sm">
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5"/></svg>
+         class="w-8 h-8 flex items-center justify-center rounded-sm bg-white border border-neutral-200 text-black hover:bg-neutral-100 transition-colors">
+        <i class="fa-solid fa-chevron-right text-[10px]"></i>
       </a>
       {% endif %}
     </div>
@@ -255,13 +278,11 @@
 
 <style>
   .no-scrollbar::-webkit-scrollbar { display: none; }
-  .fade-up { opacity: 0; animation: fadeUpAnim 0.6s cubic-bezier(0.22, 1, 0.36, 1) forwards; }
-  .delay-1 { animation-delay: 0.1s; } .delay-2 { animation-delay: 0.2s; } .delay-3 { animation-delay: 0.3s; }
-  @keyframes fadeUpAnim { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+  .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 </style>
 
 <script>
-// Logic Checkbox cho tính năng Thao tác hàng loạt
+// Logic Checkbox Thao tác hàng loạt
 document.addEventListener('DOMContentLoaded', function() {
     const checkAll = document.getElementById('checkAll');
     const checkboxes = document.querySelectorAll('.order-checkbox');

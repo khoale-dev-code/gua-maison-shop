@@ -2,9 +2,13 @@
 app/controllers/profile_controller.py
 Quản lý hồ sơ cá nhân, bảo mật tài khoản, lịch sử giao dịch và sổ địa chỉ khách hàng.
 """
-
+import os
+import uuid
 import logging
-from flask import Blueprint, render_template, redirect, url_for, session, flash, abort, request, jsonify
+
+# Tách riêng request ra để VS Code/PyDev không bị lỗi ngầm
+from flask import request, current_app
+from flask import Blueprint, render_template, redirect, url_for, session, flash, abort, jsonify
 
 from app.models.user_model import UserModel
 from app.models.order_model import OrderModel
@@ -15,7 +19,6 @@ from app.models.shipment_model import ShipmentModel
 
 profile_bp = Blueprint("profile", __name__, url_prefix="/profile")
 logger = logging.getLogger(__name__)
-
 # ═══════════════════════════════════════════════════════════════
 #  DASHBOARD CÁ NHÂN
 # ═══════════════════════════════════════════════════════════════
@@ -121,66 +124,61 @@ def cancel_order(order_id):
         flash("Lỗi hệ thống, vui lòng thử lại.", "danger")
         return redirect(url_for("profile.order_detail", order_id=order_id))
 
+
 # ═══════════════════════════════════════════════════════════════
 #  YÊU CẦU ĐỔI / TRẢ HÀNG (RETURN REQUEST)
 # ═══════════════════════════════════════════════════════════════
-
-
 @profile_bp.route("/orders/<order_id>/return", methods=["POST"])
 @login_required
 def request_return(order_id):
     """
     Khách hàng gửi yêu cầu đổi/trả sau khi nhận hàng.
-    Nhận: reason (text), image_url (link ảnh upload từ client hoặc Cloudinary).
-    Hỗ trợ cả JSON (fetch API) và form submit thông thường.
+    Nhận: reason (text), image (File upload thực tế)
     """
     user_id = session.get("user_id")
-    is_ajax = request.headers.get("X-Requested-With") == "XMLHttpRequest" \
-              or request.accept_mimetypes.accept_json
 
-    # Lấy dữ liệu — ưu tiên JSON body, fallback sang form
-    if request.is_json:
-        payload = request.get_json(silent=True) or {}
-        reason = payload.get("reason", "").strip()
-        image_url = payload.get("image_url", "").strip()
-    else:
-        form_data = request.form
-        reason = form_data.get("reason", "").strip()
-        image_url = form_data.get("image_url", "").strip()
+    reason = request.form.get("reason", "").strip()
+    image_file = request.files.get("image")
 
-    # Validate
     if not reason:
-        msg = "Vui lòng mô tả lý do đổi/trả hàng."
-        if is_ajax:
-            return jsonify({"success": False, "message": msg}), 400
-        flash(msg, "danger")
+        flash("Vui lòng mô tả lý do đổi/trả hàng.", "danger")
         return redirect(url_for("profile.order_detail", order_id=order_id))
 
-    if not image_url:
-        msg = "Vui lòng đính kèm hình ảnh sản phẩm để hoàn tất yêu cầu."
-        if is_ajax:
-            return jsonify({"success": False, "message": msg}), 400
-        flash(msg, "danger")
+    if not image_file or image_file.filename == '':
+        flash("Vui lòng đính kèm hình ảnh sản phẩm để hoàn tất yêu cầu.", "danger")
         return redirect(url_for("profile.order_detail", order_id=order_id))
 
     try:
+        # 1. XỬ LÝ LƯU ẢNH THỰC TẾ VÀO SERVER
+        # Lấy phần mở rộng của file (ví dụ: .jpg, .png)
+        ext = os.path.splitext(image_file.filename)[1]
+        # Tạo tên file ngẫu nhiên để không bị trùng lặp
+        unique_filename = f"{uuid.uuid4().hex}{ext}"
+        
+        # Khai báo thư mục lưu ảnh (app/static/uploads/returns)
+        upload_folder = os.path.join(current_app.root_path, 'static', 'uploads', 'returns')
+        os.makedirs(upload_folder, exist_ok=True)  # Tự động tạo thư mục nếu chưa có
+        
+        # Lưu file ảnh thực tế vào thư mục
+        file_path = os.path.join(upload_folder, unique_filename)
+        image_file.save(file_path)
+        
+        # Tạo đường dẫn URL thực tế để lưu vào Database
+        image_url = f"/static/uploads/returns/{unique_filename}"
+
+        # 2. LƯU VÀO DATABASE THÔNG QUA MODEL
         success, msg_model = OrderModel.request_return(order_id, user_id, reason, image_url)
         
-        # Thông báo chi tiết lấy từ Model nếu có, nếu không lấy mặc định
-        msg = msg_model if msg_model else ("Yêu cầu đổi/trả đã được ghi nhận. Đội ngũ GUA sẽ liên hệ bạn trong 24 giờ." if success else "Không thể gửi yêu cầu.")
-
-        if is_ajax:
-            return jsonify({"success": success, "message": msg}), (200 if success else 400)
-
-        flash(msg, "success" if success else "danger")
-        return redirect(url_for("profile.order_detail", order_id=order_id))
+        if success:
+            flash("Yêu cầu hoàn trả đã được gửi thành công!", "success")
+        else:
+            flash(msg_model or "Không thể gửi yêu cầu đổi/trả.", "danger")
 
     except Exception as e:
         logger.error(f"Return request error [{order_id}]: {e}")
-        if is_ajax:
-            return jsonify({"success": False, "message": "Lỗi hệ thống, vui lòng thử lại."}), 500
-        flash("Lỗi hệ thống, vui lòng thử lại.", "danger")
-        return redirect(url_for("profile.order_detail", order_id=order_id))
+        flash("Lỗi hệ thống, vui lòng thử lại sau.", "danger")
+
+    return redirect(url_for("profile.order_detail", order_id=order_id))
 
 # ═══════════════════════════════════════════════════════════════
 #  QUẢN LÝ THÔNG TIN BẢO MẬT & TÀI KHOẢN

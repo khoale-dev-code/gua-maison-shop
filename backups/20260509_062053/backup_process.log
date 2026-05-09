@@ -1,0 +1,31 @@
+2026-05-09 06:20:53,364 - INFO - 🚀 KHỞI ĐỘNG HỆ THỐNG BACKUP GUA MAISON ARCHIVE...
+2026-05-09 06:20:53,368 - INFO - ⏳ Đang tiến hành trích xuất cơ sở dữ liệu (SQL Dump)...
+2026-05-09 06:21:24,693 - INFO - ✅ Backup SQL thành công: backups/20260509_062053/database_full_dump.sql
+2026-05-09 06:21:24,851 - INFO - ⏳ Đang biên dịch dữ liệu ra báo cáo Excel...
+2026-05-09 06:21:27,452 - INFO -   - Đã xuất bảng [orders] (21 dòng)
+2026-05-09 06:21:27,751 - INFO -   - Đã xuất bảng [order_items] (23 dòng)
+2026-05-09 06:21:28,060 - INFO -   - Bảng payments: Trống (Bỏ qua)
+2026-05-09 06:21:28,356 - INFO -   - Bảng return_requests: Trống (Bỏ qua)
+2026-05-09 06:21:28,668 - INFO -   - Đã xuất bảng [cart_items] (2 dòng)
+2026-05-09 06:21:29,085 - INFO -   - Đã xuất bảng [products] (15 dòng)
+2026-05-09 06:21:29,391 - INFO -   - Đã xuất bảng [product_variants] (110 dòng)
+2026-05-09 06:21:29,687 - INFO -   - Đã xuất bảng [categories] (5 dòng)
+2026-05-09 06:21:29,980 - INFO -   - Bảng brands: Trống (Bỏ qua)
+2026-05-09 06:21:30,281 - INFO -   - Đã xuất bảng [product_images] (37 dòng)
+2026-05-09 06:21:30,572 - INFO -   - Bảng inventory_logs: Trống (Bỏ qua)
+2026-05-09 06:21:30,868 - INFO -   - Bảng product_reviews: Trống (Bỏ qua)
+2026-05-09 06:21:31,181 - INFO -   - Đã xuất bảng [product_analytics] (21 dòng)
+2026-05-09 06:21:31,481 - INFO -   - Đã xuất bảng [coupons] (3 dòng)
+2026-05-09 06:21:31,771 - INFO -   - Bảng coupon_usages: Trống (Bỏ qua)
+2026-05-09 06:21:32,085 - INFO -   - Bảng flash_sales: Trống (Bỏ qua)
+2026-05-09 06:21:32,377 - INFO -   - Bảng flash_sale_items: Trống (Bỏ qua)
+2026-05-09 06:21:32,687 - INFO -   - Đã xuất bảng [users] (5 dòng)
+2026-05-09 06:21:32,989 - INFO -   - Đã xuất bảng [user_addresses] (3 dòng)
+2026-05-09 06:21:33,302 - INFO -   - Đã xuất bảng [favorites] (11 dòng)
+2026-05-09 06:21:33,614 - INFO -   - Đã xuất bảng [shipments] (8 dòng)
+2026-05-09 06:21:33,929 - INFO -   - Đã xuất bảng [shipment_events] (17 dòng)
+2026-05-09 06:21:34,248 - INFO -   - Đã xuất bảng [shipping_providers] (3 dòng)
+2026-05-09 06:21:34,552 - INFO -   - Đã xuất bảng [shipping_configs] (1 dòng)
+2026-05-09 06:21:34,882 - INFO - ✅ Hoàn tất xuất báo cáo Excel: backups/20260509_062053/GUA_Business_Report_20260509_062053.xlsx
+2026-05-09 06:21:34,883 - INFO - 🧹 Đang kiểm tra và dọn dẹp các bản backup cũ...
+2026-05-09 06:21:34,884 - INFO - ✨ TẤT CẢ CHIẾN DỊCH ĐÃ XONG! Dữ liệu được bảo vệ tại: backups/20260509_062053

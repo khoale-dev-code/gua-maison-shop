@@ -9,44 +9,44 @@
 {% set images = product.product_images if (product.product_images and product.product_images|length > 0)
    else ([{'url': product.thumbnail_url, 'is_primary': true}] if product.thumbnail_url else []) %}
 
-<div class="min-h-screen bg-white pb-24 font-sans selection:bg-stone-900 selection:text-white">
+<div class="min-h-screen bg-white pb-24 font-sans selection:bg-black selection:text-white">
   
-  {# ── Breadcrumb ── #}
-  <nav class="max-w-[1400px] mx-auto px-6 py-6 flex items-center gap-3 text-[10px] font-black uppercase tracking-widest text-stone-400">
-    <a href="/" class="hover:text-stone-900 transition-colors">Trang chủ</a>
-    <span class="w-1 h-1 rounded-full bg-stone-300"></span>
-    <a href="/shop" class="hover:text-stone-900 transition-colors">Cửa hàng</a>
+  {# ── Breadcrumb (Minimalist) ── #}
+  <nav class="max-w-[1200px] mx-auto px-5 lg:px-8 py-6 flex items-center gap-2 text-[9px] font-bold uppercase tracking-[0.2em] text-neutral-400">
+    <a href="/" class="hover:text-black transition-colors">Trang chủ</a>
+    <span>/</span>
+    <a href="/shop" class="hover:text-black transition-colors">Cửa hàng</a>
     {% if product.categories %}
-    <span class="w-1 h-1 rounded-full bg-stone-300"></span>
-    <span class="text-stone-900">{{ product.categories.name }}</span>
+    <span>/</span>
+    <span class="text-black">{{ product.categories.name }}</span>
     {% endif %}
   </nav>
 
-  <main class="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
-    <div class="flex flex-col lg:flex-row gap-12 lg:gap-16">
+  <main class="max-w-[1200px] mx-auto px-5 lg:px-8">
+    <div class="flex flex-col lg:flex-row gap-10 lg:gap-20">
 
       {# ══════════════════════════════
-         CỘT TRÁI — Hình ảnh (Cinematic Zoom & Fade)
+         CỘT TRÁI — Hình ảnh (Editorial Layout)
          ══════════════════════════════ #}
-      <section class="w-full lg:w-[55%] flex flex-col gap-6">
-        <div class="relative bg-stone-50 rounded-[2.5rem] overflow-hidden aspect-[4/5] md:aspect-auto md:h-[85vh] group border border-stone-100 shadow-sm cursor-crosshair">
+      <section class="w-full lg:w-[55%] flex flex-col gap-4">
+        <div class="relative bg-[#f8f8f8] aspect-[3/4] md:aspect-[4/5] overflow-hidden group cursor-crosshair">
           <div id="carousel-track" class="relative w-full h-full">
             {% for img in images %}
             <div class="carousel-slide absolute inset-0 w-full h-full transition-all duration-700 ease-in-out 
                         {% if loop.first %}opacity-100 z-10 scale-100{% else %}opacity-0 z-0 scale-105{% endif %}">
-              <img src="{{ img.url }}" alt="{{ product.name }}" class="w-full h-full object-cover object-top transition-transform duration-500 hover:scale-[1.15]">
+              <img src="{{ img.url }}" alt="{{ product.name }}" class="w-full h-full object-cover mix-blend-multiply transition-transform duration-[2000ms] group-hover:scale-105">
             </div>
             {% endfor %}
           </div>
           
-          {# Nút chuyển ảnh #}
+          {# Nút chuyển ảnh (Minimalist Glassmorphism) #}
           {% if images|length > 1 %}
-          <div class="absolute inset-x-6 top-1/2 -translate-y-1/2 flex justify-between z-30 opacity-0 group-hover:opacity-100 transition-all">
-            <button data-dir="-1" class="btn-slide w-12 h-12 bg-white/90 backdrop-blur-md rounded-full flex items-center justify-center shadow-lg hover:bg-stone-900 hover:text-white transition-all active:scale-90">
-              <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M15 19l-7-7 7-7"/></svg>
+          <div class="absolute inset-x-4 top-1/2 -translate-y-1/2 flex justify-between z-30 opacity-0 group-hover:opacity-100 transition-all duration-300 hidden md:flex">
+            <button data-dir="-1" class="btn-slide w-10 h-10 bg-white/80 backdrop-blur-md rounded-full flex items-center justify-center hover:bg-black hover:text-white transition-all">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5"/></svg>
             </button>
-            <button data-dir="1" class="btn-slide w-12 h-12 bg-white/90 backdrop-blur-md rounded-full flex items-center justify-center shadow-lg hover:bg-stone-900 hover:text-white transition-all active:scale-90">
-              <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg>
+            <button data-dir="1" class="btn-slide w-10 h-10 bg-white/80 backdrop-blur-md rounded-full flex items-center justify-center hover:bg-black hover:text-white transition-all">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5"/></svg>
             </button>
           </div>
           {% endif %}
@@ -54,10 +54,10 @@
 
         {# Thumbnails #}
         {% if images|length > 1 %}
-        <div class="flex gap-4 overflow-x-auto no-scrollbar py-2">
+        <div class="flex gap-3 overflow-x-auto no-scrollbar py-2">
           {% for img in images %}
-          <button data-index="{{ loop.index0 }}" class="thumbnail-btn w-20 h-24 shrink-0 rounded-2xl overflow-hidden border-2 transition-all {% if loop.first %}border-stone-900 ring-2 ring-stone-900/20{% else %}border-transparent opacity-50 hover:opacity-80{% endif %}">
-            <img src="{{ img.url }}" class="w-full h-full object-cover object-top">
+          <button data-index="{{ loop.index0 }}" class="thumbnail-btn w-16 h-20 md:w-20 md:h-[100px] shrink-0 overflow-hidden transition-all bg-[#f8f8f8] {% if loop.first %}ring-1 ring-black ring-offset-2 opacity-100{% else %}opacity-40 hover:opacity-100{% endif %}">
+            <img src="{{ img.url }}" class="w-full h-full object-cover mix-blend-multiply">
           </button>
           {% endfor %}
         </div>
@@ -65,39 +65,40 @@
       </section>
 
       {# ══════════════════════════════
-         CỘT PHẢI — Thông tin & Form mua hàng
+         CỘT PHẢI — Thông tin & Form mua hàng (Clear & Sharp)
          ══════════════════════════════ #}
-      <section class="w-full lg:w-[45%] flex flex-col">
-        <div class="sticky top-12 space-y-8">
+      <section class="w-full lg:w-[45%] flex flex-col pt-4 md:pt-10">
+        <div class="lg:sticky lg:top-28 space-y-10">
           
-          <div class="space-y-4">
-            <span class="text-[11px] font-black text-stone-400 uppercase tracking-widest">{{ product.brand or 'GUA Maison' }}</span>
-            <h1 class="text-4xl lg:text-5xl font-black tracking-tighter text-stone-900 leading-tight">{{ product.name }}</h1>
-            <div class="flex items-end gap-3" id="price-container">
-              <p id="price-display" class="text-3xl font-black text-stone-900 tabular-nums" data-base-price="{{ product.price }}">{{ "{:,.0f}".format(product.price) }} ₫</p>
-              <p id="price-original" class="text-lg font-semibold text-stone-400 line-through tabular-nums hidden"></p>
+          {# Tiêu đề & Giá #}
+          <div class="space-y-4 border-b border-neutral-100 pb-8">
+            <p class="text-[9px] font-bold text-neutral-400 uppercase tracking-[0.3em]">{{ product.brand or 'Collection' }}</p>
+            <h1 class="text-3xl md:text-4xl font-bold tracking-tight text-black leading-snug uppercase">{{ product.name }}</h1>
+            
+            <div class="flex items-baseline gap-4 mt-4" id="price-container">
+              <p id="price-display" class="text-2xl font-medium text-black tabular-nums" data-base-price="{{ product.price }}">{{ "{:,.0f}".format(product.price) }} ₫</p>
+              <p id="price-original" class="text-sm font-medium text-neutral-400 line-through tabular-nums hidden"></p>
             </div>
           </div>
 
           {# ── FORM MUA HÀNG ── #}
-          <form action="/cart/add" method="POST" class="space-y-8 bg-stone-50 p-8 rounded-[2.5rem] border border-stone-100 shadow-sm">
+          <form action="/cart/add" method="POST" class="space-y-8">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <input type="hidden" name="product_id" value="{{ product.id }}">
             <input type="hidden" name="variant_id" id="selected-variant-id" value="">
 
             {# 1. CHỌN MÀU SẮC #}
             <div class="space-y-4">
-              <div class="flex justify-between items-baseline">
-                <span class="text-[10px] font-black uppercase text-stone-500 tracking-widest">Màu sắc</span>
-                <span id="color-label" class="text-xs font-bold text-stone-900">Chưa chọn</span>
+              <div class="flex justify-between items-end">
+                <span class="text-[10px] font-bold uppercase tracking-[0.2em] text-black">Màu sắc</span>
+                <span id="color-label" class="text-[10px] font-medium text-neutral-500 uppercase tracking-widest">Chưa chọn</span>
               </div>
               <div class="flex flex-wrap gap-3">
                 {% for c_name, group in product.color_groups.items() %}
                 <label class="cursor-pointer relative group">
                   <input type="radio" name="color" value="{{ c_name }}" class="sr-only peer color-radio">
-                  <span class="block w-11 h-11 rounded-full border-2 border-stone-200 shadow-sm peer-checked:ring-2 peer-checked:ring-stone-900 peer-checked:ring-offset-2 transition-all hover:scale-110 color-swatch" 
+                  <span class="block w-8 h-8 rounded-full border border-black/10 peer-checked:ring-1 peer-checked:ring-black peer-checked:ring-offset-4 transition-all shadow-sm color-swatch" 
                         data-bg="{{ group.hex if group.hex else color_map.get(c_name|lower, '#e7e5e4') }}"></span>
-                  <svg class="absolute inset-0 m-auto h-4 w-4 text-white opacity-0 peer-checked:opacity-100 transition-all mix-blend-difference" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"/></svg>
                 </label>
                 {% endfor %}
               </div>
@@ -105,19 +106,19 @@
 
             {# 2. CHỌN KÍCH THƯỚC #}
             <div class="space-y-4">
-              <div class="flex justify-between items-baseline">
-                <span class="text-[10px] font-black uppercase text-stone-500 tracking-widest">Kích thước</span>
-                <span class="text-[10px] font-bold text-stone-400 underline cursor-pointer hover:text-stone-900">Hướng dẫn chọn size</span>
+              <div class="flex justify-between items-end">
+                <span class="text-[10px] font-bold uppercase tracking-[0.2em] text-black">Kích thước</span>
+                <button type="button" class="text-[9px] font-bold text-neutral-400 border-b border-neutral-300 pb-0.5 uppercase tracking-[0.2em] hover:text-black transition-colors">Size Guide</button>
               </div>
               
-              <div id="size-wrapper" class="min-h-[3.5rem]">
+              <div id="size-wrapper" class="min-h-[3rem]">
                 {% for c_name, group in product.color_groups.items() %}
-                <div class="size-group grid-cols-4 sm:grid-cols-5 gap-3" data-color="{{ c_name }}" style="display: none;">
+                <div class="size-group flex flex-wrap gap-2.5" data-color="{{ c_name }}" style="display: none;">
                   {% for sz in group.sizes %}
-                  <label class="relative {% if sz.stock > 0 %}cursor-pointer hover:-translate-y-0.5 transition-transform{% endif %}">
+                  <label class="relative {% if sz.stock > 0 %}cursor-pointer{% endif %}">
                     <input type="radio" name="size_radio" class="sr-only peer size-radio" {% if sz.stock <= 0 %}disabled{% endif %} 
                            data-vid="{{ sz.variant_id }}" data-stock="{{ sz.stock }}" data-price="{{ sz.price }}">
-                    <span class="flex items-center justify-center h-14 border-2 border-stone-200 rounded-2xl text-xs font-black transition-all peer-checked:bg-stone-900 peer-checked:text-white peer-checked:border-stone-900 peer-disabled:bg-stone-100 peer-disabled:text-stone-300 peer-disabled:border-stone-100 peer-disabled:cursor-not-allowed shadow-sm peer-checked:shadow-md uppercase">
+                    <span class="flex items-center justify-center min-w-[3.5rem] h-12 px-4 border border-neutral-200 rounded-sm text-[11px] font-bold transition-all peer-checked:bg-black peer-checked:text-white peer-checked:border-black peer-disabled:bg-neutral-50 peer-disabled:text-neutral-300 peer-disabled:border-neutral-100 peer-disabled:cursor-not-allowed uppercase tracking-widest hover:border-black">
                       {{ sz.size }}
                     </span>
                   </label>
@@ -128,33 +129,33 @@
             </div>
 
             {# 3. SỐ LƯỢNG & NÚT MUA #}
-            <div class="pt-6 border-t border-stone-200 flex flex-col sm:flex-row gap-4">
+            <div class="pt-8 border-t border-neutral-100 flex flex-col sm:flex-row gap-3">
               
-              <div class="flex items-center justify-between bg-white border-2 border-stone-200 rounded-2xl h-16 w-full sm:w-[140px] shadow-sm px-2 shrink-0">
-                <button type="button" data-qty="-1" class="btn-qty w-10 h-10 flex items-center justify-center text-2xl font-medium text-stone-400 hover:text-stone-900 hover:bg-stone-50 rounded-xl transition-all">−</button>
-                <input type="number" id="qty" name="quantity" value="1" min="1" max="1" readonly class="w-10 text-center text-base font-black bg-transparent outline-none pointer-events-none tabular-nums">
-                <button type="button" data-qty="1" class="btn-qty w-10 h-10 flex items-center justify-center text-2xl font-medium text-stone-400 hover:text-stone-900 hover:bg-stone-50 rounded-xl transition-all">+</button>
+              <div class="flex items-center justify-between border border-neutral-200 rounded-sm h-14 w-full sm:w-32 bg-white shrink-0">
+                <button type="button" data-qty="-1" class="btn-qty w-10 h-full flex items-center justify-center text-lg text-neutral-400 hover:text-black hover:bg-neutral-50 transition-colors">−</button>
+                <input type="number" id="qty" name="quantity" value="1" min="1" max="1" readonly class="flex-1 text-center text-xs font-bold bg-transparent outline-none pointer-events-none tabular-nums">
+                <button type="button" data-qty="1" class="btn-qty w-10 h-full flex items-center justify-center text-lg text-neutral-400 hover:text-black hover:bg-neutral-50 transition-colors">+</button>
               </div>
 
-              <button type="submit" id="btn-submit" disabled class="flex-1 h-16 bg-stone-200 text-stone-400 text-xs font-black uppercase tracking-[0.1em] rounded-2xl cursor-not-allowed transition-all flex items-center justify-center gap-3">
+              <button type="submit" id="btn-submit" disabled class="flex-1 h-14 bg-neutral-100 text-neutral-400 text-[11px] font-bold uppercase tracking-[0.2em] rounded-sm cursor-not-allowed transition-all flex items-center justify-center">
                 Chọn kích thước
               </button>
 
               {# Nút Yêu thích #}
-              <button type="button" id="btn-wishlist" data-pid="{{ product.id }}" class="w-16 h-16 shrink-0 rounded-2xl border-2 border-stone-200 bg-white flex items-center justify-center text-stone-300 hover:text-red-500 transition-all active:scale-90 shadow-sm">
-                <svg class="w-6 h-6 heart-icon" fill="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" /></svg>
+              <button type="button" id="btn-wishlist" data-pid="{{ product.id }}" class="w-14 h-14 shrink-0 rounded-sm border border-neutral-200 bg-white flex items-center justify-center text-neutral-400 hover:text-red-500 hover:border-red-500 transition-all">
+                <svg class="w-5 h-5 heart-icon" fill="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" /></svg>
               </button>
             </div>
 
-            <p id="stock-status" class="text-[10px] font-black text-center uppercase tracking-widest text-amber-500">
-              Vui lòng chọn Màu & Size để đặt hàng
+            <p id="stock-status" class="text-[9px] font-bold text-center uppercase tracking-widest text-neutral-400 mt-2">
+              Vui lòng chọn Màu & Size
             </p>
           </form>
 
-          {# Thông tin thêm #}
-          <div class="grid grid-cols-2 gap-4">
-            <div class="p-6 bg-white border border-stone-100 rounded-3xl"><h4 class="text-[9px] font-black uppercase text-stone-400 mb-1">Giao hàng</h4><p class="text-xs font-bold text-stone-600">Miễn phí từ 1.500.000₫</p></div>
-            <div class="p-6 bg-white border border-stone-100 rounded-3xl"><h4 class="text-[9px] font-black uppercase text-stone-400 mb-1">Đổi trả</h4><p class="text-xs font-bold text-stone-600">Dễ dàng trong 15 ngày</p></div>
+          {# Thông tin thêm (Editorial Box) #}
+          <div class="grid grid-cols-2 gap-px bg-neutral-100 border border-neutral-100">
+            <div class="p-5 bg-white"><h4 class="text-[9px] font-black uppercase tracking-widest text-neutral-400 mb-2">Vận chuyển</h4><p class="text-[11px] font-medium text-black">Miễn phí toàn quốc</p></div>
+            <div class="p-5 bg-white"><h4 class="text-[9px] font-black uppercase tracking-widest text-neutral-400 mb-2">Đổi trả</h4><p class="text-[11px] font-medium text-black">Dễ dàng trong 15 ngày</p></div>
           </div>
 
         </div>
@@ -183,7 +184,6 @@ document.addEventListener('DOMContentLoaded', () => {
   /* ==============================
      🎯 ANALYTICS CORE
   ============================== */
-
   const PRODUCT_ID = "{{ product.id }}";
 
   function getTrafficSource() {
@@ -201,35 +201,23 @@ document.addEventListener('DOMContentLoaded', () => {
         qty: qty
       });
 
-      // Ưu tiên sendBeacon (không bị cancel request)
       if (navigator.sendBeacon) {
         const blob = new Blob([payload], { type: "application/json" });
         navigator.sendBeacon("/api/analytics/track", blob);
       } else {
         fetch("/api/analytics/track", {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
+          headers: { "Content-Type": "application/json" },
           body: payload
         }).catch(() => {});
       }
-
     } catch (err) {
       console.warn("Tracking error:", err);
     }
   }
 
-  /* ==============================
-     📊 TRACK VIEW (AUTO)
-  ============================== */
-  if (PRODUCT_ID) {
-    trackEvent("view");
-  }
+  if (PRODUCT_ID) trackEvent("view");
 
-  /* ==============================
-     🛒 TRACK ADD TO CART
-  ============================== */
   const form = document.querySelector('form[action="/cart/add"]');
   if (form) {
     form.addEventListener("submit", () => {
@@ -237,83 +225,58 @@ document.addEventListener('DOMContentLoaded', () => {
       trackEvent("cart", qty);
     });
   }
-/* ==============================
-   ❤️ XỬ LÝ YÊU THÍCH (WISHLIST & ANALYTICS)
-============================== */
-const wishlistBtn = document.getElementById("btn-wishlist");
 
-if (wishlistBtn) {
-  wishlistBtn.addEventListener("click", async function() {
-    const productId = this.dataset.pid;
-    const heartIcon = this.querySelector('.heart-icon');
-    
-    // Vô hiệu hóa nút tạm thời để tránh bấm liên tục (Spam)
-    wishlistBtn.disabled = true;
-
-    try {
-      // BƯỚC 1: Gọi API lưu vào Database thực tế
-      const favRes = await fetch('/api/favorites/toggle', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-CSRFToken': '{{ csrf_token() }}'
-        },
-        body: JSON.stringify({ product_id: productId })
-      });
-
-      const favData = await favRes.json();
-
-      if (favData.status === 'success') {
-        // Cập nhật UI: Đổi màu tim
-        if (favData.action === 'added') {
-          wishlistBtn.classList.remove('text-stone-300');
-          wishlistBtn.classList.add('text-red-500', 'bg-rose-50', 'border-rose-200');
-          
-          // BƯỚC 2: Chỉ khi thêm mới thì mới bắn Tracking Analytics
-          trackEvent("wishlist", 1);
-          
-          // Thông báo nhỏ (Option)
-          console.log("Đã thêm vào yêu thích");
-        } else {
-          wishlistBtn.classList.remove('text-red-500', 'bg-rose-50', 'border-rose-200');
-          wishlistBtn.classList.add('text-stone-300', 'bg-white', 'border-stone-200');
-          console.log("Đã xóa khỏi yêu thích");
-        }
-      } else {
-        // Nếu lỗi do chưa đăng nhập
-        if (favRes.status === 401) {
-          alert("Vui lòng đăng nhập để sử dụng tính năng này!");
-          window.location.href = "/login";
-        }
-      }
-    } catch (err) {
-      console.error("Lỗi Wishlist:", err);
-    } finally {
-      wishlistBtn.disabled = false;
-    }
-  });
-}
   /* ==============================
-     🎨 UI LOGIC (GIỮ NGUYÊN CỦA BẠN)
+     ❤️ YÊU THÍCH
   ============================== */
+  const wishlistBtn = document.getElementById("btn-wishlist");
+  if (wishlistBtn) {
+    wishlistBtn.addEventListener("click", async function() {
+      const productId = this.dataset.pid;
+      wishlistBtn.disabled = true;
+      try {
+        const favRes = await fetch('/api/favorites/toggle', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token() }}' },
+          body: JSON.stringify({ product_id: productId })
+        });
+        const favData = await favRes.json();
+        if (favData.status === 'success') {
+          if (favData.action === 'added') {
+            wishlistBtn.classList.remove('text-neutral-400', 'border-neutral-200');
+            wishlistBtn.classList.add('text-red-500', 'border-red-500');
+            trackEvent("wishlist", 1);
+          } else {
+            wishlistBtn.classList.remove('text-red-500', 'border-red-500');
+            wishlistBtn.classList.add('text-neutral-400', 'border-neutral-200');
+          }
+        } else if (favRes.status === 401) {
+          alert("Vui lòng đăng nhập để sử dụng tính năng này!");
+          window.location.href = "/auth/login"; // Đã sửa url /login -> /auth/login
+        }
+      } catch (err) {
+        console.error("Lỗi Wishlist:", err);
+      } finally {
+        wishlistBtn.disabled = false;
+      }
+    });
+  }
 
-  // Render màu
+  /* ==============================
+     🎨 UI LOGIC
+  ============================== */
   document.querySelectorAll('.color-swatch').forEach(el => {
     el.style.backgroundColor = el.dataset.bg;
   });
 
-  // Auto chọn màu đầu
   const firstColor = document.querySelector('.color-radio');
   if (firstColor) { 
     firstColor.checked = true; 
     selectColor(firstColor.value); 
   }
 
-  // Events
   document.querySelectorAll('.color-radio').forEach(radio => {
-    radio.addEventListener('change', function() {
-      selectColor(this.value);
-    });
+    radio.addEventListener('change', function() { selectColor(this.value); });
   });
 
   document.querySelectorAll('.size-radio').forEach(radio => {
@@ -326,41 +289,29 @@ if (wishlistBtn) {
   });
 
   document.querySelectorAll('.btn-qty').forEach(btn => {
-    btn.addEventListener('click', function() {
-      chQty(parseInt(this.dataset.qty));
-    });
+    btn.addEventListener('click', function() { chQty(parseInt(this.dataset.qty)); });
   });
 
   document.querySelectorAll('.btn-slide').forEach(btn => {
-    btn.addEventListener('click', function() {
-      slide(parseInt(this.dataset.dir));
-    });
+    btn.addEventListener('click', function() { slide(parseInt(this.dataset.dir)); });
   });
 
   document.querySelectorAll('.thumbnail-btn').forEach(btn => {
-    btn.addEventListener('click', function() {
-      goTo(parseInt(this.dataset.index));
-    });
+    btn.addEventListener('click', function() { goTo(parseInt(this.dataset.index)); });
   });
 
 });
 
-
 /* ==============================
    🧠 BUSINESS LOGIC
 ============================== */
-
 function selectColor(color) {
   document.getElementById('color-label').innerText = color;
-
-  document.querySelectorAll('.size-group').forEach(g => {
-      g.style.display = 'none';
-  });
+  document.querySelectorAll('.size-group').forEach(g => { g.style.display = 'none'; });
 
   const activeGroup = document.querySelector(`.size-group[data-color="${color}"]`);
   if(activeGroup) {
-      activeGroup.style.display = 'grid';
-
+      activeGroup.style.display = 'flex';
       const firstAvailableSize = activeGroup.querySelector('.size-radio:not([disabled])');
 
       if (firstAvailableSize) {
@@ -383,15 +334,15 @@ function selectSize(vid, stock, price) {
   const originalPriceEl = document.getElementById('price-original');
   const vidInput = document.getElementById('selected-variant-id');
   const qtyInput = document.getElementById('qty');
-
   const basePrice = parseFloat(priceEl.dataset.basePrice);
 
   btn.disabled = false;
-  btn.innerText = "Thêm vào túi hàng";
-  btn.className = "flex-1 h-16 bg-stone-900 text-white text-[13px] font-black uppercase tracking-[0.1em] rounded-2xl hover:bg-stone-800 transition-all shadow-[0_10px_30px_rgba(28,25,23,0.2)] flex items-center justify-center gap-2 active:scale-[0.98]";
+  btn.innerText = "Thêm vào giỏ hàng";
+  // Sửa giao diện nút khi Active chuẩn K-Fashion
+  btn.className = "flex-1 h-14 bg-black text-white text-[11px] font-bold uppercase tracking-[0.2em] rounded-sm hover:bg-neutral-800 transition-all flex items-center justify-center";
 
   if (stock <= 5) {
-      status.innerHTML = `<span class="text-rose-500">Chỉ còn ${stock} sản phẩm trong kho!</span>`;
+      status.innerHTML = `<span class="text-rose-500">Chỉ còn ${stock} sản phẩm</span>`;
   } else {
       status.innerHTML = `<span class="text-emerald-600">Sẵn sàng giao — Còn ${stock} sản phẩm</span>`;
   }
@@ -401,14 +352,13 @@ function selectSize(vid, stock, price) {
   if (price < basePrice) {
       originalPriceEl.innerText = new Intl.NumberFormat('vi-VN').format(basePrice) + " ₫";
       originalPriceEl.classList.remove('hidden');
-      priceEl.classList.add('text-rose-600');
+      priceEl.classList.add('text-red-500');
   } else {
       originalPriceEl.classList.add('hidden');
-      priceEl.classList.remove('text-rose-600');
+      priceEl.classList.remove('text-red-500');
   }
 
   vidInput.value = vid;
-
   qtyInput.max = stock;
   if(parseInt(qtyInput.value) > stock) qtyInput.value = stock;
 }
@@ -417,31 +367,29 @@ function disableSubmitState(message) {
   const btn = document.getElementById('btn-submit');
   btn.disabled = true;
   btn.innerText = "Không khả dụng";
-  btn.className = "flex-1 h-16 bg-stone-200 text-stone-400 text-[13px] font-black uppercase tracking-[0.1em] rounded-2xl cursor-not-allowed flex items-center justify-center";
+  // Sửa giao diện nút khi Disabled
+  btn.className = "flex-1 h-14 bg-neutral-100 text-neutral-400 text-[11px] font-bold uppercase tracking-[0.2em] rounded-sm cursor-not-allowed flex items-center justify-center";
 
   document.getElementById('selected-variant-id').value = '';
   document.getElementById('stock-status').innerText = message;
 
   const originalPriceEl = document.getElementById('price-original');
   originalPriceEl.classList.add('hidden');
-  document.getElementById('price-display').classList.remove('text-rose-600');
+  document.getElementById('price-display').classList.remove('text-red-500');
 }
 
 function chQty(d) {
   const el = document.getElementById('qty');
   const maxStock = parseInt(el.max) || 1;
-
   let v = parseInt(el.value) + d;
   if (v < 1) v = 1;
   if (v > maxStock) v = maxStock;
-
   el.value = v;
 }
 
 /* ==============================
    🎞 CAROUSEL
 ============================== */
-
 const slides = document.querySelectorAll('.carousel-slide');
 let current = 0;
 
@@ -456,15 +404,15 @@ function goTo(n) {
   slides[current].style.opacity = '1';
   slides[current].style.zIndex = '10';
 
+  // Sửa UI Thumbnail highlight
   document.querySelectorAll('.thumbnail-btn').forEach((b, i) => {
-    b.classList.toggle('border-stone-900', i === current);
-    b.classList.toggle('ring-2', i === current);
-    b.style.opacity = (i === current) ? '1' : '0.5';
+    b.classList.toggle('ring-1', i === current);
+    b.classList.toggle('ring-black', i === current);
+    b.classList.toggle('ring-offset-2', i === current);
+    b.style.opacity = (i === current) ? '1' : '0.4';
   });
 }
 
-function slide(d) { 
-  goTo(current + d); 
-}
+function slide(d) { goTo(current + d); }
 </script>
 {% endblock %}

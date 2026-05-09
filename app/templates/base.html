@@ -4,25 +4,26 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="description" content="{{ system_settings.general.shop_name or 'GUA Maison' }} — Thương hiệu thời trang Sport-Luxe 2026">
-  
-  <script src="https://unpkg.com/@studio-freight/lenis@1.0.34/dist/lenis.min.js"></script>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  
   <meta name="csrf-token" content="{{ csrf_token() }}">
+
   <title>{% block title %}{{ system_settings.general.shop_name or 'GUA Maison' }}{% endblock %}</title>
   <link rel="icon" type="image/png" href="{{ url_for('static', filename='images/favicon.png') }}">
 
+  {# ── FONTS: Cormorant (display) + DM Sans (body) ── #}
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant:ital,wght@0,400;0,600;0,700;1,400&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,700;9..40,800;9..40,900&display=swap" rel="stylesheet">
 
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://unpkg.com/@studio-freight/lenis@1.0.34/dist/lenis.min.js"></script>
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
       theme: {
         extend: {
           fontFamily: {
-            sans: ['Inter', 'sans-serif'],
+            sans:    ['"DM Sans"', 'sans-serif'],
+            display: ['"Cormorant"', 'serif'],
           }
         }
       }
@@ -30,52 +31,135 @@
   </script>
 
   <style>
+    /* ════════════════════════════════════════
+       GUA DESIGN TOKENS — nguồn sự thật duy nhất
+       Dùng var() thay vì hardcode màu ở mọi trang
+       ════════════════════════════════════════ */
+    :root {
+      --header-h:    68px;        /* Navbar height — JS sẽ overwrite */
+      --gua-ink:     #0a0a0a;
+      --gua-paper:   #fafaf9;
+      --gua-muted:   #e8e5e0;
+      --gua-ghost:   #f2f0ed;
+      --gua-warm:    #737065;
+      --gua-sub:     #9e9890;
+      --gua-faint:   #b5b0a8;
+      --gua-accent:  #c8a96e;     /* warm gold */
+      --gua-radius:  2px;
+      --gua-shadow:  0 1px 3px rgba(0,0,0,.06), 0 4px 16px rgba(0,0,0,.05);
+      --gua-shadow-lg: 0 2px 8px rgba(0,0,0,.08), 0 16px 40px rgba(0,0,0,.08);
+    }
+
+    /* ── Base ── */
+    *, *::before, *::after { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
     body {
+      font-family: 'DM Sans', sans-serif;
       -webkit-font-smoothing: antialiased;
       -moz-osx-font-smoothing: grayscale;
       text-rendering: optimizeLegibility;
     }
-    
-    /* =========================================
-       LENIS CORE CSS (CUỘN MƯỢT)
-       ========================================= */
-    html.lenis, html.lenis body { height: auto; }
-    .lenis.lenis-smooth { scroll-behavior: auto !important; }
-    .lenis.lenis-smooth [data-lenis-prevent] { overscroll-behavior: contain; }
-    .lenis.lenis-stopped { overflow: hidden; }
 
-    /* Minimalist Scrollbar & Reveal */
-    ::-webkit-scrollbar { width: 0px; height: 0px; display: none; }
+    /* ── Lenis smooth scroll ── */
+    html.lenis, html.lenis body { height: auto; }
+    .lenis.lenis-smooth         { scroll-behavior: auto !important; }
+    .lenis.lenis-smooth [data-lenis-prevent] { overscroll-behavior: contain; }
+    .lenis.lenis-stopped        { overflow: hidden; }
+
+    /* ── Scrollbar (hidden globally, preserved for specific containers) ── */
+    ::-webkit-scrollbar { width: 0; height: 0; }
     .no-scrollbar::-webkit-scrollbar { display: none; }
     .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
+    /* ── Scroll reveal (used by all pages) ── */
     .reveal {
       opacity: 0;
       transform: translateY(20px);
-      transition: all 1s cubic-bezier(0.16, 1, 0.3, 1);
+      transition: opacity .9s cubic-bezier(.16,1,.3,1), transform .9s cubic-bezier(.16,1,.3,1);
       will-change: transform, opacity;
     }
-    .reveal.active {
-      opacity: 1;
-      transform: translateY(0);
+    .reveal.active { opacity: 1; transform: none; }
+
+    /* ── GUA Profile system classes (shared across profile/* pages) ── */
+    .gua-card {
+      background: #fff;
+      border: 1px solid var(--gua-muted);
+      border-radius: var(--gua-radius);
+      box-shadow: var(--gua-shadow);
+      transition: border-color .18s, box-shadow .18s;
+    }
+    .gua-card:hover { border-color: #b5b0a8; box-shadow: var(--gua-shadow-lg); }
+
+    .gua-reveal { opacity: 0; animation: guaUp .55s cubic-bezier(.16,1,.3,1) forwards; }
+    .gua-d1 { animation-delay: .05s; }
+    .gua-d2 { animation-delay: .12s; }
+    .gua-d3 { animation-delay: .20s; }
+    @keyframes guaUp { from { opacity:0; transform:translateY(18px); } to { opacity:1; transform:none; } }
+
+    .gua-btn {
+      display: inline-flex; align-items: center; justify-content: center; gap: .5rem;
+      padding: .875rem 2.5rem;
+      background: var(--gua-ink); color: #fff;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 10px; font-weight: 800; letter-spacing: .18em; text-transform: uppercase;
+      border-radius: var(--gua-radius); border: none; cursor: pointer;
+      transition: background .15s, transform .1s, box-shadow .15s;
+      box-shadow: 0 2px 8px rgba(0,0,0,.2);
+      text-decoration: none;
+    }
+    .gua-btn:hover  { background: #1c1c1a; box-shadow: 0 4px 16px rgba(0,0,0,.25); }
+    .gua-btn:active { transform: scale(.975); }
+    .gua-btn-ghost  {
+      background: #fff; color: var(--gua-ink);
+      border: 1px solid var(--gua-muted); box-shadow: var(--gua-shadow);
+    }
+    .gua-btn-ghost:hover { border-color: var(--gua-ink); background: var(--gua-ghost); box-shadow: var(--gua-shadow-lg); }
+
+    .gua-input {
+      width: 100%; height: 48px; padding: 0 1rem;
+      background: var(--gua-ghost); border: 1px solid var(--gua-muted);
+      border-radius: var(--gua-radius);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 13px; font-weight: 600; color: var(--gua-ink);
+      outline: none; transition: border-color .15s, box-shadow .15s, background .15s;
+    }
+    .gua-input:focus   { background: #fff; border-color: var(--gua-ink); box-shadow: 0 0 0 3px rgba(10,10,10,.06); }
+    .gua-input:disabled { opacity: .5; cursor: not-allowed; }
+
+    .gua-label {
+      display: block; font-size: 10px; font-weight: 800;
+      letter-spacing: .18em; text-transform: uppercase; color: #4a4740; margin-bottom: .6rem;
     }
 
-    /* Forms */
+    .gua-nav-item {
+      display: flex; align-items: center; gap: .75rem;
+      padding: .75rem 1rem; border-radius: var(--gua-radius);
+      font-size: 10px; font-weight: 800; letter-spacing: .15em; text-transform: uppercase;
+      transition: all .18s ease; border: 1px solid transparent;
+      white-space: nowrap; color: var(--gua-sub); text-decoration: none;
+    }
+    .gua-nav-item svg { width: 16px; height: 16px; flex-shrink: 0; }
+    .gua-nav-item:hover  { background: var(--gua-ghost); color: var(--gua-ink); border-color: var(--gua-muted); }
+    .gua-nav-item.active { background: var(--gua-ink); color: #fff; border-color: var(--gua-ink); box-shadow: 0 4px 12px rgba(0,0,0,.2); }
+
+    @media (max-width: 1023px) {
+      .gua-sidebar { display: flex; flex-direction: row; overflow-x: auto; gap: .375rem; padding-bottom: .5rem; }
+    }
+    @media (min-width: 1024px) {
+      .gua-sidebar { display: flex; flex-direction: column; gap: .25rem; position: sticky; top: calc(var(--header-h) + 1.5rem); }
+    }
+
+    /* ── Top bar ── */
+    .top-bar {
+      background: var(--gua-ghost); color: var(--gua-ink);
+      font-size: .6rem; font-weight: 600; letter-spacing: .1em;
+      text-transform: uppercase; text-align: center; padding: .5rem;
+    }
+
+    /* ── Forms ── */
     input[type=number]::-webkit-inner-spin-button,
     input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
     input[type=number] { -moz-appearance: textfield; }
-
-    /* Top Bar Animation (Static for SKIMS style) */
-    .top-bar {
-      background: #f4f2f0;
-      color: #000;
-      font-size: 0.65rem;
-      font-weight: 500;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      text-align: center;
-      padding: 0.5rem;
-    }
   </style>
 
   {% block extra_head %}{% endblock %}
@@ -83,37 +167,29 @@
 
 <body class="bg-white text-black flex flex-col min-h-screen selection:bg-black selection:text-white">
 
-  {# TOP BAR THÔNG BÁO TỪ SYSTEM SETTINGS #}
   {% if system_settings.storefront.topbar_active == 'true' and system_settings.storefront.topbar_text %}
-  <div class="top-bar">
-    {{ system_settings.storefront.topbar_text }}
-  </div>
+  <div class="top-bar">{{ system_settings.storefront.topbar_text }}</div>
   {% endif %}
 
   {% include 'partials/navbar.html' ignore missing %}
   {% include 'flash.html' ignore missing %}
 
-  <main class="flex-1 w-full relative">
+  <main class="flex-1 w-full relative" id="main-content">
     {% block content %}{% endblock %}
   </main>
 
   <footer class="bg-white pt-16 pb-8 border-t border-neutral-200 mt-auto" aria-label="Footer">
     <div class="max-w-[1400px] mx-auto px-4 md:px-8">
-      
       <div class="grid grid-cols-1 md:grid-cols-4 gap-12 md:gap-8 mb-16">
-        
         <div class="md:col-span-2">
           <h3 class="text-xs font-bold uppercase tracking-widest text-black mb-4">Đăng Ký Nhận Tin</h3>
           <p class="text-[11px] text-neutral-500 mb-6 uppercase tracking-wider">Đăng ký để nhận thông báo về bộ sưu tập mới và quyền lợi ưu tiên.</p>
           <form class="flex w-full max-w-sm border-b border-black pb-2">
-            <input type="email" placeholder="ĐỊA CHỈ EMAIL" required
-                   class="w-full text-xs font-medium tracking-widest uppercase border-0 px-0 py-2 placeholder:text-neutral-400 outline-none focus:ring-0 bg-transparent" />
-            <button type="submit" class="text-xs font-bold uppercase tracking-widest text-black hover:text-neutral-500 transition-colors">
-              Đăng Ký
-            </button>
+            <input type="email" placeholder="Địa chỉ email" required
+              class="w-full text-xs font-medium tracking-widest uppercase border-0 px-0 py-2 placeholder:text-neutral-400 outline-none focus:ring-0 bg-transparent" />
+            <button type="submit" class="text-xs font-bold uppercase tracking-widest text-black hover:text-neutral-500 transition-colors">Đăng Ký</button>
           </form>
         </div>
-
         <div>
           <h3 class="text-xs font-bold uppercase tracking-widest text-black mb-6">Hỗ Trợ</h3>
           <ul class="space-y-4">
@@ -123,7 +199,6 @@
             <li><a href="#" class="text-[11px] uppercase tracking-widest text-neutral-500 hover:text-black transition-colors">Liên hệ</a></li>
           </ul>
         </div>
-
         <div>
           <h3 class="text-xs font-bold uppercase tracking-widest text-black mb-6">Về {{ system_settings.general.shop_name or 'GUA' }}</h3>
           <ul class="space-y-4">
@@ -132,70 +207,61 @@
             <li><a href="#" class="text-[11px] uppercase tracking-widest text-neutral-500 hover:text-black transition-colors">Tuyển dụng</a></li>
           </ul>
         </div>
-
       </div>
-
-      <div class="flex flex-col md:flex-row justify-between items-center gap-4 pt-8">
-        <p class="text-[10px] uppercase tracking-[0.2em] text-neutral-400">
-          &copy; 2026 {{ system_settings.general.shop_name or 'GUA' }}. ALL RIGHTS RESERVED.
-        </p>
-        <div class="flex items-center gap-6 text-black">
-          <a href="#" class="hover:text-neutral-400 transition-colors"><i class="fa-brands fa-instagram"></i></a>
-          <a href="#" class="hover:text-neutral-400 transition-colors"><i class="fa-brands fa-facebook-f"></i></a>
-          <a href="#" class="hover:text-neutral-400 transition-colors"><i class="fa-brands fa-tiktok"></i></a>
+      <div class="flex flex-col md:flex-row justify-between items-center gap-4 pt-8" style="border-top:1px solid var(--gua-muted);">
+        <p class="text-[10px] uppercase tracking-[.2em] text-neutral-400">&copy; 2026 {{ system_settings.general.shop_name or 'GUA' }}. All Rights Reserved.</p>
+        <div class="flex items-center gap-6">
+          <a href="#" class="text-neutral-400 hover:text-black transition-colors"><i class="fa-brands fa-instagram"></i></a>
+          <a href="#" class="text-neutral-400 hover:text-black transition-colors"><i class="fa-brands fa-facebook-f"></i></a>
+          <a href="#" class="text-neutral-400 hover:text-black transition-colors"><i class="fa-brands fa-tiktok"></i></a>
         </div>
       </div>
     </div>
   </footer>
 
   {% include 'chat.html' ignore missing %}
-
-  {# ========================================================= #}
-  {# TÍCH HỢP QUICK VIEW MODAL VÀO BASE ĐỂ SỬ DỤNG TOÀN TRANG #}
-  {# ========================================================= #}
   {% include 'components/modals/_quick_view.html' ignore missing %}
 
- <script>
+  <script>
   document.addEventListener('DOMContentLoaded', () => {
-    // 1. Mobile Menu Logic
-    const openBtn  = document.getElementById('openMenu');
-    const closeBtn = document.getElementById('closeMenu');
-    const menu     = document.getElementById('mobileMenu');
 
-    if (openBtn && closeBtn && menu) {
-      const toggleMenu = (show) => {
-        if (show) {
-          menu.classList.remove('invisible', 'opacity-0');
-          menu.classList.add('opacity-100');
-          openBtn.setAttribute('aria-expanded', 'true');
-          document.body.style.overflow = 'hidden';
-        } else {
-          menu.classList.add('opacity-0');
-          openBtn.setAttribute('aria-expanded', 'false');
-          setTimeout(() => menu.classList.add('invisible'), 400);
-          document.body.style.overflow = '';
-        }
-      };
-      openBtn.addEventListener('click', () => toggleMenu(true));
-      closeBtn.addEventListener('click', () => toggleMenu(false));
+    // ── 1. Đo navbar thực tế → set --header-h ──────────────────────────
+    const navbar = document.querySelector('nav, header, [data-navbar]');
+    if (navbar) {
+      const setH = () => document.documentElement.style.setProperty('--header-h', navbar.offsetHeight + 'px');
+      setH();
+      new ResizeObserver(setH).observe(navbar);
     }
 
-    // 2. Minimalist Scroll Reveal
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          entry.target.classList.add('active');
-          observer.unobserve(entry.target);
-        }
-      });
-    }, { threshold: 0.1 });
-    document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+    // ── 2. Mobile menu ──────────────────────────────────────────────────
+    const openBtn = document.getElementById('openMenu');
+    const closeBtn = document.getElementById('closeMenu');
+    const menu    = document.getElementById('mobileMenu');
+    if (openBtn && closeBtn && menu) {
+      const toggle = (show) => {
+        menu.classList.toggle('invisible', !show);
+        menu.classList.toggle('opacity-0', !show);
+        menu.classList.toggle('opacity-100', show);
+        openBtn.setAttribute('aria-expanded', show);
+        document.body.style.overflow = show ? 'hidden' : '';
+      };
+      openBtn.addEventListener('click',  () => toggle(true));
+      closeBtn.addEventListener('click', () => toggle(false));
+    }
+
+    // ── 3. Scroll reveal ────────────────────────────────────────────────
+    const io = new IntersectionObserver(entries => {
+      entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('active'); io.unobserve(e.target); } });
+    }, { threshold: 0.08 });
+    document.querySelectorAll('.reveal').forEach(el => io.observe(el));
   });
 
-  // ================================
-  // CSRF & TRACKING HELPER
-  // ================================
-  function getCSRFToken() { return document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''; }
+  // ── CSRF helper ────────────────────────────────────────────────────────
+  function getCSRFToken() {
+    return document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+  }
+
+  // ── Analytics helper ───────────────────────────────────────────────────
   function trackEvent(data) {
     return fetch('/api/analytics/track', {
       method: 'POST',
@@ -204,81 +270,51 @@
     }).catch(() => {});
   }
 
-  // ================================
-  // TOAST NOTIFICATION SẠCH HƠN
-  // ================================
-  let toastContainer = null;
-  function showToast(message, isRemoved = false) {
-    if (!toastContainer) {
-      toastContainer = document.createElement('div');
-      toastContainer.className = 'fixed bottom-8 left-1/2 -translate-x-1/2 z-[9999] flex flex-col gap-2 pointer-events-none';
-      document.body.appendChild(toastContainer);
+  // ── Toast ──────────────────────────────────────────────────────────────
+  let _toastWrap = null;
+  function showToast(msg, isWarning = false) {
+    if (!_toastWrap) {
+      _toastWrap = Object.assign(document.createElement('div'), {
+        className: 'fixed bottom-8 left-1/2 -translate-x-1/2 z-[9999] flex flex-col gap-2 pointer-events-none'
+      });
+      document.body.appendChild(_toastWrap);
     }
-    const toast = document.createElement('div');
-    toast.className = 'bg-white text-black px-6 py-3 flex items-center justify-center gap-3 text-[10px] font-bold uppercase tracking-widest shadow-lg border border-neutral-200 transition-all duration-300 transform translate-y-4 opacity-0 pointer-events-auto';
-
-    toast.innerHTML = `<span>${message}</span>`;
-    toastContainer.appendChild(toast);
-
-    requestAnimationFrame(() => toast.classList.remove('translate-y-4', 'opacity-0'));
-
-    setTimeout(() => {
-      toast.classList.add('opacity-0', 'translate-y-4');
-      setTimeout(() => toast.remove(), 300);
-    }, 2500);
+    const t = Object.assign(document.createElement('div'), {
+      className: 'bg-white text-black px-6 py-3 flex items-center gap-3 text-[10px] font-bold uppercase tracking-widest shadow-lg border border-neutral-200 transition-all duration-300 translate-y-4 opacity-0 pointer-events-auto rounded-sm',
+      innerHTML: `<span>${msg}</span>`
+    });
+    _toastWrap.appendChild(t);
+    requestAnimationFrame(() => t.classList.remove('translate-y-4', 'opacity-0'));
+    setTimeout(() => { t.classList.add('opacity-0', 'translate-y-4'); setTimeout(() => t.remove(), 300); }, 2500);
   }
 
-  // ================================
-  // WISHLIST FUNCTION
-  // ================================
-  async function toggleHeart(productId, btnElement) {
+  // ── Wishlist toggle ────────────────────────────────────────────────────
+  async function toggleHeart(productId, btn) {
     if (window.event) window.event.preventDefault();
-    const csrfToken = getCSRFToken();
-    const icon = btnElement.querySelector('.heart-icon');
-
+    const icon = btn.querySelector('.heart-icon');
     try {
-        const response = await fetch('/api/favorites/toggle', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrfToken },
-            body: JSON.stringify({ product_id: productId })
-        });
-        const result = await response.json();
-
-        if (response.status === 401) {
-            showToast("VUI LÒNG ĐĂNG NHẬP", true);
-            setTimeout(() => window.location.href = '/auth/login', 1500);
-            return;
-        }
-
-        if (result.status === 'success') {
-            trackEvent({ product_id: productId, event_type: "wishlist" });
-            if (result.action === 'added') {
-                if(icon) { icon.classList.remove('text-neutral-300'); icon.classList.add('text-black', 'fill-black'); }
-                showToast("ĐÃ THÊM VÀO YÊU THÍCH");
-            } else {
-                if(icon) { icon.classList.remove('text-black', 'fill-black'); icon.classList.add('text-neutral-300'); }
-                showToast("ĐÃ XÓA KHỎI YÊU THÍCH", true);
-            }
-        }
-    } catch (error) {
-        showToast("LỖI KẾT NỐI", true);
-    }
+      const res = await fetch('/api/favorites/toggle', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCSRFToken() },
+        body: JSON.stringify({ product_id: productId })
+      });
+      if (res.status === 401) { showToast('Vui lòng đăng nhập', true); setTimeout(() => location.href = '/auth/login', 1400); return; }
+      const data = await res.json();
+      if (data.status === 'success') {
+        trackEvent({ product_id: productId, event_type: 'wishlist' });
+        const added = data.action === 'added';
+        icon?.classList.toggle('text-neutral-300', !added);
+        icon?.classList.toggle('text-black', added);
+        icon?.classList.toggle('fill-black', added);
+        showToast(added ? 'Đã thêm vào yêu thích' : 'Đã xóa khỏi yêu thích', !added);
+      }
+    } catch { showToast('Lỗi kết nối', true); }
   }
 
-  // ================================
-  // SMOOTH SCROLL (LENIS)
-  // ================================
-  const lenis = new Lenis({
-    duration: 1.2, 
-    easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)), 
-    smooth: true,
-  });
-  function raf(time) {
-    lenis.raf(time);
-    requestAnimationFrame(raf);
-  }
-  requestAnimationFrame(raf);
-</script>
+  // ── Lenis smooth scroll ────────────────────────────────────────────────
+  const lenis = new Lenis({ duration: 1.2, easing: t => Math.min(1, 1.001 - Math.pow(2, -10 * t)) });
+  (function raf(t) { lenis.raf(t); requestAnimationFrame(raf); })(0);
+  </script>
 
   {% block extra_scripts %}{% endblock %}
 </body>
