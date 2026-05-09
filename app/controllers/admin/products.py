@@ -146,10 +146,11 @@ def products():
     status = args.get("status", "").strip()
 
     db = _db()
-    query = db.table("products").select("*, categories(name)", count="exact")
+    query = db.table("products").select("*, categories(name), barcode", count="exact")
 
     if keyword:
-        query = query.ilike("name", f"%{keyword}%")
+        # Tìm theo tên hoặc barcode
+        query = query.or_(f"name.ilike.%{keyword}%,barcode.ilike.%{keyword}%")
 
     if status == "active":
         query = query.eq("is_active", True).is_("deleted_at", "null")

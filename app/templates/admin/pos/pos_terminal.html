@@ -1,0 +1,222 @@
+{% extends "admin/admin_base.html" %}
+{% block title %}Máy Bán Hàng Tại Quầy (POS) | GUA Admin{% endblock %}
+
+{% block extra_head %}
+<!-- QuaggaJS: đọc barcode qua camera -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/quagga/0.12.1/quagga.min.js"></script>
+<style>
+  input[type=number]::-webkit-inner-spin-button,
+  input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+  input[type=number] { -moz-appearance: textfield; }
+  .no-scrollbar::-webkit-scrollbar { display: none; }
+  .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .spin { animation: spin 1s linear infinite; display: inline-block; }
+
+  /* Camera barcode scanner overlay */
+  #barcodeCameraModal #interactive.viewport { position: relative; width: 100%; }
+  #barcodeCameraModal #interactive.viewport canvas,
+  #barcodeCameraModal #interactive.viewport video { width: 100%; height: 240px; object-fit: cover; border-radius: 4px; }
+  #barcodeCameraModal #interactive.viewport canvas.drawingBuffer { position: absolute; top: 0; left: 0; }
+  #barcodeCameraModal .laser {
+    position: absolute; left: 10%; right: 10%; top: 50%; height: 2px;
+    background: linear-gradient(to right, transparent, #ef4444, transparent);
+    animation: laser 1.5s ease-in-out infinite;
+    transform: translateY(-50%);
+  }
+  @keyframes laser { 0%,100% { opacity: 0.4; } 50% { opacity: 1; } }
+
+  /* Flash xanh khi USB scanner quét thành công */
+  @keyframes scanFlash { 0%,100% { background: transparent; } 50% { background: rgba(16,185,129,0.15); } }
+  .scan-flash { animation: scanFlash 0.4s ease; }
+</style>
+{% endblock %}
+
+{% block content %}
+{# ══════════════════════════════════════════════════════════════
+   LAYOUT CHÍNH — Header + 2 cột (Sản phẩm | Giỏ hàng)
+══════════════════════════════════════════════════════════════ #}
+<div class="h-screen flex flex-col bg-[#f8f8f8] font-sans overflow-hidden selection:bg-black selection:text-white">
+
+  {# ── HEADER ── #}
+  <div class="bg-white border-b border-neutral-200 flex-shrink-0 z-30">
+    <div class="px-4 md:px-6 py-3 flex items-center justify-between">
+      <div class="flex items-center gap-4">
+        <div class="w-10 h-10 bg-black text-white flex items-center justify-center rounded-sm">
+          <i class="fa-solid fa-cash-register"></i>
+        </div>
+        <div>
+          <h1 class="text-lg font-bold tracking-tight text-black uppercase">POS Terminal</h1>
+          <p class="text-[9px] font-bold text-emerald-600 uppercase tracking-widest mt-0.5 flex items-center gap-1.5">
+            <span class="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"></span> Online &amp; Sync
+          </p>
+        </div>
+      </div>
+      <a href="{{ url_for('admin.reports') }}"
+        class="text-[10px] font-bold uppercase tracking-widest text-neutral-500 hover:text-black transition-colors flex items-center gap-2 border border-neutral-200 px-3 py-2 rounded-sm bg-white hover:bg-neutral-50">
+        <i class="fa-solid fa-arrow-left"></i> Thoát POS
+      </a>
+    </div>
+  </div>
+
+  <div class="flex-1 flex flex-col lg:flex-row overflow-hidden relative">
+
+    {# ── LEFT: TÌM KIẾM + GRID SẢN PHẨM ── #}
+    <div class="w-full lg:w-[55%] xl:w-[65%] flex flex-col border-b lg:border-b-0 lg:border-r border-neutral-200 bg-white h-[50vh] lg:h-full">
+
+      {# Ô tìm kiếm / barcode #}
+      <div class="p-4 md:p-5 border-b border-neutral-100 flex-shrink-0 relative" id="searchWrapper">
+        <div class="relative">
+          <i class="fa-solid fa-barcode absolute left-4 top-1/2 -translate-y-1/2 text-neutral-400"></i>
+          <input id="posSearch" type="text" placeholder="Quét mã vạch hoặc nhập tên sản phẩm..." autocomplete="off"
+            class="w-full pl-10 pr-20 py-3.5 border border-neutral-300 focus:border-black rounded-sm text-sm font-bold outline-none transition-colors"
+            oninput="POS.filterProducts()" onfocus="POS.filterProducts()">
+          <button onclick="POS.openCameraScanner()" title="Quét barcode bằng camera"
+            class="absolute right-10 top-1/2 -translate-y-1/2 text-neutral-400 hover:text-black transition-colors p-1">
+            <i class="fa-solid fa-camera text-sm"></i>
+          </button>
+          <button id="posClearSearch" onclick="POS.clearSearch()"
+            class="absolute right-4 top-1/2 -translate-y-1/2 hidden text-neutral-400 hover:text-black">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </div>
+        <div id="usbScannerStatus" class="mt-1.5 flex items-center gap-1.5 text-[9px] font-bold text-neutral-400 uppercase tracking-widest">
+          <span class="w-1.5 h-1.5 bg-emerald-400 rounded-full"></span>
+          USB Scanner sẵn sàng — cắm máy quét và quét thẳng vào đây
+        </div>
+        <div id="posDropdown"
+          class="hidden absolute left-4 right-4 md:left-5 md:right-5 top-[78px] bg-white border border-neutral-200 shadow-2xl z-50 max-h-[50vh] overflow-y-auto no-scrollbar rounded-sm">
+        </div>
+      </div>
+
+      {# Grid sản phẩm nổi bật #}
+      <div class="flex-1 overflow-y-auto no-scrollbar p-4 md:p-5 bg-[#f8f8f8]">
+        <h3 class="text-[10px] font-bold text-neutral-400 uppercase tracking-widest mb-4">Sản phẩm nổi bật</h3>
+        <div class="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-3 md:gap-4 pb-10" id="quickProductsGrid"></div>
+      </div>
+    </div>
+
+    {# ── RIGHT: GIỎ HÀNG + THANH TOÁN ── #}
+    <div class="w-full lg:w-[45%] xl:w-[35%] flex flex-col bg-white h-[50vh] lg:h-full z-10 shadow-[-10px_0_30px_rgba(0,0,0,0.02)]">
+
+      {# Danh sách giỏ hàng #}
+      <div class="flex-1 overflow-y-auto no-scrollbar p-4 md:p-5" id="cartContainer">
+        <div class="h-full flex flex-col items-center justify-center text-neutral-300 opacity-60" id="emptyCartMsg">
+          <i class="fa-solid fa-cart-arrow-down text-4xl mb-4"></i>
+          <p class="text-[10px] font-bold uppercase tracking-widest">Giỏ hàng đang trống</p>
+        </div>
+        <div id="cartItemsList" class="flex flex-col gap-2"></div>
+      </div>
+
+      {# Coupon #}
+      <div class="px-4 md:px-5 py-3 md:py-4 border-t border-neutral-100 bg-neutral-50 flex-shrink-0 space-y-2">
+        <div class="relative">
+          <select id="posCoupon" onchange="POS.calcTotal()"
+            class="w-full pl-9 pr-8 py-3 border border-neutral-200 focus:border-black rounded-sm text-xs font-bold bg-white outline-none text-red-600 appearance-none cursor-pointer shadow-sm">
+            <option value="" class="text-black">-- Chọn mã giảm giá --</option>
+            {% for c in coupons %}
+            <option value="{{ c.id }}" data-type="{{ c.discount_type }}" data-value="{{ c.discount_value }}"
+              data-max="{{ c.max_discount or 0 }}" data-min="{{ c.min_order_value or 0 }}">
+              {{ c.code }}
+              {% if c.discount_type == 'percent' %}(-{{ c.discount_value }}%){% else %}(-{{ '{:,.0f}'.format(c.discount_value) }}đ){% endif %}
+            </option>
+            {% endfor %}
+          </select>
+          <i class="fa-solid fa-ticket absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400 pointer-events-none"></i>
+          <i class="fa-solid fa-chevron-down absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-neutral-400 pointer-events-none"></i>
+        </div>
+        <div id="posCouponWarning" class="hidden px-3 py-2 text-[9px] font-bold uppercase tracking-widest text-amber-600 border border-amber-200 bg-amber-50 rounded-sm"></div>
+      </div>
+
+      {# Tổng tiền #}
+      <div class="px-4 md:px-5 pt-4 border-t border-neutral-200 flex-shrink-0 bg-white space-y-2.5">
+        <div class="flex justify-between items-center text-xs">
+          <span class="text-neutral-500 font-bold uppercase tracking-[0.1em]">Tổng <span id="cartCountTotal" class="text-black">0</span> SP</span>
+          <span id="txtSubtotal" class="font-bold text-black tabular-nums">0 ₫</span>
+        </div>
+        <div class="flex justify-between items-center text-xs text-red-500">
+          <span class="font-bold uppercase tracking-[0.1em]">Giảm giá</span>
+          <span id="txtDiscount" class="font-bold tabular-nums">- 0 ₫</span>
+        </div>
+        <div class="border-t border-dashed border-neutral-200 pt-3 flex justify-between items-center">
+          <span class="text-xs font-black text-black uppercase tracking-[0.2em]">Khách cần trả</span>
+          <span id="txtTotal" class="text-2xl font-black text-emerald-600 tabular-nums">0 ₫</span>
+        </div>
+      </div>
+
+      {# Phương thức thanh toán #}
+      <div class="px-4 md:px-5 py-3 border-t border-neutral-100 bg-white flex-shrink-0">
+        <p class="text-[9px] font-bold text-neutral-400 uppercase tracking-widest mb-2">Phương thức thanh toán</p>
+        <div class="grid grid-cols-2 gap-2">
+          <button id="btnCash" onclick="POS.setMethod('cash')"
+            class="flex flex-col items-center gap-1.5 py-3 border-2 border-black bg-black text-white rounded-sm transition-all text-[10px] font-bold uppercase tracking-widest">
+            <i class="fa-solid fa-money-bill-wave text-base"></i> Tiền mặt
+          </button>
+          <button id="btnTransfer" onclick="POS.setMethod('transfer')"
+            class="flex flex-col items-center gap-1.5 py-3 border-2 border-neutral-200 bg-white text-neutral-500 rounded-sm transition-all text-[10px] font-bold uppercase tracking-widest hover:border-neutral-400">
+            <i class="fa-solid fa-qrcode text-base"></i> Chuyển khoản
+          </button>
+        </div>
+
+       {# Panel tiền mặt #}
+      <div id="cashPanel" class="mt-3 space-y-2">
+        <div class="relative">
+          <input id="inputCash" type="text" inputmode="numeric" placeholder="Tiền khách đưa..." 
+                oninput="formatCurrency(this); POS.calcChange()"
+                class="w-full pl-9 pr-4 py-2.5 border border-neutral-200 focus:border-black rounded-sm text-sm font-bold outline-none tabular-nums">
+          <i class="fa-solid fa-hand-holding-dollar absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400 pointer-events-none text-xs"></i>
+        </div>
+        <div class="flex justify-between items-center px-1">
+          <span class="text-[10px] font-bold text-neutral-500 uppercase tracking-widest">Tiền thừa trả khách</span>
+          <span id="txtChange" class="text-sm font-black text-emerald-600 tabular-nums">0 ₫</span>
+        </div>
+      </div>
+
+        {# Panel chuyển khoản + QR VietQR động #}
+        <div id="transferPanel" class="mt-3 hidden">
+          <div class="bg-neutral-50 border border-neutral-200 rounded-sm p-3 text-center space-y-2">
+            <p class="text-[9px] font-bold text-neutral-500 uppercase tracking-widest">Ngân hàng Techcombank</p>
+            <p class="text-[11px] font-black text-black tracking-wider">4890440016335294</p>
+            <p class="text-[9px] text-neutral-500 font-bold uppercase">GUA MAISON</p>
+            <div class="flex justify-center pt-1">
+              <img id="transferQR"
+                src="https://img.vietqr.io/image/TCB-4890440016335294-compact2.png?amount=0&addInfo=GUA+MAISON&accountName=GUA+MAISON"
+                alt="QR Chuyển khoản"
+                class="w-36 h-36 rounded-sm border border-neutral-200 bg-white object-contain">
+            </div>
+            <p class="text-[9px] text-emerald-600 font-bold uppercase tracking-widest flex items-center justify-center gap-1">
+              <i class="fa-solid fa-bolt"></i> Tự động xác nhận khi nhận tiền
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {# Nút thanh toán #}
+      <div class="px-4 md:px-5 pb-4 pt-3 bg-white flex-shrink-0">
+        <button onclick="POS.submit()" id="btnCheckout" disabled
+          class="w-full h-14 bg-black text-white text-[11px] font-bold uppercase tracking-[0.2em] hover:bg-neutral-800 transition-colors flex items-center justify-center gap-3 disabled:bg-neutral-200 disabled:text-neutral-400 disabled:cursor-not-allowed rounded-sm">
+          <i class="fa-solid fa-print"></i>
+          <span id="lblCheckout">THANH TOÁN &amp; IN BILL</span>
+        </button>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+{# ══════════════════════════════════════════════════════════════
+   PARTIAL 1 — Modals: variant picker, transfer wait, camera scanner, toast
+   → templates/admin/pos/_pos_modals.html
+══════════════════════════════════════════════════════════════ #}
+{% include "admin/pos/_pos_modals.html" %}
+
+{# ══════════════════════════════════════════════════════════════
+   PARTIAL 2 — JavaScript: toàn bộ logic POS object
+   → templates/admin/pos/_pos_scripts.html
+══════════════════════════════════════════════════════════════ #}
+<script id="products-data" type="application/json">{{ products | tojson | safe }}
+  
+</script>
+{% include "admin/pos/_pos_scripts.html" %}
+
+{% endblock %}

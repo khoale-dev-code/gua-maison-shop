@@ -2,17 +2,72 @@
 {% block title %}Kho hàng | GUA Admin{% endblock %}
 
 {% block extra_head %}
+<!-- JsBarcode: render barcode SVG phía client -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jsbarcode/3.11.6/JsBarcode.all.min.js"></script>
 <style>
-  /* Ẩn thanh cuộn cho khu vực scroll ngang nếu cần */
   .no-scrollbar::-webkit-scrollbar { display: none; }
   .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-  
-  /* Tùy chỉnh line-clamp cho mô tả nếu cần */
   .line-clamp-2 {
     display: -webkit-box;
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
+  }
+
+  /* ── Barcode popup ── */
+  .barcode-popup {
+    display: none;
+    position: fixed;
+    z-index: 9999;
+    background: #fff;
+    border: 1px solid #e7e5e4;
+    border-radius: 12px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.15), 0 4px 16px rgba(0,0,0,0.08);
+    padding: 16px 20px 14px;
+    min-width: 220px;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.15s ease;
+  }
+  .barcode-popup.visible { display: block; opacity: 1; }
+  .barcode-popup svg { display: block; width: 100%; height: auto; }
+  .barcode-popup .bc-brand {
+    font-size: 9px; font-weight: 900; letter-spacing: 0.25em;
+    text-transform: uppercase; color: #78716c;
+    text-align: center; margin-bottom: 6px;
+  }
+  .barcode-popup .bc-label {
+    margin-top: 8px; font-family: 'Courier New', monospace;
+    font-size: 11px; font-weight: 700; letter-spacing: 0.12em;
+    color: #1c1917; text-align: center;
+  }
+  .barcode-popup .bc-actions {
+    display: flex; gap: 6px; margin-top: 10px;
+    pointer-events: all;
+  }
+  .barcode-popup .bc-btn {
+    flex: 1; padding: 5px 0; font-size: 9px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.1em;
+    border-radius: 6px; border: 1px solid #e7e5e4;
+    cursor: pointer; background: #fff; color: #44403c;
+    transition: all 0.15s;
+  }
+  .barcode-popup .bc-btn:hover { background: #1c1917; color: #fff; border-color: #1c1917; }
+  .barcode-popup .bc-btn.print { background: #1c1917; color: #fff; border-color: #1c1917; }
+  .barcode-popup .bc-btn.print:hover { background: #44403c; }
+
+  /* ── Inline barcode trong grid card ── */
+  .bc-inline svg { width: 100%; height: auto; display: block; }
+
+  /* ── Print ── */
+  @media print {
+    body * { visibility: hidden; }
+    #barcode-print-area, #barcode-print-area * { visibility: visible; }
+    #barcode-print-area {
+      position: fixed; inset: 0;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center; background: #fff;
+    }
   }
 </style>
 {% endblock %}
@@ -102,6 +157,7 @@
         <tr class="bg-stone-50 border-b border-stone-200 text-[10px] font-bold uppercase tracking-widest text-stone-500">
           <th class="px-6 py-4 w-24">Ảnh</th>
           <th class="px-6 py-4">Sản phẩm</th>
+          <th class="px-6 py-4">Barcode</th>
           <th class="px-6 py-4">Phân loại</th>
           <th class="px-6 py-4">Giá bán</th>
           <th class="px-6 py-4 text-center">Tồn kho</th>
@@ -143,6 +199,23 @@
                 <span class="px-2 py-0.5 text-[9px] font-bold uppercase tracking-widest text-stone-600 bg-stone-100 border border-stone-200 rounded-md">{{ 'Nam' if p.gender == 'men' else 'Nữ' }}</span>
               {% endif %}
             </div>
+          </td>
+          {# ── Cột Barcode ── #}
+          <td class="px-6 py-4">
+            {% if p.barcode %}
+            <button
+              onclick="showBarcodePopup(this, '{{ p.barcode }}')"
+              class="group flex flex-col items-start gap-1.5 text-left">
+              <div class="bc-inline w-[140px] bg-white rounded border border-stone-200 p-1">
+                <svg class="bc-svg-mini" data-barcode="{{ p.barcode }}"></svg>
+              </div>
+              <span class="font-mono text-[10px] font-bold text-stone-500 tracking-wider group-hover:text-stone-900 transition-colors">
+                {{ p.barcode }}
+              </span>
+            </button>
+            {% else %}
+            <span class="text-[10px] text-stone-300 font-bold">—</span>
+            {% endif %}
           </td>
           <td class="px-6 py-4">
             <span class="px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest text-stone-600 bg-stone-100 border border-stone-200 rounded-lg">
@@ -192,7 +265,7 @@
         </tr>
         {% else %}
         <tr>
-          <td colspan="7" class="px-6 py-20 text-center">
+          <td colspan="8" class="px-6 py-20 text-center">
             <div class="flex flex-col items-center justify-center gap-4">
               <div class="w-16 h-16 rounded-full bg-stone-100 flex items-center justify-center text-stone-400">
                 <svg class="w-8 h-8" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z"/></svg>
@@ -259,7 +332,18 @@
     
     <div class="p-4 bg-white flex flex-col flex-1">
       <div class="font-bold text-sm text-stone-900 line-clamp-1 mb-1" title="{{ p.name }}">{{ p.name }}</div>
-      <div class="font-black text-[15px] text-stone-900 mb-4">{{ "{:,.0f}".format(p.price) }} ₫</div>
+      <div class="font-black text-[15px] text-stone-900 mb-2">{{ "{:,.0f}".format(p.price) }} ₫</div>
+      {% if p.barcode %}
+      <button onclick="showBarcodePopup(this, '{{ p.barcode }}')"
+        class="group flex flex-col items-start gap-1 text-left w-full mb-2">
+        <div class="bc-inline w-full bg-white rounded border border-stone-100 px-1 py-0.5">
+          <svg class="bc-svg-mini" data-barcode="{{ p.barcode }}"></svg>
+        </div>
+        <span class="font-mono text-[9px] font-bold text-stone-400 tracking-wider truncate w-full group-hover:text-stone-700 transition-colors">
+          {{ p.barcode }}
+        </span>
+      </button>
+      {% endif %}
       
       <div class="mt-auto pt-4 border-t border-stone-100 flex items-center justify-between gap-2">
         <span class="inline-flex items-center gap-1.5 px-2 py-1 rounded border text-[9px] font-bold uppercase tracking-widest {{ gsk }}">
@@ -313,6 +397,26 @@
 {% endblock %}
 
 {% block extra_scripts %}
+{# ── BARCODE POPUP OVERLAY ── #}
+<div id="barcode-popup" class="barcode-popup" role="tooltip">
+  <div class="bc-brand">GUA Maison</div>
+  <svg id="bc-popup-svg"></svg>
+  <div class="bc-label" id="bc-popup-label"></div>
+  <div class="bc-actions">
+    <button class="bc-btn" onclick="copyBarcode()">Copy mã</button>
+    <button class="bc-btn print" onclick="printBarcode()">In barcode</button>
+  </div>
+</div>
+
+{# Hidden print area #}
+<div id="barcode-print-area" style="display:none;">
+  <div style="text-align:center; font-family:'Courier New',monospace; padding:24px;">
+    <div style="font-size:11px; font-weight:900; letter-spacing:0.2em; color:#78716c; margin-bottom:8px;">GUA MAISON</div>
+    <svg id="bc-print-svg"></svg>
+    <div style="font-size:13px; font-weight:700; letter-spacing:0.12em; margin-top:8px;" id="bc-print-label"></div>
+  </div>
+</div>
+
 <script>
 // Logic chuyển đổi chế độ xem Grid/Table bằng Tailwind classes
 function setView(v) {
@@ -347,5 +451,135 @@ if (localStorage.getItem('productView') === 'grid') {
 } else {
   setView('table'); // Default
 }
+
+// ══════════════════════════════════════════════════════════
+//  BARCODE ENGINE
+// ══════════════════════════════════════════════════════════
+let _currentBarcode = '';
+const popup = document.getElementById('barcode-popup');
+
+/** Render tất cả mini barcode SVG inline khi trang load */
+function renderAllMiniBarcodes() {
+  document.querySelectorAll('.bc-svg-mini[data-barcode]').forEach(svg => {
+    const code = svg.getAttribute('data-barcode');
+    if (!code) return;
+    try {
+      JsBarcode(svg, code, {
+        format:      'CODE128',
+        width:       1.4,
+        height:      32,
+        displayValue: false,
+        margin:      2,
+        background:  'transparent',
+        lineColor:   '#1c1917',
+      });
+    } catch(e) { svg.closest('.bc-inline')?.remove(); }
+  });
+}
+
+/** Hiển thị popup barcode lớn khi click */
+function showBarcodePopup(triggerEl, code) {
+  _currentBarcode = code;
+
+  // Render barcode vào popup
+  const svgEl = document.getElementById('bc-popup-svg');
+  try {
+    JsBarcode(svgEl, code, {
+      format:      'CODE128',
+      width:       2,
+      height:      60,
+      displayValue: false,
+      margin:      4,
+      background:  '#ffffff',
+      lineColor:   '#1c1917',
+    });
+  } catch(e) { return; }
+
+  document.getElementById('bc-popup-label').textContent = code;
+
+  // Định vị popup gần trigger
+  const rect = triggerEl.getBoundingClientRect();
+  popup.style.display = 'block';
+  popup.style.opacity = '0';
+
+  // Tính toán vị trí để popup không ra ngoài màn hình
+  const pw = popup.offsetWidth  || 240;
+  const ph = popup.offsetHeight || 160;
+  const gap = 8;
+
+  let top  = rect.bottom + gap;
+  let left = rect.left;
+
+  // Nếu popup tràn xuống dưới → hiện lên trên
+  if (top + ph > window.innerHeight - 16) {
+    top = rect.top - ph - gap;
+  }
+  // Nếu popup tràn sang phải → căn phải
+  if (left + pw > window.innerWidth - 16) {
+    left = window.innerWidth - pw - 16;
+  }
+  if (left < 8) left = 8;
+
+  popup.style.top  = top  + 'px';
+  popup.style.left = left + 'px';
+  popup.classList.add('visible');
+  popup.style.opacity = '1';
+  popup.style.pointerEvents = 'all';
+}
+
+/** Đóng popup */
+function closeBarcodePopup() {
+  popup.classList.remove('visible');
+  popup.style.display = 'none';
+  popup.style.pointerEvents = 'none';
+}
+
+/** Copy mã vào clipboard */
+function copyBarcode() {
+  navigator.clipboard.writeText(_currentBarcode).then(() => {
+    const btn = popup.querySelector('.bc-btn:not(.print)');
+    const orig = btn.textContent;
+    btn.textContent = '✓ Đã copy!';
+    setTimeout(() => btn.textContent = orig, 1500);
+  }).catch(() => {});
+}
+
+/** In barcode */
+function printBarcode() {
+  const printSvg   = document.getElementById('bc-print-svg');
+  const printLabel = document.getElementById('bc-print-label');
+  try {
+    JsBarcode(printSvg, _currentBarcode, {
+      format:      'CODE128',
+      width:       3,
+      height:      80,
+      displayValue: true,
+      text:        _currentBarcode,
+      fontSize:    14,
+      margin:      8,
+      background:  '#ffffff',
+      lineColor:   '#000000',
+    });
+  } catch(e) { return; }
+  printLabel.textContent = _currentBarcode;
+
+  const area = document.getElementById('barcode-print-area');
+  area.style.display = 'flex';
+  window.print();
+  area.style.display = 'none';
+}
+
+// Đóng popup khi click ra ngoài
+document.addEventListener('click', e => {
+  if (!popup.contains(e.target) && !e.target.closest('[onclick*="showBarcodePopup"]')) {
+    closeBarcodePopup();
+  }
+});
+
+// Đóng popup khi scroll
+window.addEventListener('scroll', closeBarcodePopup, { passive: true });
+
+// Render tất cả mini barcode khi DOM sẵn sàng
+document.addEventListener('DOMContentLoaded', renderAllMiniBarcodes);
 </script>
 {% endblock %}

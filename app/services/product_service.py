@@ -7,7 +7,11 @@ class ProductService:
     def get_catalog(page, per_page, keyword=None, category=None):
         """Logic tập trung để lấy danh sách sản phẩm."""
         if keyword:
-            return ProductModel.search(keyword, page=page, per_page=per_page)
+            search_method = getattr(ProductModel, "search", None)
+            if callable(search_method):
+                return search_method(keyword, page=page, per_page=per_page)
+
+            return ProductModel.get_all(keyword=keyword, page=page, category=category, per_page=per_page)
         
         return ProductModel.get_all(page=page, category=category, per_page=per_page)
 
