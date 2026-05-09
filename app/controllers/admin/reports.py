@@ -55,20 +55,7 @@ def reports():
         products=products,
         coupons=coupons,
     )
-
-
-@admin_bp.route("/pos", methods=["GET"])
-@admin_required
-def pos_terminal():
-    db = get_supabase()
-    products, coupons = _get_products_and_coupons(db)
-
-    return render_template(
-        "admin/pos.html",
-        products=products,
-        coupons=coupons,
-    )
-
+    
 
 @admin_bp.route("/reports/pos-order", methods=["POST"])
 @admin_required

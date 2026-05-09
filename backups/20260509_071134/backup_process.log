@@ -1,0 +1,79 @@
+2026-05-09 07:11:34,598 - INFO - 🚀 KHỞI ĐỘNG HỆ THỐNG BACKUP GUA MAISON ARCHIVE...
+2026-05-09 07:11:34,599 - INFO - ⏳ Đang tiến hành trích xuất cơ sở dữ liệu (SQL Dump)...
+2026-05-09 07:11:34,751 - ERROR - ❌ Lỗi khi chạy PG_DUMP: Command '['C:\\Program Files\\PostgreSQL\\18\\bin\\pg_dump.exe', '-h', 'db.eshbhcxlwxmlgbkgjlmu.supabase.co', '-p', '5432', '-U', 'postgres', '-d', 'postgres', '-f', 'backups/20260509_071134/database_full_dump.sql', '--clean', '--if-exists', '--no-owner']' returned non-zero exit status 1.
+2026-05-09 07:11:34,845 - INFO - ⏳ Đang biên dịch dữ liệu ra báo cáo Excel...
+2026-05-09 07:11:35,159 - WARNING -   - Lỗi khi đọc bảng orders: (psycopg2.OperationalError) could not translate host name "db.eshbhcxlwxmlgbkgjlmu.supabase.co" to address: Name or service not known
+
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-05-09 07:11:35,160 - WARNING -   - Lỗi khi đọc bảng order_items: (psycopg2.OperationalError) could not translate host name "db.eshbhcxlwxmlgbkgjlmu.supabase.co" to address: Name or service not known
+
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-05-09 07:11:35,160 - WARNING -   - Lỗi khi đọc bảng payments: (psycopg2.OperationalError) could not translate host name "db.eshbhcxlwxmlgbkgjlmu.supabase.co" to address: Name or service not known
+
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-05-09 07:11:35,161 - WARNING -   - Lỗi khi đọc bảng return_requests: (psycopg2.OperationalError) could not translate host name "db.eshbhcxlwxmlgbkgjlmu.supabase.co" to address: Name or service not known
+
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-05-09 07:11:35,161 - WARNING -   - Lỗi khi đọc bảng cart_items: (psycopg2.OperationalError) could not translate host name "db.eshbhcxlwxmlgbkgjlmu.supabase.co" to address: Name or service not known
+
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-05-09 07:11:35,162 - WARNING -   - Lỗi khi đọc bảng products: (psycopg2.OperationalError) could not translate host name "db.eshbhcxlwxmlgbkgjlmu.supabase.co" to address: Name or service not known
+
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-05-09 07:11:35,162 - WARNING -   - Lỗi khi đọc bảng product_variants: (psycopg2.OperationalError) could not translate host name "db.eshbhcxlwxmlgbkgjlmu.supabase.co" to address: Name or service not known
+
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-05-09 07:11:35,162 - WARNING -   - Lỗi khi đọc bảng categories: (psycopg2.OperationalError) could not translate host name "db.eshbhcxlwxmlgbkgjlmu.supabase.co" to address: Name or service not known
+
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-05-09 07:11:35,163 - WARNING -   - Lỗi khi đọc bảng brands: (psycopg2.OperationalError) could not translate host name "db.eshbhcxlwxmlgbkgjlmu.supabase.co" to address: Name or service not known
+
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-05-09 07:11:35,163 - WARNING -   - Lỗi khi đọc bảng product_images: (psycopg2.OperationalError) could not translate host name "db.eshbhcxlwxmlgbkgjlmu.supabase.co" to address: Name or service not known
+
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-05-09 07:11:35,164 - WARNING -   - Lỗi khi đọc bảng inventory_logs: (psycopg2.OperationalError) could not translate host name "db.eshbhcxlwxmlgbkgjlmu.supabase.co" to address: Name or service not known
+
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-05-09 07:11:35,164 - WARNING -   - Lỗi khi đọc bảng product_reviews: (psycopg2.OperationalError) could not translate host name "db.eshbhcxlwxmlgbkgjlmu.supabase.co" to address: Name or service not known
+
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-05-09 07:11:35,165 - WARNING -   - Lỗi khi đọc bảng product_analytics: (psycopg2.OperationalError) could not translate host name "db.eshbhcxlwxmlgbkgjlmu.supabase.co" to address: Name or service not known
+
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-05-09 07:11:35,165 - WARNING -   - Lỗi khi đọc bảng coupons: (psycopg2.OperationalError) could not translate host name "db.eshbhcxlwxmlgbkgjlmu.supabase.co" to address: Name or service not known
+
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-05-09 07:11:35,165 - WARNING -   - Lỗi khi đọc bảng coupon_usages: (psycopg2.OperationalError) could not translate host name "db.eshbhcxlwxmlgbkgjlmu.supabase.co" to address: Name or service not known
+
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-05-09 07:11:35,166 - WARNING -   - Lỗi khi đọc bảng flash_sales: (psycopg2.OperationalError) could not translate host name "db.eshbhcxlwxmlgbkgjlmu.supabase.co" to address: Name or service not known
+
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-05-09 07:11:35,166 - WARNING -   - Lỗi khi đọc bảng flash_sale_items: (psycopg2.OperationalError) could not translate host name "db.eshbhcxlwxmlgbkgjlmu.supabase.co" to address: Name or service not known
+
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-05-09 07:11:35,167 - WARNING -   - Lỗi khi đọc bảng users: (psycopg2.OperationalError) could not translate host name "db.eshbhcxlwxmlgbkgjlmu.supabase.co" to address: Name or service not known
+
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-05-09 07:11:35,168 - WARNING -   - Lỗi khi đọc bảng user_addresses: (psycopg2.OperationalError) could not translate host name "db.eshbhcxlwxmlgbkgjlmu.supabase.co" to address: Name or service not known
+
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-05-09 07:11:35,168 - WARNING -   - Lỗi khi đọc bảng favorites: (psycopg2.OperationalError) could not translate host name "db.eshbhcxlwxmlgbkgjlmu.supabase.co" to address: Name or service not known
+
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-05-09 07:11:35,169 - WARNING -   - Lỗi khi đọc bảng shipments: (psycopg2.OperationalError) could not translate host name "db.eshbhcxlwxmlgbkgjlmu.supabase.co" to address: Name or service not known
+
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-05-09 07:11:35,169 - WARNING -   - Lỗi khi đọc bảng shipment_events: (psycopg2.OperationalError) could not translate host name "db.eshbhcxlwxmlgbkgjlmu.supabase.co" to address: Name or service not known
+
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-05-09 07:11:35,169 - WARNING -   - Lỗi khi đọc bảng shipping_providers: (psycopg2.OperationalError) could not translate host name "db.eshbhcxlwxmlgbkgjlmu.supabase.co" to address: Name or service not known
+
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-05-09 07:11:35,171 - WARNING -   - Lỗi khi đọc bảng shipping_configs: (psycopg2.OperationalError) could not translate host name "db.eshbhcxlwxmlgbkgjlmu.supabase.co" to address: Name or service not known
+
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-05-09 07:11:35,175 - ERROR - ❌ Lỗi hệ thống Pandas/Excel: At least one sheet must be visible
+2026-05-09 07:11:35,176 - INFO - 🧹 Đang kiểm tra và dọn dẹp các bản backup cũ...
+2026-05-09 07:11:35,177 - INFO - ✨ TẤT CẢ CHIẾN DỊCH ĐÃ XONG! Dữ liệu được bảo vệ tại: backups/20260509_071134

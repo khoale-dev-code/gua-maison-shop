@@ -1,11 +1,6 @@
 """
 app/controllers/admin/orders.py
-
-Cập nhật 2026:
-  - Thêm route /confirm  → Bước 2: Xác nhận đơn (pending → confirmed)
-  - Thêm route /pack     → Bước 3: Đóng gói xong (confirmed → packed)
-  - Thêm route /webhook/ghn → Nhận webhook từ GHN, cập nhật timeline tự động
-  - Tích hợp Auto-Paid: Tự động ghi nhận thanh toán COD khi giao thành công.
+ 
 """
 
 import hmac
@@ -427,9 +422,6 @@ def update_payment_status(order_id: str):
 # ═══════════════════════════════════════════════════════════════
 #  PRIVATE BUILDERS
 # ═══════════════════════════════════════════════════════════════
-# ═══════════════════════════════════════════════════════════════
-#  PRIVATE BUILDERS
-# ═══════════════════════════════════════════════════════════════
 
 
 def _build_shipment_data(order_id: str, order: dict, provider: str) -> dict:
@@ -475,3 +467,56 @@ def _build_shipping_payload(sd: dict) -> dict:
         "cod_amount": sd.get("cod_amount", 0),
         "weight": sd.get("weight_g", 500),
     }
+# ═══════════════════════════════════════════════════════════════
+#  LỊCH SỬ ĐƠN HÀNG (TỔNG HỢP WEB & POS)
+# ═══════════════════════════════════════════════════════════════
+
+
+@admin_bp.route("/orders-history")
+@admin_required
+@handle_errors("Lỗi tải lịch sử đơn hàng.", "admin.dashboard")
+def orders_history():
+    args = _args()
+    page, per_page, offset = _paginate(args)
+    status = args.get("status", "").strip() or None
+    source = args.get("source", "").strip() or None
+    keyword = args.get("q", "").strip() or None
+
+    try:
+        from app.utils.supabase_client import get_supabase
+        db = get_supabase()
+        
+        # Build query
+        query = db.table("orders").select(
+            "*, users(full_name, email, phone)",
+            count="exact"
+        )
+
+        # Filters
+        if status:
+            query = query.eq("status", status)
+        if source:
+            query = query.eq("source", source)
+            
+        # Text search (Mã đơn hoặc Tên khách)
+        if keyword:
+            query = query.or_(f"code.ilike.%{keyword}%,customer_name.ilike.%{keyword}%")
+
+        # Execute
+        res = query.order("created_at", desc=True).range(offset, offset + per_page - 1).execute()
+        
+        orders = res.data
+        total_count = res.count if res.count else 0
+        total_pages = _total_pages(total_count, per_page)
+        
+    except Exception as e:
+        logger.error(f"[orders_history] Lỗi truy vấn DB: {e}")
+        orders = []
+        total_pages = 1
+
+    return render_template(
+        "admin/orders_history.html",
+        orders=orders,
+        current_page=page,
+        total_pages=total_pages
+    )

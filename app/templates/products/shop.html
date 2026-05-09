@@ -1,252 +1,249 @@
 {% extends "base.html" %}
-{% block title %}
-  {% if keyword %}Tìm kiếm "{{ keyword }}"
-  {% elif category %}{{ category | title }}
-  {% else %}Cửa hàng
-  {% endif %} | GUA Maison
-{% endblock %}
+{% block title %}{% if keyword %}Tìm kiếm "{{ keyword }}"{% elif category %}{{ category|title }}{% else %}Cửa hàng{% endif %} | GUA Maison{% endblock %}
 
 {% block extra_head %}
+<meta name="csrf-token" content="{{ csrf_token() }}">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;1,300&family=Montserrat:wght@500;700;900&display=swap" rel="stylesheet">
 <style>
-  :root { --font-display: 'Cormorant Garamond', serif; }
-  .line-clamp-1 { display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden; }
-  .no-scrollbar::-webkit-scrollbar { display: none; }
-  .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-  .hidden-product { display: none !important; }
-  .animate-fade-in-up { animation: fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-  @keyframes fadeInUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+:root{--fd:'Cormorant Garamond',serif;--fb:'Montserrat',sans-serif;--ink:#0a0a0a;--paper:#fafaf8;--rule:#e0ddd8;--muted:#9e9b96;--heart:#c0392b;--ease:cubic-bezier(.16,1,.3,1)}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--fb);background:var(--paper);color:var(--ink)}
+.no-scrollbar::-webkit-scrollbar{display:none}.no-scrollbar{-ms-overflow-style:none;scrollbar-width:none}
+.hidden-product{display:none!important}
+@keyframes fadeInUp{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}
+.animate-fade-in-up{animation:fadeInUp .7s var(--ease) forwards}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes heartPop{0%{transform:scale(1)}40%{transform:scale(1.4)}70%{transform:scale(.88)}100%{transform:scale(1)}}
 
-  /* Quick View overlay hiện khi hover card */
-  .product-card .qv-overlay-btn {
-    transform: translateY(100%);
-    opacity: 0;
-    transition: transform .3s cubic-bezier(.16,1,.3,1), opacity .3s ease;
-  }
-  .product-card:hover .qv-overlay-btn {
-    transform: translateY(0);
-    opacity: 1;
-  }
+/* Layout */
+.sw{max-width:1440px;margin:0 auto;padding:0 1.25rem}
+@media(min-width:640px){.sw{padding:0 2rem}}@media(min-width:1024px){.sw{padding:0 3.5rem}}
+
+/* Header */
+.sh{background:var(--paper);border-bottom:1px solid var(--rule);padding:5.5rem 0 0}
+.ht{display:flex;flex-direction:column;gap:1.25rem;padding-bottom:1.75rem}
+@media(min-width:768px){.ht{flex-direction:row;align-items:flex-end;justify-content:space-between}}
+.eye{font-family:var(--fb);font-size:.55rem;font-weight:900;letter-spacing:.35em;text-transform:uppercase;color:var(--muted);margin-bottom:.6rem}
+.htitle{font-family:var(--fd);font-weight:300;font-size:clamp(2rem,5vw,3.6rem);line-height:1.05;letter-spacing:.02em}
+.htitle em{font-style:italic}
+.hcount{font-family:var(--fb);font-size:.6rem;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);white-space:nowrap}
+
+/* Nav */
+.sn{display:flex;flex-direction:column;gap:1.25rem;padding:1.25rem 0;border-top:1px solid var(--rule)}
+@media(min-width:768px){.sn{flex-direction:row;align-items:center;justify-content:space-between;gap:2rem}}
+.ctabs{display:flex;gap:2rem;overflow-x:auto}
+.ctab{font-family:var(--fb);font-size:.6rem;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);text-decoration:none;padding-bottom:.4rem;border-bottom:2px solid transparent;white-space:nowrap;transition:color .2s,border-color .2s}
+.ctab:hover{color:var(--ink)}.ctab.active{color:var(--ink);border-color:var(--ink)}
+.sf{position:relative;display:flex;align-items:center;width:100%}
+@media(min-width:768px){.sf{width:18rem;flex-shrink:0}}
+.si{width:100%;background:transparent;border:none;border-bottom:1px solid var(--rule);font-family:var(--fb);font-size:.6rem;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:var(--ink);padding:.4rem 2rem .4rem 0;outline:none;transition:border-color .2s}
+.si::placeholder{color:var(--muted)}.si:focus{border-color:var(--ink)}
+.sb{position:absolute;right:0;bottom:.35rem;background:none;border:none;cursor:pointer;color:var(--ink);display:flex;padding:0;transition:color .2s}
+.sb:hover{color:var(--muted)}
+
+/* Grid */
+.pg{display:grid;grid-template-columns:repeat(2,1fr);gap:1rem .75rem;list-style:none;padding:3rem 0 0}
+@media(min-width:768px){.pg{grid-template-columns:repeat(3,1fr);gap:2rem 1.5rem}}
+@media(min-width:1200px){.pg{grid-template-columns:repeat(4,1fr);gap:2.5rem 2rem}}
+
+/* Card */
+.product-card{display:flex;flex-direction:column;position:relative}
+.ciw{position:relative;aspect-ratio:3/4;background:#efefed;overflow:hidden}
+.cil{position:absolute;inset:0;display:block}
+.ci{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;mix-blend-mode:multiply;transition:transform .7s var(--ease)}
+.product-card:hover .ci{transform:scale(1.04)}
+.cph{width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-family:var(--fb);font-size:.55rem;font-weight:900;letter-spacing:.35em;color:#c8c5be;text-transform:uppercase}
+
+/* Quick View overlay */
+.qvob{position:absolute;bottom:0;left:0;right:0;background:rgba(255,255,255,.95);border:none;border-top:1px solid var(--rule);font-family:var(--fb);font-size:.6rem;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:var(--ink);padding:.85rem;cursor:pointer;z-index:20;display:none;transform:translateY(100%);opacity:0;transition:transform .3s var(--ease),opacity .3s ease,background .2s,color .2s}
+@media(min-width:1024px){.qvob{display:block}}
+.product-card:hover .qvob{transform:translateY(0);opacity:1}
+.qvob:hover{background:var(--ink);color:#fff}
+.qvmb{position:absolute;bottom:.6rem;right:.6rem;z-index:20;width:2.2rem;height:2.2rem;background:rgba(255,255,255,.92);border:1px solid var(--rule);display:flex;align-items:center;justify-content:center;cursor:pointer}
+@media(min-width:1024px){.qvmb{display:none}}
+
+/* Heart */
+.fb{position:absolute;top:.6rem;right:.6rem;z-index:30;width:2rem;height:2rem;background:rgba(255,255,255,.9);border:1px solid var(--rule);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:background .2s,border-color .2s,transform .15s}
+.fb:hover{transform:scale(1.1)}
+.fb svg{width:1rem;height:1rem;pointer-events:none}
+.ho{display:block;color:var(--ink)}.hs{display:none;color:var(--heart)}
+.fb.is-fav{background:#fff0ef;border-color:#f5b8b8}
+.fb.is-fav .ho{display:none}.fb.is-fav .hs{display:block}
+.fb.pop{animation:heartPop .35s var(--ease)}
+
+/* Card info */
+.cinfo{padding:.85rem 0 0;display:flex;flex-direction:column;gap:.2rem}
+.ccat{font-family:var(--fb);font-size:.55rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.cname{font-family:var(--fb);font-size:.65rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--ink);text-decoration:none;display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden;transition:color .2s}
+.cname:hover{color:var(--muted)}
+.cprice{font-family:var(--fb);font-size:.7rem;font-weight:500;color:var(--ink)}
+
+/* Spinner */
+.sp{display:none;flex-direction:column;align-items:center;justify-content:center;padding:5rem 0}
+.sp.visible{display:flex}
+.sr{width:1.4rem;height:1.4rem;border:2px solid var(--rule);border-top-color:var(--ink);border-radius:50%;animation:spin .8s linear infinite}
+.sl{font-family:var(--fb);font-size:.55rem;font-weight:700;letter-spacing:.3em;text-transform:uppercase;color:var(--muted);margin-top:.85rem}
+
+/* Pagination */
+.pn{display:flex;justify-content:center;align-items:center;gap:2rem;padding:4rem 0 2rem;border-top:1px solid var(--rule);margin-top:4rem}
+.pn.hidden{display:none}
+.pl{font-family:var(--fb);font-size:.6rem;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);text-decoration:none;transition:color .2s}
+.pl:hover{color:var(--ink)}
+.pns{display:flex;gap:1.25rem;align-items:center}
+.pp{font-family:var(--fb);font-size:.7rem;font-weight:700;color:var(--muted);text-decoration:none;transition:color .2s}
+.pp:hover{color:var(--ink)}.pp.active{color:var(--ink);border-bottom:2px solid var(--ink);padding-bottom:.1rem}
+
+/* Empty */
+.es{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:8rem 0;text-align:center;border-top:1px solid var(--rule)}
+.et{font-family:var(--fd);font-weight:300;font-size:2.5rem;color:var(--ink);margin-bottom:1.25rem}
+.el{font-family:var(--fb);font-size:.6rem;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:var(--ink);text-decoration:none;border-bottom:1px solid var(--ink)}
+
+/* Toast */
+.ft{position:fixed;bottom:1.5rem;left:50%;transform:translateX(-50%) translateY(.5rem);background:var(--ink);color:#fff;font-family:var(--fb);font-size:.6rem;font-weight:700;letter-spacing:.15em;text-transform:uppercase;padding:.65rem 1.5rem;opacity:0;pointer-events:none;transition:opacity .25s,transform .25s;z-index:9999}
+.ft.show{opacity:1;transform:translateX(-50%) translateY(0)}
 </style>
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;1,300&display=swap" rel="stylesheet">
 {% endblock %}
 
 {% block content %}
-<div class="bg-white min-h-screen font-sans pb-24">
+<div style="background:var(--paper,#fafaf8);min-height:100vh;padding-bottom:6rem">
 
-  {# ── HEADER ── #}
-  <div class="w-full bg-white border-b border-neutral-100 pt-16 pb-8">
-    <div class="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-10">
-
-      <div class="flex flex-col md:flex-row items-baseline justify-between mb-10 gap-4">
+  <header class="sh">
+    <div class="sw">
+      <div class="ht">
         <div>
-          <p class="text-[9px] font-black uppercase tracking-[0.3em] text-neutral-400 mb-3">SS 2026 Collection</p>
-          <h1 class="text-4xl md:text-5xl text-black tracking-wide" style="font-family: var(--font-display); font-weight: 300;">
-            {% if keyword %}
-              Search: <span class="italic">"{{ keyword }}"</span>
+          <p class="eye">SS 2026 Collection</p>
+          <h1 class="htitle">
+            {% if keyword %}Search: <em>"{{ keyword }}"</em>
             {% elif category %}
-              {% set active_cat = global_categories | selectattr("slug", "equalto", category) | first %}
-              {{ active_cat.name if active_cat else category | title }}
-            {% else %}
-              Explore <span class="italic">All Pieces</span>
-            {% endif %}
+              {% set ac = global_categories|selectattr("slug","equalto",category)|first %}
+              {{ ac.name if ac else (category|title) }}
+            {% else %}Explore <em>All Pieces</em>{% endif %}
           </h1>
         </div>
-        <p class="text-[10px] font-bold tracking-[0.2em] uppercase text-neutral-400">
-          {{ total if total else products|length }} Thiết kế có sẵn
-        </p>
+        <p class="hcount">{{ total if total else (products|length) }}&nbsp;Thiết kế có sẵn</p>
       </div>
-
-      <div class="flex flex-col md:flex-row gap-8 items-center justify-between">
-        {# Tabs #}
-        <div class="flex items-center gap-6 md:gap-10 overflow-x-auto no-scrollbar w-full md:w-auto">
-          <a href="/shop{% if keyword %}?q={{ keyword }}{% endif %}"
-             class="whitespace-nowrap text-[10px] font-bold uppercase tracking-[0.2em] transition-colors pb-1 border-b-2
-                    {% if not category %}border-black text-black{% else %}border-transparent text-neutral-400 hover:text-black{% endif %}">
-            Tất cả
-          </a>
+      <nav class="sn">
+        <div class="ctabs no-scrollbar">
+          <a href="/shop{% if keyword %}?q={{ keyword }}{% endif %}" class="ctab {% if not category %}active{% endif %}">Tất cả</a>
           {% for cat in global_categories %}
-          <a href="/shop?category={{ cat.slug }}{% if keyword %}&q={{ keyword }}{% endif %}"
-             class="whitespace-nowrap text-[10px] font-bold uppercase tracking-[0.2em] transition-colors pb-1 border-b-2
-                    {% if category == cat.slug %}border-black text-black{% else %}border-transparent text-neutral-400 hover:text-black{% endif %}">
-            {{ cat.name }}
-          </a>
+          <a href="/shop?category={{ cat.slug }}{% if keyword %}&q={{ keyword }}{% endif %}" class="ctab {% if category == cat.slug %}active{% endif %}">{{ cat.name }}</a>
           {% endfor %}
         </div>
-
-        {# Search #}
-        <form action="/shop" method="get" class="relative flex items-center w-full md:w-72 shrink-0">
+        <form action="/shop" method="get" class="sf">
           {% if category %}<input type="hidden" name="category" value="{{ category }}">{% endif %}
-          <input name="q" value="{{ keyword or '' }}" placeholder="TÌM KIẾM..." aria-label="Tìm kiếm"
-                 class="w-full bg-transparent border-0 border-b border-neutral-300 text-[10px] font-bold uppercase tracking-[0.2em] text-black placeholder:text-neutral-400 pb-2 pr-8 focus:outline-none focus:ring-0 focus:border-black transition-colors" />
-          <button type="submit" aria-label="Tìm kiếm" class="absolute right-0 bottom-2 text-black hover:text-neutral-500 transition-colors">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"/>
-            </svg>
+          <input class="si" name="q" value="{{ keyword or '' }}" placeholder="Tìm kiếm..." aria-label="Tìm kiếm">
+          <button type="submit" class="sb" aria-label="Tìm">
+            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"/></svg>
           </button>
         </form>
-      </div>
+      </nav>
     </div>
-  </div>
+  </header>
 
-  <div class="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-10 pt-16">
-
+  <main class="sw">
     {% if products %}
-    <ul id="product-grid" class="grid grid-cols-2 lg:grid-cols-4 gap-x-4 gap-y-16 md:gap-x-8" role="list">
-
+    <ul id="product-grid" class="pg" role="list">
       {% for product in products %}
-
-      {# ── Chuẩn bị dữ liệu biến thể & ảnh cho Quick View ── #}
-      {# Model trả về key "product_variants" và "product_images" #}
-      {% set _variants = product.product_variants or [] %}
-      {% set _images   = product.product_images or [] %}
-      {% set variants_json  = _variants | tojson %}
-      {% set images_json    = _images | map(attribute='url') | list | tojson %}
-      {% set first_image    = product.thumbnail_url or '' %}
-      {# Tổng stock = tổng các biến thể, hoặc field stock trực tiếp nếu sản phẩm đơn giản #}
-      {% set product_stock  = (_variants | sum(attribute='stock')) if _variants else (product.stock or 0) %}
-
-      <li class="product-card group flex flex-col {% if loop.index > 10 %}hidden-product{% endif %}">
-
-        {# ── Khung ảnh ── #}
-        <div class="relative aspect-[3/4] bg-[#f5f5f5] overflow-hidden">
-          <a href="/product/{{ product.slug }}" class="block absolute inset-0">
-            {% if product.thumbnail_url %}
-              <img src="{{ product.thumbnail_url }}" alt="{{ product.name }}"
-                   class="absolute inset-0 w-full h-full object-cover mix-blend-multiply transition-transform duration-700 group-hover:scale-105"
-                   loading="lazy" />
-            {% else %}
-              <div class="w-full h-full flex items-center justify-center text-neutral-300 text-[9px] font-black uppercase tracking-[0.3em]">GUA MAISON</div>
-            {% endif %}
+        {% set _v = product.product_variants or [] %}
+        {% set _i = product.product_images or [] %}
+        {% set vj = _v|tojson %}
+        {% set ij = _i|map(attribute='url')|list|tojson %}
+        {% set fi = product.thumbnail_url or '' %}
+        {% set ps = (_v|sum(attribute='stock')) if _v else (product.stock or 0) %}
+        {% set cn = product.categories.name if product.categories else 'Core' %}
+      <li class="product-card {% if loop.index > 10 %}hidden-product{% endif %}">
+        <div class="ciw">
+          <a href="/product/{{ product.slug }}" class="cil" aria-label="{{ product.name }}">
+            {% if product.thumbnail_url %}<img class="ci" src="{{ product.thumbnail_url }}" alt="{{ product.name }}" loading="lazy">
+            {% else %}<div class="cph">GUA Maison</div>{% endif %}
           </a>
-
-          {# Nút Quick View — hiện khi hover, ẩn trên mobile #}
-          <div class="absolute inset-x-0 bottom-0 p-3 z-20 hidden lg:block">
-            <button
-              type="button"
-              class="qv-overlay-btn w-full bg-white/95 border border-neutral-200 text-black py-3 text-[10px] uppercase tracking-[0.2em] font-black hover:bg-black hover:text-white transition-colors cursor-pointer"
-              data-id="{{ product.id }}"
-              data-slug="{{ product.slug }}"
-              data-name="{{ product.name }}"
-              data-price="{{ product.price }}"
-              data-image="{{ first_image }}"
-              data-images='{{ images_json }}'
-              data-category="{{ product.categories.name if product.categories else 'Core' }}"
-              data-stock="{{ product_stock }}"
-              data-variants='{{ variants_json }}'
-              onclick="triggerQuickView(this)"
-            >
-              Xem nhanh
-            </button>
-          </div>
-
-          {# Nút Quick View mobile (icon) #}
-          <button
-            type="button"
-            class="lg:hidden absolute bottom-3 right-3 z-20 w-9 h-9 bg-white/90 border border-neutral-200 flex items-center justify-center shadow-sm"
-            data-id="{{ product.id }}"
-            data-slug="{{ product.slug }}"
-            data-name="{{ product.name }}"
-            data-price="{{ product.price }}"
-            data-image="{{ first_image }}"
-            data-images='{{ images_json }}'
-            data-category="{{ product.categories.name if product.categories else 'Core' }}"
-            data-stock="{{ product_stock }}"
-            data-variants='{{ variants_json }}'
-            onclick="triggerQuickView(this)"
-            aria-label="Xem nhanh {{ product.name }}"
-          >
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12c0-5.195 7.5-9 9.75-9s9.75 3.805 9.75 9-7.5 9-9.75 9-9.75-3.805-9.75-9z"/>
-              <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-            </svg>
+          <button type="button" class="fb" data-product-id="{{ product.id }}" onclick="toggleFav(this)" aria-label="Yêu thích">
+            <svg class="ho" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z"/></svg>
+            <svg class="hs" fill="currentColor" viewBox="0 0 24 24"><path d="M11.645 20.91l-.007-.003-.022-.012a15.247 15.247 0 01-.383-.218 25.18 25.18 0 01-4.244-3.17C4.688 15.36 2.25 12.174 2.25 8.25 2.25 5.322 4.714 3 7.688 3A5.5 5.5 0 0112 5.052 5.5 5.5 0 0116.313 3c2.973 0 5.437 2.322 5.437 5.25 0 3.925-2.438 7.111-4.739 9.256a25.175 25.175 0 01-4.244 3.17 15.247 15.247 0 01-.383.218l-.022.012-.007.003-.003.001a.752.752 0 01-.704 0l-.003-.001z"/></svg>
+          </button>
+          <button type="button" class="qvob" data-id="{{ product.id }}" data-slug="{{ product.slug }}" data-name="{{ product.name }}" data-price="{{ product.price }}" data-image="{{ fi }}" data-images='{{ ij }}' data-category="{{ cn }}" data-stock="{{ ps }}" data-variants='{{ vj }}' onclick="triggerQuickView(this)">Xem nhanh</button>
+          <button type="button" class="qvmb" data-id="{{ product.id }}" data-slug="{{ product.slug }}" data-name="{{ product.name }}" data-price="{{ product.price }}" data-image="{{ fi }}" data-images='{{ ij }}' data-category="{{ cn }}" data-stock="{{ ps }}" data-variants='{{ vj }}' onclick="triggerQuickView(this)" aria-label="Xem nhanh {{ product.name }}">
+            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12c0-5.195 7.5-9 9.75-9s9.75 3.805 9.75 9-7.5 9-9.75 9-9.75-3.805-9.75-9z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
           </button>
         </div>
-
-        {# ── Thông tin sản phẩm ── #}
-        <div class="pt-5 flex justify-between items-start">
-          <div class="flex flex-col gap-1 pr-2">
-            <p class="text-[9px] font-bold text-neutral-400 uppercase tracking-[0.1em]">{{ product.categories.name if product.categories else 'Core' }}</p>
-            <a href="/product/{{ product.slug }}">
-              <h3 class="text-[11px] font-black uppercase tracking-wider text-black line-clamp-1 hover:text-neutral-600 transition-colors">{{ product.name }}</h3>
-            </a>
-            <span class="text-[11px] font-medium text-black mt-1">₫{{ "{:,.0f}".format(product.price) }}</span>
-          </div>
+        <div class="cinfo">
+          <p class="ccat">{{ cn }}</p>
+          <a class="cname" href="/product/{{ product.slug }}">{{ product.name }}</a>
+          <span class="cprice">&#8363;{{ "{:,.0f}".format(product.price) }}</span>
         </div>
-
       </li>
       {% endfor %}
     </ul>
 
-    {# Spinner #}
-    <div id="scroll-spinner" class="hidden py-24 flex-col items-center justify-center">
-      <div class="w-6 h-6 border-2 border-neutral-200 border-t-black rounded-full animate-spin"></div>
-      <p class="text-[9px] font-black uppercase tracking-[0.3em] mt-4 text-neutral-400">Discovering more pieces...</p>
-    </div>
+    <div id="scroll-spinner" class="sp"><div class="sr"></div><p class="sl">Discovering more pieces…</p></div>
 
-    {# Pagination #}
     {% if total_pages and total_pages > 1 %}
-    <nav id="pagination-block" aria-label="Phân trang" class="{% if products|length > 10 %}hidden{% endif %} flex justify-center items-center gap-8 pt-20 pb-12 border-t border-neutral-100 mt-20">
-      {% if page > 1 %}
-      <a href="/shop?page={{ page - 1 }}{% if category %}&category={{ category }}{% endif %}{% if keyword %}&q={{ keyword }}{% endif %}"
-         class="text-[9px] font-bold uppercase tracking-[0.2em] text-neutral-400 hover:text-black transition-colors">&larr; Previous</a>
-      {% endif %}
-      <div class="flex items-center gap-6">
-        {% for p in range(1, total_pages + 1) %}
-        <a href="/shop?page={{ p }}{% if category %}&category={{ category }}{% endif %}{% if keyword %}&q={{ keyword }}{% endif %}"
-           class="text-[11px] font-bold transition-colors {% if p == page %}text-black border-b-2 border-black pb-0.5{% else %}text-neutral-400 hover:text-black{% endif %}">{{ p }}</a>
-        {% endfor %}
-      </div>
-      {% if page < total_pages %}
-      <a href="/shop?page={{ page + 1 }}{% if category %}&category={{ category }}{% endif %}{% if keyword %}&q={{ keyword }}{% endif %}"
-         class="text-[9px] font-bold uppercase tracking-[0.2em] text-neutral-400 hover:text-black transition-colors">Next &rarr;</a>
-      {% endif %}
+    <nav id="pagination-block" class="pn {% if products|length > 10 %}hidden{% endif %}" aria-label="Phân trang">
+      {% if page > 1 %}<a class="pl" href="/shop?page={{ page-1 }}{% if category %}&category={{ category }}{% endif %}{% if keyword %}&q={{ keyword }}{% endif %}">&larr; Prev</a>{% endif %}
+      <div class="pns">{% for p in range(1,total_pages+1) %}<a class="pp {% if p==page %}active{% endif %}" href="/shop?page={{ p }}{% if category %}&category={{ category }}{% endif %}{% if keyword %}&q={{ keyword }}{% endif %}">{{ p }}</a>{% endfor %}</div>
+      {% if page < total_pages %}<a class="pl" href="/shop?page={{ page+1 }}{% if category %}&category={{ category }}{% endif %}{% if keyword %}&q={{ keyword }}{% endif %}">Next &rarr;</a>{% endif %}
     </nav>
     {% endif %}
 
     {% else %}
-    <div class="flex flex-col items-center justify-center py-40 text-center border-t border-neutral-100">
-      <h2 class="text-3xl text-black mb-6" style="font-family: var(--font-display);">No results found.</h2>
-      <a href="/shop" class="border-b border-black text-[10px] font-bold uppercase tracking-[0.2em]">Reset All</a>
-    </div>
+    <div class="es"><h2 class="et">No results found.</h2><a class="el" href="/shop">Reset All</a></div>
     {% endif %}
-
-  </div>
+  </main>
 </div>
+<div id="fav-toast" class="ft" role="status" aria-live="polite"></div>
 {% endblock %}
 
 {% block extra_scripts %}
 <script>
-  document.addEventListener('DOMContentLoaded', () => {
-    const allProducts = Array.from(document.querySelectorAll('.product-card'));
-    const spinner = document.getElementById('scroll-spinner');
-    const pagination = document.getElementById('pagination-block');
-    let visibleCount = 10;
-    const step = 10;
+document.addEventListener('DOMContentLoaded',()=>{
+  const cards=Array.from(document.querySelectorAll('.product-card'));
+  const spinner=document.getElementById('scroll-spinner');
+  const pag=document.getElementById('pagination-block');
+  let vis=10;const step=10;
 
-    if (allProducts.length <= visibleCount) {
-      if (pagination) pagination.classList.remove('hidden');
-      return;
-    }
+  /* Restore saved favs */
+  const saved=getSavedFavs();
+  document.querySelectorAll('.fb').forEach(b=>{if(saved.includes(String(b.dataset.productId)))b.classList.add('is-fav');});
 
-    const observer = new IntersectionObserver((entries) => {
-      if (!entries[0].isIntersecting) return;
-      observer.unobserve(entries[0].target);
-      if (spinner) { spinner.classList.remove('hidden'); spinner.classList.add('flex'); }
+  if(cards.length<=vis){if(pag)pag.classList.remove('hidden');return;}
 
-      setTimeout(() => {
-        const batch = allProducts.slice(visibleCount, visibleCount + step);
-        batch.forEach(p => { p.classList.remove('hidden-product'); p.classList.add('animate-fade-in-up'); });
-        visibleCount += batch.length;
-        if (spinner) spinner.classList.add('hidden');
-        if (visibleCount >= allProducts.length) {
-          if (pagination) pagination.classList.remove('hidden');
-        } else {
-          observer.observe(allProducts[visibleCount - 1]);
-        }
-      }, 800);
-    }, { rootMargin: '150px' });
+  const io=new IntersectionObserver(e=>{
+    if(!e[0].isIntersecting)return;
+    io.unobserve(e[0].target);
+    if(spinner)spinner.classList.add('visible');
+    setTimeout(()=>{
+      const batch=cards.slice(vis,vis+step);
+      batch.forEach(c=>{c.classList.remove('hidden-product');c.classList.add('animate-fade-in-up');});
+      vis+=batch.length;
+      if(spinner)spinner.classList.remove('visible');
+      if(vis>=cards.length){if(pag)pag.classList.remove('hidden');}
+      else{io.observe(cards[vis-1]);}
+    },800);
+  },{rootMargin:'150px'});
+  io.observe(cards[vis-1]);
+});
 
-    observer.observe(allProducts[visibleCount - 1]);
-  });
+function getSavedFavs(){try{return JSON.parse(localStorage.getItem('gua_favs')||'[]');}catch{return[];}}
+function setSavedFavs(l){try{localStorage.setItem('gua_favs',JSON.stringify(l));}catch{}}
+function showToast(m){const t=document.getElementById('fav-toast');if(!t)return;t.textContent=m;t.classList.add('show');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),2200);}
+
+async function toggleFav(btn){
+  const pid=String(btn.dataset.productId||'');if(!pid)return;
+  const was=btn.classList.contains('is-fav');
+  btn.classList.toggle('is-fav');btn.classList.add('pop');
+  btn.addEventListener('animationend',()=>btn.classList.remove('pop'),{once:true});
+  const favs=getSavedFavs();
+  if(!was){if(!favs.includes(pid))favs.push(pid);}else{const i=favs.indexOf(pid);if(i>-1)favs.splice(i,1);}
+  setSavedFavs(favs);
+  const _csrf=(document.querySelector('meta[name="csrf-token"]')||{}).content||'';
+  const h={'Content-Type':'application/json','X-CSRFToken':_csrf};
+  try{
+    const r=await fetch('/api/favorites/toggle',{method:'POST',headers:h,credentials:'same-origin',body:JSON.stringify({product_id:pid})});
+    if(r.status===401){btn.classList.toggle('is-fav');showToast('Vui lòng đăng nhập để lưu yêu thích');return;}
+    if(r.status===403){btn.classList.toggle('is-fav');showToast('Phiên hết hạn, vui lòng tải lại trang');return;}
+    if(!r.ok)throw new Error();
+    showToast(btn.classList.contains('is-fav')?'Đã thêm vào yêu thích ♥':'Đã bỏ yêu thích');
+  }catch{btn.classList.toggle('is-fav');showToast('Không thể kết nối, thử lại sau');}
+}
 </script>
 {% endblock %}

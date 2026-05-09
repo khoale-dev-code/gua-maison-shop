@@ -7,70 +7,79 @@
   .no-scrollbar::-webkit-scrollbar { display: none; }
   .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 </style>
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;1,300&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&display=swap" rel="stylesheet">
 {% endblock %}
 
 {% block content %}
-<div class="bg-white min-h-screen font-sans pb-24">
+<div class="bg-white min-h-screen font-sans pb-20 selection:bg-black selection:text-white">
   
   {# ── HEADER TRANG (Editorial Style) ── #}
-  <header class="pt-32 pb-16 text-center border-b border-neutral-100">
-    <div class="max-w-[1400px] mx-auto px-6 lg:px-10">
+  <header class="pt-24 md:pt-32 pb-12 md:pb-16 text-center border-b border-neutral-100 px-4">
+    <div class="max-w-[1400px] mx-auto">
       
-      <p class="text-[9px] font-black uppercase tracking-[0.3em] text-neutral-400 mb-6">
+      <p class="text-[9px] md:text-[10px] font-bold uppercase tracking-[0.3em] text-neutral-400 mb-4 md:mb-6">
         Discover
       </p>
 
-      <h1 class="text-4xl md:text-5xl text-black mb-4 tracking-wide" style="font-family: var(--font-display); font-weight: 300;">
-        All <span class="italic">Collections</span>
+      <h1 class="text-4xl md:text-5xl lg:text-6xl text-black mb-3 md:mb-4 tracking-wide leading-tight" style="font-family: var(--font-display); font-weight: 300;">
+        All <span class="italic font-normal">Collections</span>
       </h1>
       
-      <p class="text-[10px] font-bold tracking-[0.2em] uppercase text-neutral-400">
+      <p class="text-[9px] md:text-[10px] font-bold tracking-[0.2em] uppercase text-neutral-400">
         {{ categories|length }} Bộ sưu tập
       </p>
 
     </div>
   </header>
 
-  {# ── LƯỚI DANH MỤC (Lookbook Grid) ── #}
-  <div class="max-w-[1440px] mx-auto pt-8">
+  {# ── LƯỚI DANH MỤC (Lookbook Grid Edge-to-Edge) ── #}
+  <div class="max-w-[1600px] mx-auto pt-4 md:pt-8 w-full">
     
     {% if categories %}
-    {# Layout 3 cột trên PC, 2 cột trên Tablet, 1 cột trên Mobile với gap siêu mỏng #}
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-1 md:gap-2 p-1 md:p-2">
+    {# 
+      Layout Responsive:
+      - Mobile: 1 cột (toàn màn hình, chuẩn lookbook lướt dọc)
+      - Tablet (md): 2 cột
+      - PC (lg): 3 cột 
+      Gap siêu mỏng tạo cảm giác sắc nét.
+    #}
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-0.5 md:gap-1 p-0.5 md:p-1">
       
       {% for cat in categories %}
-      <a href="/shop?category={{ cat.slug }}" class="relative group block aspect-[3/4] md:aspect-[4/5] bg-neutral-100 overflow-hidden">
+      <a href="/shop?category={{ cat.slug }}" class="relative group block aspect-[4/5] md:aspect-[3/4] lg:aspect-[4/5] bg-[#f8f8f8] overflow-hidden">
         
-        {# Media (Hỗ trợ cả Video và Ảnh) #}
+        {# Media (Hỗ trợ cả Video và Ảnh - Đảm bảo Object-Cover chuẩn) #}
         {% if cat.video_url %}
-          <video autoplay loop muted playsinline class="absolute inset-0 w-full h-full object-cover transition-transform duration-[1.5s] group-hover:scale-105">
+          <video autoplay loop muted playsinline class="absolute inset-0 w-full h-full object-cover object-center transition-transform duration-[2000ms] ease-out group-hover:scale-105">
             <source src="{{ cat.video_url }}" type="video/mp4"/>
           </video>
         {% else %}
-          <img src="{{ cat.image_url if cat.image_url else 'https://placehold.co/800x1000/ede4d8/1a1714?text=' ~ (cat.name|urlencode) }}" 
+          <img src="{{ cat.image_url if cat.image_url else 'https://placehold.co/800x1000/f8f8f8/a3a3a3?text=' ~ (cat.name|urlencode) }}" 
                alt="{{ cat.name }}" 
-               class="absolute inset-0 w-full h-full object-cover transition-transform duration-[1.5s] group-hover:scale-105" loading="lazy">
+               class="absolute inset-0 w-full h-full object-cover object-center transition-transform duration-[2000ms] ease-out group-hover:scale-105 mix-blend-multiply" 
+               loading="lazy">
         {% endif %}
         
-        {# Lớp phủ mờ dần từ dưới lên để làm nổi bật Text #}
-        <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent opacity-80 group-hover:opacity-100 transition-opacity duration-500"></div>
+        {# Lớp phủ mờ (Gradient) - Tối ưu cho việc đọc Text trên mọi nền ảnh #}
+        <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent transition-colors duration-700 group-hover:from-black/90"></div>
 
         {# Nội dung chữ #}
-        <div class="absolute bottom-8 left-6 md:bottom-12 md:left-8 z-10 text-white">
-          <h2 class="text-3xl md:text-4xl font-black uppercase tracking-wide mb-3 drop-shadow-sm" style="font-family: var(--font-display);">
+        <div class="absolute bottom-6 left-5 md:bottom-10 md:left-8 z-10 text-white right-5">
+          <h2 class="text-3xl md:text-4xl lg:text-5xl font-normal uppercase tracking-widest mb-2 md:mb-3 drop-shadow-md leading-tight line-clamp-2" style="font-family: var(--font-display);">
             {{ cat.name }}
           </h2>
           
           {% if cat.description %}
-            <p class="text-[10px] font-medium tracking-wide text-neutral-200 max-w-[80%] mb-4 line-clamp-2">
+            <p class="text-[10px] md:text-[11px] font-medium tracking-wide text-neutral-300 max-w-[90%] md:max-w-[80%] mb-4 line-clamp-2 leading-relaxed">
               {{ cat.description }}
             </p>
+          {% else %}
+            <div class="h-2 md:h-4"></div> {# Spacer nếu không có mô tả #}
           {% endif %}
 
-          <span class="inline-flex items-center gap-2 text-[9px] font-bold uppercase tracking-[0.2em] border-b border-white pb-1 group-hover:text-neutral-300 group-hover:border-neutral-300 transition-colors">
+          <span class="inline-flex items-center gap-2 text-[9px] font-bold uppercase tracking-[0.2em] border-b border-white pb-1 group-hover:pr-3 transition-all duration-300">
             Khám phá 
-            <svg class="w-3 h-3 transition-transform duration-300 group-hover:translate-x-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17.25 8.25L21 12m0 0l-3.75 3.75M21 12H3"/></svg>
+            <svg class="w-3 h-3 md:w-3.5 md:h-3.5 transition-transform duration-300 group-hover:translate-x-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17.25 8.25L21 12m0 0l-3.75 3.75M21 12H3"/></svg>
           </span>
         </div>
         
@@ -80,10 +89,11 @@
     </div>
 
     {% else %}
-    {# Empty State #}
-    <div class="flex flex-col items-center justify-center py-40 text-center border-t border-neutral-100 mt-8 mx-4 sm:mx-6 lg:mx-10">
-      <p class="text-[9px] font-black uppercase tracking-[0.3em] text-neutral-400 mb-4">No Collections Found</p>
-      <h2 class="text-3xl text-black mb-6" style="font-family: var(--font-display);">Chưa có bộ sưu tập nào</h2>
+    {# Empty State (Tối giản) #}
+    <div class="flex flex-col items-center justify-center py-32 md:py-48 text-center border-t border-neutral-100 mx-4 sm:mx-6 lg:mx-10 mt-4 md:mt-8">
+      <i class="fa-solid fa-folder-open text-2xl md:text-3xl text-neutral-200 mb-4"></i>
+      <p class="text-[9px] font-bold uppercase tracking-[0.3em] text-neutral-400 mb-3">No Collections Found</p>
+      <h2 class="text-2xl md:text-3xl text-black" style="font-family: var(--font-display);">Chưa có bộ sưu tập nào</h2>
     </div>
     {% endif %}
 

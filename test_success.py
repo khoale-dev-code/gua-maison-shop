@@ -1,7 +1,7 @@
 import requests
 
 # 1. Điền Mã Vận Đơn đang cần test vào đây
-TRACKING_CODE = "MOCK-960301" 
+TRACKING_CODE = "MOCK-864170" 
 WEBHOOK_URL = "http://127.0.0.1:5000/admin/webhook/ghn"
 
 

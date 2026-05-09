@@ -1,9 +1,56 @@
 {# address/_toast.html #}
 <div id="gua-toast" role="status" aria-live="polite" aria-atomic="true"
-  class="fixed bottom-6 left-1/2 -translate-x-1/2 z-[70]
-         flex items-center gap-2.5 px-4 py-3 rounded-xl shadow-xl
-         text-sm font-medium whitespace-nowrap pointer-events-none
-         opacity-0 translate-y-2 transition-all duration-300">
-  <svg id="toast-icon" class="size-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24" aria-hidden="true"></svg>
-  <span id="toast-msg"></span>
+  class="fixed bottom-6 md:bottom-10 left-4 right-4 md:left-1/2 md:right-auto md:-translate-x-1/2 z-[300]
+         flex items-center gap-3.5 px-5 py-4 md:px-6 md:py-4
+         bg-white text-black border border-neutral-200 shadow-[0_10px_40px_rgba(0,0,0,0.08)] rounded-sm
+         pointer-events-none opacity-0 translate-y-6 transition-all duration-400 ease-[cubic-bezier(0.16,1,0.3,1)]
+         max-w-full md:max-w-md">
+  
+  {# Icon Wrapper #}
+  <div class="shrink-0 flex items-center justify-center">
+    <svg id="toast-icon" class="w-4 h-4 md:w-5 md:h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"></svg>
+  </div>
+  
+  {# Text Message #}
+  <span id="toast-msg" class="text-[10px] md:text-[11px] font-bold uppercase tracking-[0.2em] leading-relaxed text-left flex-1 break-words"></span>
 </div>
+
+{# ── GỢI Ý JAVASCRIPT GỌI TOAST ĐỂ CÓ MÀU SẮC ĐẸP ── #}
+<script>
+  /* * Hàm hỗ trợ gọi Toast ở frontend (Bạn có thể bỏ vào base.js hoặc để ở script chung)
+   * type: 'success' | 'error' | 'info'
+   */
+  window.showToast = function(message, type = 'info') {
+      const toast = document.getElementById('gua-toast');
+      const icon = document.getElementById('toast-icon');
+      const msg = document.getElementById('toast-msg');
+      if (!toast) return;
+
+      // Reset các class màu cũ
+      toast.classList.remove('border-emerald-500', 'text-emerald-600', 'border-red-500', 'text-red-600', 'border-neutral-200', 'text-black');
+      
+      // Set màu sắc và icon theo loại (Chuẩn UI Minimal)
+      if (type === 'success') {
+          toast.classList.add('border-emerald-500', 'text-emerald-600');
+          icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/>';
+      } else if (type === 'error') {
+          toast.classList.add('border-red-500', 'text-red-600');
+          icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>';
+      } else {
+          toast.classList.add('border-neutral-200', 'text-black');
+          icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z"/>';
+      }
+
+      // Set text
+      msg.innerText = message;
+
+      // Kích hoạt Animation hiện lên
+      toast.classList.remove('opacity-0', 'translate-y-6');
+      
+      // Tự động ẩn sau 3 giây
+      if(window.toastTimer) clearTimeout(window.toastTimer);
+      window.toastTimer = setTimeout(() => {
+          toast.classList.add('opacity-0', 'translate-y-6');
+      }, 3000);
+  };
+</script>

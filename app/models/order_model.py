@@ -397,8 +397,10 @@ class OrderModel:
                 return False, "Không tìm thấy đơn hàng."
 
             order = order_res.data
-            if order["status"] != "delivered":
-                return False, "Chỉ đơn hàng đã giao mới được yêu cầu đổi/trả."
+            
+            # CẬP NHẬT Ở ĐÂY: Cho phép cả đơn 'delivered' và 'completed' được hoàn trả
+            if order["status"] not in ["delivered", "completed"]:
+                return False, "Chỉ đơn hàng đã giao thành công mới được yêu cầu đổi/trả."
 
             existing = db.table("return_requests").select("id, status").eq("order_id", order_id).in_("status", ["pending", "approved", "refunded"]).execute()
             if existing.data:

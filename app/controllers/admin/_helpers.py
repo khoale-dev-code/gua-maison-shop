@@ -21,7 +21,8 @@ ALLOWED_EXTENSIONS = {"jpg", "jpeg", "png", "webp", "gif"}
 # ── Error handler decorator ──────────────────────────────────────
 
 
-def handle_errors(message="Lỗi hệ thống.", redirect_to="admin.dashboard_view"):
+# Đã FIX: Đổi "admin.dashboard_view" thành "admin.dashboard"
+def handle_errors(message="Lỗi hệ thống.", redirect_to="admin.dashboard"):
 
     def decorator(fn):
 
@@ -32,7 +33,13 @@ def handle_errors(message="Lỗi hệ thống.", redirect_to="admin.dashboard_vi
             except Exception as e:
                 logger.exception(f"[{fn.__name__}] {e}")
                 flash(message, "danger")
-                return redirect(url_for(redirect_to))
+                
+                # Bổ sung an toàn: Nếu endpoint cấu hình sai, fallback về trang chủ để web không bị crash 500
+                try:
+                    return redirect(url_for(redirect_to))
+                except Exception as build_err:
+                    logger.error(f"[URL Build Error] {build_err}")
+                    return redirect("/")
 
         return wrapper
 
@@ -50,7 +57,12 @@ def _db():
 
 
 def _paginate(args: dict, per_page: int=20) -> tuple[int, int, int]:
-    page = max(1, int(args.get("page", 1)))
+    # Đã FIX: Tránh crash hệ thống nếu người dùng nhập ?page=abc trên thanh địa chỉ
+    try:
+        page = max(1, int(args.get("page", 1)))
+    except (ValueError, TypeError):
+        page = 1
+        
     return page, per_page, (page - 1) * per_page
 
 
@@ -69,11 +81,13 @@ def _args() -> dict:
 
 
 def _getlist(key: str) -> list:
+    # Gán type-hint để VSCode hiểu request.form có chứa hàm getlist()
     form: ImmutableMultiDict = request.form
     return form.getlist(key)
 
 
 def _filelist(key: str) -> list:
+    # Tương tự cho request.files
     files: ImmutableMultiDict = request.files
     return files.getlist(key)
 
