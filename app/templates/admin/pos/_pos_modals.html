@@ -1,0 +1,115 @@
+{# =================================================================
+   templates/admin/pos/_pos_modals.html
+   Partial chứa toàn bộ modal overlay của POS Terminal.
+   Được include bởi pos_terminal.html — không dùng độc lập.
+
+   Gồm 4 modal:
+     1. #variantModal       — chọn màu/size trước khi thêm giỏ
+     2. #transferWaitModal  — chờ xác nhận chuyển khoản (Casso)
+     3. #barcodeCameraModal — quét mã vạch qua camera (QuaggaJS)
+     4. #posToast           — thông báo nhanh góc trên
+================================================================= #}
+
+{# ── 1. MODAL CHỌN BIẾN THỂ (màu / size) ── #}
+<div id="variantModal"
+  class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[200] hidden items-center justify-center p-4">
+  <div class="bg-white rounded-sm shadow-2xl w-full max-w-lg overflow-hidden" id="variantModalContent">
+
+    {# Header: ảnh + tên + giá sản phẩm #}
+    <div class="p-5 border-b border-neutral-100 flex items-start gap-4">
+      <div class="w-16 h-20 bg-[#f8f8f8] rounded-sm border border-neutral-200 overflow-hidden flex-shrink-0"
+        id="vmImage"></div>
+      <div class="flex-1 min-w-0 pr-2 pt-1">
+        <h3 class="text-xs font-black uppercase tracking-widest text-black line-clamp-2 leading-snug"
+          id="vmTitle">Tên sản phẩm</h3>
+        <p class="text-[11px] font-bold text-neutral-500 mt-1" id="vmPrice">0đ</p>
+      </div>
+      <button onclick="POS.closeVariantModal()"
+        class="text-neutral-400 hover:text-black p-1 bg-neutral-50 rounded-sm">
+        <i class="fa-solid fa-xmark text-lg"></i>
+      </button>
+    </div>
+
+    {# Body: list màu + list size (render bởi JS) #}
+    <div class="p-5 max-h-[50vh] overflow-y-auto no-scrollbar bg-[#f8f8f8]" id="vmOptions"></div>
+  </div>
+</div>
+
+
+{# ── 2. MODAL CHỜ XÁC NHẬN CHUYỂN KHOẢN (Casso webhook) ── #}
+<div id="transferWaitModal"
+  class="fixed inset-0 bg-black/70 backdrop-blur-sm z-[300] hidden items-center justify-center p-4">
+  <div class="bg-white rounded-sm shadow-2xl w-full max-w-sm p-8 text-center space-y-4">
+
+    {# Icon trạng thái: spin → check khi paid #}
+    <div id="twIcon" class="text-5xl text-neutral-300">
+      <i class="fa-solid fa-rotate spin"></i>
+    </div>
+    <p class="text-xs font-black uppercase tracking-widest text-black" id="twTitle">
+      Đang chờ thanh toán...
+    </p>
+    <p class="text-[10px] text-neutral-500" id="twSub">
+      Hệ thống sẽ tự động xác nhận khi nhận được tiền
+    </p>
+
+    {# Nút hành động — ẩn cho đến khi paid #}
+    <div id="twActions" class="hidden flex-col gap-2">
+      <button onclick="POS.printReceiptFromModal()"
+        class="w-full py-3 bg-black text-white text-[11px] font-bold uppercase tracking-widest rounded-sm hover:bg-neutral-800 transition-colors flex items-center justify-center gap-2">
+        <i class="fa-solid fa-print"></i> In Hóa Đơn
+      </button>
+      <button onclick="POS.closeTransferModal()"
+        class="w-full py-3 border border-neutral-200 text-[11px] font-bold uppercase tracking-widest rounded-sm hover:bg-neutral-50 transition-colors">
+        Đóng
+      </button>
+    </div>
+
+    {# Nút hủy chờ — ẩn khi đã paid #}
+    <button onclick="POS.cancelTransferWait()" id="twCancelBtn"
+      class="text-[10px] text-neutral-400 hover:text-black underline underline-offset-2">
+      Hủy chờ
+    </button>
+  </div>
+</div>
+
+
+{# ── 3. MODAL CAMERA BARCODE SCANNER (QuaggaJS) ── #}
+<div id="barcodeCameraModal"
+  class="fixed inset-0 bg-black/80 backdrop-blur-sm z-[350] hidden items-center justify-center p-4">
+  <div class="bg-white rounded-sm shadow-2xl w-full max-w-sm overflow-hidden">
+
+    {# Header #}
+    <div class="px-5 py-4 border-b border-neutral-100 flex items-center justify-between">
+      <div>
+        <p class="text-xs font-black uppercase tracking-widest text-black">Quét Mã Vạch</p>
+        <p class="text-[9px] text-neutral-400 font-bold uppercase tracking-widest mt-0.5">
+          Đưa barcode vào khung hình
+        </p>
+      </div>
+      <button onclick="POS.closeCameraScanner()"
+        class="text-neutral-400 hover:text-black p-1 bg-neutral-50 rounded-sm">
+        <i class="fa-solid fa-xmark text-lg"></i>
+      </button>
+    </div>
+
+    {# Viewport camera + laser animation #}
+    <div class="p-4">
+      <div class="relative bg-black rounded-sm overflow-hidden" style="height:240px;">
+        <div id="interactive" class="viewport"></div>
+        <div class="laser"></div>
+      </div>
+      <p id="bcScanResult"
+        class="mt-3 text-center text-[10px] font-bold text-neutral-500 uppercase tracking-widest">
+        Đang khởi động camera...
+      </p>
+    </div>
+  </div>
+</div>
+
+
+{# ── 4. TOAST THÔNG BÁO NHANH ── #}
+<div id="posToast"
+  class="fixed top-6 left-1/2 -translate-x-1/2 z-[400] hidden items-center gap-3 px-6 py-4 border text-[10px] font-bold uppercase tracking-widest shadow-2xl bg-white rounded-sm">
+  <i id="posToastIcon" class="fa-solid text-base"></i>
+  <span id="posToastMsg"></span>
+</div>
