@@ -1,6 +1,7 @@
 """
 app/__init__.py  –  Application Factory (GUA MAISON 2026 Edition)
 """
+import os
 import logging
 from flask import Flask, session, render_template_string
 from flask_wtf.csrf import CSRFProtect, CSRFError
@@ -159,7 +160,7 @@ def create_app() -> Flask:
     # 1. Validate & Load Config
     validate_config()
     flask_app.config.from_object(get_config())
-
+    flask_app.config["BASE_URL"] = os.environ.get("BASE_URL", "")
     # 2. Extensions
     csrf.init_app(flask_app)
 

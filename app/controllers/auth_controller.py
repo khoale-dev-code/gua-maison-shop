@@ -222,9 +222,15 @@ def forgot_password():
                     token = s.dumps(email, salt='gua-password-reset')
 
                     # 2. Tạo link khôi phục
-                    reset_link = url_for("auth.reset_password", token=token, _external=True)
+                    # Ưu tiên dùng BASE_URL từ .env (domain production Vercel)
+                    # Fallback về url_for khi dev local
+                    base_url = current_app.config.get("BASE_URL", "").rstrip("/")
+                    if base_url:
+                        reset_link = f"{base_url}/auth/reset-password/{token}"
+                    else:
+                        reset_link = url_for("auth.reset_password", token=token, _external=True)
 
-                    # ✅ 3. Gửi email thật qua SendGrid
+                    # ✅ 3. Gửi email thật qua Gmail SMTP
                     sent = send_password_reset_email(
                         recipient_email=email,
                         recipient_name=user.get("full_name", ""),
