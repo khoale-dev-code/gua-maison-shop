@@ -11,6 +11,9 @@ from app.utils.supabase_client import get_supabase
 from flask import current_app
 from itsdangerous import URLSafeTimedSerializer
 
+# ✅ Import email service mới
+from app.services.email_service import send_password_reset_email
+
 auth_bp = Blueprint("auth", __name__, url_prefix="/auth")
 EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
 logger = logging.getLogger(__name__)
@@ -193,6 +196,7 @@ def logout():
     session.clear()
     flash(f"Đã đăng xuất an toàn. Hẹn gặp lại{(' ' + name.split()[0]) if name else ''}.", "info")
     return redirect(url_for("auth.login"))
+
 # ═══════════════════════════════════════════════════════════════
 #  FORGOT PASSWORD (GỬI LINK KHÔI PHỤC)
 # ═══════════════════════════════════════════════════════════════
@@ -213,23 +217,45 @@ def forgot_password():
             try:
                 user = UserModel.get_by_email(email)
                 if user:
-                    # 1. Tạo Token bảo mật sống trong 1 giờ (3600 giây)
+                    # 1. Tạo Token bảo mật sống trong 1 giờ
                     s = URLSafeTimedSerializer(current_app.config['SECRET_KEY'])
                     token = s.dumps(email, salt='gua-password-reset')
-                    
+
                     # 2. Tạo link khôi phục
                     reset_link = url_for("auth.reset_password", token=token, _external=True)
-                    
-                    # 3. Gửi Email (Ở đây giả lập in ra Console để Dev test)
-                    # Thực tế bạn sẽ tích hợp SendGrid / Flask-Mail ở đoạn này
-                    logger.info(f"\n{'='*50}\n[GUA MAISON] LINK KHÔI PHỤC MẬT KHẨU CỦA {email}:\n{reset_link}\n{'='*50}\n")
-                    
-                    flash("Thành công! Link khôi phục đã được gửi đến email của bạn.", "success")
+
+                    # ✅ 3. Gửi email thật qua SendGrid
+                    sent = send_password_reset_email(
+                        recipient_email=email,
+                        recipient_name=user.get("full_name", ""),
+                        reset_link=reset_link,
+                    )
+
+                    if sent:
+                        logger.info(f"Audit [PW RESET EMAIL SENT]: {email}")
+                        flash("Thành công! Link khôi phục đã được gửi đến email của bạn.", "success")
+                    else:
+                        # Gửi thất bại — log link để admin debug, không lộ ra ngoài
+                        logger.error(
+                            f"[PW RESET] SendGrid thất bại cho {email}. "
+                            f"Reset link (internal): {reset_link}"
+                        )
+                        flash(
+                            "Không thể gửi email lúc này. Vui lòng thử lại sau hoặc liên hệ hỗ trợ.",
+                            "danger",
+                        )
+                        return render_template("auth/forgot_password.html")
+
                 else:
-                    # Chống dò quét Email: Luôn báo thành công dù email không tồn tại
-                    flash("Nếu email hợp lệ, hướng dẫn khôi phục sẽ được gửi đến hộp thư của bạn.", "info")
-                    
+                    # Chống dò quét Email: luôn báo thành công dù email không tồn tại
+                    logger.info(f"[PW RESET] Email không tồn tại (silently ignored): {email}")
+                    flash(
+                        "Nếu email hợp lệ, hướng dẫn khôi phục sẽ được gửi đến hộp thư của bạn.",
+                        "info",
+                    )
+
                 return redirect(url_for("auth.login"))
+
             except Exception as e:
                 logger.error(f"Forgot password error: {e}")
                 flash("Hệ thống đang bận. Vui lòng thử lại sau.", "danger")
@@ -274,7 +300,7 @@ def reset_password(token):
                     get_supabase().table("users").update({
                         "password_hash": hash_password(password)
                     }).eq("email", email).execute()
-                    
+
                     logger.info(f"Audit [PW RESET SUCCESS]: {email}")
                     flash("Mật khẩu đã được thay đổi thành công! Vui lòng đăng nhập lại.", "success")
                     return redirect(url_for("auth.login"))
