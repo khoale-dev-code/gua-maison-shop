@@ -16,5 +16,8 @@ from . import coupons
 from . import products
 from . import reports
 from . import pos_controller  # <--- BẠN CHỈ CẦN THÊM DÒNG NÀY VÀO ĐÂY
+from . import settings
+from . import permissions_controller
+from . import notifications  # <--- BẠN CHỈ CẦN THÊM DÒNG NÀY VÀO ĐÂY
 # 3. Export admin_bp ra ngoài (cho app/__init__.py gọi)
 __all__ = ["admin_bp"]

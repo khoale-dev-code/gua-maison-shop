@@ -2,122 +2,460 @@
 {% block title %}Danh mục sản phẩm | GUA Admin{% endblock %}
 
 {% block extra_head %}
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;1,400&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;1,400&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
   :root {
-    --ink:  #181614; --muted: #a09890; --soft: #6b6460;
-    --b:    rgba(0,0,0,0.1); --skin: #f7f3ef; --skinl: #faf8f6;
-    --fd:   'Playfair Display',serif; --fb: 'DM Sans',sans-serif;
+    --ink:   #181614; 
+    --muted: #a09890; 
+    --soft:  #6b6460;
+    --b:     rgba(0,0,0,0.1); 
+    --skin:  #f7f3ef; 
+    --skinl: #faf8f6;
+    --fd:    'Playfair Display', serif; 
+    --fb:    'DM Sans', sans-serif;
+    
+    /* Variables cho Responsive */
+    --padding-x: clamp(20px, 5vw, 56px);
   }
-  *{box-sizing:border-box}
-  body{font-family:var(--fb)!important;-webkit-font-smoothing:antialiased}
+  
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { 
+    font-family: var(--fb) !important; 
+    -webkit-font-smoothing: antialiased;
+    background: #fff;
+    color: var(--ink);
+  }
 
-  /* topbar */
-  .tb{position:sticky;top:0;z-index:40;background:rgba(255,255,255,.96);backdrop-filter:blur(12px);border-bottom:1px solid var(--b)}
-  .tbi{max-width:1520px;margin:0 auto;padding:0 clamp(20px,4vw,56px)}
-  .crumb{display:flex;align-items:center;gap:8px;padding:16px 0 0;font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted)}
-  .crumb a{color:inherit;text-decoration:none}.crumb a:hover{color:var(--ink)}
-  .thead{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;padding:13px 0 19px}
-  .ttl{font-family:var(--fd);font-size:clamp(24px,3vw,36px);font-weight:400;color:var(--ink);margin:0;line-height:1}
-  .ttl em{font-style:italic}
-  .tabs{display:flex;overflow-x:auto;scrollbar-width:none}.tabs::-webkit-scrollbar{display:none}
-  .tab{padding:0 0 14px;margin-right:28px;font-size:10px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;text-decoration:none;white-space:nowrap;color:var(--muted);border-bottom:1.5px solid transparent;transition:color .2s,border-color .2s}
-  .tab:hover,.tab.on{color:var(--ink)}.tab.on{border-color:var(--ink)}
+  /* =========================================
+     TOPBAR & HEADER
+  ========================================= */
+  .tb {
+    position: sticky;
+    top: 0;
+    z-index: 40;
+    background: rgba(255,255,255,0.96);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--b);
+  }
+  .tbi {
+    max-width: 1520px;
+    margin: 0 auto;
+    padding: 0 var(--padding-x);
+  }
+  .crumb {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 20px 0 0;
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .crumb a { color: inherit; text-decoration: none; transition: color 0.2s; }
+  .crumb a:hover { color: var(--ink); }
+  
+  .thead {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 16px 0 20px;
+  }
+  .ttl {
+    font-family: var(--fd);
+    font-size: clamp(28px, 4vw, 36px);
+    font-weight: 400;
+    color: var(--ink);
+    line-height: 1;
+  }
+  .ttl em { font-style: italic; }
+  
+  /* Tabs vuốt ngang trên Mobile */
+  .tabs {
+    display: flex;
+    overflow-x: auto;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    -webkit-overflow-scrolling: touch;
+  }
+  .tabs::-webkit-scrollbar { display: none; }
+  .tab {
+    padding: 0 0 14px;
+    margin-right: clamp(20px, 3vw, 32px);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    text-decoration: none;
+    white-space: nowrap;
+    color: var(--muted);
+    border-bottom: 2px solid transparent;
+    transition: all 0.2s;
+  }
+  .tab:hover, .tab.on { color: var(--ink); }
+  .tab.on { border-color: var(--ink); }
 
-  /* layout */
-  .wrap{max-width:1520px;margin:0 auto;padding:44px clamp(20px,4vw,56px);display:grid;grid-template-columns:1fr 400px;gap:48px;align-items:start}
-  @media(max-width:1100px){.wrap{grid-template-columns:1fr}}
+  /* =========================================
+     LAYOUT CHÍNH (GRID)
+  ========================================= */
+  .wrap {
+    max-width: 1520px;
+    margin: 0 auto;
+    padding: clamp(32px, 5vw, 44px) var(--padding-x) 80px;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 420px;
+    gap: clamp(32px, 5vw, 48px);
+    align-items: start;
+  }
 
-  /* buttons */
-  .btn{display:inline-flex;align-items:center;gap:7px;font-family:var(--fb);font-size:10px;font-weight:600;letter-spacing:.2em;text-transform:uppercase;padding:11px 22px;border:1px solid transparent;cursor:pointer;text-decoration:none;transition:all .2s;white-space:nowrap}
-  .btn:active{transform:scale(.98)}
-  .btn-d{background:var(--ink);color:#fff}.btn-d:hover{background:#36322e}
-  .btn-o{background:none;color:var(--soft);border-color:var(--b)}.btn-o:hover{color:var(--ink);border-color:var(--ink);background:var(--skin)}
-  .btn-r{background:none;color:#c0392b;border-color:rgba(192,57,43,.18)}.btn-r:hover{background:#fff5f5;border-color:#c0392b}
+  /* =========================================
+     COMPONENTS (BUTTONS, INPUTS)
+  ========================================= */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    font-family: var(--fb);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    padding: 0 24px;
+    height: 44px; /* Touch target chuẩn */
+    border: 1px solid transparent;
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    white-space: nowrap;
+  }
+  .btn:active { transform: scale(0.98); }
+  .btn-d { background: var(--ink); color: #fff; }
+  .btn-d:hover { background: #36322e; box-shadow: 0 8px 20px rgba(24,22,20,0.15); }
+  .btn-o { background: transparent; color: var(--soft); border-color: var(--b); }
+  .btn-o:hover { color: var(--ink); border-color: var(--ink); background: var(--skin); }
+  .btn-r { background: transparent; color: #c0392b; border-color: rgba(192,57,43,0.18); }
+  .btn-r:hover { background: #fff5f5; border-color: #c0392b; }
 
-  /* search */
-  .srch{position:relative;margin-bottom:18px}
-  .srch svg{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--muted);pointer-events:none}
-  .srch input{width:100%;padding:10px 14px 10px 38px;font-size:12px;font-family:var(--fb);border:1px solid var(--b);background:var(--skin);color:var(--ink);outline:none;transition:border-color .2s}
-  .srch input:focus{border-color:var(--ink);background:#fff}
+  /* =========================================
+     DANH SÁCH CATEGORY (LEFT)
+  ========================================= */
+  .lh {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .lh b {
+    background: var(--skin);
+    color: var(--ink);
+    padding: 4px 10px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+  }
 
-  /* list header */
-  .lh{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted)}
-  .lh b{background:var(--skin);color:var(--ink);padding:4px 10px;font-weight:700;letter-spacing:.12em}
+  /* Search Box */
+  .srch { position: relative; margin-bottom: 24px; }
+  .srch svg {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--muted);
+    pointer-events: none;
+  }
+  .srch input {
+    width: 100%;
+    height: 48px;
+    padding: 0 16px 0 42px;
+    font-size: 13px;
+    font-family: var(--fb);
+    border: 1px solid var(--b);
+    background: var(--skin);
+    color: var(--ink);
+    outline: none;
+    transition: all 0.2s;
+  }
+  .srch input:focus { border-color: var(--ink); background: #fff; box-shadow: 0 4px 12px rgba(0,0,0,0.03); }
 
-  /* category row */
-  .cr{display:flex;align-items:center;gap:16px;padding:12px 14px;margin-bottom:7px;border:1px solid var(--b);background:#fff;transition:border-color .2s}
-  .cr:hover{border-color:var(--ink)}
-  .cr-drag{color:var(--muted);cursor:grab;opacity:0;transition:opacity .2s;flex-shrink:0}.cr:hover .cr-drag{opacity:1}
-  .cr-thumb{width:68px;height:68px;flex-shrink:0;background:var(--skin);border:1px solid var(--b);overflow:hidden;position:relative;display:flex;align-items:center;justify-content:center}
-  .cr-thumb img,.cr-thumb video{width:100%;height:100%;object-fit:cover;display:block}
-  .cr-thumb .tag{position:absolute;bottom:3px;left:3px;background:rgba(0,0,0,.65);color:#fff;font-size:7px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;padding:2px 5px}
-  .cr-thumb .lt{font-size:14px;font-weight:700;color:var(--muted);text-transform:uppercase}
-  .cr-info{flex:1;min-width:0}
-  .cr-name{font-size:13px;font-weight:600;color:var(--ink);letter-spacing:.04em;text-transform:uppercase;margin:0 0 4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:flex;align-items:center;gap:8px}
-  .cr-slug{font-size:10px;font-family:'Courier New',monospace;color:var(--muted)}
-  .cr-slug b{color:var(--soft);font-weight:600}
-  .cr-acts{display:flex;gap:6px;flex-shrink:0}
-  .badge-home{font-size:8px;font-weight:700;letter-spacing:.1em;background:var(--ink);color:#fff;padding:2px 6px;border-radius:2px;}
+  /* Category Item */
+  .cr {
+    display: flex;
+    align-items: center;
+    gap: clamp(12px, 2vw, 16px);
+    padding: 12px;
+    margin-bottom: 8px;
+    border: 1px solid var(--b);
+    background: #fff;
+    transition: all 0.2s;
+  }
+  .cr:hover { border-color: var(--ink); box-shadow: 0 4px 12px rgba(0,0,0,0.03); }
+  
+  .cr-drag {
+    color: var(--muted);
+    cursor: grab;
+    opacity: 0.3; /* Hiển thị mờ trên mobile, đậm khi hover trên PC */
+    transition: opacity 0.2s;
+    flex-shrink: 0;
+  }
+  .cr:hover .cr-drag { opacity: 1; }
+  
+  .cr-thumb {
+    width: clamp(60px, 8vw, 68px);
+    height: clamp(60px, 8vw, 68px);
+    flex-shrink: 0;
+    background: var(--skin);
+    border: 1px solid var(--b);
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
+  .cr-thumb img, .cr-thumb video { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .cr-thumb .tag {
+    position: absolute;
+    bottom: 3px;
+    left: 3px;
+    background: rgba(0,0,0,0.65);
+    color: #fff;
+    font-size: 7px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 2px 5px;
+  }
+  .cr-thumb .lt { font-size: 16px; font-weight: 700; color: var(--muted); text-transform: uppercase; }
+  
+  .cr-info { flex: 1; min-width: 0; }
+  .cr-name {
+    font-size: clamp(12px, 2vw, 13px);
+    font-weight: 600;
+    color: var(--ink);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    margin: 0 0 6px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .cr-slug { font-size: 10px; font-family: 'Courier New', monospace; color: var(--muted); }
+  .cr-slug b { color: var(--soft); font-weight: 600; }
+  
+  .badge-home {
+    font-size: 8px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    background: var(--ink);
+    color: #fff;
+    padding: 2px 6px;
+  }
 
-  /* empty */
-  .empty{padding:60px 24px;text-align:center;border:1px dashed var(--b);font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted)}
+  .cr-acts { display: flex; gap: 6px; flex-shrink: 0; }
+  .cr-acts .btn { height: 36px; padding: 0 14px; font-size: 9px; }
 
-  /* form panel */
-  .fp{position:sticky;top:112px;background:var(--skin);border:1px solid var(--b);padding:clamp(22px,3vw,36px)}
-  .fp h2{font-family:var(--fd);font-size:21px;font-weight:400;color:var(--ink);margin:0 0 3px}
-  .fp p{font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:var(--muted);margin:0 0 26px}
-  .fld{margin-bottom:18px}
-  .lbl{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:7px;font-size:9px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:var(--ink)}
-  .lbl em{font-style:italic;font-weight:400;font-size:9px;color:var(--muted);text-transform:none;letter-spacing:.05em}
-  .inp{width:100%;padding:10px 13px;font-size:13px;font-family:var(--fb);color:var(--ink);border:1px solid rgba(0,0,0,.14);background:#fff;outline:none;letter-spacing:.03em;transition:border-color .2s,box-shadow .2s}
-  .inp:focus{border-color:var(--ink);box-shadow:0 0 0 2px rgba(24,22,20,.05)}
-  .inp::placeholder{color:var(--muted);font-size:12px}
-  .mono{font-family:'Courier New',monospace;font-size:12px}
-  .dvd{display:flex;align-items:center;gap:10px;margin:22px 0 18px;font-size:9px;letter-spacing:.22em;text-transform:uppercase;color:var(--muted);font-weight:600}
-  .dvd::before,.dvd::after{content:'';flex:1;height:1px;background:rgba(0,0,0,.12)}
-  .pvw{width:100%;aspect-ratio:16/9;background:#ede8e2;border:1px solid rgba(0,0,0,.12);position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center;margin-bottom:14px}
-  .pvw img,.pvw video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:none}
-  .pvw .ph{font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);font-weight:600;text-align:center}
-  .pvw .bg{display:none;position:absolute;top:8px;left:8px;background:rgba(24,22,20,.72);color:#fff;font-size:8px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;padding:3px 8px;backdrop-filter:blur(4px)}
-  .urow{display:flex;gap:8px}.urow .inp{flex:1}
-  .fi{width:100%;padding:10px 13px;font-size:11px;font-family:var(--fb);color:var(--soft);border:1px dashed rgba(0,0,0,.14);background:#fff;cursor:pointer;transition:border-color .2s}
-  .fi:hover{border-color:var(--ink)}
+  /* Empty State */
+  .empty {
+    padding: 60px 24px;
+    text-align: center;
+    border: 1px dashed var(--b);
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
 
-  /* Custom Checkbox Container */
-  .chk-card{display:flex;align-items:center;gap:12px;padding:12px 14px;border:1px solid rgba(0,0,0,.14);background:#fff;cursor:pointer;transition:border-color .2s;margin-bottom:18px;}
-  .chk-card:hover{border-color:var(--ink);}
+  /* =========================================
+     FORM PANEL (RIGHT)
+  ========================================= */
+  .fp {
+    position: sticky;
+    top: 120px; /* Căn chỉnh khoảng cách sticky so với topbar */
+    background: var(--skinl);
+    border: 1px solid var(--b);
+    padding: clamp(24px, 4vw, 40px);
+  }
+  .fp h2 { font-family: var(--fd); font-size: 24px; font-weight: 400; color: var(--ink); margin: 0 0 6px; }
+  .fp p { font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--muted); margin: 0 0 32px; }
+  
+  .fld { margin-bottom: 20px; }
+  .lbl {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 8px;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--ink);
+  }
+  .lbl em { font-style: italic; font-weight: 400; color: var(--muted); text-transform: none; letter-spacing: 0.05em; }
+  
+  .inp {
+    width: 100%;
+    height: 48px;
+    padding: 0 16px;
+    font-size: 13px;
+    font-family: var(--fb);
+    color: var(--ink);
+    border: 1px solid var(--b);
+    background: #fff;
+    outline: none;
+    letter-spacing: 0.03em;
+    transition: all 0.2s;
+  }
+  .inp:focus { border-color: var(--ink); box-shadow: 0 0 0 3px rgba(24,22,20,0.06); }
+  .inp::placeholder { color: var(--muted); font-size: 12px; }
+  .mono { font-family: 'Courier New', monospace; font-size: 12px; }
+  
+  .dvd {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 32px 0 20px;
+    font-size: 9px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--muted);
+    font-weight: 700;
+  }
+  .dvd::before, .dvd::after { content: ''; flex: 1; height: 1px; background: rgba(0,0,0,0.08); }
+  
+  /* Form Checkbox Card */
+  .chk-card {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    padding: 16px;
+    border: 1px solid var(--b);
+    background: #fff;
+    cursor: pointer;
+    transition: border-color 0.2s;
+    margin-bottom: 20px;
+  }
+  .chk-card:hover { border-color: var(--ink); }
+  .chk-card input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    accent-color: var(--ink);
+    cursor: pointer;
+    margin-top: 2px;
+  }
+  
+  /* Preview Area */
+  .pvw {
+    width: 100%;
+    aspect-ratio: 16/9;
+    background: #ede8e2;
+    border: 1px solid var(--b);
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 16px;
+  }
+  .pvw img, .pvw video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: none; }
+  .pvw .ph { font-size: 9px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--muted); font-weight: 700; text-align: center; }
+  .pvw .bg {
+    display: none;
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    background: rgba(24,22,20,0.75);
+    color: #fff;
+    font-size: 8px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    padding: 4px 10px;
+    backdrop-filter: blur(4px);
+  }
+  
+  .urow { display: flex; gap: 8px; }
+  .urow .inp { flex: 1; }
+  .urow .btn { height: 48px; }
+  
+  .fi {
+    width: 100%;
+    padding: 12px 16px;
+    font-size: 11px;
+    font-family: var(--fb);
+    color: var(--soft);
+    border: 1px dashed var(--b);
+    background: #fff;
+    cursor: pointer;
+    transition: border-color 0.2s;
+  }
+  .fi:hover { border-color: var(--ink); }
 
-  /* reveal */
-  .rv{opacity:0;transform:translateY(14px);animation:rv .7s cubic-bezier(.16,1,.3,1) forwards}
-  .rv1{animation-delay:.05s}.rv2{animation-delay:.13s}
-  @keyframes rv{to{opacity:1;transform:none}}
+  /* =========================================
+     ANIMATIONS
+  ========================================= */
+  .rv { opacity: 0; transform: translateY(20px); animation: rv 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+  .rv1 { animation-delay: 0.05s; }
+  .rv2 { animation-delay: 0.15s; }
+  @keyframes rv { to { opacity: 1; transform: none; } }
+
+  /* =========================================
+     RESPONSIVE (TABLET & MOBILE)
+  ========================================= */
+  @media (max-width: 1024px) {
+    .wrap {
+      grid-template-columns: 1fr; /* Trở về 1 cột */
+      gap: 40px;
+    }
+    .fp {
+      position: relative; /* Tắt sticky trên Mobile/Tablet để không đè nội dung */
+      top: 0;
+    }
+    .cr-acts {
+      flex-direction: column; /* Nút sửa/xóa xếp dọc nếu màn hình quá hẹp */
+    }
+    .cr-acts .btn { width: 100%; justify-content: center; }
+  }
+  @media (min-width: 480px) and (max-width: 1024px) {
+     .cr-acts { flex-direction: row; } /* Trả lại hàng ngang cho Tablet */
+  }
 </style>
 {% endblock %}
 
 {% block content %}
-<div style="min-height:100vh;background:#fff;padding-bottom:80px">
+<div style="min-height:100vh; background:#fff;">
 
   {# TOPBAR #}
-  <div class="tb"><div class="tbi">
-    <div class="crumb">
-      <a href="/admin/">Dashboard</a>
-      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8.25 4.5l7.5 7.5-7.5 7.5" stroke-linecap="round"/></svg>
-      <span style="color:var(--ink);font-weight:600">Danh mục</span>
+  <div class="tb">
+    <div class="tbi">
+      <div class="crumb">
+        <a href="/admin/">Dashboard</a>
+        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8.25 4.5l7.5 7.5-7.5 7.5" stroke-linecap="round"/></svg>
+        <span style="color:var(--ink);font-weight:600">Danh mục</span>
+      </div>
+      <div class="thead">
+        <h1 class="ttl">Danh mục <em>sản phẩm</em></h1>
+        <a href="/admin/products/add" class="btn btn-d">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 4.5v15m7.5-7.5h-15" stroke-linecap="round"/></svg>
+          Sản phẩm mới
+        </a>
+      </div>
+      <nav class="tabs">
+        {% for lbl,href,act in [('Tổng quan','/admin/',0),('Sản phẩm','/admin/products',0),('Danh mục','/admin/categories',1),('Đơn hàng','/admin/orders',0)] %}
+        <a href="{{ href }}" class="tab {% if act %}on{% endif %}">{{ lbl }}</a>
+        {% endfor %}
+      </nav>
     </div>
-    <div class="thead">
-      <h1 class="ttl">Danh mục <em>sản phẩm</em></h1>
-      <a href="/admin/products/add" class="btn btn-d">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 4.5v15m7.5-7.5h-15" stroke-linecap="round"/></svg>
-        Sản phẩm mới
-      </a>
-    </div>
-    <nav class="tabs">
-      {% for lbl,href,act in [('Tổng quan','/admin/',0),('Sản phẩm','/admin/products',0),('Danh mục','/admin/categories',1),('Đơn hàng','/admin/orders',0)] %}
-      <a href="{{ href }}" class="tab {% if act %}on{% endif %}">{{ lbl }}</a>
-      {% endfor %}
-    </nav>
-  </div></div>
+  </div>
 
   {# MAIN #}
   <div class="wrap">
@@ -127,23 +465,27 @@
       <div class="lh"><span>Danh sách</span><b>{{ cats|length }} danh mục</b></div>
 
       <div class="srch">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35" stroke-linecap="round"/></svg>
-        <input id="q" placeholder="Tìm danh mục..." autocomplete="off">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35" stroke-linecap="round"/></svg>
+        <input id="q" placeholder="Tìm kiếm danh mục..." autocomplete="off">
       </div>
 
       <div id="catList">
         {% for cat in cats %}
         <div class="cr" data-n="{{ cat.name|lower }}">
-          <div class="cr-drag"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M8 6h.01M8 12h.01M8 18h.01M16 6h.01M16 12h.01M16 18h.01" stroke-linecap="round"/></svg></div>
+          <div class="cr-drag"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 6h.01M8 12h.01M8 18h.01M16 6h.01M16 12h.01M16 18h.01" stroke-linecap="round"/></svg></div>
           <div class="cr-thumb">
-            {% if cat.video_url %}<video src="{{ cat.video_url }}" autoplay loop muted playsinline></video><div class="tag">Vid</div>
-            {% elif cat.image_url %}<img src="{{ cat.image_url }}" alt="{{ cat.name }}" loading="lazy">
-            {% else %}<span class="lt">{{ cat.name[0] }}</span>{% endif %}
+            {% if cat.video_url %}
+              <video src="{{ cat.video_url }}" autoplay loop muted playsinline></video>
+              <div class="tag">Vid</div>
+            {% elif cat.image_url %}
+              <img src="{{ cat.image_url }}" alt="{{ cat.name }}" loading="lazy">
+            {% else %}
+              <span class="lt">{{ cat.name[0] }}</span>
+            {% endif %}
           </div>
           <div class="cr-info">
             <p class="cr-name">
               {{ cat.name }}
-              {# --- HIỂN THỊ BADGE NẾU ĐƯỢC CHỌN LÊN TRANG CHỦ --- #}
               {% if cat.show_on_home %}
               <span class="badge-home">HOME</span>
               {% endif %}
@@ -151,112 +493,122 @@
             <p class="cr-slug">/shop?category=<b>{{ cat.slug }}</b></p>
           </div>
           <div class="cr-acts">
-            <a href="/admin/categories/edit/{{ cat.id }}" class="btn btn-o" style="padding:7px 13px">Sửa</a>
-            <form action="/admin/categories/delete/{{ cat.id }}" method="post" style="margin:0"
-                  onsubmit="return confirm('Xóa «{{ cat.name }}»?')">
+            <a href="/admin/categories/edit/{{ cat.id }}" class="btn btn-o">Sửa</a>
+            <form action="/admin/categories/delete/{{ cat.id }}" method="post" style="margin:0" onsubmit="return confirm('Bạn có chắc chắn muốn xóa danh mục «{{ cat.name }}»?')">
               <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-              <button type="submit" class="btn btn-r" style="padding:7px 13px">Xóa</button>
+              <button type="submit" class="btn btn-r">Xóa</button>
             </form>
           </div>
         </div>
-        {% else %}<div class="empty">Chưa có danh mục nào</div>{% endfor %}
+        {% else %}
+          <div class="empty">Hệ thống chưa có danh mục nào.</div>
+        {% endfor %}
       </div>
-      <div id="noRes" class="empty" style="display:none">Không tìm thấy kết quả</div>
+      <div id="noRes" class="empty" style="display:none">Không tìm thấy kết quả phù hợp</div>
     </div>
 
     {# RIGHT - FORM #}
-    <div class="rv rv2"><div class="fp">
-      <h2>Thêm danh mục</h2>
-      <p>Khởi tạo phân khu sản phẩm mới</p>
+    <div class="rv rv2">
+      <div class="fp">
+        <h2>Thêm danh mục</h2>
+        <p>Khởi tạo phân khu sản phẩm mới</p>
 
-      <form method="post" action="/admin/categories/add" enctype="multipart/form-data" id="catForm">
-        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <form method="post" action="/admin/categories/add" enctype="multipart/form-data" id="catForm">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 
-        <div class="fld">
-          <div class="lbl">Tên danh mục <span style="color:#c0392b">*</span></div>
-          <input type="text" name="name" id="cName" class="inp" placeholder="Vd: Essentials 2026" required autocomplete="off">
-        </div>
-
-        <div class="fld">
-          <div class="lbl">Slug <em>Tự động tạo</em></div>
-          <input type="text" name="slug" id="cSlug" class="inp mono" placeholder="tu-dong-tao-slug">
-        </div>
-
-        <div class="dvd">Thiết lập hiển thị</div>
-
-        {# --- CHECKBOX GHIM LÊN TRANG CHỦ --- #}
-        <div class="chk-card" onclick="document.getElementById('cHome').click()">
-          <input type="checkbox" name="show_on_home" id="cHome" value="true" style="width:16px;height:16px;accent-color:var(--ink);cursor:pointer;" onclick="event.stopPropagation()">
-          <div>
-            <div style="font-size:10px;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:var(--ink);">Ghim lên Trang chủ</div>
-            <div style="font-size:9px;color:var(--muted);margin-top:2px;">Kéo hình ảnh danh mục này vào các Banner trang chủ</div>
+          <div class="fld">
+            <div class="lbl">Tên danh mục <span style="color:#c0392b">*</span></div>
+            <input type="text" name="name" id="cName" class="inp" placeholder="Vd: Essentials 2026" required autocomplete="off">
           </div>
-        </div>
 
-        <div class="dvd">Cover Media</div>
-
-        <div class="pvw" id="pvw">
-          <div class="ph" id="ph">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" style="margin:0 auto 7px;display:block;opacity:.3"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9" stroke-linecap="round"/></svg>
-            Khu vực xem trước
+          <div class="fld">
+            <div class="lbl">Slug <em>(Đường dẫn URL)</em></div>
+            <input type="text" name="slug" id="cSlug" class="inp mono" placeholder="tu-dong-tao-slug">
           </div>
-          <img id="pImg" alt="preview">
-          <video id="pVid" autoplay loop muted playsinline></video>
-          <div class="bg" id="pBadge"></div>
-        </div>
 
-        <div class="fld">
-          <div class="lbl">URL ảnh / video</div>
-          <div class="urow">
-            <input type="url" name="external_url" id="extUrl" class="inp" placeholder="https://...">
-            <button type="button" class="btn btn-o" onclick="applyUrl()" style="padding:10px 16px">Preview</button>
+          <div class="dvd">Thiết lập hiển thị</div>
+
+          <div class="chk-card" onclick="document.getElementById('cHome').click()">
+            <input type="checkbox" name="show_on_home" id="cHome" value="true" onclick="event.stopPropagation()">
+            <div>
+              <div style="font-size:10px;font-weight:700;letter-spacing:0.15em;text-transform:uppercase;color:var(--ink);">Ghim lên Trang chủ</div>
+              <div style="font-size:11px;color:var(--muted);margin-top:4px;line-height:1.4;">Lựa chọn này sẽ đưa hình ảnh danh mục vào hệ thống Banner trang chủ.</div>
+            </div>
           </div>
-        </div>
 
-        <div class="fld">
-          <div class="lbl">Hoặc tải file lên</div>
-          <input type="file" name="category_media" id="fPick" accept="image/*,video/mp4" class="fi">
-        </div>
+          <div class="dvd">Cover Media</div>
 
-        <button type="submit" class="btn btn-d" style="width:100%;justify-content:center;padding:15px;margin-top:6px;letter-spacing:.25em">Tạo Danh Mục</button>
-      </form>
-    </div></div>
+          <div class="pvw" id="pvw">
+            <div class="ph" id="ph">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="margin:0 auto 10px;display:block;opacity:.3"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9" stroke-linecap="round"/></svg>
+              Khu vực xem trước
+            </div>
+            <img id="pImg" alt="preview">
+            <video id="pVid" autoplay loop muted playsinline></video>
+            <div class="bg" id="pBadge"></div>
+          </div>
+
+          <div class="fld">
+            <div class="lbl">URL ảnh / video ngoài</div>
+            <div class="urow">
+              <input type="url" name="external_url" id="extUrl" class="inp" placeholder="https://...">
+              <button type="button" class="btn btn-o" onclick="applyUrl()">Preview</button>
+            </div>
+          </div>
+
+          <div class="fld">
+            <div class="lbl">Hoặc tải file lên từ máy tính</div>
+            <input type="file" name="category_media" id="fPick" accept="image/*,video/mp4" class="fi">
+          </div>
+
+          <button type="submit" class="btn btn-d" style="width:100%;height:52px;margin-top:12px;letter-spacing:0.25em;">TẠO DANH MỤC</button>
+        </form>
+      </div>
+    </div>
 
   </div>
 </div>
 
 <script>
 (function(){
-  const nEl=document.getElementById('cName'),sEl=document.getElementById('cSlug');
-  let man=!!sEl.value.trim();
+  const nEl=document.getElementById('cName'), sEl=document.getElementById('cSlug');
+  let man = !!sEl.value.trim();
+  
   const VI={'á':'a','à':'a','ả':'a','ã':'a','ạ':'a','ă':'a','ắ':'a','ằ':'a','ẳ':'a','ẵ':'a','ặ':'a','â':'a','ấ':'a','ầ':'a','ẩ':'a','ẫ':'a','ậ':'a','é':'e','è':'e','ẻ':'e','ẽ':'e','ẹ':'e','ê':'e','ế':'e','ề':'e','ể':'e','ễ':'e','ệ':'e','í':'i','ì':'i','ỉ':'i','ĩ':'i','ị':'i','ó':'o','ò':'o','ỏ':'o','õ':'o','ọ':'o','ô':'o','ố':'o','ồ':'o','ổ':'o','ỗ':'o','ộ':'o','ơ':'o','ớ':'o','ờ':'o','ở':'o','ỡ':'o','ợ':'o','ú':'u','ù':'u','ủ':'u','ũ':'u','ụ':'u','ư':'u','ứ':'u','ừ':'u','ử':'u','ữ':'u','ự':'u','ý':'y','ỳ':'y','ỷ':'y','ỹ':'y','ỵ':'y','đ':'d'};
-  const slug=s=>s.toLowerCase().replace(/[^\u0000-\u007E]/g,c=>VI[c]||'').replace(/[^a-z0-9\s-]/g,'').replace(/[\s-]+/g,'-').replace(/^-+|-+$/g,'');
-  sEl.addEventListener('input',()=>man=!!sEl.value.trim());
-  nEl.addEventListener('input',()=>{if(!man)sEl.value=slug(nEl.value)});
-  document.getElementById('catForm').addEventListener('submit',()=>{if(!sEl.value.trim())sEl.value=slug(nEl.value)});
+  const slug = s => s.toLowerCase().replace(/[^\u0000-\u007E]/g, c => VI[c]||'').replace(/[^a-z0-9\s-]/g,'').replace(/[\s-]+/g,'-').replace(/^-+|-+$/g,'');
+  
+  sEl.addEventListener('input', () => man = !!sEl.value.trim());
+  nEl.addEventListener('input', () => { if(!man) sEl.value = slug(nEl.value); });
+  document.getElementById('catForm').addEventListener('submit', () => { if(!sEl.value.trim()) sEl.value = slug(nEl.value); });
 
-  function showPv(src,isVid,lbl){
-    document.getElementById('ph').style.display='none';
-    const b=document.getElementById('pBadge');b.textContent=lbl;b.style.display='block';
-    const img=document.getElementById('pImg'),vid=document.getElementById('pVid');
-    if(isVid){vid.src=src;vid.style.display='block';img.style.display='none'}
-    else{img.src=src;img.style.display='block';vid.style.display='none'}
+  function showPv(src, isVid, lbl){
+    document.getElementById('ph').style.display = 'none';
+    const b = document.getElementById('pBadge'); 
+    b.textContent = lbl; 
+    b.style.display = 'block';
+    const img = document.getElementById('pImg'), vid = document.getElementById('pVid');
+    if(isVid) { vid.src = src; vid.style.display = 'block'; img.style.display = 'none'; }
+    else { img.src = src; img.style.display = 'block'; vid.style.display = 'none'; }
   }
-  document.getElementById('fPick').addEventListener('change',function(){
-    const f=this.files[0];if(!f)return;
-    showPv(URL.createObjectURL(f),f.type.includes('video'),'File');
+
+  document.getElementById('fPick').addEventListener('change', function(){
+    const f = this.files[0]; if(!f) return;
+    showPv(URL.createObjectURL(f), f.type.includes('video'), 'File');
   });
-  window.applyUrl=function(){
-    const u=document.getElementById('extUrl').value.trim();if(!u)return;
-    showPv(u,/\.mp4$/i.test(u)||u.includes('video'),'URL');
+
+  window.applyUrl = function(){
+    const u = document.getElementById('extUrl').value.trim(); if(!u) return;
+    showPv(u, /\.mp4$/i.test(u) || u.includes('video'), 'URL');
   };
-  document.getElementById('q').addEventListener('input',function(){
-    const q=this.value.toLowerCase();let n=0;
-    document.querySelectorAll('.cr').forEach(r=>{
-      const ok=!q||r.dataset.n.includes(q);
-      r.style.display=ok?'':'none';if(ok)n++;
+
+  document.getElementById('q').addEventListener('input', function(){
+    const q = this.value.toLowerCase(); let n = 0;
+    document.querySelectorAll('.cr').forEach(r => {
+      const ok = !q || r.dataset.n.includes(q);
+      r.style.display = ok ? '' : 'none';
+      if(ok) n++;
     });
-    document.getElementById('noRes').style.display=(!n&&q)?'block':'none';
+    document.getElementById('noRes').style.display = (!n && q) ? 'block' : 'none';
   });
 })();
 </script>

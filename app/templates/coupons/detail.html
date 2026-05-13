@@ -1,0 +1,195 @@
+{% extends "base.html" %}
+{% block title %}Đặc quyền {{ coupon.code }} | GUA Maison{% endblock %}
+
+{% block extra_head %}
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Libre+Barcode+39+Extended+Text&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #0e0e0e;
+    --paper: #faf8f5;
+    --warm: #6d1f1f;
+  }
+
+  body {
+    background-color: var(--paper);
+    color: var(--ink);
+  }
+
+  .font-barcode {
+    font-family: 'Libre Barcode 39 Extended Text', cursive;
+  }
+
+  @keyframes flyIn {
+    from {
+      opacity: 0;
+      transform: translateY(30px);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .fly-in {
+    animation: flyIn 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+
+  /* Hiệu ứng xé vé (Cắt ở 2 bên hông) */
+  .ticket-dash {
+    border-top: 1.5px dashed rgba(14, 14, 14, 0.15);
+    position: relative;
+  }
+
+  .ticket-dash::before,
+  .ticket-dash::after {
+    content: '';
+    position: absolute;
+    top: -13px;
+    width: 26px;
+    height: 26px;
+    background-color: var(--paper);
+    border-radius: 50%;
+    border: 1px solid rgba(14, 14, 14, 0.1);
+  }
+
+  .ticket-dash::before {
+    left: -14px;
+    border-right-color: transparent;
+    border-top-color: transparent;
+    border-bottom-color: transparent;
+    transform: rotate(45deg);
+  }
+
+  .ticket-dash::after {
+    right: -14px;
+    border-left-color: transparent;
+    border-top-color: transparent;
+    border-bottom-color: transparent;
+    transform: rotate(-45deg);
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div
+  class="min-h-screen py-24 px-4 sm:px-6 flex flex-col items-center justify-center selection:bg-[#0e0e0e] selection:text-white">
+
+  <div class="w-full max-w-[480px] mb-8">
+    <a href="/promotions"
+      class="inline-flex items-center gap-3 text-[10px] font-bold uppercase tracking-[0.3em] text-[#8a8580] hover:text-[#0e0e0e] transition-colors border-b border-transparent hover:border-[#0e0e0e] pb-1 fly-in">
+      &larr; Trở lại danh sách
+    </a>
+  </div>
+
+  <div class="w-full max-w-[480px] bg-white border border-black/10 shadow-xl fly-in overflow-hidden relative"
+    style="animation-delay: 0.1s;">
+
+    {# ── HEADER: HÃNG BAY & HẠNG VÉ ── #}
+    <div class="bg-[#0e0e0e] text-[#ffffff] px-8 py-6 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <i class="fa-solid fa-plane text-[12px] -rotate-45"></i>
+        <span class="text-[11px] font-bold tracking-[0.25em] uppercase mt-0.5">GUA Voucher</span>
+      </div>
+      <span class="text-[9px] font-bold tracking-[0.2em] uppercase border border-white/30 px-3 py-1.5">First
+        Class</span>
+    </div>
+
+    {# ── BODY: THÔNG TIN ƯU ĐÃI ── #}
+    <div class="p-8 md:p-10">
+      <p class="text-[10px] font-bold uppercase tracking-[0.2em] text-[#8a8580] mb-3">Giá trị vé (Ưu đãi)</p>
+
+      <h1 class="font-display text-6xl md:text-7xl leading-none text-[#0e0e0e] mb-6 tracking-tighter">
+        {% if coupon.discount_type == 'percent' %}
+        {{ coupon.discount_value | int }}<span class="text-4xl ml-1 font-sans">%</span>
+        {% elif coupon.discount_type == 'free_shipping' %}
+        <span class="text-4xl tracking-tight">FREESHIP</span>
+        {% else %}
+        {{ "{:,.0f}".format(coupon.discount_value).replace(',', '.') }}<span
+          class="text-xl font-sans font-bold ml-2 text-[#8a8580]">₫</span>
+        {% endif %}
+      </h1>
+
+      <p class="text-[14px] font-medium leading-[1.85] text-[#444] mb-8">
+        {{ coupon.description or 'Quyền lợi áp dụng cho các hành khách thân thiết của GUA Maison.' }}
+      </p>
+
+      <div class="grid grid-cols-2 gap-y-6 gap-x-6 bg-[#faf8f5] p-6 border border-black/5">
+        <div>
+          <p class="text-[9px] font-bold uppercase tracking-[0.2em] text-[#8a8580] mb-1.5">Đơn tối thiểu</p>
+          <p class="text-[13px] font-bold text-[#0e0e0e]">{{ "{:,.0f}".format(coupon.min_order_value or 0).replace(',',
+            '.') }} ₫</p>
+        </div>
+        <div>
+          <p class="text-[9px] font-bold uppercase tracking-[0.2em] text-[#8a8580] mb-1.5">Giảm tối đa</p>
+          <p class="text-[13px] font-bold text-[#0e0e0e]">{{ "{:,.0f}".format(coupon.max_discount).replace(',', '.') ~ "
+            ₫" if coupon.max_discount else 'Không giới hạn' }}</p>
+        </div>
+        <div class="col-span-2 border-t border-black/5 pt-5 mt-1">
+          <div class="flex justify-between items-center mb-2">
+            <p class="text-[9px] font-bold uppercase tracking-[0.2em] text-[#8a8580]">Khởi hành</p>
+            <p class="text-[9px] font-bold uppercase tracking-[0.2em] text-[#8a8580]">Hạ cánh</p>
+          </div>
+          <div class="flex justify-between items-center">
+            <p class="text-[11px] font-bold text-[#0e0e0e] uppercase">{{ coupon.starts_at[:16] | replace('T', ' ') if
+              coupon.starts_at else 'Ngay bây giờ' }}</p>
+            <i class="fa-solid fa-plane text-[#d1d1d1] text-[10px]"></i>
+            <p
+              class="text-[11px] font-bold uppercase {% if not coupon.expires_at %}text-[#0e0e0e]{% else %}text-[#6d1f1f]{% endif %}">
+              {{ coupon.expires_at[:16] | replace('T', ' ') if coupon.expires_at else 'Vĩnh viễn' }}
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    {# ── STUB: ĐƯỜNG XÉ & MÃ QUÉT ── #}
+    <div class="ticket-dash bg-white p-8 md:p-10 flex flex-col items-center text-center mt-auto">
+
+      <p class="text-[9px] font-bold uppercase tracking-[0.2em] text-[#8a8580] mb-3">Gate / Mã định danh</p>
+      <p class="font-display text-5xl text-[#0e0e0e] tracking-[0.1em] mb-8">{{ coupon.code }}</p>
+
+      <div class="bg-white p-4 border border-black/5 inline-block mb-8 shadow-sm">
+        <img src="/api/coupons/qr/{{ coupon.code }}" alt="QR Code" class="w-32 h-32 mix-blend-multiply">
+      </div>
+
+      <p class="font-barcode text-6xl text-black/20 overflow-hidden w-full px-4 mb-8">*{{ coupon.code }}*</p>
+
+      <button onclick="copyDetailCode('{{ coupon.code }}', this)"
+        class="w-full bg-[#0e0e0e] text-[#ffffff] px-6 py-5 text-[11px] font-bold uppercase tracking-[0.2em] hover:bg-[#6d1f1f] transition-all duration-300 flex items-center justify-center gap-3">
+        <i class="fa-regular fa-copy"></i> Sao chép mã vé
+      </button>
+
+    </div>
+
+  </div>
+</div>
+
+<div id="toast-msg"
+  class="fixed bottom-8 left-1/2 -translate-x-1/2 bg-[#0e0e0e] text-[#ffffff] px-8 py-4 text-[10px] font-bold tracking-[0.2em] uppercase opacity-0 translate-y-4 pointer-events-none transition-all duration-300 z-50 shadow-2xl">
+</div>
+
+{% block extra_scripts %}
+<script>
+  function copyDetailCode(code, btn) {
+    navigator.clipboard.writeText(code).then(() => {
+      const originalHTML = btn.innerHTML;
+      btn.innerHTML = "<i class='fa-solid fa-check'></i> Đã lưu vé an toàn";
+      btn.classList.replace('bg-[#0e0e0e]', 'bg-[#6d1f1f]');
+
+      const toast = document.getElementById('toast-msg');
+      toast.innerText = `ĐÃ LƯU BOARDING PASS: ${code}`;
+      toast.classList.remove('opacity-0', 'translate-y-4');
+
+      setTimeout(() => {
+        btn.innerHTML = originalHTML;
+        btn.classList.replace('bg-[#6d1f1f]', 'bg-[#0e0e0e]');
+        toast.classList.add('opacity-0', 'translate-y-4');
+      }, 2500);
+    }).catch(() => alert('Trình duyệt không hỗ trợ, vui lòng copy thủ công.'));
+  }
+</script>
+{% endblock %}
+{% endblock %}

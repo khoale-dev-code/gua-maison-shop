@@ -1,0 +1,113 @@
+{# ══════════════════════════════════════════════════════
+   admin/settings/_tab_general.html
+   Chỉ chứa UI — logic tại settings.py controller
+══════════════════════════════════════════════════════ #}
+
+<div class="panel-header">
+  <div>
+    <h2 class="panel-header__title">Thông tin chung</h2>
+    <p class="panel-header__desc">Cấu hình tên thương hiệu, liên hệ và múi giờ hoạt động.</p>
+  </div>
+  <button class="btn btn--primary" onclick="Settings.save('general')">
+    <svg viewBox="0 0 16 16" fill="none"><path d="M13 2H5L2 5v9h12V2z" stroke="currentColor" stroke-width="1.2"/><rect x="5" y="9" width="6" height="5" rx="0.5" stroke="currentColor" stroke-width="1.2"/><rect x="5.5" y="2" width="5" height="3.5" rx="0.5" stroke="currentColor" stroke-width="1.2"/></svg>
+    Lưu thay đổi
+  </button>
+</div>
+
+<form id="form-general" novalidate>
+
+  {# ── Section 1: Thương hiệu ── #}
+  <div class="form-section">
+    <div class="form-section__head">
+      <h3 class="form-section__title">Thương hiệu</h3>
+      <p class="form-section__sub">Thông tin nhận diện cửa hàng hiển thị trên giao diện và email.</p>
+    </div>
+
+    <div class="form-row form-row--2col">
+      <div class="form-group">
+        <label class="form-label" for="shop_name">
+          Tên cửa hàng
+          <span class="form-label__required">*</span>
+        </label>
+        <input type="text" id="shop_name" name="shop_name"
+               class="form-input" placeholder="VD: GUA Maison"
+               value="{{ general.shop_name | default('GUA Maison') }}"
+               maxlength="80" required>
+        <span class="form-hint">Hiển thị trên tab trình duyệt và email tự động.</span>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="timezone">Múi giờ</label>
+        <div class="form-select-wrap">
+          <select id="timezone" name="timezone" class="form-select">
+            <option value="Asia/Ho_Chi_Minh" {% if general.timezone == 'Asia/Ho_Chi_Minh' or not general.timezone %}selected{% endif %}>
+              (UTC+7) Hồ Chí Minh
+            </option>
+            <option value="Asia/Bangkok" {% if general.timezone == 'Asia/Bangkok' %}selected{% endif %}>
+              (UTC+7) Bangkok
+            </option>
+            <option value="Asia/Singapore" {% if general.timezone == 'Asia/Singapore' %}selected{% endif %}>
+              (UTC+8) Singapore
+            </option>
+            <option value="America/New_York" {% if general.timezone == 'America/New_York' %}selected{% endif %}>
+              (UTC-5) New York
+            </option>
+            <option value="Europe/Paris" {% if general.timezone == 'Europe/Paris' %}selected{% endif %}>
+              (UTC+1) Paris
+            </option>
+          </select>
+          <span class="form-select-arrow">
+            <svg viewBox="0 0 12 8" fill="none"><path d="M1 1l5 5 5-5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {# ── Section 2: Liên hệ ── #}
+  <div class="form-section">
+    <div class="form-section__head">
+      <h3 class="form-section__title">Thông tin liên hệ</h3>
+      <p class="form-section__sub">Dùng cho trang liên hệ và phiếu vận chuyển.</p>
+    </div>
+
+    <div class="form-row form-row--2col">
+      <div class="form-group">
+        <label class="form-label" for="hotline">Hotline</label>
+        <input type="tel" id="hotline" name="hotline"
+               class="form-input" placeholder="+84 901 234 567"
+               value="{{ general.hotline | default('') }}">
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="email">Email liên hệ</label>
+        <input type="email" id="email" name="email"
+               class="form-input" placeholder="hello@guamaison.com"
+               value="{{ general.email | default('') }}">
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label" for="warehouse_address">Địa chỉ kho hàng</label>
+        <textarea id="warehouse_address" name="warehouse_address"
+                  class="form-textarea" rows="3"
+                  placeholder="Số nhà, đường, quận/huyện, tỉnh/thành phố...">{{ general.warehouse_address | default('') }}</textarea>
+        <span class="form-hint">Dùng để in trên phiếu vận chuyển và hóa đơn.</span>
+      </div>
+    </div>
+  </div>
+
+  {# ── Info block ── #}
+  <div class="info-block info-block--neutral">
+    <svg class="info-block__icon" viewBox="0 0 20 20" fill="none">
+      <circle cx="10" cy="10" r="8" stroke="currentColor" stroke-width="1.5"/>
+      <path d="M10 9v5M10 7h.01" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+    </svg>
+    <div>
+      <p class="info-block__title">Cache tự động làm mới</p>
+      <p class="info-block__body">Sau khi lưu, thay đổi được áp dụng ngay lập tức — hệ thống cache RAM tự cập nhật, không cần restart server.</p>
+    </div>
+  </div>
+
+</form>

@@ -1,0 +1,147 @@
+{# ══════════════════════════════════════════════════════
+   admin/settings/_tab_shipping.html
+   Luật vận chuyển theo tỉnh thành: phí riêng, cảnh báo.
+══════════════════════════════════════════════════════ #}
+
+<div class="panel-header">
+  <div>
+    <h2 class="panel-header__title">Vận chuyển &amp; Cảnh báo</h2>
+    <p class="panel-header__desc">Thiết lập phí vận chuyển riêng và cảnh báo cho từng tỉnh thành.</p>
+  </div>
+  <button class="btn btn--primary" onclick="Settings.saveShipping()">
+    <svg viewBox="0 0 16 16" fill="none"><path d="M13 2H5L2 5v9h12V2z" stroke="currentColor" stroke-width="1.2"/><rect x="5" y="9" width="6" height="5" rx="0.5" stroke="currentColor" stroke-width="1.2"/><rect x="5.5" y="2" width="5" height="3.5" rx="0.5" stroke="currentColor" stroke-width="1.2"/></svg>
+    Lưu luật ship
+  </button>
+</div>
+
+{# Stats row #}
+<div class="stats-row">
+  <div class="stat-card">
+    <span class="stat-card__num" id="statsRuleCount">{{ shipping_rules.rules | length if shipping_rules.rules else 0 }}</span>
+    <span class="stat-card__label">Tỉnh có luật riêng</span>
+  </div>
+  <div class="stat-card">
+    <span class="stat-card__num" id="statsWarnCount">
+      {{ shipping_rules.rules | selectattr('type', 'eq', 'warning') | list | length if shipping_rules.rules else 0 }}
+    </span>
+    <span class="stat-card__label">Cảnh báo khu vực</span>
+  </div>
+  <div class="stat-card">
+    <span class="stat-card__num" id="statsFeeCount">
+      {{ shipping_rules.rules | selectattr('type', 'eq', 'custom_fee') | list | length if shipping_rules.rules else 0 }}
+    </span>
+    <span class="stat-card__label">Phí tùy chỉnh</span>
+  </div>
+</div>
+
+<div class="settings-form">
+
+  {# ── ADD RULE FORM ── #}
+  <div class="form-section">
+    <div class="form-section__head">
+      <h3 class="form-section__title">Thêm luật mới</h3>
+    </div>
+
+    <div class="form-row form-row--3col">
+      <div class="form-group">
+        <label class="form-label" for="new_province">Tỉnh / Thành phố</label>
+        <input type="text" id="new_province" class="form-input"
+               placeholder="VD: Côn Đảo, Phú Quốc...">
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="new_rule_type">Loại luật</label>
+        <div class="form-select-wrap">
+          <select id="new_rule_type" class="form-select" onchange="Settings.toggleFeeInput(this)">
+            <option value="custom_fee">Phí ship tùy chỉnh</option>
+            <option value="warning">Chỉ cảnh báo</option>
+            <option value="blocked">Không hỗ trợ ship</option>
+          </select>
+          <span class="form-select-arrow">
+            <svg viewBox="0 0 12 8" fill="none"><path d="M1 1l5 5 5-5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+          </span>
+        </div>
+      </div>
+
+      <div class="form-group" id="feeAmountGroup">
+        <label class="form-label" for="new_fee_amount">Phí ship (VND)</label>
+        <input type="number" id="new_fee_amount" class="form-input"
+               placeholder="45000" min="0" step="1000">
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label" for="new_note">Ghi chú hiển thị cho khách</label>
+        <input type="text" id="new_note" class="form-input"
+               placeholder="VD: Khu vực đảo xa, phí ship có thể thay đổi tùy thời điểm.">
+      </div>
+    </div>
+
+    <div class="form-row">
+      <button type="button" class="btn btn--outline" onclick="Settings.addShippingRule()">
+        <svg viewBox="0 0 16 16" fill="none"><path d="M8 3v10M3 8h10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        Thêm vào danh sách
+      </button>
+    </div>
+  </div>
+
+  {# ── RULES TABLE ── #}
+  <div class="form-section">
+    <div class="form-section__head">
+      <h3 class="form-section__title">Danh sách luật hiện tại</h3>
+    </div>
+
+    <div class="data-table-wrap" id="shippingRulesTable">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Tỉnh / Thành phố</th>
+            <th>Loại</th>
+            <th>Phí ship</th>
+            <th>Ghi chú</th>
+            <th class="col-action">Xóa</th>
+          </tr>
+        </thead>
+        <tbody id="rulesBody">
+          {% if shipping_rules.rules %}
+            {% for rule in shipping_rules.rules %}
+            <tr class="rule-row" data-rule='{{ rule | tojson | safe }}'>
+              <td class="rule-province">{{ rule.province }}</td>
+              <td>
+                <span class="tag tag--{{ 'orange' if rule.type == 'warning' else ('red' if rule.type == 'blocked' else 'blue') }}">
+                  {{ 'Cảnh báo' if rule.type == 'warning' else ('Không ship' if rule.type == 'blocked' else 'Phí riêng') }}
+                </span>
+              </td>
+              <td class="rule-fee">
+                {% if rule.fee %}
+                  {{ "{:,.0f}".format(rule.fee) }}đ
+                {% else %}
+                  <span class="text-muted">—</span>
+                {% endif %}
+              </td>
+              <td class="rule-note text-muted">{{ rule.note or '—' }}</td>
+              <td>
+                <button class="btn-icon btn-icon--danger" onclick="Settings.removeShippingRule(this)" title="Xóa">
+                  <svg viewBox="0 0 16 16" fill="none"><path d="M3 4h10M6 4V2h4v2M5 4v9h6V4H5z" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </button>
+              </td>
+            </tr>
+            {% endfor %}
+          {% else %}
+            <tr id="emptyRow">
+              <td colspan="5" class="table-empty">
+                <span>Chưa có luật vận chuyển nào. Thêm từ form bên trên.</span>
+              </td>
+            </tr>
+          {% endif %}
+        </tbody>
+      </table>
+    </div>
+
+    {# Hidden input chứa JSON để gửi lên server #}
+    <input type="hidden" id="shipping_rules_json" name="rules" value="">
+
+  </div>
+
+</div>

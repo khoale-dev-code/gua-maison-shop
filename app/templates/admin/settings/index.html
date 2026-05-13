@@ -1,426 +1,338 @@
 {% extends "admin/admin_base.html" %}
-{% block title %}Cài đặt hệ thống | GUA Admin{% endblock %}
+{% block title %}Cài đặt Hệ thống — GUA Admin{% endblock %}
+
+{% block extra_head %}
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&display=swap" rel="stylesheet">
+<style>
+/* ── Design tokens ── */
+:root {
+  --gua-black:#0D0D0D; --gua-ink:#1A1A1A; --gua-charcoal:#2E2E2E; --gua-steel:#4A4A4A;
+  --gua-mid:#777; --gua-soft:#B0B0B0; --gua-line:#E0DEDB; --gua-surface:#F5F4F1;
+  --gua-paper:#FAFAF8; --gua-white:#FFFFFF;
+  --acc-gold:#B8953E; --acc-gold-light:#F2EDD7;
+  --acc-rust:#8B3A2A; --acc-rust-light:#F5EAE7;
+  --acc-sage:#3B5E44; --acc-sage-light:#E7EFE9;
+  --acc-navy:#1E3456; --acc-navy-light:#E6EAF2;
+  --acc-warn:#8B6B00; --acc-warn-light:#FFF8E1;
+  --acc-err:#8B1A1A;  --acc-err-light:#FFEBEB;
+  --r:3px; --rc:6px; --font-d:'Cormorant Garamond',Georgia,serif; --font-b:'DM Sans',system-ui,sans-serif;
+  --t:.18s ease; --sw:220px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font-b);background:var(--gua-surface);color:var(--gua-ink)}
+
+/* ── Header ── */
+.s-header{background:var(--gua-black);color:#fff;padding:0 32px;height:60px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50;border-bottom:1px solid #222}
+.s-header__brand{display:flex;align-items:baseline;gap:10px}
+.s-header__eyebrow{font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--gua-soft)}
+.s-header__title{font-family:var(--font-d);font-size:20px;font-weight:500;letter-spacing:.02em}
+.s-header__div{width:1px;height:16px;background:#333}
+.live-badge{display:flex;align-items:center;gap:6px;font-size:11px;letter-spacing:.08em;color:var(--gua-soft);text-transform:uppercase}
+.live-badge__dot{width:6px;height:6px;border-radius:50%;background:#4CAF50;box-shadow:0 0 0 2px rgba(76,175,80,.25);animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
+
+/* ── Alerts ── */
+.s-alerts{padding:14px 32px 0}
+.alert{display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:var(--rc);font-size:13px;border-left:3px solid;margin-bottom:8px}
+.alert--success{background:var(--acc-sage-light);border-color:var(--acc-sage);color:var(--acc-sage)}
+.alert--danger{background:var(--acc-err-light);border-color:var(--acc-err);color:var(--acc-err)}
+.alert--info{background:var(--acc-navy-light);border-color:var(--acc-navy);color:var(--acc-navy)}
+.alert__close{margin-left:auto;background:none;border:none;cursor:pointer;font-size:18px;line-height:1;color:inherit;opacity:.6}
+.alert__close:hover{opacity:1}
+
+/* ── Layout ── */
+.s-layout{display:grid;grid-template-columns:var(--sw) 1fr;min-height:calc(100vh - 60px)}
+
+/* ── Sidebar ── */
+.s-sidebar{background:var(--gua-white);border-right:1px solid var(--gua-line);padding:20px 0;position:sticky;top:60px;height:calc(100vh - 60px);overflow-y:auto}
+.s-nav__group{font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:var(--gua-soft);padding:14px 20px 5px;font-weight:500}
+.s-nav__item{display:flex;align-items:center;gap:10px;padding:9px 20px;cursor:pointer;border:none;background:none;width:100%;text-align:left;color:var(--gua-steel);font-size:13px;font-family:var(--font-b);transition:var(--t);border-left:2px solid transparent}
+.s-nav__item:hover{background:var(--gua-surface);color:var(--gua-ink)}
+.s-nav__item.active{color:var(--gua-black);font-weight:500;background:var(--gua-surface);border-left-color:var(--gua-black)}
+.s-nav__item svg{width:15px;height:15px;flex-shrink:0;stroke:currentColor;fill:none}
+.s-nav__badge{margin-left:auto;font-size:9px;letter-spacing:.06em;padding:2px 6px;border-radius:var(--r);font-weight:500;background:var(--gua-surface);color:var(--gua-mid);border:1px solid var(--gua-line);text-transform:uppercase}
+.s-nav__badge--new{background:var(--acc-gold-light);color:var(--acc-gold);border-color:#D4B86A}
+.s-nav__sep{height:1px;background:var(--gua-line);margin:10px 20px}
+
+/* ── Content ── */
+.s-content{padding:28px 32px;background:var(--gua-surface)}
+.s-panel{display:none}
+.s-panel.active{display:block;animation:fadeIn .2s ease}
+@keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+
+/* ── Panel header ── */
+.panel-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:24px;padding-bottom:18px;border-bottom:1px solid var(--gua-line)}
+.panel-header__title{font-family:var(--font-d);font-size:26px;font-weight:500;color:var(--gua-black);line-height:1.1}
+.panel-header__desc{font-size:12px;color:var(--gua-mid);margin-top:4px}
+
+/* ── Buttons ── */
+.btn{display:inline-flex;align-items:center;gap:7px;padding:8px 16px;border-radius:var(--r);font-size:11px;font-weight:500;font-family:var(--font-b);letter-spacing:.06em;text-transform:uppercase;cursor:pointer;border:1px solid;transition:var(--t);white-space:nowrap;text-decoration:none}
+.btn svg{width:13px;height:13px}
+.btn--primary{background:var(--gua-black);color:#fff;border-color:var(--gua-black)}
+.btn--primary:hover{background:var(--gua-charcoal)}
+.btn--outline{background:transparent;color:var(--gua-ink);border-color:var(--gua-line)}
+.btn--outline:hover{border-color:var(--gua-steel);background:var(--gua-white)}
+.btn--ghost{background:transparent;color:var(--gua-steel);border-color:transparent}
+.btn--ghost:hover{background:var(--gua-surface)}
+.btn--danger{background:var(--acc-err-light);color:var(--acc-err);border-color:#D9A0A0}
+.btn--danger:hover{background:#FDDCDC}
+
+/* ── Form ── */
+.form-section{background:var(--gua-white);border:1px solid var(--gua-line);border-radius:var(--rc);padding:22px;margin-bottom:14px}
+.form-section__head{margin-bottom:18px}
+.form-section__brand{display:flex;align-items:center;gap:10px;margin-bottom:3px}
+.form-section__title{font-size:12px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;color:var(--gua-charcoal)}
+.form-section__sub{font-size:12px;color:var(--gua-mid);margin-top:3px}
+.form-row{display:flex;gap:14px;margin-bottom:14px}
+.form-row:last-child{margin-bottom:0}
+.form-row--2col>*{flex:1}
+.form-row--3col>*{flex:1}
+.form-group{display:flex;flex-direction:column;gap:5px}
+.form-label{font-size:11px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;color:var(--gua-steel);display:flex;align-items:center;gap:6px}
+.form-label__required{color:var(--acc-rust)}
+.form-label__sensitive{display:inline-flex;align-items:center;gap:3px;font-size:9px;padding:2px 6px;background:var(--acc-warn-light);color:var(--acc-warn);border-radius:var(--r);border:1px solid #E8C84A;text-transform:uppercase;letter-spacing:.06em}
+.form-label__sensitive svg{width:9px;height:9px}
+.form-input,.form-select,.form-textarea{width:100%;padding:9px 12px;border:1px solid var(--gua-line);border-radius:var(--r);background:var(--gua-paper);color:var(--gua-ink);font-size:13px;font-family:var(--font-b);transition:var(--t);outline:none}
+.form-input:focus,.form-select:focus,.form-textarea:focus{border-color:var(--gua-black);background:var(--gua-white);box-shadow:0 0 0 3px rgba(13,13,13,.06)}
+.form-input--mono{font-family:'SF Mono','Fira Code',monospace;letter-spacing:.04em;font-size:12px}
+.form-textarea{resize:vertical;min-height:78px}
+.form-hint{font-size:11px;color:var(--gua-soft)}
+.form-select-wrap{position:relative}
+.form-select{appearance:none;padding-right:30px;cursor:pointer}
+.form-select-arrow{position:absolute;right:10px;top:50%;transform:translateY(-50%);pointer-events:none;color:var(--gua-mid)}
+.form-select-arrow svg{width:10px;height:10px;stroke:currentColor;fill:none}
+
+/* Toggle */
+.toggle-group{display:flex;align-items:center;gap:10px;padding:8px 0}
+.toggle{position:relative;display:inline-block;width:36px;height:20px;flex-shrink:0}
+.toggle input{opacity:0;width:0;height:0}
+.toggle__slider{position:absolute;inset:0;cursor:pointer;background:var(--gua-line);border-radius:20px;transition:var(--t)}
+.toggle__slider::before{content:'';position:absolute;width:14px;height:14px;border-radius:50%;background:#fff;left:3px;top:3px;transition:var(--t);box-shadow:0 1px 3px rgba(0,0,0,.2)}
+.toggle input:checked+.toggle__slider{background:var(--gua-black)}
+.toggle input:checked+.toggle__slider::before{transform:translateX(16px)}
+.toggle__label{font-size:13px;color:var(--gua-steel)}
+
+/* Password */
+.input-pw{position:relative}
+.input-pw .form-input{padding-right:38px}
+.toggle-eye{position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--gua-mid);padding:2px}
+.toggle-eye:hover{color:var(--gua-ink)}
+.toggle-eye svg{width:15px;height:15px;stroke:currentColor;fill:none}
+
+/* Input + action */
+.input-row{display:flex;gap:8px}
+.input-row .form-input{flex:1}
+.input-action{padding:9px 13px;border-radius:var(--r);border:1px solid var(--gua-line);background:var(--gua-white);font-size:11px;font-weight:500;letter-spacing:.06em;text-transform:uppercase;color:var(--gua-steel);cursor:pointer;white-space:nowrap;transition:var(--t);font-family:var(--font-b)}
+.input-action:hover{border-color:var(--gua-steel);color:var(--gua-ink)}
+
+/* Icon btn */
+.btn-icon{width:30px;height:30px;display:inline-flex;align-items:center;justify-content:center;border-radius:var(--r);border:1px solid var(--gua-line);background:transparent;cursor:pointer;transition:var(--t);color:var(--gua-mid)}
+.btn-icon svg{width:14px;height:14px;stroke:currentColor;fill:none}
+.btn-icon--danger:hover{border-color:#D9A0A0;background:var(--acc-err-light);color:var(--acc-err)}
+
+/* ── Info blocks ── */
+.info-block{display:flex;gap:12px;align-items:flex-start;padding:12px 15px;border-radius:var(--rc);border:1px solid;margin:14px 0}
+.info-block__icon{width:16px;height:16px;flex-shrink:0;margin-top:2px;stroke:currentColor;fill:none}
+.info-block__title{font-size:12px;font-weight:500;margin-bottom:2px}
+.info-block__body{font-size:12px;line-height:1.5;opacity:.85}
+.info-block__body a{color:inherit;font-weight:600;text-decoration:underline}
+.info-block--neutral{background:var(--gua-surface);border-color:var(--gua-line);color:var(--gua-steel)}
+.info-block--warning{background:var(--acc-warn-light);border-color:#E8C84A;color:var(--acc-warn)}
+.info-block--success{background:var(--acc-sage-light);border-color:#7BA882;color:var(--acc-sage)}
+.info-block--danger{background:var(--acc-err-light);border-color:#D9A0A0;color:var(--acc-err)}
+
+/* ── Badges ── */
+.brand-badge{font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;padding:3px 9px;border-radius:var(--r);font-family:var(--font-b)}
+.brand-badge--vnpay{background:#E8F0FE;color:#1A56DB;border:1px solid #A8C1F8}
+.brand-badge--ghn{background:#FFF3E0;color:#E65100;border:1px solid #FFAB40}
+.tag{display:inline-block;font-size:10px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;padding:2px 8px;border-radius:var(--r);border:1px solid}
+.tag--blue{background:var(--acc-navy-light);color:var(--acc-navy);border-color:#A8BFDF}
+.tag--green{background:var(--acc-sage-light);color:var(--acc-sage);border-color:#7BA882}
+.tag--red{background:var(--acc-err-light);color:var(--acc-err);border-color:#D9A0A0}
+.tag--orange{background:var(--acc-warn-light);color:var(--acc-warn);border-color:#E8C84A}
+
+/* ── Stats ── */
+.stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:18px}
+.stat-card{background:var(--gua-white);border:1px solid var(--gua-line);border-radius:var(--rc);padding:15px 18px;display:flex;flex-direction:column;gap:3px}
+.stat-card__num{font-family:var(--font-d);font-size:30px;font-weight:500;color:var(--gua-black);line-height:1}
+.stat-card__label{font-size:10px;color:var(--gua-mid);letter-spacing:.06em;text-transform:uppercase}
+
+/* ── Data table ── */
+.data-table-wrap{border:1px solid var(--gua-line);border-radius:var(--rc);overflow:hidden}
+.data-table{width:100%;border-collapse:collapse}
+.data-table thead{background:var(--gua-surface)}
+.data-table th{padding:9px 13px;font-size:10px;font-weight:500;letter-spacing:.12em;text-transform:uppercase;color:var(--gua-mid);border-bottom:1px solid var(--gua-line);text-align:left}
+.data-table td{padding:10px 13px;font-size:13px;color:var(--gua-ink);border-bottom:1px solid var(--gua-line)}
+.data-table tbody tr:last-child td{border-bottom:none}
+.data-table tbody tr:hover{background:var(--gua-surface)}
+.text-muted{color:var(--gua-soft)}
+.table-empty{text-align:center;color:var(--gua-soft);font-size:13px;padding:28px!important}
+
+/* ── Banner preview ── */
+.banner-preview{position:relative;border-radius:var(--rc);overflow:hidden;border:1px solid var(--gua-line);margin-top:10px}
+.banner-preview__img{width:100%;display:block;max-height:180px;object-fit:cover}
+.banner-preview__close{position:absolute;top:7px;right:7px;background:rgba(0,0,0,.55);color:#fff;border:none;border-radius:3px;width:24px;height:24px;cursor:pointer;font-size:15px;display:flex;align-items:center;justify-content:center}
+
+/* ── Lang cards ── */
+.lang-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+.lang-card{border:1px solid var(--gua-line);border-radius:var(--rc);padding:14px;cursor:pointer;background:var(--gua-white);transition:var(--t);display:flex;align-items:center;gap:10px;font-size:13px;color:var(--gua-ink)}
+.lang-card:hover{border-color:var(--gua-steel);background:var(--gua-surface)}
+.lang-card.selected{border-color:var(--gua-black);background:var(--gua-black);color:#fff}
+.lang-card__flag{font-size:20px;line-height:1}
+.lang-card__name{font-size:13px;font-weight:500}
+.lang-card__code{font-size:10px;opacity:.6;letter-spacing:.06em;text-transform:uppercase}
+
+/* ── Permissions ── */
+.perm-table{width:100%;border-collapse:collapse}
+.perm-table th,.perm-table td{padding:11px 13px;border-bottom:1px solid var(--gua-line);text-align:left}
+.perm-table th{font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--gua-mid);background:var(--gua-surface)}
+.perm-table td{font-size:13px}
+.perm-table tbody tr:hover{background:var(--gua-surface)}
+.role-badge{display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:500;letter-spacing:.06em;text-transform:uppercase;padding:3px 8px;border-radius:var(--r);border:1px solid}
+.role-badge--admin{background:var(--gua-black);color:#fff;border-color:var(--gua-black)}
+.role-badge--editor{background:var(--acc-navy-light);color:var(--acc-navy);border-color:#A8BFDF}
+.role-badge--viewer{background:var(--gua-surface);color:var(--gua-mid);border-color:var(--gua-line)}
+.perm-check{display:flex;align-items:center;justify-content:center}
+.perm-check--yes{color:var(--acc-sage)}
+.perm-check--no{color:var(--gua-line)}
+.perm-check svg{width:15px;height:15px;stroke:currentColor;fill:none}
+
+/* ── Placeholder ── */
+.placeholder-box{background:var(--gua-white);border:1px dashed var(--gua-line);border-radius:var(--rc);padding:44px 28px;text-align:center}
+.placeholder-box svg{width:36px;height:36px;stroke:var(--gua-soft);fill:none;margin:0 auto 14px;display:block}
+.placeholder-box h3{font-family:var(--font-d);font-size:20px;color:var(--gua-charcoal);margin-bottom:6px}
+.placeholder-box p{font-size:13px;color:var(--gua-mid);line-height:1.6;max-width:340px;margin:0 auto 16px}
+.placeholder-box code{font-size:11px;background:var(--gua-surface);padding:2px 6px;border-radius:3px;color:var(--acc-rust);font-family:monospace}
+
+/* ── Toast ── */
+#toastContainer{position:fixed;bottom:22px;right:22px;z-index:9999;display:flex;flex-direction:column;gap:8px;pointer-events:none}
+.toast{display:flex;align-items:center;gap:10px;padding:11px 15px;border-radius:var(--rc);font-size:13px;font-family:var(--font-b);box-shadow:0 4px 16px rgba(0,0,0,.12);pointer-events:all;animation:toastIn .22s ease;min-width:240px;max-width:340px}
+@keyframes toastIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.toast.fade-out{animation:toastOut .22s ease forwards}
+@keyframes toastOut{from{opacity:1}to{opacity:0;transform:translateY(4px)}}
+.toast--success{background:var(--gua-black);color:#fff}
+.toast--error{background:var(--acc-err);color:#fff}
+.toast--info{background:var(--acc-navy);color:#fff}
+.toast svg{width:15px;height:15px;stroke:currentColor;fill:none;flex-shrink:0}
+
+/* ── Responsive ── */
+@media(max-width:900px){
+  .s-layout{grid-template-columns:1fr}
+  .s-sidebar{position:static;height:auto;display:flex;flex-wrap:wrap;padding:10px;border-right:none;border-bottom:1px solid var(--gua-line)}
+  .s-nav__group,.s-nav__sep{display:none}
+  .s-nav__item{border-left:none;border-bottom:2px solid transparent;padding:7px 10px}
+  .s-nav__item.active{border-bottom-color:var(--gua-black);background:transparent}
+  .s-content{padding:18px 16px}
+  .form-row--2col,.form-row--3col{flex-direction:column}
+  .stats-row{grid-template-columns:1fr 1fr}
+}
+@media(max-width:600px){
+  .s-header{padding:0 16px}
+  .panel-header{flex-direction:column;gap:10px}
+  .stats-row{grid-template-columns:1fr}
+  .lang-grid{grid-template-columns:1fr 1fr}
+}
+</style>
+{% endblock %}
 
 {% block content %}
-<div class="settings-page">
-  <div class="settings-header">
-    <div>
-      <h1 class="settings-title">Cài đặt hệ thống</h1>
-      <p class="settings-subtitle">Quản lý thông tin chung, giao diện, vận chuyển và các tích hợp đối tác.</p>
-    </div>
+<div id="toastContainer" aria-live="polite"></div>
+
+{# ── Header ── #}
+<header class="s-header">
+  <div class="s-header__brand">
+    <span class="s-header__eyebrow">GUA Admin</span>
+    <div class="s-header__div"></div>
+    <h1 class="s-header__title">Cài đặt Hệ thống</h1>
   </div>
+  <span class="live-badge"><span class="live-badge__dot"></span>Live</span>
+</header>
 
-  <div class="settings-layout">
-    
-    {# ══ TRỤC TRÁI: MENU VERTICAL TABS ══ #}
-    <aside class="settings-sidebar">
-      <nav class="settings-nav">
-        <button class="tab-btn active" data-target="tab-general">
-          <i class="fa-solid fa-store"></i> Thông tin chung
-        </button>
-        <button class="tab-btn" data-target="tab-storefront">
-          <i class="fa-solid fa-wand-magic-sparkles"></i> Giao diện cửa hàng
-        </button>
-        <button class="tab-btn" data-target="tab-integrations">
-          <i class="fa-solid fa-plug"></i> Tích hợp (API)
-        </button>
-        <button class="tab-btn" data-target="tab-shipping">
-          <i class="fa-solid fa-truck-fast"></i> Phí ship & Vùng miền
-        </button>
-      </nav>
-    </aside>
-
-    {# ══ TRỤC PHẢI: NỘI DUNG FORM ══ #}
-    <main class="settings-content">
-      
-      {# 1. FORM GENERAL (THÔNG TIN CHUNG) #}
-      <div class="tab-pane active" id="tab-general">
-        <form class="settings-form" onsubmit="Settings.save(event, 'general')">
-          <div class="card">
-            <h2 class="card-title">Cấu hình cơ bản</h2>
-            <div class="form-grid">
-              <div class="form-group">
-                <label>Tên cửa hàng</label>
-                <input type="text" name="shop_name" value="{{ general.get('shop_name', '') }}" placeholder="VD: GUA Maison" required>
-              </div>
-              <div class="form-group">
-                <label>Timezone (Múi giờ)</label>
-                <select name="timezone">
-                  <option value="Asia/Ho_Chi_Minh" {% if general.get('timezone') == 'Asia/Ho_Chi_Minh' %}selected{% endif %}>Asia/Ho_Chi_Minh (GMT+7)</option>
-                  <option value="UTC" {% if general.get('timezone') == 'UTC' %}selected{% endif %}>UTC (GMT+0)</option>
-                </select>
-              </div>
-            </div>
-            
-            <h2 class="card-title mt-6">Thông tin liên hệ</h2>
-            <div class="form-grid">
-              <div class="form-group">
-                <label>SĐT Hotline</label>
-                <input type="text" name="hotline" value="{{ general.get('hotline', '') }}" placeholder="VD: 090 123 4567">
-              </div>
-              <div class="form-group">
-                <label>Email CSKH</label>
-                <input type="email" name="email" value="{{ general.get('email', '') }}" placeholder="support@guamaison.com">
-              </div>
-              <div class="form-group full-width">
-                <label>Địa chỉ kho chính (Dùng cho GHTK/GHN đến lấy hàng)</label>
-                <input type="text" name="warehouse_address" value="{{ general.get('warehouse_address', '') }}" placeholder="VD: 123 Nguyễn Văn Cừ, Quận 5, HCM">
-              </div>
-            </div>
-          </div>
-          <div class="form-actions">
-            <button type="submit" class="btn-save"><i class="fa-solid fa-floppy-disk"></i> Lưu thay đổi</button>
-          </div>
-        </form>
-      </div>
-
-      {# 2. FORM STOREFRONT (GIAO DIỆN) #}
-      <div class="tab-pane" id="tab-storefront">
-        <form class="settings-form" onsubmit="Settings.save(event, 'storefront')">
-          <div class="card">
-            <h2 class="card-title">Thanh thông báo (Top Bar)</h2>
-            <div class="form-group flex-switch">
-              <label>Hiển thị thanh thông báo trên đỉnh trang</label>
-              <label class="switch">
-                <input type="checkbox" name="topbar_active" value="true" {% if storefront.get('topbar_active') == 'true' %}checked{% endif %}>
-                <span class="slider"></span>
-              </label>
-            </div>
-            <div class="form-group">
-              <label>Nội dung thông báo</label>
-              <input type="text" name="topbar_text" value="{{ storefront.get('topbar_text', '') }}" placeholder="VD: Miễn phí vận chuyển cho đơn hàng từ 1.500.000đ">
-            </div>
-
-            <h2 class="card-title mt-6">Banner Trang chủ</h2>
-            <div class="form-group">
-              <label>Link ảnh Banner chính (Desktop)</label>
-              <input type="text" name="banner_desktop_url" value="{{ storefront.get('banner_desktop_url', '') }}" placeholder="https://...">
-            </div>
-          </div>
-          <div class="form-actions">
-            <button type="submit" class="btn-save"><i class="fa-solid fa-floppy-disk"></i> Lưu giao diện</button>
-          </div>
-        </form>
-      </div>
-
-      {# 3. FORM INTEGRATIONS (TÍCH HỢP) #}
-      <div class="tab-pane" id="tab-integrations">
-        <form class="settings-form" onsubmit="Settings.save(event, 'integrations')">
-          
-          {# Cổng thanh toán VNPay #}
-          <div class="card">
-            <div class="card-header-logo">
-              <h2 class="card-title">Cổng thanh toán VNPay</h2>
-              <img src="https://vnpay.vn/s1/statics.vnpay.vn/2023/6/0oxhzjmxbksr1686814746087.png" alt="VNPay" class="h-6">
-            </div>
-            <div class="form-grid">
-              <div class="form-group">
-                <label>vnp_TmnCode (Mã Website)</label>
-                <input type="text" name="vnpay_tmncode" value="{{ integrations.get('vnpay_tmncode', '') }}">
-              </div>
-              <div class="form-group">
-                <label>vnp_HashSecret (Chuỗi bí mật)</label>
-                <input type="password" name="vnpay_hashsecret" value="{{ integrations.get('vnpay_hashsecret', '') }}" placeholder="••••••••••••••••">
-              </div>
-            </div>
-          </div>
-
-          {# Đơn vị vận chuyển #}
-          <div class="card mt-4">
-            <h2 class="card-title">Giao Hàng Nhanh (GHN)</h2>
-            <div class="form-group">
-              <label>API Token</label>
-              <input type="password" name="ghn_api_token" value="{{ integrations.get('ghn_api_token', '') }}" placeholder="••••••••••••••••">
-            </div>
-            <div class="form-grid">
-              <div class="form-group">
-                <label>Shop ID</label>
-                <input type="text" name="ghn_shop_id" value="{{ integrations.get('ghn_shop_id', '') }}">
-              </div>
-            </div>
-          </div>
-
-          <div class="form-actions">
-            <button type="submit" class="btn-save"><i class="fa-solid fa-floppy-disk"></i> Lưu khóa cấu hình</button>
-          </div>
-        </form>
-      </div>
-
-      {# 4. FORM SHIPPING RULES (PHÍ SHIP & CẢNH BÁO THIÊN TAI) #}
-      <div class="tab-pane" id="tab-shipping">
-        <form class="settings-form" onsubmit="Settings.save(event, 'shipping_rules')">
-          <div class="card">
-            <div class="flex justify-between items-center mb-6">
-              <div>
-                <h2 class="card-title mb-0 border-none pb-0">Tùy chỉnh cước & Cảnh báo khu vực</h2>
-                <p class="text-[11px] font-bold text-stone-400 uppercase tracking-widest mt-1">Ghi đè phí ship mặc định hoặc thêm thông báo bão lũ.</p>
-              </div>
-              <button type="button" onclick="ShippingZone.addRule()" class="px-4 py-2 bg-stone-900 text-white shadow-md text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-stone-800 transition-all active:scale-95 flex items-center gap-2">
-                <i class="fa-solid fa-plus"></i> Thêm khu vực
-              </button>
-            </div>
-
-            <div id="shipping-rules-container" class="space-y-4">
-              <!-- JS sẽ render các dòng tỉnh thành vào đây -->
-            </div>
-            
-          </div>
-          <div class="form-actions">
-            <button type="submit" class="btn-save"><i class="fa-solid fa-floppy-disk"></i> Lưu cấu hình vùng miền</button>
-          </div>
-        </form>
-      </div>
-
-    </main>
-  </div>
-</div>
-
-{# ══════════════════════ STYLES ══════════════════════ #}
-<style>
-:root {
-  --admin-bg: #f3f4f6;
-  --admin-card: #ffffff;
-  --admin-text: #111827;
-  --admin-text-muted: #6b7280;
-  --admin-border: #e5e7eb;
-  --admin-primary: #111827; 
-  --admin-primary-hover: #374151;
-}
-
-.settings-page { max-width: 1200px; margin: 0 auto; padding: 2rem; background: var(--admin-bg); min-height: 100vh; font-family: 'Inter', sans-serif; }
-.settings-header { margin-bottom: 2rem; }
-.settings-title { font-size: 1.75rem; font-weight: 800; color: var(--admin-text); margin-bottom: 0.25rem; }
-.settings-subtitle { font-size: 0.875rem; color: var(--admin-text-muted); }
-
-.settings-layout { display: flex; gap: 2.5rem; align-items: flex-start; }
-@media (max-width: 768px) { .settings-layout { flex-direction: column; } }
-
-.settings-sidebar { width: 260px; flex-shrink: 0; position: sticky; top: 100px; }
-.settings-nav { display: flex; flex-direction: column; gap: 0.5rem; }
-.tab-btn { display: flex; align-items: center; gap: 0.75rem; width: 100%; padding: 1rem 1.25rem; border-radius: 1rem; border: none; background: transparent; text-align: left; font-size: 0.875rem; font-weight: 700; color: var(--admin-text-muted); cursor: pointer; transition: all 0.2s; }
-.tab-btn:hover { background: #e5e7eb; color: var(--admin-text); }
-.tab-btn.active { background: var(--admin-card); color: var(--admin-primary); box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03); }
-.tab-btn i { font-size: 1.1rem; width: 1.5rem; text-align: center; }
-
-.settings-content { flex: 1; min-width: 0; }
-.tab-pane { display: none; animation: fadeIn 0.3s ease; }
-.tab-pane.active { display: block; }
-@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-
-.card { background: var(--admin-card); border-radius: 1.5rem; padding: 2rem; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02); border: 1px solid var(--admin-border); }
-.card-title { font-size: 1.1rem; font-weight: 800; color: var(--admin-text); border-bottom: 1px solid var(--admin-border); padding-bottom: 1rem; margin-bottom: 1.5rem; text-transform: uppercase; letter-spacing: 0.05em; }
-.card-header-logo { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--admin-border); padding-bottom: 1rem; margin-bottom: 1.5rem; }
-.card-header-logo .card-title { border: none; padding: 0; margin: 0; }
-
-.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
-@media (max-width: 640px) { .form-grid { grid-template-columns: 1fr; } }
-.full-width { grid-column: 1 / -1; }
-.mt-4 { margin-top: 1rem; }
-.mt-6 { margin-top: 1.5rem; }
-
-.form-group { display: flex; flex-direction: column; gap: 0.5rem; margin-bottom: 1.25rem; }
-.form-group label { font-size: 0.85rem; font-weight: 700; color: var(--admin-text-muted); }
-.form-group input, .form-group select { padding: 0.75rem 1rem; border: 1px solid var(--admin-border); border-radius: 0.75rem; font-size: 0.875rem; transition: all 0.2s; background: #f9fafb; }
-.form-group input:focus, .form-group select:focus { outline: none; border-color: var(--admin-primary); background: #fff; box-shadow: 0 0 0 3px rgba(17, 24, 39, 0.1); }
-
-.flex-switch { flex-direction: row; justify-content: space-between; align-items: center; background: #f9fafb; padding: 1rem 1.25rem; border-radius: 1rem; border: 1px solid var(--admin-border); }
-.switch { position: relative; display: inline-block; width: 48px; height: 26px; }
-.switch input { opacity: 0; width: 0; height: 0; }
-.slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #cbd5e1; transition: .3s; border-radius: 26px; }
-.slider:before { position: absolute; content: ""; height: 20px; width: 20px; left: 3px; bottom: 3px; background-color: white; transition: .3s; border-radius: 50%; box-shadow: 0 1px 2px rgba(0,0,0,0.2); }
-input:checked + .slider { background-color: var(--admin-primary); }
-input:checked + .slider:before { transform: translateX(22px); }
-
-.form-actions { display: flex; justify-content: flex-end; padding-top: 1.5rem; }
-.btn-save { background: var(--admin-primary); color: #fff; border: none; padding: 0.875rem 2rem; border-radius: 0.75rem; font-size: 0.875rem; font-weight: 700; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 0.5rem; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
-.btn-save:hover { background: var(--admin-primary-hover); transform: translateY(-1px); }
-.btn-save:active { transform: translateY(0); }
-.btn-save.loading { opacity: 0.7; pointer-events: none; }
-</style>
-
-
-{# ══════════════════════ DỮ LIỆU TỪ SERVER ══════════════════════ #}
-{# XỬ LÝ AN TOÀN TRÁNH LỖI JINJA2 "list object has no attribute get" #}
-<script id="shipping-rules-data" type="application/json">
-  {% if shipping_rules is mapping %}
-    {{ shipping_rules.get('rules', []) | tojson | safe }}
-  {% elif shipping_rules is iterable and shipping_rules is not string %}
-    {{ shipping_rules | tojson | safe }}
-  {% else %}
-    []
-  {% endif %}
-</script>
-
-
-{# ══════════════════════ SCRIPTS ══════════════════════ #}
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-<script>
-document.addEventListener('DOMContentLoaded', () => {
-  const tabBtns = document.querySelectorAll('.tab-btn');
-  const tabPanes = document.querySelectorAll('.tab-pane');
-
-  tabBtns.forEach(btn => {
-    btn.addEventListener('click', () => {
-      tabBtns.forEach(b => b.classList.remove('active'));
-      tabPanes.forEach(p => p.classList.remove('active'));
-      
-      btn.classList.add('active');
-      document.getElementById(btn.dataset.target).classList.add('active');
-    });
-  });
-});
-
-// ── LOGIC QUẢN LÝ DANH SÁCH TỈNH & PHÍ SHIP ──
-const ShippingZone = (() => {
-  const container = document.getElementById('shipping-rules-container');
-  
-  // Parse dữ liệu từ script tag thay vì nhúng trực tiếp Jinja vào JS
-  const rulesDataElement = document.getElementById('shipping-rules-data');
-  let rules = [];
-  try {
-    rules = JSON.parse(rulesDataElement.textContent);
-    if (!Array.isArray(rules)) rules = [];
-  } catch (e) {
-    rules = [];
-  }
-
-  const PROVINCES = [
-    "An Giang", "Bà Rịa - Vũng Tàu", "Bạc Liêu", "Bắc Giang", "Bắc Kạn", "Bắc Ninh", 
-    "Bến Tre", "Bình Dương", "Bình Định", "Bình Phước", "Bình Thuận", "Cà Mau", 
-    "Cao Bằng", "Cần Thơ", "Đà Nẵng", "Đắk Lắk", "Đắk Nông", "Điện Biên", "Đồng Nai", 
-    "Đồng Tháp", "Gia Lai", "Hà Giang", "Hà Nam", "Hà Nội", "Hà Tĩnh", "Hải Dương", 
-    "Hải Phòng", "Hậu Giang", "Hòa Bình", "Hưng Yên", "Khánh Hòa", "Kiên Giang", 
-    "Kon Tum", "Lai Châu", "Lạng Sơn", "Lào Cai", "Lâm Đồng", "Long An", "Nam Định", 
-    "Nghệ An", "Ninh Bình", "Ninh Thuận", "Phú Thọ", "Phú Yên", "Quảng Bình", 
-    "Quảng Nam", "Quảng Ngãi", "Quảng Ninh", "Quảng Trị", "Sóc Trăng", "Sơn La", 
-    "Tây Ninh", "Thái Bình", "Thái Nguyên", "Thanh Hóa", "Thừa Thiên Huế", "Tiền Giang", 
-    "TP Hồ Chí Minh", "Trà Vinh", "Tuyên Quang", "Vĩnh Long", "Vĩnh Phúc", "Yên Bái"
-  ];
-
-  function render() {
-    container.innerHTML = '';
-    if (rules.length === 0) {
-      container.innerHTML = '<p class="text-sm text-stone-400 italic text-center py-8 bg-stone-50 rounded-2xl border border-stone-200 border-dashed">Chưa có thiết lập riêng nào. Hệ thống đang áp dụng phí ship mặc định cho toàn quốc.</p>';
-      return;
-    }
-
-    rules.forEach((rule, index) => {
-      let provinceOptions = '<option value="">-- Chọn Tỉnh/Thành phố --</option>';
-      PROVINCES.forEach(prov => {
-        const isSelected = (rule.province === prov) ? 'selected' : '';
-        provinceOptions += `<option value="${prov}" ${isSelected}>${prov}</option>`;
-      });
-
-      const html = `
-        <div class="rule-item p-5 border border-stone-200 rounded-2xl bg-white shadow-sm flex gap-5 items-start relative group transition-all hover:border-stone-300">
-          <div class="flex-1 space-y-4">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div class="form-group mb-0">
-                <label>Tỉnh / Thành phố</label>
-                <select name="rules[${index}][province]" class="w-full" required>
-                  ${provinceOptions}
-                </select>
-              </div>
-              <div class="form-group mb-0">
-                <label>Phí Ship Cố Định (VNĐ)</label>
-                <input type="number" name="rules[${index}][fee]" value="${rule.fee || 0}">
-              </div>
-            </div>
-            <div class="form-group mb-0">
-              <label class="text-amber-600 flex items-center gap-1.5"><i class="fa-solid fa-cloud-bolt"></i> Lời cảnh báo (Bão lũ, cách ly...)</label>
-              <input type="text" name="rules[${index}][warning]" value="${rule.warning || ''}" placeholder="VD: Hiện đang có bão Yagi, đơn hàng có thể giao chậm hơn 3-5 ngày." class="!border-amber-200 !bg-amber-50 focus:!border-amber-500">
-            </div>
-          </div>
-          <button type="button" onclick="ShippingZone.removeRule(${index})" class="mt-8 w-10 h-10 flex items-center justify-center bg-white border border-rose-200 text-rose-500 rounded-xl hover:bg-rose-500 hover:text-white hover:border-rose-500 transition-all shadow-sm">
-            <i class="fa-solid fa-trash-can"></i>
-          </button>
+{# ── Flash messages ── #}
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    <div class="s-alerts">
+      {% for category, msg in messages %}
+        <div class="alert alert--{{ category }}">
+          <span>{{ '✓' if category == 'success' else ('✕' if category == 'danger' else 'ℹ') }}</span>
+          <span>{{ msg }}</span>
+          <button class="alert__close" onclick="this.parentElement.remove()">×</button>
         </div>
-      `;
-      container.insertAdjacentHTML('beforeend', html);
-    });
-  }
+      {% endfor %}
+    </div>
+  {% endif %}
+{% endwith %}
 
-  function addRule() {
-    rules.push({ province: '', fee: 35000, warning: '' });
-    render();
-  }
+<div class="s-layout">
 
-  function removeRule(index) {
-    rules.splice(index, 1);
-    render();
-  }
+  {# ── Sidebar ── #}
+  <aside class="s-sidebar">
+    <div class="s-nav__group">Cơ bản</div>
+    <button class="s-nav__item active" data-tab="general" onclick="Settings.switchTab('general',this)">
+      <svg viewBox="0 0 20 20"><circle cx="10" cy="10" r="3"/><path d="M10 2v2M10 16v2M2 10h2M16 10h2M4.22 4.22l1.42 1.42M14.36 14.36l1.42 1.42M4.22 15.78l1.42-1.42M14.36 5.64l1.42-1.42" stroke-linecap="round"/></svg>
+      Thông tin chung
+    </button>
+    <button class="s-nav__item" data-tab="storefront" onclick="Settings.switchTab('storefront',this)">
+      <svg viewBox="0 0 20 20"><rect x="2" y="5" width="16" height="11" rx="1"/><path d="M2 8h16"/></svg>
+      Giao diện cửa hàng
+      <span class="s-nav__badge">Banner</span>
+    </button>
+    <button class="s-nav__item" data-tab="integrations" onclick="Settings.switchTab('integrations',this)">
+      <svg viewBox="0 0 20 20"><path d="M2 6h4v4H2zM8 6h4v4H8zM14 6h4v4h-4zM4 10v4M10 10v4M16 10v4" stroke-linecap="round"/></svg>
+      API &amp; Tích hợp
+    </button>
+    <button class="s-nav__item" data-tab="shipping" onclick="Settings.switchTab('shipping',this)">
+      <svg viewBox="0 0 20 20"><rect x="1" y="7" width="12" height="9" rx="1"/><path d="M13 9h3l3 3v4h-6V9z"/><circle cx="5" cy="17" r="1.5"/><circle cx="16" cy="17" r="1.5"/></svg>
+      Vận chuyển
+    </button>
 
-  function getRulesFromDOM() {
-    const currentRules = [];
-    const ruleBlocks = container.querySelectorAll('.rule-item');
-    ruleBlocks.forEach((block, idx) => {
-      currentRules.push({
-        province: block.querySelector(`[name="rules[${idx}][province]"]`).value,
-        fee: parseInt(block.querySelector(`[name="rules[${idx}][fee]"]`).value) || 0,
-        warning: block.querySelector(`[name="rules[${idx}][warning]"]`).value
-      });
-    });
-    return currentRules;
-  }
+    <div class="s-nav__sep"></div>
+    <div class="s-nav__group">Hệ thống</div>
 
-  document.addEventListener('DOMContentLoaded', render);
+    <button class="s-nav__item" data-tab="language" onclick="Settings.switchTab('language',this)">
+      <svg viewBox="0 0 20 20"><circle cx="10" cy="10" r="8"/><path d="M10 2c-2 3-2 13 0 16M10 2c2 3 2 13 0 16M2 10h16"/></svg>
+      Ngôn ngữ Admin
+      <span class="s-nav__badge s-nav__badge--new">New</span>
+    </button>
+    <button class="s-nav__item" data-tab="admin_ui" onclick="Settings.switchTab('admin_ui',this)">
+      <svg viewBox="0 0 20 20"><rect x="3" y="5" width="14" height="12" rx="1"/><path d="M7 2h6"/></svg>
+      Giao diện Admin
+    </button>
+    <button class="s-nav__item" data-tab="permissions" onclick="Settings.switchTab('permissions',this)">
+      <svg viewBox="0 0 20 20"><circle cx="8" cy="6" r="3"/><path d="M2 17c0-3.3 2.7-6 6-6" stroke-linecap="round"/><path d="M14 12l1.5 1.5L18 11" stroke-linecap="round"/><circle cx="15" cy="15" r="4"/></svg>
+      Phân quyền
+    </button>
+  </aside>
 
-  return { addRule, removeRule, getRulesFromDOM };
-})();
+  {# ── Panels ── #}
+  <main class="s-content">
+    <section class="s-panel active" id="panel-general">
+      {% include "admin/settings/_tab_general.html" %}
+    </section>
+    <section class="s-panel" id="panel-storefront">
+      {% include "admin/settings/_tab_storefront.html" %}
+    </section>
+    <section class="s-panel" id="panel-integrations">
+      {% include "admin/settings/_tab_integrations.html" %}
+    </section>
+    <section class="s-panel" id="panel-shipping">
+      {% include "admin/settings/_tab_shipping.html" %}
+    </section>
+    <section class="s-panel" id="panel-language">
+      {% include "admin/settings/_tab_language.html" ignore missing %}
+    </section>
+    <section class="s-panel" id="panel-admin_ui">
+      {% include "admin/settings/_tab_admin_ui.html" ignore missing %}
+    </section>
+    <section class="s-panel" id="panel-permissions">
+      {% include "admin/settings/_tab_permissions.html" ignore missing %}
+    </section>
+  </main>
 
-// ── LOGIC LƯU CÀI ĐẶT ──
-const Settings = (() => {
-  async function save(event, sectionName) {
-    event.preventDefault(); 
-    const form = event.target;
-    const btn = form.querySelector('.btn-save');
-    const originalText = btn.innerHTML;
+</div>
+{% endblock %}
 
-    btn.classList.add('loading');
-    btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Đang lưu...';
-
-    let dataObj = {};
-
-    if (sectionName === 'shipping_rules') {
-      dataObj = { rules: ShippingZone.getRulesFromDOM() };
-    } else {
-      const formData = new FormData(form);
-      formData.forEach((value, key) => { dataObj[key] = value; });
-      if(sectionName === 'storefront' && !dataObj['topbar_active']) {
-        dataObj['topbar_active'] = 'false';
-      }
-    }
-
-    try {
-      const response = await fetch(`/admin/settings/update/${sectionName}`, {
-        method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json',
-          'X-CSRFToken': '{{ csrf_token() }}'
-        },
-        body: JSON.stringify(dataObj)
-      });
-      
-      const result = await response.json();
-
-      if(result.success) {
-        Swal.fire({
-          toast: true, position: 'top-end', icon: 'success',
-          title: result.message, showConfirmButton: false, timer: 2000
-        });
-      } else {
-        Swal.fire('Lỗi', result.message, 'error');
-      }
-    } catch (error) {
-      console.error(error);
-      Swal.fire('Lỗi hệ thống', 'Không thể kết nối đến máy chủ.', 'error');
-    } finally {
-      btn.classList.remove('loading');
-      btn.innerHTML = originalText;
-    }
-  }
-
-  return { save };
-})();
-</script>
+{% block extra_scripts %}
+<script src="{{ url_for('static', filename='js/admin/settings.js') }}"></script>
 {% endblock %}

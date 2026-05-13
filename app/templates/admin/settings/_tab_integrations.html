@@ -1,0 +1,116 @@
+{# ══════════════════════════════════════════════════════
+   admin/settings/_tab_integrations.html
+   Cấu hình khóa API thanh toán, vận chuyển, bên thứ ba.
+   Lưu ý: Các field nhạy cảm được mask bằng password type.
+══════════════════════════════════════════════════════ #}
+
+<div class="panel-header">
+  <div>
+    <h2 class="panel-header__title">API &amp; Tích hợp</h2>
+    <p class="panel-header__desc">Khóa bí mật kết nối thanh toán, vận chuyển và dịch vụ bên thứ ba. Không chia sẻ cho bất kỳ ai.</p>
+  </div>
+  <button class="btn btn--primary" onclick="Settings.save('integrations')">
+    <svg viewBox="0 0 16 16" fill="none"><path d="M13 2H5L2 5v9h12V2z" stroke="currentColor" stroke-width="1.2"/><rect x="5" y="9" width="6" height="5" rx="0.5" stroke="currentColor" stroke-width="1.2"/><rect x="5.5" y="2" width="5" height="3.5" rx="0.5" stroke="currentColor" stroke-width="1.2"/></svg>
+    Lưu bảo mật
+  </button>
+</div>
+
+{# Cảnh báo bảo mật #}
+<div class="info-block info-block--warning">
+  <svg class="info-block__icon" viewBox="0 0 20 20" fill="none">
+    <path d="M10 3L18 17H2L10 3z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+    <path d="M10 8v4M10 14h.01" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+  </svg>
+  <div>
+    <p class="info-block__title">Bảo mật tuyệt đối</p>
+    <p class="info-block__body">Các khóa API được mã hóa khi lưu xuống database. Không bao giờ commit các giá trị này lên Git hay chia sẻ qua kênh không mã hóa.</p>
+  </div>
+</div>
+
+<form id="form-integrations" class="settings-form" novalidate>
+
+  {# ── VNPay ── #}
+  <div class="form-section">
+    <div class="form-section__head">
+      <div class="form-section__brand">
+        <span class="brand-badge brand-badge--vnpay">VNPay</span>
+        <span class="form-section__tag">Thanh toán nội địa</span>
+      </div>
+      <p class="form-section__sub">Tích hợp cổng thanh toán VNPay cho checkout đơn hàng.</p>
+    </div>
+
+    <div class="form-row form-row--2col">
+      <div class="form-group">
+        <label class="form-label" for="vnpay_tmncode">TMN Code</label>
+        <input type="text" id="vnpay_tmncode" name="vnpay_tmncode"
+               class="form-input form-input--mono"
+               placeholder="XXXXXXXX"
+               value="{{ integrations.vnpay_tmncode | default('') }}"
+               autocomplete="off">
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="vnpay_hashsecret">
+          Hash Secret
+          <span class="form-label__sensitive">
+            <svg viewBox="0 0 14 14" fill="none"><rect x="3" y="6" width="8" height="6" rx="1" stroke="currentColor" stroke-width="1.2"/><path d="M5 6V4a2 2 0 014 0v2" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+            Nhạy cảm
+          </span>
+        </label>
+        <div class="input-password-wrap">
+          <input type="password" id="vnpay_hashsecret" name="vnpay_hashsecret"
+                 class="form-input form-input--mono"
+                 placeholder="••••••••••••••••••••"
+                 value="{{ integrations.vnpay_hashsecret | default('') }}"
+                 autocomplete="off">
+          <button type="button" class="toggle-eye" onclick="Settings.togglePassword('vnpay_hashsecret', this)" aria-label="Hiện/Ẩn">
+            <svg viewBox="0 0 16 16" fill="none"><path d="M1 8s3-5 7-5 7 5 7 5-3 5-7 5-7-5-7-5z" stroke="currentColor" stroke-width="1.2"/><circle cx="8" cy="8" r="2" stroke="currentColor" stroke-width="1.2"/></svg>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {# ── GHN (Giao Hàng Nhanh) ── #}
+  <div class="form-section">
+    <div class="form-section__head">
+      <div class="form-section__brand">
+        <span class="brand-badge brand-badge--ghn">GHN</span>
+        <span class="form-section__tag">Đơn vị vận chuyển</span>
+      </div>
+      <p class="form-section__sub">Kết nối Giao Hàng Nhanh để tự động tính phí ship và tạo đơn vận chuyển.</p>
+    </div>
+
+    <div class="form-row form-row--2col">
+      <div class="form-group">
+        <label class="form-label" for="ghn_api_token">
+          API Token
+          <span class="form-label__sensitive">
+            <svg viewBox="0 0 14 14" fill="none"><rect x="3" y="6" width="8" height="6" rx="1" stroke="currentColor" stroke-width="1.2"/><path d="M5 6V4a2 2 0 014 0v2" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+            Nhạy cảm
+          </span>
+        </label>
+        <div class="input-password-wrap">
+          <input type="password" id="ghn_api_token" name="ghn_api_token"
+                 class="form-input form-input--mono"
+                 placeholder="••••••••••••••••••••••••••••"
+                 value="{{ integrations.ghn_api_token | default('') }}"
+                 autocomplete="off">
+          <button type="button" class="toggle-eye" onclick="Settings.togglePassword('ghn_api_token', this)" aria-label="Hiện/Ẩn">
+            <svg viewBox="0 0 16 16" fill="none"><path d="M1 8s3-5 7-5 7 5 7 5-3 5-7 5-7-5-7-5z" stroke="currentColor" stroke-width="1.2"/><circle cx="8" cy="8" r="2" stroke="currentColor" stroke-width="1.2"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="ghn_shop_id">Shop ID</label>
+        <input type="text" id="ghn_shop_id" name="ghn_shop_id"
+               class="form-input form-input--mono"
+               placeholder="123456"
+               value="{{ integrations.ghn_shop_id | default('') }}"
+               autocomplete="off">
+      </div>
+    </div>
+  </div>
+
+</form>

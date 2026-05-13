@@ -1,266 +1,394 @@
-<nav class="fixed top-0 left-0 right-0 z-[100] bg-white/95 backdrop-blur-md border-b border-neutral-200 h-16 shadow-sm">
-  <div class="max-w-[1600px] mx-auto h-full px-4 lg:px-8 flex items-center justify-between">
+{# ============================================================
+   GUA MAISON — Admin Navbar
+   Tech: Tailwind CSS, FontAwesome 6, Vanilla JS
+   Triết lý: Minimalism · Đen/Trắng/Stone · Smooth UX
+   ============================================================ #}
 
-    <div class="flex items-center gap-8 xl:gap-12">
-      {# ── LOGO ── #}
-      <a href="{{ url_for('admin.dashboard') }}" class="flex items-center gap-3 group">
-        <div class="w-8 h-8 bg-black rounded-sm flex items-center justify-center shadow-sm transition-transform group-hover:scale-105">
-          <span class="text-white text-lg font-black tracking-tighter">G</span>
+{# ── PROGRESS BAR (page transition) ── #}
+<div id="nprogress" class="fixed top-0 left-0 h-[2px] bg-black z-[999] w-0 transition-none pointer-events-none"></div>
+
+{# ── NAVBAR ── #}
+<nav id="adminNav"
+     class="fixed top-0 inset-x-0 z-[100] h-14 bg-white/95 backdrop-blur-md border-b border-neutral-200
+            transition-[box-shadow,background-color] duration-300">
+  <div class="max-w-[1600px] mx-auto h-full px-4 sm:px-6 lg:px-8 flex items-center justify-between gap-6">
+
+    {# ── LEFT: Logo + Nav links ── #}
+    <div class="flex items-center gap-6 xl:gap-10 h-full min-w-0">
+
+      {# Logo #}
+      <a href="{{ url_for('admin.dashboard') }}"
+         class="shrink-0 flex items-center gap-2.5 group"
+         data-nav>
+        <div class="w-7 h-7 bg-black rounded-[3px] grid place-items-center
+                    transition-transform duration-300 group-hover:rotate-3">
+          <span class="text-white text-sm font-black tracking-tighter leading-none">G</span>
         </div>
-        <span class="text-lg font-black tracking-tighter text-black uppercase">
-          GUA <span class="text-neutral-400 font-bold tracking-widest text-[10px] ml-1">ADMIN</span>
+        <span class="hidden sm:block text-[13px] font-black tracking-tighter text-black uppercase">
+          GUA <span class="text-[9px] font-bold tracking-[0.3em] text-neutral-400 ml-0.5">ADMIN</span>
         </span>
       </a>
 
-      {# ── MENU CHÍNH (PC) ── #}
-      <div class="hidden lg:flex items-center gap-8 text-[11px]">
+      {# ── Desktop Nav ── #}
+      <div class="hidden lg:flex items-center h-full">
         {% set main_nav = [
           ('Tổng quan',  'admin.dashboard'),
           ('Sản phẩm',   'admin.products'),
           ('Đơn hàng',   'admin.orders'),
           ('Khách hàng', 'admin.customers'),
-          ('Báo cáo',    'admin.reports')
+          ('Báo cáo',    'admin.reports'),
         ] %}
-        
-        {% for label, endpoint in main_nav %}
-        <a href="{{ url_for(endpoint) }}"
-           class="font-bold uppercase tracking-[0.15em] transition-colors relative py-5
-           {% if request.endpoint == endpoint %}
-             text-black
-           {% else %}
-             text-neutral-400 hover:text-black
-           {% endif %}">
-          {{ label }}
-          {% if request.endpoint == endpoint %}
-            <span class="absolute bottom-0 left-0 w-full h-[2px] bg-black"></span>
-          {% endif %}
-        </a>
+
+        {% for label, ep in main_nav %}
+          {% set active = request.endpoint == ep %}
+          <a href="{{ url_for(ep) }}"
+             data-nav
+             class="relative h-full flex items-center px-3 xl:px-4 text-[11px] font-bold uppercase tracking-[0.12em]
+                    transition-colors duration-200 select-none
+                    {{ 'text-black' if active else 'text-neutral-400 hover:text-black' }}">
+            {{ label }}
+            <span class="absolute bottom-0 inset-x-3 h-[2px] rounded-t-full transition-all duration-300
+                         {{ 'bg-black scale-x-100' if active else 'bg-black scale-x-0 group-hover:scale-x-100' }}
+                         origin-left"></span>
+          </a>
         {% endfor %}
 
-        {# ── DROPDOWN TÍNH NĂNG MỞ RỘNG ── #}
-        <div class="relative group h-16 flex items-center">
-          <button class="flex items-center gap-1.5 font-bold uppercase tracking-[0.15em] transition-colors h-full
-            {% if request.endpoint and (request.endpoint.startswith('admin_providers') or request.endpoint in ['admin.settings_page', 'admin.orders_history', 'admin.categories', 'admin.coupons']) %}
-              text-black border-b-[2px] border-black
-            {% else %}
-              text-neutral-400 hover:text-black border-b-[2px] border-transparent
-            {% endif %}">
-            Quản trị 
-            <svg class="w-3 h-3 transition-transform duration-300 group-hover:rotate-180" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5"/></svg>
-            
+        {# ── Dropdown: Quản trị ── #}
+        {% set mgmt_eps = ['admin.settings_page','admin.categories','admin.coupons','admin.return_requests'] %}
+        {% set mgmt_active = request.endpoint in mgmt_eps or (request.endpoint and request.endpoint.startswith('admin_providers')) %}
+
+        <div class="relative h-full flex items-center group/mgmt" id="mgmtDropdown">
+          <button class="relative h-full flex items-center gap-1.5 px-3 xl:px-4 text-[11px] font-bold uppercase tracking-[0.12em]
+                         select-none transition-colors duration-200
+                         {{ 'text-black' if mgmt_active else 'text-neutral-400 hover:text-black group-hover/mgmt:text-black' }}">
+            Quản trị
+            <svg class="w-2.5 h-2.5 transition-transform duration-200 group-hover/mgmt:rotate-180"
+                 fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5"/>
+            </svg>
             {% if pending_returns > 0 %}
-            <span class="absolute top-4 -right-2 w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse"></span>
+              <span class="absolute top-3 right-1.5 w-1.5 h-1.5 rounded-full bg-red-500 ring-2 ring-white animate-pulse"></span>
             {% endif %}
+            <span class="absolute bottom-0 inset-x-3 h-[2px] rounded-t-full transition-all duration-300
+                         {{ 'bg-black scale-x-100' if mgmt_active else 'bg-black scale-x-0 group-hover/mgmt:scale-x-100' }}
+                         origin-left"></span>
           </button>
-          
-          <div class="absolute left-0 top-[64px] opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 transform translate-y-2 group-hover:translate-y-0 z-50">
-            <div class="w-56 bg-white border border-neutral-200 rounded-sm shadow-xl py-2 flex flex-col">
 
-              <div class="h-px w-full bg-neutral-100 my-1"></div>
+          {# Dropdown Panel #}
+          <div class="absolute left-0 top-[calc(100%+4px)]
+                      w-52 bg-white border border-neutral-200 rounded-md shadow-xl shadow-black/[0.07]
+                      opacity-0 invisible -translate-y-2
+                      group-hover/mgmt:opacity-100 group-hover/mgmt:visible group-hover/mgmt:translate-y-0
+                      transition-all duration-200 ease-out z-50 py-1.5">
 
-              <a href="{{ url_for('admin.categories') }}" class="px-5 py-3 text-[10px] font-bold text-neutral-500 hover:text-black hover:bg-neutral-50 uppercase tracking-[0.15em] transition-colors flex items-center gap-3">
-                <i class="fa-solid fa-layer-group w-4 text-center"></i> Danh mục
+            {% set dropdown_items = [
+              ('Danh mục',        'admin.categories',    'fa-layer-group'),
+              ('Khuyến mãi',      'admin.coupons',       'fa-ticket'),
+              ('Cài đặt',         'admin.settings_page', 'fa-gear'),
+              ('Vận chuyển',      'admin_providers.index','fa-truck-fast'),
+            ] %}
+
+            {% for label, ep, icon in dropdown_items %}
+              {% set a = request.endpoint == ep or (ep == 'admin_providers.index' and request.endpoint and request.endpoint.startswith('admin_providers')) %}
+              <a href="{{ url_for(ep) }}" data-nav
+                 class="flex items-center gap-3 px-4 py-2.5 text-[10px] font-bold uppercase tracking-[0.12em]
+                        transition-colors duration-150
+                        {{ 'text-black bg-neutral-50' if a else 'text-neutral-500 hover:text-black hover:bg-neutral-50' }}">
+                <i class="fa-solid {{ icon }} w-4 text-center shrink-0 opacity-60"></i>
+                {{ label }}
               </a>
+            {% endfor %}
 
-              <a href="{{ url_for('admin.coupons') }}" class="px-5 py-3 text-[10px] font-bold text-neutral-500 hover:text-black hover:bg-neutral-50 uppercase tracking-[0.15em] transition-colors flex items-center gap-3">
-                <i class="fa-solid fa-ticket w-4 text-center"></i> Khuyến mãi
-              </a>
+            <div class="my-1 border-t border-neutral-100"></div>
 
-              <a href="{{ url_for('admin.settings_page') }}" class="px-5 py-3 text-[10px] font-bold uppercase tracking-[0.15em] transition-colors flex items-center gap-3 {% if request.endpoint == 'admin.settings_page' %}text-black bg-neutral-50{% else %}text-neutral-500 hover:text-black hover:bg-neutral-50{% endif %}">
-                <i class="fa-solid fa-gear w-4 text-center"></i> Cài đặt hệ thống
-              </a>
-              
-              <div class="h-px w-full bg-neutral-100 my-1"></div>
-
-              <a href="{{ url_for('admin_providers.index') }}" class="px-5 py-3 text-[10px] font-bold uppercase tracking-[0.15em] transition-colors flex items-center gap-3 {% if request.endpoint and request.endpoint.startswith('admin_providers') %}text-black bg-neutral-50{% else %}text-neutral-500 hover:text-black hover:bg-neutral-50{% endif %}">
-                <i class="fa-solid fa-truck-fast w-4 text-center"></i> Đơn vị vận chuyển
-              </a>
-
-              <div class="h-px w-full bg-neutral-100 my-1"></div>
-              
-              <a href="{{ url_for('admin.return_requests') }}" class="px-5 py-3 text-[10px] font-bold text-neutral-500 hover:text-black hover:bg-neutral-50 uppercase tracking-[0.15em] transition-colors flex items-center justify-between group/return">
-                <div class="flex items-center gap-3">
-                  <i class="fa-solid fa-arrow-right-arrow-left w-4 text-center group-hover/return:text-red-500 transition-colors"></i>
-                  <span>Đổi / Trả</span>
-                </div>
-                {% if pending_returns > 0 %}
-                <span class="px-1.5 py-0.5 bg-red-500 text-white text-[9px] font-black rounded-sm shadow-sm">
+            {# Đổi / Trả với badge #}
+            {% set ret_active = request.endpoint and request.endpoint.startswith('admin.return') %}
+            <a href="{{ url_for('admin.return_requests') }}" data-nav
+               class="flex items-center justify-between px-4 py-2.5 text-[10px] font-bold uppercase tracking-[0.12em]
+                      transition-colors duration-150
+                      {{ 'text-red-500 bg-red-50' if ret_active else 'text-neutral-500 hover:text-red-500 hover:bg-red-50' }}">
+              <span class="flex items-center gap-3">
+                <i class="fa-solid fa-arrow-right-arrow-left w-4 text-center shrink-0"></i>
+                Đổi / Trả
+              </span>
+              {% if pending_returns > 0 %}
+                <span class="px-1.5 py-0.5 bg-red-500 text-white text-[9px] font-black rounded-sm leading-none">
                   {{ pending_returns if pending_returns < 100 else '99+' }}
                 </span>
-                {% endif %}
-              </a>
-
-            </div>
+              {% endif %}
+            </a>
           </div>
         </div>
-
-      </div>
+      </div>{# /Desktop Nav #}
     </div>
 
-    {# ── RIGHT SIDE: USER MENU, POS BUTTON & MOBILE TOGGLE ── #}
-    <div class="flex items-center gap-3 md:gap-5">
+    {# ── RIGHT: POS + User + Hamburger ── #}
+    <div class="flex items-center gap-2 sm:gap-3 shrink-0">
 
-      {# Nút POS Terminal (Minimalist) #}
+      {# POS Button (desktop) #}
       {% if request.endpoint == 'admin.reports' %}
         <button onclick="POSModal.open()"
-          class="hidden lg:flex items-center gap-2 bg-black hover:bg-neutral-800 text-white px-4 py-2 rounded-sm text-[9px] font-bold uppercase tracking-[0.2em] transition-colors">
-          <i class="fa-solid fa-cash-register"></i> Bán tại quầy
+          class="hidden lg:flex items-center gap-2 bg-black hover:bg-neutral-800 active:scale-95
+                 text-white px-3.5 py-2 rounded-[4px] text-[9px] font-bold uppercase tracking-[0.2em]
+                 transition-all duration-150 shadow-sm">
+          <i class="fa-solid fa-cash-register text-[11px]"></i>
+          <span>Bán tại quầy</span>
         </button>
       {% else %}
-        <a href="{{ url_for('admin.pos_terminal') }}"
-          class="hidden lg:flex items-center gap-2 bg-black hover:bg-neutral-800 text-white px-4 py-2 rounded-sm text-[9px] font-bold uppercase tracking-[0.2em] transition-colors">
-          <i class="fa-solid fa-cash-register"></i> Bán tại quầy
+        <a href="{{ url_for('admin.pos_terminal') }}" data-nav
+          class="hidden lg:flex items-center gap-2 bg-black hover:bg-neutral-800 active:scale-95
+                 text-white px-3.5 py-2 rounded-[4px] text-[9px] font-bold uppercase tracking-[0.2em]
+                 transition-all duration-150 shadow-sm">
+          <i class="fa-solid fa-cash-register text-[11px]"></i>
+          <span>Bán tại quầy</span>
         </a>
       {% endif %}
 
-      {# ── USER DROPDOWN ── #}
-      <div class="relative group h-16 flex items-center">
-        <button class="flex items-center gap-3 hover:opacity-70 transition-opacity">
-          <div class="hidden sm:block text-right">
-            <p class="text-[10px] font-bold text-black uppercase tracking-widest leading-none mb-1">{{ current_user.full_name if current_user else 'Admin' }}</p>
-            <p class="text-[8px] font-bold text-emerald-500 uppercase tracking-widest flex items-center justify-end gap-1">
-              <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> Online
+      {# ── User Dropdown ── #}
+      <div class="relative group/user flex items-center h-full">
+        <button class="flex items-center gap-2.5 rounded-[4px] px-2 py-1.5
+                       hover:bg-neutral-50 transition-colors duration-150 select-none">
+          <div class="hidden sm:block text-right leading-none">
+            <p class="text-[10px] font-bold text-black uppercase tracking-wider">
+              {{ current_user.full_name if current_user else 'Admin' }}
+            </p>
+            <p class="text-[8px] font-semibold text-emerald-500 mt-0.5 flex items-center justify-end gap-1">
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>Online
             </p>
           </div>
-          <div class="w-8 h-8 bg-neutral-100 border border-neutral-200 text-black rounded-sm flex items-center justify-center text-xs font-black shadow-sm">
+          <div class="w-8 h-8 bg-neutral-100 border border-neutral-200 rounded-[4px]
+                      flex items-center justify-center text-[11px] font-black text-black">
             {{ current_user.full_name[0].upper() if current_user else 'A' }}
           </div>
         </button>
 
-        <div class="absolute right-0 top-[64px] w-48 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 transform translate-y-2 group-hover:translate-y-0 z-50">
-          <div class="bg-white border border-neutral-200 rounded-sm shadow-xl flex flex-col py-2">
-            <div class="px-5 py-2 mb-1">
-              <p class="text-[9px] font-bold text-neutral-400 uppercase tracking-[0.2em]">Tài khoản</p>
-            </div>
-            
-            <a href="/" class="flex items-center gap-3 px-5 py-2.5 text-[10px] font-bold text-neutral-600 hover:bg-neutral-50 hover:text-black transition-colors uppercase tracking-[0.1em]">
-              <i class="fa-solid fa-store w-4 text-center"></i> Storefront
-            </a>
-
-            <div class="h-px w-full bg-neutral-100 my-1"></div>
-            
-            <form action="{{ url_for('auth.logout') }}" method="POST" class="m-0">
-              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-              <button type="submit" class="w-full flex items-center gap-3 px-5 py-2.5 text-[10px] font-bold text-red-500 hover:bg-red-50 transition-colors uppercase tracking-[0.1em]">
-                <i class="fa-solid fa-arrow-right-from-bracket w-4 text-center"></i> Đăng xuất
-              </button>
-            </form>
+        <div class="absolute right-0 top-[calc(100%+6px)]
+                    w-44 bg-white border border-neutral-200 rounded-md shadow-xl shadow-black/[0.07]
+                    opacity-0 invisible -translate-y-2
+                    group-hover/user:opacity-100 group-hover/user:visible group-hover/user:translate-y-0
+                    transition-all duration-200 ease-out z-50 py-1.5">
+          <div class="px-4 py-2 mb-0.5">
+            <p class="text-[9px] font-bold text-neutral-400 uppercase tracking-[0.2em]">Tài khoản</p>
           </div>
+          <a href="/" data-nav
+             class="flex items-center gap-3 px-4 py-2.5 text-[10px] font-bold text-neutral-500
+                    hover:text-black hover:bg-neutral-50 transition-colors uppercase tracking-[0.1em]">
+            <i class="fa-solid fa-store w-4 text-center opacity-60"></i> Storefront
+          </a>
+          <div class="my-1 border-t border-neutral-100"></div>
+          <form action="{{ url_for('auth.logout') }}" method="POST">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button type="submit"
+              class="w-full flex items-center gap-3 px-4 py-2.5 text-[10px] font-bold text-red-500
+                     hover:bg-red-50 transition-colors uppercase tracking-[0.1em]">
+              <i class="fa-solid fa-arrow-right-from-bracket w-4 text-center"></i> Đăng xuất
+            </button>
+          </form>
         </div>
       </div>
 
-      {# ── NÚT HAMBURGER MOBILE ── #}
-      <button onclick="toggleMobileMenu()" class="lg:hidden w-10 h-10 flex items-center justify-center text-black hover:bg-neutral-100 rounded-sm transition-colors -mr-2">
-        <i class="fa-solid fa-bars text-lg"></i>
+      {# Hamburger #}
+      <button id="hamburgerBtn" onclick="MobileMenu.toggle()"
+              class="lg:hidden w-9 h-9 flex items-center justify-center rounded-[4px]
+                     hover:bg-neutral-100 transition-colors -mr-1" aria-label="Menu">
+        <span class="hamburger-icon flex flex-col gap-[5px] w-5">
+          <span class="block h-[1.5px] bg-black rounded-full transition-all duration-300 origin-center"></span>
+          <span class="block h-[1.5px] bg-black rounded-full transition-all duration-300"></span>
+          <span class="block h-[1.5px] bg-black rounded-full transition-all duration-300 origin-center"></span>
+        </span>
       </button>
-
     </div>
   </div>
 </nav>
 
-<div class="h-16"></div>
+<div class="h-14"></div>
 
-{# ── MOBILE MENU (Full Screen Overlay chuẩn Lookbook) ── #}
-<div id="mobileMenu" class="hidden lg:hidden fixed inset-0 bg-white z-[200] flex-col animate-in fade-in duration-300">
-  
-  <div class="flex justify-between items-center px-4 py-4 border-b border-neutral-100">
-    <span class="text-xl font-black tracking-tighter text-black uppercase">GUA <span class="text-neutral-400 text-[10px] tracking-widest ml-1">ADMIN</span></span>
-    <button onclick="toggleMobileMenu()" class="w-10 h-10 flex items-center justify-center text-neutral-400 hover:text-black bg-neutral-50 rounded-sm transition-colors">
-      <i class="fa-solid fa-xmark text-lg"></i>
+{# ── MOBILE DRAWER ── #}
+<div id="mobileBackdrop" onclick="MobileMenu.close()"
+     class="fixed inset-0 bg-black/50 backdrop-blur-[2px] z-[200]
+            opacity-0 pointer-events-none transition-opacity duration-300 lg:hidden"></div>
+
+<div id="mobilePanel"
+     class="fixed top-0 right-0 bottom-0 w-[80vw] max-w-xs bg-white z-[210]
+            flex flex-col shadow-2xl lg:hidden
+            translate-x-full transition-transform duration-300 ease-[cubic-bezier(0.32,0.72,0,1)]">
+
+  {# Drawer Header #}
+  <div class="flex items-center justify-between px-5 py-4 border-b border-neutral-100 shrink-0">
+    <span class="text-[13px] font-black tracking-tighter text-black uppercase">
+      GUA <span class="text-[9px] font-bold tracking-[0.3em] text-neutral-400 ml-0.5">ADMIN</span>
+    </span>
+    <button onclick="MobileMenu.close()"
+            class="w-8 h-8 flex items-center justify-center rounded-[4px] bg-neutral-100
+                   hover:bg-neutral-200 transition-colors text-neutral-600">
+      <i class="fa-solid fa-xmark"></i>
     </button>
   </div>
 
-  <div class="flex-1 overflow-y-auto no-scrollbar px-6 py-8 flex flex-col">
-    
-    {# Nút POS Nổi bật #}
+  {# Drawer Body #}
+  <div class="flex-1 overflow-y-auto overscroll-contain px-5 py-5">
+
+    {# POS CTA #}
     {% if request.endpoint == 'admin.reports' %}
-      <button onclick="toggleMobileMenu(); setTimeout(() => openPosModal(), 150);"
-        class="w-full py-4 px-5 rounded-sm font-bold uppercase tracking-[0.2em] text-[10px] flex items-center justify-center gap-3 bg-black text-white active:scale-95 transition-transform mb-8">
-        <i class="fa-solid fa-cash-register"></i> Bán Tại Quầy (POS)
+      <button onclick="MobileMenu.close(); setTimeout(()=>POSModal.open(),250)"
+        class="w-full mb-5 py-3.5 px-4 bg-black text-white rounded-[4px] text-[10px] font-bold
+               uppercase tracking-[0.2em] flex items-center justify-center gap-2.5 active:scale-95 transition-transform">
+        <i class="fa-solid fa-cash-register"></i> Bán tại quầy
       </button>
     {% else %}
-      <a href="{{ url_for('admin.pos_terminal') }}"
-        class="w-full py-4 px-5 rounded-sm font-bold uppercase tracking-[0.2em] text-[10px] flex items-center justify-center gap-3 bg-black text-white active:scale-95 transition-transform mb-8">
-        <i class="fa-solid fa-cash-register"></i> Bán Tại Quầy (POS)
+      <a href="{{ url_for('admin.pos_terminal') }}" data-nav
+        class="block w-full mb-5 py-3.5 px-4 bg-black text-white rounded-[4px] text-[10px] font-bold
+               uppercase tracking-[0.2em] text-center active:scale-95 transition-transform">
+        <i class="fa-solid fa-cash-register mr-2"></i> Bán tại quầy
       </a>
     {% endif %}
 
-    {# Danh sách Link (Flat List Editorial) #}
-    <div class="flex flex-col">
-      {% set mobile_nav = [
-        ('Tổng quan',        'admin.dashboard', 'fa-chart-pie'),
-        ('Sản phẩm',         'admin.products', 'fa-shirt'),
-        ('Đơn hàng',         'admin.orders', 'fa-box'),
-        ('Lịch sử đơn hàng', 'admin.orders_history', 'fa-clock-rotate-left'),
-        ('Khách hàng',       'admin.customers', 'fa-users'),
-        ('Báo cáo',          'admin.reports', 'fa-chart-line'),
-        ('Danh mục',         'admin.categories', 'fa-layer-group'),
-        ('Khuyến mãi',       'admin.coupons', 'fa-ticket'),
-        ('Cài đặt hệ thống', 'admin.settings_page', 'fa-gear'),
-        ('Đơn vị vận chuyển','admin_providers.index', 'fa-truck-fast')
-      ] %}
-      
-      {% for label, endpoint, icon in mobile_nav %}
-      <a href="{{ url_for(endpoint) }}" onclick="toggleMobileMenu()"
-         class="py-4 border-b border-neutral-100 font-bold uppercase tracking-[0.15em] text-[10px] flex items-center justify-between transition-colors
-         {% if request.endpoint == endpoint %}text-black border-black{% else %}text-neutral-500{% endif %}">
-        <div class="flex items-center gap-3">
-          <i class="fa-solid {{ icon }} w-4 text-center"></i>
+    {# Nav Links #}
+    {% set mobile_links = [
+      ('Tổng quan',  'admin.dashboard',    'fa-chart-pie'),
+      ('Sản phẩm',   'admin.products',     'fa-shirt'),
+      ('Đơn hàng',   'admin.orders',       'fa-box'),
+      ('Khách hàng', 'admin.customers',    'fa-users'),
+      ('Báo cáo',    'admin.reports',      'fa-chart-line'),
+      ('Danh mục',   'admin.categories',   'fa-layer-group'),
+      ('Khuyến mãi', 'admin.coupons',      'fa-ticket'),
+      ('Cài đặt',    'admin.settings_page','fa-gear'),
+      ('Vận chuyển', 'admin_providers.index','fa-truck-fast'),
+    ] %}
+
+    <nav class="flex flex-col">
+      {% for label, ep, icon in mobile_links %}
+        {% set a = request.endpoint == ep or (ep=='admin_providers.index' and request.endpoint and request.endpoint.startswith('admin_providers')) %}
+        <a href="{{ url_for(ep) }}" data-nav
+           class="flex items-center gap-3 py-3.5 border-b border-neutral-100 text-[11px] font-bold
+                  uppercase tracking-[0.12em] transition-colors duration-150
+                  {{ 'text-black' if a else 'text-neutral-500 active:text-black' }}">
+          <i class="fa-solid {{ icon }} w-5 text-center text-[13px] {{ 'opacity-100' if a else 'opacity-40' }}"></i>
           {{ label }}
-        </div>
-        {% if request.endpoint == endpoint %}
-        <i class="fa-solid fa-chevron-right text-[10px]"></i>
-        {% endif %}
-      </a>
+          {% if a %}<i class="fa-solid fa-chevron-right ml-auto text-[9px] opacity-30"></i>{% endif %}
+        </a>
       {% endfor %}
 
-      {# Mục Đổi / Trả #}
-      <a href="{{ url_for('admin.return_requests') }}" onclick="toggleMobileMenu()"
-         class="py-4 border-b border-neutral-100 font-bold uppercase tracking-[0.15em] text-[10px] flex items-center justify-between transition-colors
-                {% if request.endpoint and request.endpoint.startswith('admin.return') %}text-red-500 border-red-500{% else %}text-neutral-500{% endif %}">
-        <div class="flex items-center gap-3">
-          <i class="fa-solid fa-arrow-right-arrow-left w-4 text-center"></i>
-          Đổi / Trả
-        </div>
+      {# Đổi / Trả #}
+      <a href="{{ url_for('admin.return_requests') }}" data-nav
+         class="flex items-center gap-3 py-3.5 text-[11px] font-bold uppercase tracking-[0.12em]
+                transition-colors duration-150
+                {{ 'text-red-500' if request.endpoint and request.endpoint.startswith('admin.return') else 'text-neutral-500 active:text-red-500' }}">
+        <i class="fa-solid fa-arrow-right-arrow-left w-5 text-center text-[13px] opacity-40"></i>
+        Đổi / Trả
         {% if pending_returns > 0 %}
-        <span class="px-2 py-0.5 bg-red-500 text-white rounded-sm shadow-sm font-black text-[9px]">
-          {{ pending_returns if pending_returns < 100 else '99+' }}
-        </span>
+          <span class="ml-auto px-2 py-0.5 bg-red-500 text-white text-[9px] font-black rounded-sm">
+            {{ pending_returns if pending_returns < 100 else '99+' }}
+          </span>
         {% endif %}
       </a>
-    </div>
-
+    </nav>
   </div>
 
-  <div class="mt-auto border-t border-neutral-100 p-4 bg-neutral-50 flex justify-between gap-3">
-    <a href="/" class="flex-1 flex items-center justify-center gap-2 py-3 bg-white border border-neutral-200 rounded-sm text-[9px] font-bold text-black uppercase tracking-widest">
-      <i class="fa-solid fa-store"></i> Storefront
+  {# Drawer Footer #}
+  <div class="shrink-0 border-t border-neutral-100 p-5 flex flex-col gap-2.5"
+       style="padding-bottom: max(1.25rem, env(safe-area-inset-bottom))">
+    <a href="/"
+       class="flex items-center justify-center gap-2 py-3 border border-neutral-200 rounded-[4px]
+              text-[10px] font-bold uppercase tracking-widest text-black hover:bg-neutral-50 transition-colors">
+      <i class="fa-solid fa-store opacity-60"></i> Storefront
     </a>
-    <form action="{{ url_for('auth.logout') }}" method="POST" class="flex-1 m-0">
+    <form action="{{ url_for('auth.logout') }}" method="POST">
       <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-      <button type="submit" class="w-full py-3 bg-white border border-red-200 text-red-500 rounded-sm text-[9px] font-bold uppercase tracking-widest flex items-center justify-center gap-2">
-        <i class="fa-solid fa-arrow-right-from-bracket"></i> Đăng xuất
+      <button type="submit"
+        class="w-full py-3 border border-red-200 rounded-[4px] text-[10px] font-bold uppercase
+               tracking-widest text-red-500 hover:bg-red-50 transition-colors flex items-center justify-center gap-2">
+        <i class="fa-solid fa-arrow-right-from-bracket opacity-70"></i> Đăng xuất
       </button>
     </form>
   </div>
 </div>
 
+{# ── STYLES ── #}
 <style>
-  .no-scrollbar::-webkit-scrollbar { display: none; }
-  .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+  /* Scrollbar ẩn trong drawer */
+  #mobilePanel ::-webkit-scrollbar { display: none; }
+  #mobilePanel { scrollbar-width: none; }
+
+  /* Hamburger → X animation */
+  #hamburgerBtn.is-open .hamburger-icon span:nth-child(1) { transform: translateY(6.5px) rotate(45deg); }
+  #hamburgerBtn.is-open .hamburger-icon span:nth-child(2) { opacity: 0; transform: scaleX(0); }
+  #hamburgerBtn.is-open .hamburger-icon span:nth-child(3) { transform: translateY(-6.5px) rotate(-45deg); }
+
+  /* Nav underline (dùng group-hover trên Tailwind CDN không support, dùng CSS thuần) */
+  [data-nav]:not(.active) .nav-line { transform: scaleX(0); }
+  [data-nav]:hover .nav-line { transform: scaleX(1); }
 </style>
 
+{# ── SCRIPTS ── #}
 <script>
-function toggleMobileMenu() {
-  const menu = document.getElementById('mobileMenu');
-  if (menu.classList.contains('hidden')) {
-    menu.classList.remove('hidden');
-    menu.classList.add('flex');
+/* ─── Mobile Menu ─── */
+const MobileMenu = {
+  panel:    document.getElementById('mobilePanel'),
+  backdrop: document.getElementById('mobileBackdrop'),
+  btn:      document.getElementById('hamburgerBtn'),
+
+  open() {
+    this.panel.classList.replace('translate-x-full', 'translate-x-0');
+    this.backdrop.classList.remove('opacity-0', 'pointer-events-none');
+    this.backdrop.classList.add('opacity-100');
+    this.btn.classList.add('is-open');
     document.body.style.overflow = 'hidden';
-  } else {
-    menu.classList.add('hidden');
-    menu.classList.remove('flex');
+  },
+  close() {
+    this.panel.classList.replace('translate-x-0', 'translate-x-full');
+    this.backdrop.classList.add('opacity-0', 'pointer-events-none');
+    this.backdrop.classList.remove('opacity-100');
+    this.btn.classList.remove('is-open');
     document.body.style.overflow = '';
-  }
-}
+  },
+  toggle() { this.panel.classList.contains('translate-x-0') ? this.close() : this.open(); }
+};
+
+/* ─── Page Transition Progress Bar ─── */
+const Progress = (() => {
+  const bar = document.getElementById('nprogress');
+  let timer;
+
+  return {
+    start() {
+      clearTimeout(timer);
+      bar.style.transition = 'none';
+      bar.style.width = '0%';
+      requestAnimationFrame(() => {
+        bar.style.transition = 'width 0.4s ease';
+        bar.style.width = '70%';
+      });
+    },
+    done() {
+      bar.style.transition = 'width 0.2s ease';
+      bar.style.width = '100%';
+      timer = setTimeout(() => {
+        bar.style.transition = 'opacity 0.3s ease';
+        bar.style.opacity = '0';
+        setTimeout(() => { bar.style.width = '0'; bar.style.opacity = '1'; }, 350);
+      }, 200);
+    }
+  };
+})();
+
+/* Gắn progress bar vào tất cả link điều hướng nội bộ */
+document.querySelectorAll('a[data-nav]').forEach(a => {
+  a.addEventListener('click', e => {
+    const href = a.getAttribute('href');
+    if (!href || href.startsWith('#') || a.target === '_blank') return;
+    Progress.start();
+  });
+});
+
+/* Nếu trang load xong (back/forward cache) */
+window.addEventListener('pageshow', () => Progress.done());
+window.addEventListener('load', () => Progress.done());
+
+/* ─── Navbar shadow on scroll ─── */
+const nav = document.getElementById('adminNav');
+const onScroll = () => {
+  nav.classList.toggle('shadow-md', window.scrollY > 10);
+};
+window.addEventListener('scroll', onScroll, { passive: true });
 </script>

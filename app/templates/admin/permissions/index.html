@@ -1,0 +1,47 @@
+{% extends "admin/admin_base.html" %}
+{% block title %}Phân quyền hệ thống | GUA Admin{% endblock %}
+
+{% block content %}
+<div class="p-6">
+  <div class="flex justify-between items-center mb-6">
+    <h1 class="text-2xl font-black">Phân quyền & Vai trò</h1>
+    <button onclick="openRoleModal()" class="btn btn--primary">+ Tạo vai trò mới</button>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <!-- Danh sách vai trò -->
+    <div class="bg-white border rounded-lg p-4">
+      <h2 class="font-bold mb-3">Vai trò (Roles)</h2>
+      <div id="roles-list" class="space-y-2"></div>
+    </div>
+
+    <!-- Chi tiết quyền của vai trò được chọn -->
+    <div class="bg-white border rounded-lg p-4 lg:col-span-2">
+      <div id="role-permissions-panel">
+        <p class="text-gray-500">Chọn một vai trò bên trái để xem và gán quyền.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal tạo/sửa role -->
+  <div id="roleModal" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50">
+    <div class="bg-white rounded-lg p-6 w-full max-w-md">
+      <h3 id="modalTitle" class="text-lg font-bold mb-4">Thêm vai trò</h3>
+      <input type="hidden" id="roleId">
+      <input type="text" id="roleName" placeholder="Tên vai trò" class="w-full border p-2 mb-3">
+      <textarea id="roleDesc" placeholder="Mô tả" class="w-full border p-2 mb-4"></textarea>
+      <div class="flex justify-end gap-2">
+        <button onclick="closeRoleModal()" class="px-4 py-2 border">Hủy</button>
+        <button onclick="saveRole()" class="px-4 py-2 bg-black text-white">Lưu</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// JavaScript để load roles, permissions, và gán quyền (dùng fetch)
+// Hàm loadRoles() gọi API /admin/permissions/roles, render danh sách.
+// Khi click vào role, load role-permissions và hiển thị checklist các permission.
+// Có thể check/uncheck và gửi lên API sync.
+</script>
+{% endblock %}

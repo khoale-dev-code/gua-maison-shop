@@ -4,23 +4,28 @@ Quản lý trang Khuyến mãi / Mã giảm giá dành cho Khách hàng (Storefr
 """
 
 import logging
-from flask import Blueprint, render_template
+import io
+import segno
+from flask import Blueprint, render_template, send_file
 from datetime import datetime
 from app.utils.supabase_client import get_supabase
 
-# Tạo Blueprint cho trang khuyến mãi
+# Khởi tạo Blueprint và Logger
 promotions_bp = Blueprint("promotions", __name__)
 logger = logging.getLogger(__name__)
 
 
 @promotions_bp.route("/promotions")
 def index():
-    """Hiển thị danh sách các mã giảm giá đang hoạt động cho khách hàng"""
+    """
+    Hiển thị danh sách các mã giảm giá đang hoạt động cho khách hàng.
+    Bao gồm cả hình ảnh (image_url) để hiển thị trên UI Editorial.
+    """
     try:
         db = get_supabase()
         now_str = datetime.now().isoformat()
         
-        # Truy vấn: Lấy mã is_active = True VÀ (không có ngày hết hạn HOẶC ngày hết hạn > hiện tại)
+        # Lấy danh sách voucher: is_active = True VÀ (chưa hết hạn HOẶC không có hạn)
         res = db.table("coupons") \
                 .select("*") \
                 .eq("is_active", True) \
@@ -30,10 +35,66 @@ def index():
         
         coupons = res.data or []
         
-        # Render file template bạn vừa tạo
         return render_template("coupons/index.html", coupons=coupons)
         
     except Exception as e:
         logger.error(f"Lỗi tải danh sách khuyến mãi (Storefront): {e}")
-        # Fallback an toàn: Trả về mảng rỗng nếu lỗi DB
+        # Fallback an toàn: Trả về danh sách rỗng để UI không bị crash
         return render_template("coupons/index.html", coupons=[])
+
+
+@promotions_bp.route("/api/coupons/qr/<code>")
+def generate_qr(code):
+    """
+    Tạo và trả về hình ảnh QR Code dạng PNG từ mã khuyến mãi.
+    Tạo trực tiếp trên RAM (In-memory buffer) để không chiếm dụng Storage.
+    """
+    try:
+        if not code:
+            return "Mã không hợp lệ", 400
+
+        # Tạo QR với Segno, set error_correction mức cao (H) giúp quét dễ hơn
+        qr = segno.make_qr(code.upper(), error='h')
+        
+        # Lưu vào buffer với màu sắc chuẩn Editorial (mực đen '#0e0e0e', nền kem '#faf8f5')
+        img_io = io.BytesIO()
+        qr.save(
+            img_io,
+            kind='png',
+            scale=10,
+            dark="#0e0e0e",
+            light="#faf8f5",
+            border=2
+        )
+        img_io.seek(0)
+        
+        return send_file(img_io, mimetype='image/png', as_attachment=False)
+        
+    except Exception as e:
+        logger.error(f"Lỗi tạo QR code cho mã {code}: {e}")
+        return "Lỗi tạo mã QR", 500
+
+
+@promotions_bp.route("/promotions/<code>")
+def detail(code):
+    """
+    Hiển thị trang chi tiết của một mã khuyến mãi cụ thể.
+    """
+    try:
+        db = get_supabase()
+        # Tìm mã khuyến mãi dựa trên code
+        res = db.table("coupons") \
+                .select("*") \
+                .eq("code", code.upper()) \
+                .single() \
+                .execute()
+        
+        coupon = res.data
+        if not coupon:
+            return render_template("404.html"), 404  # Hoặc redirect về trang /promotions
+            
+        return render_template("coupons/detail.html", coupon=coupon)
+        
+    except Exception as e:
+        logger.error(f"Lỗi tải chi tiết khuyến mãi {code}: {e}")
+        return "Không tìm thấy đặc quyền này.", 404

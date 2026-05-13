@@ -1,0 +1,88 @@
+{% extends "admin/admin_base.html" %}
+{% block title %}Quản lý thông báo | GUA Admin{% endblock %}
+
+{% block content %}
+<div class="bg-white rounded-sm shadow-sm border border-neutral-200">
+  <div class="p-6 border-b border-neutral-200 flex justify-between items-center">
+    <div>
+      <h2 class="text-lg font-black text-black uppercase tracking-tight">Thông báo khách hàng</h2>
+      <p class="text-xs text-neutral-500 mt-1">Quản lý các thông báo hiển thị trên thanh navbar.</p>
+    </div>
+    <a href="{{ url_for('admin.add_notification') }}" class="btn btn--primary">
+      <i class="fa-solid fa-plus"></i> Thêm thông báo
+    </a>
+    <form action="{{ url_for('admin.backfill_notifications') }}" method="POST" class="inline-block"
+          onsubmit="return confirm('Fan-out tất cả thông báo active cho toàn bộ user?')">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <button type="submit" class="btn btn--secondary" title="Đồng bộ thông báo cũ cho tất cả user">
+        <i class="fa-solid fa-rotate"></i> Backfill
+      </button>
+    </form>
+  </div>
+
+  <div class="overflow-x-auto">
+    <table class="w-full text-sm">
+      <thead class="bg-neutral-50 border-b border-neutral-200">
+        <tr>
+          <th class="px-6 py-3 text-left text-xs font-bold uppercase tracking-wider">Tiêu đề</th>
+          <th class="px-6 py-3 text-left text-xs font-bold uppercase tracking-wider">Nội dung</th>
+          <th class="px-6 py-3 text-center text-xs font-bold uppercase tracking-wider">Trạng thái</th>
+          <th class="px-6 py-3 text-center text-xs font-bold uppercase tracking-wider">Thời gian</th>
+          <th class="px-6 py-3 text-center text-xs font-bold uppercase tracking-wider">Thứ tự</th>
+          <th class="px-6 py-3 text-right text-xs font-bold uppercase tracking-wider">Thao tác</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-neutral-100">
+        {% for notif in notifications %}
+        <tr class="hover:bg-neutral-50 transition-colors">
+          <td class="px-6 py-4 font-bold text-black">{{ notif.title }}</td>
+          <td class="px-6 py-4 text-neutral-600 max-w-md truncate">{{ notif.content }}</td>
+          <td class="px-6 py-4 text-center">
+            {% if notif.is_active %}
+              <span class="inline-flex items-center gap-1.5 px-2 py-1 bg-emerald-50 text-emerald-600 text-[10px] font-bold rounded-full">
+                <span class="w-1.5 h-1.5 bg-emerald-500 rounded-full"></span> Đang bật
+              </span>
+            {% else %}
+              <span class="inline-flex items-center gap-1.5 px-2 py-1 bg-neutral-100 text-neutral-500 text-[10px] font-bold rounded-full">
+                <span class="w-1.5 h-1.5 bg-neutral-400 rounded-full"></span> Tắt
+              </span>
+            {% endif %}
+          </td>
+          <td class="px-6 py-4 text-center text-xs text-neutral-500">
+            {% if notif.start_at or notif.end_at %}
+              {{ (notif.start_at or '')[:10] if notif.start_at else '∞' }} → {{ (notif.end_at or '')[:10] if notif.end_at else '∞' }}
+            {% else %}
+              Vô thời hạn
+            {% endif %}
+          </td>
+          <td class="px-6 py-4 text-center text-xs">{{ notif.sort_order }}</td>
+          <td class="px-6 py-4 text-right space-x-2">
+            <a href="{{ url_for('admin.edit_notification', notif_id=notif.id) }}" class="text-neutral-500 hover:text-black transition-colors" title="Sửa">
+              <i class="fa-solid fa-pen"></i>
+            </a>
+            <form action="{{ url_for('admin.toggle_notification', notif_id=notif.id) }}" method="POST" class="inline-block">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <button type="submit" class="text-neutral-500 hover:text-amber-600 transition-colors" title="Bật/Tắt">
+                <i class="fa-solid fa-power-off"></i>
+              </button>
+            </form>
+            <form action="{{ url_for('admin.delete_notification', notif_id=notif.id) }}" method="POST" class="inline-block" onsubmit="return confirm('Xóa thông báo này?')">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <button type="submit" class="text-neutral-500 hover:text-red-600 transition-colors" title="Xóa">
+                <i class="fa-solid fa-trash-alt"></i>
+              </button>
+            </form>
+          </td>
+        </tr>
+        {% else %}
+        <tr>
+          <td colspan="6" class="px-6 py-12 text-center text-neutral-400">
+            Chưa có thông báo nào. <a href="{{ url_for('admin.add_notification') }}" class="text-black underline">Tạo ngay</a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

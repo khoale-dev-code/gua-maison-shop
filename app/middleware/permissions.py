@@ -1,36 +1,28 @@
+# app/middleware/permissions.py (đã có sẵn, chỉ cần dùng)
 from functools import wraps
-from flask import session, jsonify, abort, request
+from flask import session, jsonify, abort
 from app.services.rbac_service import RBACService
 
 
-def require_permission(permission_code: str):
-    """Decorator kiểm tra quyền của User trước khi chạy Controller"""
+def permission_required(permission_code: str):
 
     def decorator(f):
 
         @wraps(f)
         def decorated_function(*args, **kwargs):
             user_id = session.get("user_id")
-            tenant_id = session.get("tenant_id")  # Cực kỳ quan trọng cho Multi-tenant
-            
-            if not user_id or not tenant_id:
+            if not user_id:
                 return jsonify({"error": "Unauthorized"}), 401
-
-            # Lấy tập hợp quyền (Đã được tối ưu qua Cache)
-            user_perms = RBACService.get_user_permissions(user_id, tenant_id)
-            
-            # Super Admin (code: '*') luôn có quyền
-            if '*' in user_perms or permission_code in user_perms:
+            # Lấy role từ session (đã được lưu lúc login)
+            # Nếu role là 'admin' (super) thì cho qua, nếu không thì kiểm tra permission
+            if session.get("role") == "admin":
                 return f(*args, **kwargs)
-                
-            # Log lại hành vi truy cập trái phép
-            import logging
-            logging.warning(f"[Security] User {user_id} cố truy cập quyền {permission_code} nhưng bị từ chối.")
-            
-            if request.is_json:
-                return jsonify({"error": "Forbidden", "message": "Bạn không có quyền thực hiện thao tác này."}), 403
-            return abort(403)
-            
+            # Nếu không, kiểm tra quyền cụ thể qua service
+            perms = RBACService.get_user_permissions(user_id, session.get("tenant_id", ""))
+            if permission_code in perms:
+                return f(*args, **kwargs)
+            return jsonify({"error": "Forbidden", "message": f"Missing permission: {permission_code}"}), 403
+
         return decorated_function
 
     return decorator
