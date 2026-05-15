@@ -1,235 +1,373 @@
 {% extends "base.html" %}
-{% block title %}Về Chúng Tôi | GUA Maison{% endblock %}
+{% block title %}Về GUA Maison | Wear Your Identity{% endblock %}
 
 {% block extra_head %}
 <style>
   :root {
-    --display: 'Cormorant', serif;
+    --display: 'Cormorant Garamond', 'Cormorant', serif;
     --body: 'DM Sans', sans-serif;
     --ink: #0e0e0e;
     --dust: #f5f2ee;
-    --warm: #6d1f1f;
+    --warm: #8a3a2b; 
     --muted: #8a8580;
-    --line: rgba(14,14,14,0.1);
+    --line: rgba(14,14,14,0.12);
   }
   * { margin: 0; padding: 0; box-sizing: border-box; }
   html { scroll-behavior: smooth; }
-  body { background: #faf8f5; color: var(--ink); font-family: var(--body); }
+  body { background: #faf8f5; color: var(--ink); font-family: var(--body); overflow-x: hidden; }
 
-  .section { max-width: 1320px; margin: 0 auto; padding: 0 48px; }
-  @media(max-width:768px){ .section { padding: 0 24px; } }
+  .section { max-width: 1400px; margin: 0 auto; padding: 0 5vw; }
+  
+  /* ── ANIMATIONS ── */
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(40px); } to { opacity: 1; transform: none; } }
+  .reveal { animation: fadeUp 1s cubic-bezier(0.16, 1, 0.3, 1) both; }
+  .d-1 { animation-delay: 0.1s; } .d-2 { animation-delay: 0.25s; } .d-3 { animation-delay: 0.4s; }
 
-  /* HERO */
-  .hero { padding-top: 120px; padding-bottom: 0; }
+  /* ── HERO MAGAZINE COVER ── */
+  .hero { 
+    min-height: 90vh; display: flex; flex-direction: column; justify-content: center; 
+    padding-top: 120px; padding-bottom: 60px; position: relative;
+  }
   .hero-eyebrow {
-    display: flex; align-items: center; gap: 12px;
-    font-size: 10px; letter-spacing: .25em; text-transform: uppercase;
-    color: var(--muted); margin-bottom: 32px;
+    font-size: 10px; letter-spacing: 0.3em; text-transform: uppercase;
+    color: var(--muted); margin-bottom: 40px; display: flex; align-items: center; gap: 16px;
   }
-  .hero-eyebrow::before { content:''; display:block; width:40px; height:1px; background:var(--warm); }
+  .hero-eyebrow::before { content: ''; width: 60px; height: 1px; background: var(--warm); }
   .hero-title {
-    font-family: var(--display); font-weight: 400;
-    font-size: clamp(52px, 8vw, 104px); line-height: 1.0;
-    letter-spacing: -.01em; margin-bottom: 64px;
+    font-family: var(--display); font-weight: 400; font-size: clamp(50px, 11vw, 140px);
+    line-height: 0.85; letter-spacing: -0.02em; text-transform: uppercase;
+    margin-bottom: 24px; position: relative; z-index: 10;
   }
-  .hero-title em { font-style: italic; color: var(--warm); }
-  .hero-img-wrap { position: relative; overflow: hidden; }
-  .hero-img-wrap img { width:100%; height:70vh; object-fit:cover; display:block; filter:brightness(.93); }
-  .hero-caption {
-    position: absolute; bottom: 32px; right: 40px;
-    font-size: 11px; letter-spacing:.18em; text-transform:uppercase;
-    color: rgba(255,255,255,.65);
+  .hero-subtitle {
+    font-family: var(--display); font-style: italic; font-size: clamp(24px, 4vw, 48px);
+    color: var(--warm); margin-left: 10vw; margin-bottom: 60px;
+  }
+  .hero-img-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 2vw; align-items: end; }
+  .hero-img-main img { width: 100%; height: 65vh; object-fit: cover; filter: grayscale(10%); }
+  .hero-img-sub { padding-bottom: 10vh; }
+  .hero-img-sub img { width: 100%; aspect-ratio: 3/4; object-fit: cover; }
+  .caption { font-size: 10px; text-transform: uppercase; letter-spacing: 0.15em; color: var(--muted); margin-top: 12px; }
+
+  @media(max-width: 900px) {
+    .hero-img-grid { grid-template-columns: 1fr; gap: 4vw; }
+    .hero-img-sub { display: none; }
+    .hero-img-main img { height: 50vh; }
   }
 
-  /* MANIFESTO */
-  .manifesto { padding: 100px 0; border-bottom: 1px solid var(--line); }
-  .manifesto-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: start; }
-  @media(max-width:900px){ .manifesto-grid { grid-template-columns: 1fr; gap: 48px; } }
-  .manifesto-label {
-    font-size:10px; letter-spacing:.22em; text-transform:uppercase;
-    color: var(--warm); margin-bottom: 20px;
+ 
+ /* ── CHAPTER 1: THE PROLOGUE ── */
+  .prologue { padding: 120px 0; border-bottom: 1px solid var(--line); }
+  .prologue-text {
+    font-family: var(--display); font-size: clamp(24px, 3.5vw, 42px); line-height: 1.4;
+    max-width: 1000px; margin: 0 auto 60px; text-align: center;
   }
-  .manifesto-quote {
-    font-family: var(--display); font-weight: 400; font-style: italic;
-    font-size: clamp(24px,3.5vw,38px); line-height: 1.3;
+  .prologue-text em { color: var(--warm); font-style: italic; }
+  
+  /* Hiệu ứng tràn viền (Full-bleed) cho Video */
+  .prologue-media { 
+    width: 100vw; 
+    position: relative; 
+    left: 50%; 
+    right: 50%; 
+    margin-left: -50vw; 
+    margin-right: -50vw; 
+    height: 75vh; /* Chiều cao chiếm 75% màn hình tạo cảm giác điện ảnh */
+    overflow: hidden; 
   }
-  .manifesto-body { font-size: 15px; line-height: 1.85; color: #444; font-weight:300; }
-  .manifesto-body + .manifesto-body { margin-top: 20px; }
-
-  /* NUMBERS */
-  .numbers { padding: 80px 0; border-bottom: 1px solid var(--line); }
-  .numbers-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 1px; background: var(--line); }
-  @media(max-width:700px){ .numbers-grid { grid-template-columns: repeat(2,1fr); } }
-  .number-cell {
-    background: #faf8f5; padding: 48px 32px;
-    display: flex; flex-direction:column; gap:8px;
-  }
-  .number-val {
-    font-family: var(--display); font-weight:400; font-size: 52px;
-    line-height:1; letter-spacing:-.02em;
-  }
-  .number-val span { font-size: 28px; color: var(--warm); }
-  .number-desc { font-size:12px; letter-spacing:.12em; text-transform:uppercase; color:var(--muted); }
-
-  /* PILLARS */
-  .pillars { padding: 100px 0; }
-  .pillars-header { margin-bottom: 64px; }
-  .pillars-header h2 {
-    font-family: var(--display); font-weight:400;
-    font-size: clamp(28px, 4vw, 48px); max-width: 600px; line-height:1.25;
-  }
-  .pillars-grid { display:grid; grid-template-columns: repeat(3,1fr); gap:2px; background: var(--line); }
-  @media(max-width:800px){ .pillars-grid { grid-template-columns:1fr; } }
-  .pillar {
-    background: #faf8f5; padding: 48px 40px;
-    display:flex; flex-direction:column; gap:16px;
-    transition: background .3s;
-  }
-  .pillar:hover { background: var(--dust); }
-  .pillar-num {
-    font-size:10px; letter-spacing:.2em; text-transform:uppercase;
-    color:var(--warm);
-  }
-  .pillar-title {
-    font-family: var(--display); font-style:italic; font-size:26px; font-weight:400;
-  }
-  .pillar-text { font-size:14px; line-height:1.8; color:#555; font-weight:300; }
-  .pillar-arrow {
-    margin-top: auto; font-size:20px; color:var(--warm);
-    align-self: flex-end;
+  .prologue-media video { 
+    width: 100%; 
+    height: 100%; 
+    object-fit: cover; 
+    filter: brightness(0.9); /* Giảm độ sáng nhẹ để video có chiều sâu */
   }
 
-  /* ATELIER STRIP */
-  .atelier { padding: 0 0 100px; }
-  .atelier-inner {
-    background: var(--ink); padding: 80px 80px;
-    display:grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items:center;
+  /* ── CHAPTER 2: THE LEXICON ── */
+  .lexicon { padding: 120px 0; border-bottom: 1px solid var(--line); }
+  .chapter-label {
+    font-size: 10px; letter-spacing: 0.25em; text-transform: uppercase;
+    color: var(--warm); margin-bottom: 60px; text-align: center;
   }
-  @media(max-width:900px){ .atelier-inner { grid-template-columns:1fr; padding:48px 32px; gap:40px; } }
-  .atelier-label { font-size:10px; letter-spacing:.22em; text-transform:uppercase; color:var(--warm); margin-bottom:20px; }
-  .atelier-title {
-    font-family:var(--display); font-weight:400; color:#fff;
-    font-size:clamp(26px,3.5vw,42px); line-height:1.3; margin-bottom:24px;
+  .lexicon-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8vw; }
+  .lexicon-block h2 {
+    font-family: var(--display); font-size: 48px; font-weight: 400; font-style: italic;
+    margin-bottom: 32px; padding-bottom: 24px; border-bottom: 1px solid var(--line);
   }
-  .atelier-text { font-size:14px; line-height:1.85; color:rgba(255,255,255,.55); font-weight:300; }
-  .atelier-img img { width:100%; aspect-ratio:4/5; object-fit:cover; filter:brightness(.85); }
-  .atelier-cta {
-    display:inline-flex; align-items:center; gap:12px;
-    margin-top:36px; font-size:12px; letter-spacing:.18em;
-    text-transform:uppercase; color:#fff; text-decoration:none;
-    border-bottom:1px solid rgba(255,255,255,.25); padding-bottom:4px;
-    transition: border-color .3s;
+  .lexicon-text { font-size: 14px; line-height: 1.8; color: #444; font-weight: 400; margin-bottom: 20px; }
+  
+  .acronym-list { margin-top: 40px; display: flex; flex-direction: column; gap: 24px; }
+  .acronym-item { display: flex; align-items: baseline; gap: 24px; }
+  .acronym-letter {
+    font-family: var(--display); font-size: 64px; line-height: 0.8; 
+    color: var(--warm); font-style: italic; width: 60px;
   }
-  .atelier-cta:hover { border-color: var(--warm); color: var(--warm); }
+  .acronym-desc { flex: 1; }
+  .acronym-word { font-size: 12px; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase; margin-bottom: 4px; }
+  .acronym-mean { font-size: 14px; color: var(--muted); }
 
-  /* PAGE LOAD ANIMATION */
-  @keyframes rise { from{opacity:0;transform:translateY(28px)} to{opacity:1;transform:none} }
-  .rise { animation: rise .9s cubic-bezier(.16,1,.3,1) both; }
-  .rise-1 { animation-delay:.05s } .rise-2 { animation-delay:.15s } .rise-3 { animation-delay:.28s }
+  @media(max-width: 900px) { .lexicon-grid { grid-template-columns: 1fr; gap: 80px; } }
+
+  /* ── FULL WIDTH INTERMISSION MEDIA (4 CỘT TRÀN VIỀN) ── */
+  .intermission-wrapper {
+    width: 100vw;
+    position: relative;
+    left: 50%;
+    right: 50%;
+    margin-left: -50vw;
+    margin-right: -50vw;
+    overflow: hidden;
+  }
+  .intermission { 
+    display: grid; 
+    grid-template-columns: repeat(4, 1fr); 
+    width: 100%; 
+    height: 75vh; 
+  }
+  .intermission-item {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+  }
+  .intermission-item img { 
+    width: 100%; 
+    height: 100%; 
+    object-fit: cover; 
+    filter: grayscale(30%) brightness(0.8); 
+    transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1), filter 0.8s ease;
+  }
+  .intermission-item:hover img {
+    transform: scale(1.05);
+    filter: grayscale(0%) brightness(1.05);
+  }
+
+  @media(max-width: 900px) {
+    .intermission { grid-template-columns: repeat(2, 1fr); height: 60vh; }
+  }
+
+  /* ── CHAPTER 3: THE JOURNEY ── */
+  .journey { padding: 120px 0; }
+  .journey-grid { display: grid; grid-template-columns: 5fr 6fr; gap: 6vw; align-items: center; }
+  .journey-img img { width: 100%; aspect-ratio: 4/5; object-fit: cover; }
+  .journey-content h2 {
+    font-family: var(--display); font-size: clamp(36px, 5vw, 64px); font-weight: 400;
+    line-height: 1.1; margin-bottom: 40px;
+  }
+  .journey-content p { font-size: 15px; line-height: 1.8; color: #444; margin-bottom: 24px; }
+
+  @media(max-width: 900px) {
+    .journey-grid { grid-template-columns: 1fr; }
+    .journey-img { order: 2; }
+  }
+
+  /* ── CHAPTER 4: ETHOS ── */
+  .ethos { padding: 0; }
+  .ethos-inner { 
+    position: relative; padding: 150px 5vw; color: var(--dust); 
+    background-image: url('https://i.pinimg.com/736x/30/6c/68/306c680757188a4c2f786879706c6db8.jpg');
+    background-size: cover; background-position: center; background-attachment: fixed;
+  }
+  .ethos-overlay { position: absolute; inset: 0; background: rgba(14,14,14,0.75); z-index: 1; }
+  .ethos-content { position: relative; z-index: 2; }
+  .ethos-title {
+    font-family: var(--display); font-size: 48px; font-weight: 400; font-style: italic;
+    text-align: center; margin-bottom: 80px; color: #fff;
+  }
+  .ethos-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 40px; }
+  .ethos-item { border-top: 1px solid rgba(255,255,255,0.2); padding-top: 32px; }
+  .ethos-num { font-family: var(--display); font-size: 24px; color: #dcb8af; font-style: italic; margin-bottom: 16px; }
+  .ethos-text { font-size: 13px; line-height: 1.7; color: rgba(255,255,255,0.8); }
+  
+  @media(max-width: 900px) { .ethos-grid { grid-template-columns: repeat(2, 1fr); } }
+  @media(max-width: 500px) { .ethos-grid { grid-template-columns: 1fr; } }
+
+  /* ── EPILOGUE ── */
+  .epilogue { 
+    position: relative; padding: 200px 0; text-align: center; 
+    background-image: url('https://i.pinimg.com/1200x/02/76/ef/0276efb152ad7d095805a36cb76758e6.jpg');
+    background-size: cover; background-position: center;
+  }
+  .epilogue-overlay { position: absolute; inset: 0; background: rgba(245,242,238,0.85); z-index: 1; }
+  .epilogue-content { position: relative; z-index: 2; }
+  .epilogue h2 {
+    font-family: var(--display); font-size: clamp(48px, 8vw, 100px); font-weight: 400;
+    text-transform: uppercase; letter-spacing: -0.02em; line-height: 1; margin-bottom: 24px;
+    color: var(--ink);
+  }
+  .epilogue p { font-size: 12px; letter-spacing: 0.3em; text-transform: uppercase; color: var(--warm); font-weight: bold; }
 </style>
 {% endblock %}
 
 {% block content %}
 
-<!-- HERO -->
 <section class="section hero">
-  <div class="rise rise-1">
-    <p class="hero-eyebrow">Maison — Hà Nội · Thành phố Hồ Chí Minh · Paris</p>
+  <div class="reveal d-1">
+    <p class="hero-eyebrow">The Manifesto</p>
   </div>
-  <h1 class="hero-title rise rise-2">
-    Vải vóc<br>là ngôn ngữ.<br><em>Chúng tôi</em><br>là giọng nói.
-  </h1>
-  <div class="hero-img-wrap rise rise-3">
-    <img src="https://i.pinimg.com/1200x/a0/13/d8/a013d8bf134dae9b286de014958b18ba.jpg" alt="GUA Maison Atelier — Xuân Hè 2026">
-    <span class="hero-caption">Atelier GUA — Bộ sưu tập Xuân Hè 2026</span>
+  <h1 class="hero-title reveal d-2">GUA Maison</h1>
+  <div class="hero-subtitle reveal d-3">Wear Your Identity</div>
+  
+  <div class="hero-img-grid reveal d-3">
+    <div class="hero-img-main">
+      <img src="https://d2w9rnfcy7mm78.cloudfront.net/30761198/original_51d17353660f65ebd505dbdc8977b30f.gif?1726597257" alt="GUA Maison Campaign - Runway">
+      <p class="caption">The Modern Identity — Tinh thần tự do</p>
+    </div>
+    <div class="hero-img-sub">
+      <img src="https://i.pinimg.com/1200x/b0/4f/33/b04f339093b97588524f7fd2bc2cd40d.jpg" alt="Atelier Details">
+      <p class="caption">Craftsmanship Details</p>
+    </div>
   </div>
 </section>
 
-<!-- MANIFESTO -->
-<section class="section manifesto">
-  <div class="manifesto-grid">
-    <div>
-      <p class="manifesto-label">Triết học thiết kế</p>
-      <h2 class="manifesto-quote">
-        Trang phục không che đậy cơ thể — nó kể câu chuyện mà lời nói không thể diễn đạt.
-      </h2>
-    </div>
-    <div>
-      <p class="manifesto-body">
-        <strong>GUA Maison</strong> ra đời từ niềm tin rằng thời trang cao cấp Việt Nam xứng đáng có tiếng nói trên bản đồ toàn cầu. Không sao chép, không chạy theo xu hướng — chúng tôi tạo ra chúng.
+<section class="section prologue reveal">
+  <p class="prologue-text">
+    Giữa nhịp sống hiện đại, thời trang không còn đơn thuần là những bộ quần áo để mặc mỗi ngày. Thời trang đã trở thành một phần của phong cách sống, là cách mỗi người <em>thể hiện cá tính, cảm xúc và bản sắc riêng</em> của mình.
+  </p>
+  <div class="prologue-media reveal d-2">
+    <video src="https://framerusercontent.com/assets/lZoFaMiSrl7NBMR8dw8rTWfy4.mp4" autoplay muted loop playsinline></video>
+  </div>
+</section>
+
+<section class="section lexicon">
+  <p class="chapter-label reveal">Chương I — Tên gọi</p>
+  <div class="lexicon-grid">
+    
+    <div class="lexicon-block reveal">
+      <h2>Ý nghĩa của "GUA"</h2>
+      <p class="lexicon-text">
+        “GUA” không chỉ là một cái tên ngắn gọn và dễ nhớ, mà còn mang trong mình tinh thần mà thương hiệu theo đuổi. GUA đại diện cho sự khác biệt, tự do và cá tính. Đó là tinh thần của những người dám thể hiện bản thân, không ngại tạo nên phong cách riêng và luôn muốn nổi bật theo cách của chính mình. 
       </p>
-      <p class="manifesto-body">
-        Mỗi bộ sưu tập là một luận văn về chuyển động: cách vải rủ khi người mặc bước đi, cách một đường cắt bất đối xứng giải phóng vai trái đồng thời tôn lên đường cong vai phải. Đây là Haute Couture của thế kỷ 21 — tinh tế, có chủ đích, và hoàn toàn là bản thân bạn.
+      <p class="lexicon-text">
+        Không quá phô trương, không chạy theo những xu hướng ngắn hạn, GUA hướng đến vẻ đẹp tinh tế, bền vững và có chiều sâu.
+      </p>
+      
+      <div class="acronym-list">
+        <div class="acronym-item">
+          <div class="acronym-letter">G</div>
+          <div class="acronym-desc">
+            <div class="acronym-word">Grace</div>
+            <div class="acronym-mean">Sự thanh lịch và tinh tế trong từng đường nét thiết kế.</div>
+          </div>
+        </div>
+        <div class="acronym-item">
+          <div class="acronym-letter">U</div>
+          <div class="acronym-desc">
+            <div class="acronym-word">Unique</div>
+            <div class="acronym-mean">Bản sắc cá tính độc bản của mỗi khách hàng khi khoác lên trang phục.</div>
+          </div>
+        </div>
+        <div class="acronym-item">
+          <div class="acronym-letter">A</div>
+          <div class="acronym-desc">
+            <div class="acronym-word">Attitude</div>
+            <div class="acronym-mean">Thái độ sống tự tin, mạnh mẽ và làm chủ thời đại mới.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="lexicon-block reveal d-2">
+      <h2>Ý nghĩa của "Maison"</h2>
+      <p class="lexicon-text">
+        “Maison” trong tiếng Pháp mang ý nghĩa là “ngôi nhà”. Trong thế giới thời trang, từ này thường được dùng cho những thương hiệu mang tính sáng tạo, nghệ thuật và có bản sắc riêng biệt.
+      </p>
+      <p class="lexicon-text">
+        Với GUA Maison, “Maison” đại diện cho một không gian nơi mọi người có thể tìm thấy phiên bản phong cách của chính mình. Đó là nơi hội tụ giữa sự sáng tạo, cảm hứng và cá tính. Một “ngôi nhà thời trang” dành cho những ai yêu cái đẹp hiện đại nhưng vẫn muốn giữ được nét riêng không hòa lẫn.
       </p>
     </div>
+
   </div>
 </section>
 
-<!-- NUMBERS -->
-<section class="section numbers">
-  <div class="numbers-grid">
-    <div class="number-cell">
-      <div class="number-val">12<span>+</span></div>
-      <div class="number-desc">Năm nghề thủ công</div>
+<div class="intermission-wrapper reveal">
+  <div class="intermission">
+    <div class="intermission-item">
+      <img src="https://i.pinimg.com/736x/1a/5f/cf/1a5fcf33b42c199589484a8bf3693aed.jpg" alt="GUA Maison Look 1">
     </div>
-    <div class="number-cell">
-      <div class="number-val">340<span></span></div>
-      <div class="number-desc">Nghệ nhân đồng hành</div>
+    <div class="intermission-item">
+      <img src="https://i.pinimg.com/1200x/05/41/10/05411050c5bd98ac71043fbe7f578f63.jpg" alt="GUA Maison Runway">
     </div>
-    <div class="number-cell">
-      <div class="number-val">6<span></span></div>
-      <div class="number-desc">Bộ sưu tập mỗi năm</div>
+    <div class="intermission-item">
+      <img src="https://i.pinimg.com/736x/42/41/34/424134d8ccf4a803dacc359779e5b64d.jpg" alt="GUA Maison Look 2">
     </div>
-    <div class="number-cell">
-      <div class="number-val">0<span>%</span></div>
-      <div class="number-desc">Lãng phí vải trong atelier</div>
-    </div>
-  </div>
-</section>
-
-<!-- THREE PILLARS -->
-<section class="section pillars">
-  <div class="pillars-header">
-    <p class="manifesto-label">Cột trụ thương hiệu</p>
-    <h2>Ba cam kết không bao giờ thỏa hiệp của GUA</h2>
-  </div>
-  <div class="pillars-grid">
-    <div class="pillar">
-      <span class="pillar-num">Một — Craftsmanship</span>
-      <h3 class="pillar-title">Đôi tay nghệ nhân</h3>
-      <p class="pillar-text">Mỗi thiết kế được hoàn thiện bởi bàn tay của những nghệ nhân may đo lành nghề tại Hà Nội và TP. HCM. Không dây chuyền sản xuất đại trà. Từng mũi chỉ là một quyết định có chủ đích.</p>
-      <span class="pillar-arrow">→</span>
-    </div>
-    <div class="pillar">
-      <span class="pillar-num">Hai — Sustainability</span>
-      <h3 class="pillar-title">Thời trang có trách nhiệm</h3>
-      <p class="pillar-text">Chúng tôi chỉ làm việc với các nhà cung cấp vải được chứng nhận GOTS và OEKO-TEX. Phần vải dư từ mỗi bộ sưu tập được tái sử dụng thành phụ kiện hoặc tặng cho các xưởng thủ công địa phương.</p>
-      <span class="pillar-arrow">→</span>
-    </div>
-    <div class="pillar">
-      <span class="pillar-num">Ba — Avant-Garde</span>
-      <h3 class="pillar-title">Phá vỡ khuôn mẫu</h3>
-      <p class="pillar-text">Thời trang Việt không cần phải là bản sao của phương Tây. GUA Maison lấy cảm hứng từ kiến trúc đình làng Bắc Bộ, đường cong áo dài Nguyễn triều và nhịp điệu của đô thị đương đại.</p>
-      <span class="pillar-arrow">→</span>
-    </div>
-  </div>
-</section>
-
-<!-- ATELIER DARK STRIP -->
-<div class="section atelier">
-  <div class="atelier-inner">
-    <div>
-      <p class="atelier-label">Không gian sáng tạo</p>
-      <h2 class="atelier-title">Atelier của chúng tôi là nơi tĩnh lặng gặp gỡ sự táo bạo</h2>
-      <p class="atelier-text">
-        Nằm trong một căn nhà phố Pháp hơn trăm tuổi tại phố Hàng Trống, Hà Nội — atelier GUA là nơi mỗi thiết kế từ phác thảo đến thành phẩm đều được chắt lọc qua hàng chục lần thử nghiệm. Khách hàng được mời vào không gian này không phải để mua sắm, mà để trải nghiệm.
-      </p>
-      <a href="#" class="atelier-cta">Đặt lịch tham quan atelier &nbsp;↗</a>
-    </div>
-    <div class="atelier-img">
-      <img src="https://i.pinimg.com/originals/a0/26/d6/a026d6cb8c2e9bccb2ab82e805edd658.gif" alt="Atelier GUA Maison Hà Nội">
+    <div class="intermission-item">
+      <img src="https://i.pinimg.com/736x/57/ca/23/57ca23f0be0df89b458514a4162a315e.jpg" alt="GUA Maison Atelier">
     </div>
   </div>
 </div>
+
+<section class="section journey">
+  <p class="chapter-label reveal">Chương II — Hành trình</p>
+  <div class="journey-grid">
+    <div class="journey-img reveal">
+      <img src="https://i.pinimg.com/736x/2b/7a/ac/2b7aac8eca8b4d95001063130f03926a.jpg" alt="GUA Maison Journey">
+    </div>
+    <div class="journey-content reveal d-2">
+      <h2>Thời trang là ngôn ngữ.<br>Chúng tôi là giọng nói.</h2>
+      <p>
+        GUA Maison được xây dựng với mong muốn mang đến những thiết kế có tính ứng dụng cao nhưng vẫn giữ được nét thời thượng và khác biệt. Chúng tôi tin rằng một bộ trang phục đẹp không chỉ nằm ở kiểu dáng, mà còn ở cảm giác tự tin mà nó mang lại cho người mặc.
+      </p>
+      <p>
+        Chính vì vậy, từng sản phẩm tại GUA Maison đều được lựa chọn và hoàn thiện cẩn thận – từ chất liệu, form dáng đến từng đường may nhỏ nhất. Chúng tôi ưu tiên sự thoải mái, tính linh hoạt và khả năng phối hợp trong nhiều phong cách khác nhau.
+      </p>
+      <p>
+        Phong cách mà GUA Maison hướng tới là sự cân bằng giữa hiện đại và tinh tế. Đó có thể là một outfit tối giản nhưng vẫn nổi bật, một thiết kế basic nhưng mang điểm nhấn riêng, hay một set đồ giúp bạn tự tin hơn trong những ngày bình thường nhất.
+      </p>
+    </div>
+  </div>
+</section>
+
+<section class="ethos reveal">
+  <div class="ethos-inner">
+    <div class="ethos-overlay"></div>
+    <div class="ethos-content">
+      <h2 class="ethos-title">Giá trị mà chúng tôi theo đuổi</h2>
+      <div class="ethos-grid">
+        <div class="ethos-item">
+          <div class="ethos-num">01</div>
+          <p class="ethos-text">Mang đến sự tự tin tuyệt đối cho khách hàng trong mọi khoảnh khắc phong cách hằng ngày.</p>
+        </div>
+        <div class="ethos-item">
+          <div class="ethos-num">02</div>
+          <p class="ethos-text">Tôn vinh cá tính độc bản thay vì chạy theo số đông hay những xu hướng chóng vánh.</p>
+        </div>
+        <div class="ethos-item">
+          <div class="ethos-num">03</div>
+          <p class="ethos-text">Xây dựng nền tảng thời trang theo hướng tinh tế, chất lượng cao và bền vững cùng thời gian.</p>
+        </div>
+        <div class="ethos-item">
+          <div class="ethos-num">04</div>
+          <p class="ethos-text">Tạo nên trải nghiệm mua sắm hiện đại, gần gũi, chuyên nghiệp và truyền đầy cảm hứng.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="epilogue reveal">
+  <div class="epilogue-overlay"></div>
+  <div class="epilogue-content">
+    <h2>Wear Your Identity</h2>
+    <p>GUA Maison — Không chỉ là thời trang</p>
+  </div>
+</section>
+
+<script>
+  // Script kích hoạt hiệu ứng Reveal khi cuộn trang
+  document.addEventListener("DOMContentLoaded", () => {
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.style.animationPlayState = 'running';
+          observer.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.1 });
+
+    document.querySelectorAll('.reveal').forEach(el => {
+      el.style.animationPlayState = 'paused';
+      observer.observe(el);
+    });
+  });
+</script>
 
 {% endblock %}

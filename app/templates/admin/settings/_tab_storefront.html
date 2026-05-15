@@ -9,290 +9,110 @@
    - Banner 4 Video
 ══════════════════════════════════════════════════════ #}
 
-<style>
-  /* ── Layout ── */
-  .sf-header {
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: 1rem;
-    margin-bottom: 2rem;
-    padding-bottom: 1.25rem;
-    border-bottom: 1px solid #e5e5e5;
-  }
-  .sf-header__text h2 { font-size: 1.05rem; font-weight: 800; text-transform: uppercase; letter-spacing: .08em; color: #000; margin: 0 0 .2rem; }
-  .sf-header__text p  { font-size: .75rem; color: #888; margin: 0; }
-
-  /* ── Section card ── */
-  .sf-section {
-    background: #fff;
-    border: 1px solid #e8e8e8;
-    border-radius: 6px;
-    margin-bottom: 1rem;
-    overflow: hidden;
-    transition: box-shadow .15s;
-  }
-  .sf-section:hover { box-shadow: 0 2px 12px rgba(0,0,0,.06); }
-
-  .sf-section__head {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 1rem;
-    padding: .9rem 1.25rem;
-    cursor: pointer;
-    user-select: none;
-    border-bottom: 1px solid transparent;
-    transition: border-color .15s, background .15s;
-  }
-  .sf-section__head:hover { background: #fafafa; }
-  .sf-section.is-open .sf-section__head { border-bottom-color: #efefef; }
-
-  .sf-section__head-left { display: flex; align-items: center; gap: .75rem; }
-  .sf-section__icon {
-    width: 32px; height: 32px; border-radius: 6px;
-    background: #f4f4f4;
-    display: flex; align-items: center; justify-content: center;
-    flex-shrink: 0; color: #555;
-    transition: background .15s, color .15s;
-  }
-  .sf-section.is-open .sf-section__icon { background: #000; color: #fff; }
-  .sf-section__icon svg { width: 15px; height: 15px; }
-
-  .sf-section__title { font-size: .8rem; font-weight: 700; text-transform: uppercase; letter-spacing: .07em; color: #111; margin: 0 0 .1rem; }
-  .sf-section__sub   { font-size: .72rem; color: #999; margin: 0; }
-
-  .sf-section__chevron {
-    width: 20px; height: 20px; color: #bbb; flex-shrink: 0;
-    transition: transform .2s, color .2s;
-  }
-  .sf-section.is-open .sf-section__chevron { transform: rotate(180deg); color: #555; }
-
-  .sf-section__body {
-    display: none;
-    padding: 1.25rem;
-  }
-  .sf-section.is-open .sf-section__body { display: block; }
-
-  /* ── Info block ── */
-  .sf-info {
-    display: flex; gap: .75rem; align-items: flex-start;
-    background: #f8f8f8; border: 1px solid #ebebeb;
-    border-radius: 6px; padding: .85rem 1rem;
-    margin-bottom: 1rem;
-  }
-  .sf-info__icon { flex-shrink: 0; color: #888; margin-top: 1px; }
-  .sf-info__icon svg { width: 16px; height: 16px; }
-  .sf-info__title { font-size: .75rem; font-weight: 700; color: #111; margin-bottom: .2rem; }
-  .sf-info__body  { font-size: .72rem; color: #666; line-height: 1.5; }
-  .sf-info__body a { color: #000; font-weight: 700; text-decoration: underline; }
-  .sf-info__body a:hover { text-decoration: none; }
-
-  /* ── Form elements ── */
-  .sf-field { margin-bottom: 1.1rem; }
-  .sf-field:last-child { margin-bottom: 0; }
-  .sf-label {
-    display: block; font-size: .68rem; font-weight: 700;
-    text-transform: uppercase; letter-spacing: .07em;
-    color: #555; margin-bottom: .45rem;
-  }
-  .sf-label span { font-weight: 400; color: #aaa; text-transform: none; letter-spacing: 0; margin-left: .3rem; }
-
-  .sf-input-row { display: flex; gap: .5rem; align-items: stretch; }
-  .sf-input {
-    flex: 1; border: 1px solid #e0e0e0; border-radius: 4px;
-    padding: .55rem .8rem; font-size: .8rem; color: #111;
-    background: #fff; outline: none; transition: border-color .15s, box-shadow .15s;
-    min-width: 0;
-  }
-  .sf-input:focus { border-color: #000; box-shadow: 0 0 0 3px rgba(0,0,0,.06); }
-  .sf-input::placeholder { color: #c0c0c0; }
-
-  .sf-hint { font-size: .67rem; color: #aaa; margin-top: .35rem; }
-
-  /* ── Upload button ── */
-  .sf-upload-btn {
-    display: inline-flex; align-items: center; gap: .4rem;
-    padding: .55rem .9rem; border: 1px solid #e0e0e0; border-radius: 4px;
-    background: #fff; font-size: .72rem; font-weight: 600; color: #444;
-    cursor: pointer; white-space: nowrap;
-    transition: border-color .15s, background .15s, color .15s;
-  }
-  .sf-upload-btn:hover { border-color: #000; background: #000; color: #fff; }
-  .sf-upload-btn svg { width: 13px; height: 13px; }
-  .sf-upload-btn.is-loading { opacity: .6; pointer-events: none; }
-
-  /* ── Preview ── */
-  .sf-preview {
-    margin-top: .75rem; border-radius: 5px; overflow: hidden;
-    border: 1px solid #e8e8e8; background: #f5f5f5;
-    position: relative; display: none;
-  }
-  .sf-preview.is-visible { display: block; }
-  .sf-preview img, .sf-preview video {
-    width: 100%; max-height: 160px; object-fit: cover; display: block;
-  }
-  .sf-preview__meta {
-    padding: .5rem .75rem; font-size: .68rem; color: #888;
-    display: flex; align-items: center; justify-content: space-between;
-    border-top: 1px solid #ebebeb; background: #fafafa;
-  }
-  .sf-preview__clear {
-    background: none; border: none; cursor: pointer;
-    font-size: .68rem; color: #aaa; padding: 0;
-    display: flex; align-items: center; gap: .25rem;
-    transition: color .15s;
-  }
-  .sf-preview__clear:hover { color: #c00; }
-  .sf-preview__clear svg { width: 12px; height: 12px; }
-
-  /* ── 2-col grid ── */
-  .sf-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
-  @media (max-width: 640px) { .sf-grid-2 { grid-template-columns: 1fr; } }
-
-  /* ── Notification shortcut ── */
-  .sf-notif-shortcut {
-    display: flex; align-items: center; justify-content: space-between; gap: 1rem;
-    padding: .85rem 1rem;
-    background: #fff; border: 1px solid #e8e8e8; border-radius: 6px;
-    transition: border-color .15s, box-shadow .15s;
-    text-decoration: none;
-  }
-  .sf-notif-shortcut:hover { border-color: #000; box-shadow: 0 2px 8px rgba(0,0,0,.07); }
-  .sf-notif-shortcut__left { display: flex; align-items: center; gap: .75rem; }
-  .sf-notif-shortcut__dot {
-    width: 8px; height: 8px; border-radius: 50%;
-    background: #22c55e; flex-shrink: 0;
-    box-shadow: 0 0 0 3px rgba(34,197,94,.15);
-  }
-  .sf-notif-shortcut__label { font-size: .78rem; font-weight: 600; color: #111; }
-  .sf-notif-shortcut__sub   { font-size: .68rem; color: #999; margin-top: .08rem; }
-  .sf-notif-shortcut__arrow { color: #bbb; transition: color .15s, transform .15s; }
-  .sf-notif-shortcut:hover .sf-notif-shortcut__arrow { color: #000; transform: translateX(2px); }
-  .sf-notif-shortcut__arrow svg { width: 16px; height: 16px; }
-
-  /* ── Toast ── */
-  #sfToastWrap { position: fixed; bottom: 1.5rem; right: 1.5rem; z-index: 9999; display: flex; flex-direction: column; gap: .5rem; pointer-events: none; }
-  .sf-toast {
-    display: flex; align-items: center; gap: .6rem;
-    padding: .65rem 1rem; border-radius: 5px;
-    font-size: .78rem; font-weight: 500; color: #fff;
-    pointer-events: auto; animation: sfSlideIn .2s ease;
-    box-shadow: 0 4px 16px rgba(0,0,0,.15);
-  }
-  .sf-toast--success { background: #111; }
-  .sf-toast--error   { background: #c00; }
-  .sf-toast.fade-out { animation: sfFadeOut .3s ease forwards; }
-  .sf-toast svg { width: 14px; height: 14px; flex-shrink: 0; }
-  @keyframes sfSlideIn  { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
-  @keyframes sfFadeOut  { to   { opacity:0; transform:translateY(4px); } }
-</style>
-
 {# ── Header ── #}
-<div class="sf-header">
-  <div class="sf-header__text">
-    <h2>Giao diện cửa hàng</h2>
-    <p>Cấu hình banner hero, split banners và video quảng cáo.</p>
+<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8 pb-6 border-b border-slate-200/60">
+  <div>
+    <h2 class="text-2xl font-bold tracking-tight text-slate-900">Giao diện cửa hàng</h2>
+    <p class="text-sm text-slate-500 mt-1">Cấu hình banner hero, split banners và video quảng cáo.</p>
   </div>
-  <button type="button" class="btn btn--primary" onclick="Settings.save('storefront')">
-    <svg viewBox="0 0 16 16" fill="none" width="14" height="14">
-      <path d="M13 2H5L2 5v9h12V2z" stroke="currentColor" stroke-width="1.2"/>
-      <rect x="5" y="9" width="6" height="5" rx="0.5" stroke="currentColor" stroke-width="1.2"/>
-      <rect x="5.5" y="2" width="5" height="3.5" rx="0.5" stroke="currentColor" stroke-width="1.2"/>
-    </svg>
+  <button type="button" class="inline-flex items-center gap-2 px-5 py-2.5 bg-slate-900 text-white text-sm font-semibold rounded-xl hover:bg-indigo-600 transition-colors shadow-sm focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2" onclick="Settings.save('storefront')">
+    <i class="fa-solid fa-floppy-disk"></i>
     Lưu thay đổi
   </button>
 </div>
 
-<form id="form-storefront" novalidate>
+<form id="form-storefront" class="space-y-6" novalidate>
 
   {# ── 1. THÔNG BÁO KHÁCH HÀNG ── #}
-  {% set _s = namespace(open=true) %}
-  <div class="sf-section is-open" data-section="notifications">
-    <div class="sf-section__head" onclick="sfToggle(this)">
-      <div class="sf-section__head-left">
-        <div class="sf-section__icon">
-          <svg viewBox="0 0 20 20" fill="none"><path d="M10 2a6 6 0 00-6 6v3l-1.5 2.5h15L16 11V8a6 6 0 00-6-6z" stroke="currentColor" stroke-width="1.4"/><path d="M8.5 15.5a1.5 1.5 0 003 0" stroke="currentColor" stroke-width="1.4"/></svg>
+  <div class="modern-card sf-section is-open" data-section="notifications">
+    <div class="flex items-center justify-between p-6 cursor-pointer hover:bg-slate-50 transition-colors rounded-t-xl" onclick="sfToggle(this)">
+      <div class="flex items-center gap-4">
+        <div class="w-10 h-10 bg-slate-100 text-slate-600 rounded-xl flex items-center justify-center sf-icon transition-colors">
+          <i class="fa-solid fa-bell"></i>
         </div>
         <div>
-          <p class="sf-section__title">Thông báo khách hàng</p>
-          <p class="sf-section__sub">Hiển thị trên navbar cạnh biểu tượng giỏ hàng</p>
+          <h3 class="text-sm font-bold text-slate-900 uppercase tracking-wide">Thông báo khách hàng</h3>
+          <p class="text-[13px] text-slate-500 mt-0.5">Hiển thị trên navbar cạnh biểu tượng giỏ hàng</p>
         </div>
       </div>
-      <svg class="sf-section__chevron" viewBox="0 0 20 20" fill="none"><path d="M5 7.5l5 5 5-5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+      <div class="text-slate-400 transition-transform duration-300 sf-chevron">
+        <i class="fa-solid fa-chevron-down"></i>
+      </div>
     </div>
-    <div class="sf-section__body">
-      <div class="sf-info">
-        <div class="sf-info__icon">
-          <svg viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="8" stroke="currentColor" stroke-width="1.4"/><path d="M10 9v5M10 7h.01" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+    <div class="p-6 pt-0 sf-body block">
+      <div class="flex gap-4 items-start p-4 bg-slate-50 border border-slate-200 rounded-xl mb-4">
+        <div class="text-slate-500 mt-0.5">
+          <i class="fa-solid fa-circle-info"></i>
         </div>
         <div>
-          <p class="sf-info__title">Tính năng đã được nâng cấp thành trang riêng</p>
-          <p class="sf-info__body">Quản lý thời gian hiển thị, link đính kèm và thứ tự xuất hiện tại
-            <a href="{{ url_for('admin.notifications_index') }}">trang quản lý thông báo</a>.
+          <p class="text-sm font-bold text-slate-900">Tính năng đã được nâng cấp thành trang riêng</p>
+          <p class="text-sm text-slate-600 mt-1">Quản lý thời gian hiển thị, link đính kèm và thứ tự xuất hiện tại
+            <a href="{{ url_for('admin.notifications_index') }}" class="font-bold text-indigo-600 hover:text-indigo-700 underline underline-offset-2 decoration-indigo-200">trang quản lý thông báo</a>.
           </p>
         </div>
       </div>
-      <a href="{{ url_for('admin.notifications_index') }}" class="sf-notif-shortcut">
-        <div class="sf-notif-shortcut__left">
-          <div class="sf-notif-shortcut__dot"></div>
+      <a href="{{ url_for('admin.notifications_index') }}" class="flex items-center justify-between gap-4 p-4 bg-white border border-slate-200 rounded-xl hover:border-indigo-500 hover:shadow-md transition-all group">
+        <div class="flex items-center gap-4">
+          <div class="w-2.5 h-2.5 rounded-full bg-emerald-500 ring-4 ring-emerald-500/20"></div>
           <div>
-            <div class="sf-notif-shortcut__label">Quản lý thông báo</div>
-            <div class="sf-notif-shortcut__sub">Thêm, sửa, xóa — cài đặt thời gian & link</div>
+            <div class="text-sm font-bold text-slate-900">Quản lý thông báo</div>
+            <div class="text-[13px] text-slate-500 mt-0.5">Thêm, sửa, xóa — cài đặt thời gian & link</div>
           </div>
         </div>
-        <div class="sf-notif-shortcut__arrow">
-          <svg viewBox="0 0 20 20" fill="none"><path d="M7.5 5l5 5-5 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        <div class="text-slate-400 group-hover:text-indigo-600 group-hover:translate-x-1 transition-all">
+          <i class="fa-solid fa-arrow-right"></i>
         </div>
       </a>
     </div>
   </div>
 
   {# ── 2. HERO BANNER ── #}
-  <div class="sf-section is-open" data-section="hero">
-    <div class="sf-section__head" onclick="sfToggle(this)">
-      <div class="sf-section__head-left">
-        <div class="sf-section__icon">
-          <svg viewBox="0 0 20 20" fill="none"><rect x="2" y="4" width="16" height="12" rx="1.5" stroke="currentColor" stroke-width="1.4"/><path d="M2 8h16" stroke="currentColor" stroke-width="1.4"/><circle cx="10" cy="12" r="2" stroke="currentColor" stroke-width="1.4"/></svg>
+  <div class="modern-card sf-section is-open" data-section="hero">
+    <div class="flex items-center justify-between p-6 cursor-pointer hover:bg-slate-50 transition-colors rounded-t-xl" onclick="sfToggle(this)">
+      <div class="flex items-center gap-4">
+        <div class="w-10 h-10 bg-slate-100 text-slate-600 rounded-xl flex items-center justify-center sf-icon transition-colors">
+          <i class="fa-solid fa-image"></i>
         </div>
         <div>
-          <p class="sf-section__title">Hero Banner</p>
-          <p class="sf-section__sub">Banner lớn đầu trang — ảnh tĩnh hoặc video MP4</p>
+          <h3 class="text-sm font-bold text-slate-900 uppercase tracking-wide">Hero Banner</h3>
+          <p class="text-[13px] text-slate-500 mt-0.5">Banner lớn đầu trang — ảnh tĩnh hoặc video MP4</p>
         </div>
       </div>
-      <svg class="sf-section__chevron" viewBox="0 0 20 20" fill="none"><path d="M5 7.5l5 5 5-5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+      <div class="text-slate-400 transition-transform duration-300 sf-chevron">
+        <i class="fa-solid fa-chevron-down"></i>
+      </div>
     </div>
-    <div class="sf-section__body">
-      <div class="sf-field">
-        <label class="sf-label" for="hero_banner_url">
-          URL Hero <span>ảnh (.jpg .png .webp) hoặc video (.mp4)</span>
+    <div class="p-6 pt-0 sf-body block">
+      <div class="space-y-2">
+        <label class="flex items-center gap-1.5 text-xs font-bold text-slate-700 uppercase tracking-widest" for="hero_banner_url">
+          URL Hero <span class="text-slate-400 font-normal normal-case tracking-normal ml-1">ảnh (.jpg .png .webp) hoặc video (.mp4)</span>
         </label>
-        <div class="sf-input-row">
-          <input type="url" id="hero_banner_url" name="hero_banner_url" class="sf-input"
+        <div class="flex gap-2">
+          <input type="url" id="hero_banner_url" name="hero_banner_url" 
+                 class="flex-1 px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900 focus:bg-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all outline-none"
                  placeholder="https://cdn.example.com/hero.mp4"
                  value="{{ storefront.hero_banner_url | default('') }}"
                  oninput="sfAutoPreview(this, 'heroPreview')">
           <input type="file" id="hero_upload" accept="image/*,video/mp4" class="hidden"
                  onchange="uploadStorefrontFile(this, 'hero_banner_url', 'heroPreview')">
-          <button type="button" class="sf-upload-btn" onclick="document.getElementById('hero_upload').click()">
-            <svg viewBox="0 0 20 20" fill="none"><path d="M10 3v10M6 7l4-4 4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M3 15v1a2 2 0 002 2h10a2 2 0 002-2v-1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+          <button type="button" class="inline-flex items-center gap-2 px-4 py-2.5 bg-white border border-slate-200 text-slate-700 text-sm font-semibold rounded-xl hover:bg-slate-50 hover:border-slate-300 transition-all sf-upload-btn whitespace-nowrap" onclick="document.getElementById('hero_upload').click()">
+            <i class="fa-solid fa-upload"></i>
             Upload
           </button>
         </div>
-        <p class="sf-hint">Khuyến nghị: 1920×800px. File tối đa 10MB.</p>
-        <div id="heroPreview" class="sf-preview {% if storefront.hero_banner_url | default('') %}is-visible{% endif %}">
+        <p class="text-[11px] text-slate-500">Khuyến nghị: 1920×800px. File tối đa 10MB.</p>
+        <div id="heroPreview" class="mt-3 bg-slate-50 border border-slate-200 rounded-xl overflow-hidden sf-preview hidden">
           {% if storefront.hero_banner_url | default('') %}
             {% if storefront.hero_banner_url.endswith('.mp4') %}
-              <video src="{{ storefront.hero_banner_url }}" muted playsinline></video>
+              <video src="{{ storefront.hero_banner_url }}" muted playsinline class="w-full max-h-[200px] object-cover"></video>
             {% else %}
-              <img src="{{ storefront.hero_banner_url }}" alt="Hero preview">
+              <img src="{{ storefront.hero_banner_url }}" alt="Hero preview" class="w-full max-h-[200px] object-cover">
             {% endif %}
           {% endif %}
-          <div class="sf-preview__meta">
-            <span id="heroPreviewName">{{ storefront.hero_banner_url | default('') | truncate(40) }}</span>
-            <button type="button" class="sf-preview__clear" onclick="sfClearField('hero_banner_url','heroPreview')">
-              <svg viewBox="0 0 16 16" fill="none"><path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
-              Xóa
+          <div class="px-4 py-2 bg-white border-t border-slate-100 flex items-center justify-between">
+            <span id="heroPreviewName" class="text-xs text-slate-500 truncate">{{ storefront.hero_banner_url | default('') | truncate(40) }}</span>
+            <button type="button" class="text-xs text-rose-500 hover:text-rose-700 font-medium inline-flex items-center gap-1" onclick="sfClearField('hero_banner_url','heroPreview')">
+              <i class="fa-solid fa-trash-can"></i> Xóa
             </button>
           </div>
         </div>
@@ -301,44 +121,46 @@
   </div>
 
   {# ── 3. BANNER DESKTOP ── #}
-  <div class="sf-section" data-section="banner-desktop">
-    <div class="sf-section__head" onclick="sfToggle(this)">
-      <div class="sf-section__head-left">
-        <div class="sf-section__icon">
-          <svg viewBox="0 0 20 20" fill="none"><rect x="2" y="5" width="16" height="10" rx="1.5" stroke="currentColor" stroke-width="1.4"/><path d="M7 15l1 2h4l1-2" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+  <div class="modern-card sf-section" data-section="banner-desktop">
+    <div class="flex items-center justify-between p-6 cursor-pointer hover:bg-slate-50 transition-colors rounded-t-xl" onclick="sfToggle(this)">
+      <div class="flex items-center gap-4">
+        <div class="w-10 h-10 bg-slate-100 text-slate-600 rounded-xl flex items-center justify-center sf-icon transition-colors">
+          <i class="fa-solid fa-desktop"></i>
         </div>
         <div>
-          <p class="sf-section__title">Banner Desktop</p>
-          <p class="sf-section__sub">Banner phụ giữa trang, chỉ hiện trên màn hình rộng</p>
+          <h3 class="text-sm font-bold text-slate-900 uppercase tracking-wide">Banner Desktop</h3>
+          <p class="text-[13px] text-slate-500 mt-0.5">Banner phụ giữa trang, chỉ hiện trên màn hình rộng</p>
         </div>
       </div>
-      <svg class="sf-section__chevron" viewBox="0 0 20 20" fill="none"><path d="M5 7.5l5 5 5-5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+      <div class="text-slate-400 transition-transform duration-300 sf-chevron">
+        <i class="fa-solid fa-chevron-down"></i>
+      </div>
     </div>
-    <div class="sf-section__body">
-      <div class="sf-field">
-        <label class="sf-label" for="banner_desktop_url">URL ảnh <span>jpg / png / webp</span></label>
-        <div class="sf-input-row">
-          <input type="url" id="banner_desktop_url" name="banner_desktop_url" class="sf-input"
+    <div class="p-6 pt-0 sf-body hidden">
+      <div class="space-y-2">
+        <label class="flex items-center gap-1.5 text-xs font-bold text-slate-700 uppercase tracking-widest" for="banner_desktop_url">URL ảnh <span class="text-slate-400 font-normal normal-case tracking-normal ml-1">jpg / png / webp</span></label>
+        <div class="flex gap-2">
+          <input type="url" id="banner_desktop_url" name="banner_desktop_url" 
+                 class="flex-1 px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900 focus:bg-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all outline-none"
                  placeholder="https://cdn.example.com/banner.jpg"
                  value="{{ storefront.banner_desktop_url | default('') }}"
                  oninput="sfAutoPreview(this, 'bannerDesktopPreview')">
           <input type="file" id="desktop_upload" accept="image/*" class="hidden"
                  onchange="uploadStorefrontFile(this, 'banner_desktop_url', 'bannerDesktopPreview')">
-          <button type="button" class="sf-upload-btn" onclick="document.getElementById('desktop_upload').click()">
-            <svg viewBox="0 0 20 20" fill="none"><path d="M10 3v10M6 7l4-4 4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M3 15v1a2 2 0 002 2h10a2 2 0 002-2v-1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+          <button type="button" class="inline-flex items-center gap-2 px-4 py-2.5 bg-white border border-slate-200 text-slate-700 text-sm font-semibold rounded-xl hover:bg-slate-50 hover:border-slate-300 transition-all sf-upload-btn whitespace-nowrap" onclick="document.getElementById('desktop_upload').click()">
+            <i class="fa-solid fa-upload"></i>
             Upload
           </button>
         </div>
-        <p class="sf-hint">Khuyến nghị: 1440×400px.</p>
-        <div id="bannerDesktopPreview" class="sf-preview {% if storefront.banner_desktop_url | default('') %}is-visible{% endif %}">
+        <p class="text-[11px] text-slate-500">Khuyến nghị: 1440×400px.</p>
+        <div id="bannerDesktopPreview" class="mt-3 bg-slate-50 border border-slate-200 rounded-xl overflow-hidden sf-preview hidden">
           {% if storefront.banner_desktop_url | default('') %}
-            <img src="{{ storefront.banner_desktop_url }}" alt="Banner desktop preview">
+            <img src="{{ storefront.banner_desktop_url }}" alt="Banner desktop preview" class="w-full max-h-[200px] object-cover">
           {% endif %}
-          <div class="sf-preview__meta">
-            <span id="bannerDesktopPreviewName">{{ storefront.banner_desktop_url | default('') | truncate(40) }}</span>
-            <button type="button" class="sf-preview__clear" onclick="sfClearField('banner_desktop_url','bannerDesktopPreview')">
-              <svg viewBox="0 0 16 16" fill="none"><path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
-              Xóa
+          <div class="px-4 py-2 bg-white border-t border-slate-100 flex items-center justify-between">
+            <span id="bannerDesktopPreviewName" class="text-xs text-slate-500 truncate">{{ storefront.banner_desktop_url | default('') | truncate(40) }}</span>
+            <button type="button" class="text-xs text-rose-500 hover:text-rose-700 font-medium inline-flex items-center gap-1" onclick="sfClearField('banner_desktop_url','bannerDesktopPreview')">
+              <i class="fa-solid fa-trash-can"></i> Xóa
             </button>
           </div>
         </div>
@@ -347,44 +169,46 @@
   </div>
 
   {# ── 4. BANNER 2 FULL WIDTH ── #}
-  <div class="sf-section" data-section="banner2">
-    <div class="sf-section__head" onclick="sfToggle(this)">
-      <div class="sf-section__head-left">
-        <div class="sf-section__icon">
-          <svg viewBox="0 0 20 20" fill="none"><rect x="1.5" y="6" width="17" height="8" rx="1.5" stroke="currentColor" stroke-width="1.4"/><path d="M5 10h10" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+  <div class="modern-card sf-section" data-section="banner2">
+    <div class="flex items-center justify-between p-6 cursor-pointer hover:bg-slate-50 transition-colors rounded-t-xl" onclick="sfToggle(this)">
+      <div class="flex items-center gap-4">
+        <div class="w-10 h-10 bg-slate-100 text-slate-600 rounded-xl flex items-center justify-center sf-icon transition-colors">
+          <i class="fa-regular fa-image"></i>
         </div>
         <div>
-          <p class="sf-section__title">Banner 2 – Full Width</p>
-          <p class="sf-section__sub">Ảnh toàn màn hình sau category grid</p>
+          <h3 class="text-sm font-bold text-slate-900 uppercase tracking-wide">Banner 2 – Full Width</h3>
+          <p class="text-[13px] text-slate-500 mt-0.5">Ảnh toàn màn hình sau category grid</p>
         </div>
       </div>
-      <svg class="sf-section__chevron" viewBox="0 0 20 20" fill="none"><path d="M5 7.5l5 5 5-5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+      <div class="text-slate-400 transition-transform duration-300 sf-chevron">
+        <i class="fa-solid fa-chevron-down"></i>
+      </div>
     </div>
-    <div class="sf-section__body">
-      <div class="sf-field">
-        <label class="sf-label" for="banner2_url">URL ảnh <span>jpg / png / webp</span></label>
-        <div class="sf-input-row">
-          <input type="url" id="banner2_url" name="banner2_url" class="sf-input"
+    <div class="p-6 pt-0 sf-body hidden">
+      <div class="space-y-2">
+        <label class="flex items-center gap-1.5 text-xs font-bold text-slate-700 uppercase tracking-widest" for="banner2_url">URL ảnh <span class="text-slate-400 font-normal normal-case tracking-normal ml-1">jpg / png / webp</span></label>
+        <div class="flex gap-2">
+          <input type="url" id="banner2_url" name="banner2_url" 
+                 class="flex-1 px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900 focus:bg-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all outline-none"
                  placeholder="https://cdn.example.com/banner2.jpg"
                  value="{{ storefront.banner2_url | default('') }}"
                  oninput="sfAutoPreview(this, 'banner2Preview')">
           <input type="file" id="banner2_upload" accept="image/*" class="hidden"
                  onchange="uploadStorefrontFile(this, 'banner2_url', 'banner2Preview')">
-          <button type="button" class="sf-upload-btn" onclick="document.getElementById('banner2_upload').click()">
-            <svg viewBox="0 0 20 20" fill="none"><path d="M10 3v10M6 7l4-4 4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M3 15v1a2 2 0 002 2h10a2 2 0 002-2v-1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+          <button type="button" class="inline-flex items-center gap-2 px-4 py-2.5 bg-white border border-slate-200 text-slate-700 text-sm font-semibold rounded-xl hover:bg-slate-50 hover:border-slate-300 transition-all sf-upload-btn whitespace-nowrap" onclick="document.getElementById('banner2_upload').click()">
+            <i class="fa-solid fa-upload"></i>
             Upload
           </button>
         </div>
-        <p class="sf-hint">Khuyến nghị: 1920×600px.</p>
-        <div id="banner2Preview" class="sf-preview {% if storefront.banner2_url | default('') %}is-visible{% endif %}">
+        <p class="text-[11px] text-slate-500">Khuyến nghị: 1920×600px.</p>
+        <div id="banner2Preview" class="mt-3 bg-slate-50 border border-slate-200 rounded-xl overflow-hidden sf-preview hidden">
           {% if storefront.banner2_url | default('') %}
-            <img src="{{ storefront.banner2_url }}" alt="Banner 2 preview">
+            <img src="{{ storefront.banner2_url }}" alt="Banner 2 preview" class="w-full max-h-[200px] object-cover">
           {% endif %}
-          <div class="sf-preview__meta">
-            <span id="banner2PreviewName">{{ storefront.banner2_url | default('') | truncate(40) }}</span>
-            <button type="button" class="sf-preview__clear" onclick="sfClearField('banner2_url','banner2Preview')">
-              <svg viewBox="0 0 16 16" fill="none"><path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
-              Xóa
+          <div class="px-4 py-2 bg-white border-t border-slate-100 flex items-center justify-between">
+            <span id="banner2PreviewName" class="text-xs text-slate-500 truncate">{{ storefront.banner2_url | default('') | truncate(40) }}</span>
+            <button type="button" class="text-xs text-rose-500 hover:text-rose-700 font-medium inline-flex items-center gap-1" onclick="sfClearField('banner2_url','banner2Preview')">
+              <i class="fa-solid fa-trash-can"></i> Xóa
             </button>
           </div>
         </div>
@@ -393,73 +217,73 @@
   </div>
 
   {# ── 5. SPLIT BANNERS ── #}
-  <div class="sf-section" data-section="split">
-    <div class="sf-section__head" onclick="sfToggle(this)">
-      <div class="sf-section__head-left">
-        <div class="sf-section__icon">
-          <svg viewBox="0 0 20 20" fill="none"><rect x="2" y="4" width="7" height="12" rx="1.5" stroke="currentColor" stroke-width="1.4"/><rect x="11" y="4" width="7" height="12" rx="1.5" stroke="currentColor" stroke-width="1.4"/></svg>
+  <div class="modern-card sf-section" data-section="split">
+    <div class="flex items-center justify-between p-6 cursor-pointer hover:bg-slate-50 transition-colors rounded-t-xl" onclick="sfToggle(this)">
+      <div class="flex items-center gap-4">
+        <div class="w-10 h-10 bg-slate-100 text-slate-600 rounded-xl flex items-center justify-center sf-icon transition-colors">
+          <i class="fa-solid fa-columns"></i>
         </div>
         <div>
-          <p class="sf-section__title">Split Banners</p>
-          <p class="sf-section__sub">Hai banner song song — trái &amp; phải</p>
+          <h3 class="text-sm font-bold text-slate-900 uppercase tracking-wide">Split Banners</h3>
+          <p class="text-[13px] text-slate-500 mt-0.5">Hai banner song song — trái &amp; phải</p>
         </div>
       </div>
-      <svg class="sf-section__chevron" viewBox="0 0 20 20" fill="none"><path d="M5 7.5l5 5 5-5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+      <div class="text-slate-400 transition-transform duration-300 sf-chevron">
+        <i class="fa-solid fa-chevron-down"></i>
+      </div>
     </div>
-    <div class="sf-section__body">
-      <div class="sf-grid-2">
+    <div class="p-6 pt-0 sf-body hidden">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
         {# Trái #}
-        <div class="sf-field">
-          <label class="sf-label" for="split_left_url">Banner trái</label>
-          <div class="sf-input-row">
-            <input type="url" id="split_left_url" name="split_left_url" class="sf-input"
+        <div class="space-y-2">
+          <label class="flex items-center gap-1.5 text-xs font-bold text-slate-700 uppercase tracking-widest" for="split_left_url">Banner trái</label>
+          <div class="flex gap-2">
+            <input type="url" id="split_left_url" name="split_left_url" 
+                   class="flex-1 px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900 focus:bg-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all outline-none"
                    placeholder="https://..."
                    value="{{ storefront.split_left_url | default('') }}"
                    oninput="sfAutoPreview(this, 'splitLeftPreview')">
             <input type="file" id="split_left_upload" accept="image/*" class="hidden"
                    onchange="uploadStorefrontFile(this, 'split_left_url', 'splitLeftPreview')">
-            <button type="button" class="sf-upload-btn" onclick="document.getElementById('split_left_upload').click()">
-              <svg viewBox="0 0 20 20" fill="none"><path d="M10 3v10M6 7l4-4 4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M3 15v1a2 2 0 002 2h10a2 2 0 002-2v-1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
-              Upload
+            <button type="button" class="inline-flex items-center gap-2 px-4 py-2.5 bg-white border border-slate-200 text-slate-700 text-sm font-semibold rounded-xl hover:bg-slate-50 hover:border-slate-300 transition-all sf-upload-btn whitespace-nowrap" onclick="document.getElementById('split_left_upload').click()">
+              <i class="fa-solid fa-upload"></i>
             </button>
           </div>
-          <div id="splitLeftPreview" class="sf-preview {% if storefront.split_left_url | default('') %}is-visible{% endif %}">
+          <div id="splitLeftPreview" class="mt-3 bg-slate-50 border border-slate-200 rounded-xl overflow-hidden sf-preview hidden">
             {% if storefront.split_left_url | default('') %}
-              <img src="{{ storefront.split_left_url }}" alt="Split left">
+              <img src="{{ storefront.split_left_url }}" alt="Split left" class="w-full max-h-[150px] object-cover">
             {% endif %}
-            <div class="sf-preview__meta">
-              <span id="splitLeftPreviewName">{{ storefront.split_left_url | default('') | truncate(30) }}</span>
-              <button type="button" class="sf-preview__clear" onclick="sfClearField('split_left_url','splitLeftPreview')">
-                <svg viewBox="0 0 16 16" fill="none"><path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
-                Xóa
+            <div class="px-4 py-2 bg-white border-t border-slate-100 flex items-center justify-between">
+              <span id="splitLeftPreviewName" class="text-xs text-slate-500 truncate">{{ storefront.split_left_url | default('') | truncate(30) }}</span>
+              <button type="button" class="text-xs text-rose-500 hover:text-rose-700 font-medium inline-flex items-center gap-1" onclick="sfClearField('split_left_url','splitLeftPreview')">
+                <i class="fa-solid fa-trash-can"></i> Xóa
               </button>
             </div>
           </div>
         </div>
         {# Phải #}
-        <div class="sf-field">
-          <label class="sf-label" for="split_right_url">Banner phải</label>
-          <div class="sf-input-row">
-            <input type="url" id="split_right_url" name="split_right_url" class="sf-input"
+        <div class="space-y-2">
+          <label class="flex items-center gap-1.5 text-xs font-bold text-slate-700 uppercase tracking-widest" for="split_right_url">Banner phải</label>
+          <div class="flex gap-2">
+            <input type="url" id="split_right_url" name="split_right_url" 
+                   class="flex-1 px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900 focus:bg-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all outline-none"
                    placeholder="https://..."
                    value="{{ storefront.split_right_url | default('') }}"
                    oninput="sfAutoPreview(this, 'splitRightPreview')">
             <input type="file" id="split_right_upload" accept="image/*" class="hidden"
                    onchange="uploadStorefrontFile(this, 'split_right_url', 'splitRightPreview')">
-            <button type="button" class="sf-upload-btn" onclick="document.getElementById('split_right_upload').click()">
-              <svg viewBox="0 0 20 20" fill="none"><path d="M10 3v10M6 7l4-4 4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M3 15v1a2 2 0 002 2h10a2 2 0 002-2v-1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
-              Upload
+            <button type="button" class="inline-flex items-center gap-2 px-4 py-2.5 bg-white border border-slate-200 text-slate-700 text-sm font-semibold rounded-xl hover:bg-slate-50 hover:border-slate-300 transition-all sf-upload-btn whitespace-nowrap" onclick="document.getElementById('split_right_upload').click()">
+              <i class="fa-solid fa-upload"></i>
             </button>
           </div>
-          <div id="splitRightPreview" class="sf-preview {% if storefront.split_right_url | default('') %}is-visible{% endif %}">
+          <div id="splitRightPreview" class="mt-3 bg-slate-50 border border-slate-200 rounded-xl overflow-hidden sf-preview hidden">
             {% if storefront.split_right_url | default('') %}
-              <img src="{{ storefront.split_right_url }}" alt="Split right">
+              <img src="{{ storefront.split_right_url }}" alt="Split right" class="w-full max-h-[150px] object-cover">
             {% endif %}
-            <div class="sf-preview__meta">
-              <span id="splitRightPreviewName">{{ storefront.split_right_url | default('') | truncate(30) }}</span>
-              <button type="button" class="sf-preview__clear" onclick="sfClearField('split_right_url','splitRightPreview')">
-                <svg viewBox="0 0 16 16" fill="none"><path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
-                Xóa
+            <div class="px-4 py-2 bg-white border-t border-slate-100 flex items-center justify-between">
+              <span id="splitRightPreviewName" class="text-xs text-slate-500 truncate">{{ storefront.split_right_url | default('') | truncate(30) }}</span>
+              <button type="button" class="text-xs text-rose-500 hover:text-rose-700 font-medium inline-flex items-center gap-1" onclick="sfClearField('split_right_url','splitRightPreview')">
+                <i class="fa-solid fa-trash-can"></i> Xóa
               </button>
             </div>
           </div>
@@ -469,44 +293,46 @@
   </div>
 
   {# ── 6. BANNER 4 VIDEO ── #}
-  <div class="sf-section" data-section="banner4">
-    <div class="sf-section__head" onclick="sfToggle(this)">
-      <div class="sf-section__head-left">
-        <div class="sf-section__icon">
-          <svg viewBox="0 0 20 20" fill="none"><rect x="2" y="4" width="12" height="12" rx="1.5" stroke="currentColor" stroke-width="1.4"/><path d="M14 8l4-2v8l-4-2V8z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></svg>
+  <div class="modern-card sf-section" data-section="banner4">
+    <div class="flex items-center justify-between p-6 cursor-pointer hover:bg-slate-50 transition-colors rounded-t-xl" onclick="sfToggle(this)">
+      <div class="flex items-center gap-4">
+        <div class="w-10 h-10 bg-slate-100 text-slate-600 rounded-xl flex items-center justify-center sf-icon transition-colors">
+          <i class="fa-solid fa-film"></i>
         </div>
         <div>
-          <p class="sf-section__title">Banner 4 – Video</p>
-          <p class="sf-section__sub">Video nền cho phần Best Sellers</p>
+          <h3 class="text-sm font-bold text-slate-900 uppercase tracking-wide">Banner 4 – Video</h3>
+          <p class="text-[13px] text-slate-500 mt-0.5">Video nền cho phần Best Sellers</p>
         </div>
       </div>
-      <svg class="sf-section__chevron" viewBox="0 0 20 20" fill="none"><path d="M5 7.5l5 5 5-5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+      <div class="text-slate-400 transition-transform duration-300 sf-chevron">
+        <i class="fa-solid fa-chevron-down"></i>
+      </div>
     </div>
-    <div class="sf-section__body">
-      <div class="sf-field">
-        <label class="sf-label" for="banner4_video_url">URL video <span>chỉ .mp4</span></label>
-        <div class="sf-input-row">
-          <input type="url" id="banner4_video_url" name="banner4_video_url" class="sf-input"
+    <div class="p-6 pt-0 sf-body hidden">
+      <div class="space-y-2">
+        <label class="flex items-center gap-1.5 text-xs font-bold text-slate-700 uppercase tracking-widest" for="banner4_video_url">URL video <span class="text-slate-400 font-normal normal-case tracking-normal ml-1">chỉ .mp4</span></label>
+        <div class="flex gap-2">
+          <input type="url" id="banner4_video_url" name="banner4_video_url" 
+                 class="flex-1 px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900 focus:bg-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all outline-none"
                  placeholder="https://cdn.example.com/banner4.mp4"
                  value="{{ storefront.banner4_video_url | default('') }}"
                  oninput="sfAutoPreview(this, 'banner4Preview')">
           <input type="file" id="banner4_upload" accept="video/mp4" class="hidden"
                  onchange="uploadStorefrontFile(this, 'banner4_video_url', 'banner4Preview')">
-          <button type="button" class="sf-upload-btn" onclick="document.getElementById('banner4_upload').click()">
-            <svg viewBox="0 0 20 20" fill="none"><path d="M10 3v10M6 7l4-4 4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M3 15v1a2 2 0 002 2h10a2 2 0 002-2v-1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+          <button type="button" class="inline-flex items-center gap-2 px-4 py-2.5 bg-white border border-slate-200 text-slate-700 text-sm font-semibold rounded-xl hover:bg-slate-50 hover:border-slate-300 transition-all sf-upload-btn whitespace-nowrap" onclick="document.getElementById('banner4_upload').click()">
+            <i class="fa-solid fa-upload"></i>
             Upload
           </button>
         </div>
-        <p class="sf-hint">Để trống để dùng video mặc định. Tối đa 50MB.</p>
-        <div id="banner4Preview" class="sf-preview {% if storefront.banner4_video_url | default('') %}is-visible{% endif %}">
+        <p class="text-[11px] text-slate-500">Để trống để dùng video mặc định. Tối đa 50MB.</p>
+        <div id="banner4Preview" class="mt-3 bg-slate-50 border border-slate-200 rounded-xl overflow-hidden sf-preview hidden">
           {% if storefront.banner4_video_url | default('') %}
-            <video src="{{ storefront.banner4_video_url }}" muted playsinline controls></video>
+            <video src="{{ storefront.banner4_video_url }}" muted playsinline controls class="w-full max-h-[200px] object-cover"></video>
           {% endif %}
-          <div class="sf-preview__meta">
-            <span id="banner4PreviewName">{{ storefront.banner4_video_url | default('') | truncate(40) }}</span>
-            <button type="button" class="sf-preview__clear" onclick="sfClearField('banner4_video_url','banner4Preview')">
-              <svg viewBox="0 0 16 16" fill="none"><path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
-              Xóa
+          <div class="px-4 py-2 bg-white border-t border-slate-100 flex items-center justify-between">
+            <span id="banner4PreviewName" class="text-xs text-slate-500 truncate">{{ storefront.banner4_video_url | default('') | truncate(40) }}</span>
+            <button type="button" class="text-xs text-rose-500 hover:text-rose-700 font-medium inline-flex items-center gap-1" onclick="sfClearField('banner4_video_url','banner4Preview')">
+              <i class="fa-solid fa-trash-can"></i> Xóa
             </button>
           </div>
         </div>
@@ -516,8 +342,15 @@
 
 </form>
 
-{# ── Toast container ── #}
-<div id="sfToastWrap"></div>
+{# ── Toast container (Using Settings Toast instead of custom) ── #}
+<style>
+  /* Accordion styles */
+  .sf-section.is-open .sf-icon { background-color: #0f172a; color: white; }
+  .sf-section.is-open .sf-chevron { transform: rotate(180deg); color: #0f172a; }
+  
+  /* Add specific tailwind toggling for sf-body */
+  .sf-section:not(.is-open) .sf-body { display: none; }
+</style>
 
 <script>
 /* ── Accordion ── */
@@ -525,12 +358,22 @@ function sfToggle(headEl) {
   headEl.closest('.sf-section').classList.toggle('is-open');
 }
 
+/* ── Initial Render Previews ── */
+document.addEventListener("DOMContentLoaded", () => {
+    document.querySelectorAll('.sf-preview').forEach(preview => {
+        const hasMedia = preview.querySelector('img, video');
+        if (hasMedia && hasMedia.getAttribute('src')) {
+            preview.classList.remove('hidden');
+        }
+    });
+});
+
 /* ── Auto-preview khi paste/nhập URL ── */
 function sfAutoPreview(inputEl, previewId) {
   const url = inputEl.value.trim();
   const wrap = document.getElementById(previewId);
   if (!wrap) return;
-  if (!url) { wrap.classList.remove('is-visible'); return; }
+  if (!url) { wrap.classList.add('hidden'); return; }
   const isVideo = url.endsWith('.mp4');
   const nameEl = document.getElementById(previewId + 'Name');
   if (nameEl) nameEl.textContent = url.length > 40 ? url.slice(0, 40) + '…' : url;
@@ -541,6 +384,7 @@ function sfAutoPreview(inputEl, previewId) {
       if (media) media.remove();
       media = document.createElement('video');
       media.muted = true; media.setAttribute('playsinline', '');
+      media.className = "w-full max-h-[200px] object-cover";
       wrap.prepend(media);
     }
     media.src = url;
@@ -549,11 +393,12 @@ function sfAutoPreview(inputEl, previewId) {
       if (media) media.remove();
       media = document.createElement('img');
       media.alt = 'Preview';
+      media.className = "w-full max-h-[200px] object-cover";
       wrap.prepend(media);
     }
     media.src = url;
   }
-  wrap.classList.add('is-visible');
+  wrap.classList.remove('hidden');
 }
 
 /* ── Xóa field ── */
@@ -562,7 +407,7 @@ function sfClearField(inputId, previewId) {
   if (inp) inp.value = '';
   const wrap = document.getElementById(previewId);
   if (wrap) {
-    wrap.classList.remove('is-visible');
+    wrap.classList.add('hidden');
     const media = wrap.querySelector('img, video');
     if (media) { media.src = ''; }
   }
@@ -572,8 +417,8 @@ function sfClearField(inputId, previewId) {
 async function uploadStorefrontFile(inputEl, targetInputId, previewId) {
   const file = inputEl.files[0];
   if (!file) return;
-  const btn = inputEl.closest('.sf-input-row')?.querySelector('.sf-upload-btn');
-  if (btn) btn.classList.add('is-loading');
+  const btn = inputEl.closest('.flex').querySelector('.sf-upload-btn');
+  if (btn) { btn.classList.add('opacity-50', 'pointer-events-none'); }
 
   const formData = new FormData();
   formData.append('file', file);
@@ -592,33 +437,16 @@ async function uploadStorefrontFile(inputEl, targetInputId, previewId) {
         inp.value = data.url;
         sfAutoPreview(inp, previewId);
       }
-      sfToast('Đã tải file lên thành công!', 'success');
+      if(window.Settings && Settings.showToast) Settings.showToast('Đã tải file lên thành công!', 'success');
     } else {
-      sfToast(data.error || 'Upload thất bại', 'error');
+      if(window.Settings && Settings.showToast) Settings.showToast(data.error || 'Upload thất bại', 'error');
     }
   } catch (err) {
     console.error(err);
-    sfToast('Lỗi kết nối server', 'error');
+    if(window.Settings && Settings.showToast) Settings.showToast('Lỗi kết nối server', 'error');
   } finally {
-    if (btn) btn.classList.remove('is-loading');
+    if (btn) { btn.classList.remove('opacity-50', 'pointer-events-none'); }
     inputEl.value = '';
   }
-}
-
-/* ── Toast ── */
-function sfToast(msg, type) {
-  const icons = {
-    success: '<svg viewBox="0 0 16 16" fill="none"><path d="M3 8l4 4 6-7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>',
-    error:   '<svg viewBox="0 0 16 16" fill="none"><path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>'
-  };
-  const wrap  = document.getElementById('sfToastWrap');
-  const toast = document.createElement('div');
-  toast.className = `sf-toast sf-toast--${type}`;
-  toast.innerHTML = `${icons[type] || ''}${msg}`;
-  wrap.appendChild(toast);
-  setTimeout(() => {
-    toast.classList.add('fade-out');
-    toast.addEventListener('animationend', () => toast.remove());
-  }, 3200);
 }
 </script>

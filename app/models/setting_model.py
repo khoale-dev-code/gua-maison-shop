@@ -2,6 +2,7 @@
 app/models/setting_model.py
 Quản lý Cấu hình hệ thống.
 Version 5: Thêm section 'admin_ui' cho giao diện Admin.
+Cập nhật: Sử dụng bảng store_settings với mô hình Khóa - Giá trị (setting_key, setting_value).
 """
 import logging
 from app.utils.supabase_client import get_supabase
@@ -64,15 +65,27 @@ class SettingModel:
 
         try:
             db = get_supabase()
-            res = db.table("system_settings").select("*").eq("id", 1).limit(1).execute()
+            # TRUY VẤN VÀO BẢNG CHUẨN: store_settings
+            res = db.table("store_settings").select("*").execute()
 
+            settings = {}
+            # Nạp default vào dict trước để đảm bảo không bao giờ bị thiếu key
+            for k, v in cls.DEFAULT_SETTINGS.items():
+                settings[k] = v.copy()
+
+            # Merge dữ liệu từ Database vào nếu có
             if res.data and len(res.data) > 0:
-                cls._cache = res.data[0]
-                return cls._cache
+                for row in res.data:
+                    key = row.get("setting_key")
+                    val = row.get("setting_value")
+                    if key in settings and isinstance(val, dict):
+                        settings[key].update(val)
+            else:
+                logger.warning("[SettingModel] Bảng trống — khởi tạo defaults...")
+                cls._initialize_defaults()
 
-            logger.warning("[SettingModel] Bảng trống — khởi tạo defaults...")
-            cls._initialize_defaults()
-            return cls.DEFAULT_SETTINGS
+            cls._cache = settings
+            return cls._cache
 
         except Exception as e:
             logger.error(f"[SettingModel] Lỗi lấy Settings: {e}")
@@ -95,10 +108,13 @@ class SettingModel:
             current_section_data = current_settings.get(section_name) or {}
             merged_data = {**current_section_data, **new_data}
 
-            db.table("system_settings").update({
-                section_name: merged_data
-            }).eq("id", 1).execute()
+            # LƯU DỮ LIỆU THEO ĐỊNH DẠNG: setting_key và setting_value
+            db.table("store_settings").upsert({
+                "setting_key": section_name,
+                "setting_value": merged_data
+            }).execute()
 
+            # Cập nhật lại Cache
             if cls._cache:
                 cls._cache[section_name] = merged_data
             else:
@@ -114,9 +130,15 @@ class SettingModel:
     def _initialize_defaults(cls):
         try:
             db = get_supabase()
-            init_data = {"id": 1, **cls.DEFAULT_SETTINGS}
-            db.table("system_settings").upsert(init_data).execute()
-            cls._cache = init_data
+            # Chuyển đổi định dạng DEFAULT_SETTINGS sang list để upsert vào db
+            upsert_data = [
+                {"setting_key": k, "setting_value": v} 
+                for k, v in cls.DEFAULT_SETTINGS.items()
+            ]
+            db.table("store_settings").upsert(upsert_data).execute()
+            
+            cls._cache = None  # Xóa cache để hàm get_settings tự động load lại từ DB
             logger.info("[SettingModel] Khởi tạo defaults thành công.")
         except Exception as e:
             logger.error(f"[SettingModel] Thất bại khởi tạo defaults: {e}")
+    

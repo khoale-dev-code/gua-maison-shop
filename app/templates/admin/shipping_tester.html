@@ -1,52 +1,83 @@
 {% extends "admin/admin_base.html" %}
 {% block title %}Shipping API Tester | GUA Admin{% endblock %}
 
-{% block content %}
-<div class="min-h-screen bg-[#f7f4ef] pb-24 font-sans">
-  
-  <header class="bg-white/90 backdrop-blur-xl border-b border-[#e8e4de] sticky top-0 z-40" style="box-shadow:0 1px 12px rgba(0,0,0,.06)">
-    <div class="max-w-4xl mx-auto px-6 py-5">
-      <h1 class="text-2xl font-black text-[#1a1a1a] tracking-tight">Shipping API Tester</h1>
-      <p class="text-[11px] font-bold text-[#a09890] uppercase tracking-widest mt-1">Unified Courier Interface (Purplship Style)</p>
-    </div>
-  </header>
+{% block extra_head %}
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<style>
+    :root { --font-jakarta: 'Plus Jakarta Sans', sans-serif; }
+    body { font-family: var(--font-jakarta); background-color: #f8fafc; }
+    
+    .modern-card {
+        background: #ffffff;
+        border: 1px solid #f1f5f9;
+        border-radius: 1.5rem;
+        box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.03);
+    }
+    
+    .glass-nav { 
+        background: rgba(248, 250, 252, 0.85); 
+        backdrop-filter: blur(16px); 
+        -webkit-backdrop-filter: blur(16px); 
+    }
+</style>
+{% endblock %}
 
-  <div class="max-w-4xl mx-auto px-6 mt-10">
-    <div class="bg-white rounded-[2rem] border border-[#e8e4de] p-8 shadow-sm">
+{% block content %}
+<div class="min-h-screen pb-24 font-sans text-slate-800 selection:bg-indigo-500 selection:text-white">
+  
+  <div class="glass-nav sticky top-0 z-40 border-b border-slate-200/60 mb-8">
+    <div class="max-w-4xl mx-auto px-6 py-4 flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div>
+        <h1 class="text-2xl font-bold tracking-tight text-slate-900">Shipping API Tester</h1>
+        <div class="flex items-center gap-2 mt-1">
+            <a href="/admin/shipping/providers" class="text-slate-500 hover:text-indigo-600 text-xs font-semibold transition-colors">Vận chuyển</a>
+            <i class="fa-solid fa-chevron-right text-[10px] text-slate-400"></i>
+            <span class="text-indigo-600 text-xs font-semibold">API Tester</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="max-w-4xl mx-auto px-6">
+    <div class="modern-card p-8">
       
       <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
         
         {# ── CỘT CẤU HÌNH ── #}
         <div class="space-y-6">
           <div>
-            <label class="block text-[10px] font-black uppercase tracking-widest text-[#1a1a1a] mb-2">Chọn Đối tác (Provider)</label>
-            <select id="provider" class="w-full bg-[#fafaf8] border-2 border-[#e8e4de] rounded-xl px-4 py-3 text-sm font-bold text-[#1a1a1a] outline-none focus:border-[#1a1a1a] transition-all">
-              <option value="mock">MOCK (Môi trường Test an toàn)</option>
-              <option value="ghn">Giao Hàng Nhanh (GHN)</option>
-              <option value="ghtk">Giao Hàng Tiết Kiệm (GHTK)</option>
-            </select>
+            <label class="block text-xs font-bold uppercase tracking-widest text-slate-700 mb-2">Chọn Đối tác (Provider)</label>
+            <div class="relative">
+                <select id="provider" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-bold text-slate-900 outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all appearance-none cursor-pointer">
+                  <option value="mock">MOCK (Môi trường Test an toàn)</option>
+                  <option value="ghn">Giao Hàng Nhanh (GHN)</option>
+                  <option value="ghtk">Giao Hàng Tiết Kiệm (GHTK)</option>
+                </select>
+                <i class="fa-solid fa-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"></i>
+            </div>
           </div>
 
-          <div class="space-y-3 pt-4 border-t border-[#e8e4de]">
-            <button onclick="testAPI('fee')" class="w-full py-3.5 bg-white border-2 border-[#1a1a1a] text-[#1a1a1a] rounded-xl text-xs font-black uppercase tracking-widest hover:bg-[#1a1a1a] hover:text-white transition-all shadow-sm">
-              [GET] Calculate Fee
+          <div class="space-y-3 pt-6 border-t border-slate-100">
+            <button onclick="testAPI('fee')" class="w-full py-3.5 bg-white border border-slate-200 text-slate-700 rounded-xl text-sm font-bold hover:bg-slate-50 transition-colors shadow-sm flex items-center justify-center gap-2">
+              <i class="fa-solid fa-calculator text-indigo-500"></i> Tính phí (Calculate Fee)
             </button>
-            <button onclick="testAPI('create')" class="w-full py-3.5 bg-[#1a1a1a] border-2 border-[#1a1a1a] text-white rounded-xl text-xs font-black uppercase tracking-widest hover:bg-[#333] transition-all shadow-sm">
-              [POST] Create Order
+            <button onclick="testAPI('create')" class="w-full py-3.5 bg-indigo-600 border border-transparent text-white rounded-xl text-sm font-bold hover:bg-indigo-700 transition-colors shadow-sm shadow-indigo-200 flex items-center justify-center gap-2">
+              <i class="fa-solid fa-paper-plane"></i> Tạo đơn (Create Order)
             </button>
           </div>
         </div>
 
         {# ── CỘT LOG JSON ── #}
         <div>
-          <label class="block text-[10px] font-black uppercase tracking-widest text-[#1a1a1a] mb-2">Log Response JSON</label>
-          <div class="bg-[#1a1a1a] rounded-[1.5rem] p-5 h-[300px] overflow-y-auto relative shadow-inner">
-            <div id="loading" class="absolute inset-0 bg-[#1a1a1a]/80 backdrop-blur-sm hidden flex-col items-center justify-center text-white z-10">
+          <label class="block text-xs font-bold uppercase tracking-widest text-slate-700 mb-2">Log Response JSON</label>
+          <div class="bg-slate-900 rounded-2xl p-5 h-[300px] overflow-y-auto relative shadow-inner">
+            <div id="loading" class="absolute inset-0 bg-slate-900/80 backdrop-blur-sm hidden flex-col items-center justify-center text-white z-10 rounded-2xl">
                <svg class="w-6 h-6 animate-spin mb-2" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"/></svg>
                <span class="text-[10px] font-bold tracking-widest uppercase">Đang gọi API...</span>
             </div>
             
-            <pre id="json-output" class="text-xs font-mono text-[#a3d9b8] leading-relaxed break-all">
+            <pre id="json-output" class="text-xs font-mono text-emerald-400 leading-relaxed break-all">
 // Chọn chức năng và nhấn nút
 // Response sẽ hiển thị tại đây...
             </pre>
@@ -91,13 +122,13 @@ async function testAPI(action) {
         
         // Đổi màu text dựa trên Success/False
         output.className = data.success 
-            ? 'text-xs font-mono text-[#a3d9b8] leading-relaxed break-all' 
-            : 'text-xs font-mono text-[#f8b4c4] leading-relaxed break-all';
+            ? 'text-xs font-mono text-emerald-400 leading-relaxed break-all' 
+            : 'text-xs font-mono text-rose-400 leading-relaxed break-all';
             
         // Hiển thị JSON format đẹp
         output.textContent = JSON.stringify(data, null, 4);
     } catch (e) {
-        output.className = 'text-xs font-mono text-[#f8b4c4] leading-relaxed break-all';
+        output.className = 'text-xs font-mono text-rose-400 leading-relaxed break-all';
         output.textContent = 'LỖI HỆ THỐNG:\n' + e.toString();
     } finally {
         loading.classList.remove('flex');

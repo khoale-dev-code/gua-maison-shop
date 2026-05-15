@@ -2,331 +2,257 @@
 {% block title %}Đơn vị vận chuyển{% endblock %}
 
 {% block extra_head %}
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-{# Nếu admin_base.html chưa có meta csrf-token, thêm dòng này vào <head> của base: #}
-{# <meta name="csrf-token" content="{{ csrf_token() }}"> #}
 <style>
-:root {
-  --white:    #ffffff;
-  --bg:       #f5f4f0;
-  --surface:  #ffffff;
-  --border:   #e8e5df;
-  --border2:  #f0ede7;
-  --text:     #1a1814;
-  --text2:    #6b6760;
-  --text3:    #9e9b96;
-  --ink:      #1a1814;
-  --accent:   #2563eb;
-  --accent-s: #eff4ff;
-  --green:    #16a34a;
-  --green-s:  #f0fdf4;
-  --red:      #dc2626;
-  --red-s:    #fff5f5;
-  --amber:    #d97706;
-  --amber-s:  #fffbeb;
-  --r:        8px;
-  --r-lg:     12px;
-  --shadow:   0 1px 3px rgba(0,0,0,.06), 0 1px 2px rgba(0,0,0,.04);
-  --shadow-md:0 4px 16px rgba(0,0,0,.08);
-  --font:     'DM Sans', sans-serif;
-  --mono:     'DM Mono', monospace;
-}
-
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0 }
-
-.sp { font-family: var(--font); color: var(--text); max-width: 1080px; margin: 0 auto; padding: 32px 24px 80px }
-
-/* ── HEADER ── */
-.sp-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px }
-.sp-head h1 { font-size: 20px; font-weight: 600; letter-spacing: -.3px }
-.sp-head p  { font-size: 13px; color: var(--text2); margin-top: 2px }
-
-/* ── STATS ── */
-.sp-stats { display: grid; grid-template-columns: repeat(3,1fr); gap: 12px; margin-bottom: 20px }
-.sp-stat {
-  background: var(--surface); border: 1px solid var(--border);
-  border-radius: var(--r-lg); padding: 16px 20px;
-  display: flex; align-items: center; gap: 14px;
-  box-shadow: var(--shadow);
-}
-.sp-stat__icon { width: 36px; height: 36px; border-radius: var(--r); display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0 }
-.sp-stat__icon--blue   { background: var(--accent-s) }
-.sp-stat__icon--green  { background: var(--green-s) }
-.sp-stat__icon--red    { background: var(--red-s) }
-.sp-stat__num   { font-size: 22px; font-weight: 600; font-family: var(--mono); line-height: 1 }
-.sp-stat__label { font-size: 11px; color: var(--text2); margin-top: 3px; text-transform: uppercase; letter-spacing: .5px }
-
-/* ── TABLE CARD ── */
-.sp-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-lg); overflow: hidden; box-shadow: var(--shadow) }
-.sp-table { width: 100%; border-collapse: collapse; font-size: 13.5px }
-.sp-table thead { background: var(--bg) }
-.sp-table th { padding: 11px 16px; text-align: left; font-size: 11px; font-weight: 600; color: var(--text2); text-transform: uppercase; letter-spacing: .5px; border-bottom: 1px solid var(--border) }
-.sp-table td { padding: 14px 16px; border-bottom: 1px solid var(--border2) }
-.sp-row:last-child td { border-bottom: none }
-.sp-row { transition: background .12s }
-.sp-row:hover { background: var(--bg) }
-.sp-row--off { opacity: .5 }
-
-/* Provider cell */
-.sp-provider { display: flex; align-items: center; gap: 10px }
-.sp-avatar {
-  width: 34px; height: 34px; border-radius: var(--r); background: var(--bg);
-  border: 1px solid var(--border); display: flex; align-items: center; justify-content: center;
-  font-weight: 600; font-size: 13px; color: var(--text2); overflow: hidden; flex-shrink: 0;
-}
-.sp-avatar img { width: 100%; height: 100%; object-fit: cover }
-.sp-name { font-weight: 500; font-size: 13.5px }
-.sp-desc { font-size: 11.5px; color: var(--text3); margin-top: 1px }
-.sp-code { font-family: var(--mono); font-size: 12px; background: var(--bg); border: 1px solid var(--border); padding: 2px 7px; border-radius: 4px; color: var(--text2) }
-
-/* Toggle */
-.sp-toggle { display: inline-flex; align-items: center; gap: 6px; border: none; cursor: pointer; padding: 4px 10px 4px 6px; border-radius: 20px; font-size: 11.5px; font-weight: 500; font-family: var(--font); transition: all .15s; background: var(--red-s); color: var(--red) }
-.sp-toggle--on { background: var(--green-s); color: var(--green) }
-.sp-dot { width: 8px; height: 8px; border-radius: 50%; background: currentColor; flex-shrink: 0 }
-
-/* Action buttons */
-.sp-actions { display: flex; gap: 4px; justify-content: flex-end }
-.btn-icon { width: 30px; height: 30px; border: 1px solid var(--border); border-radius: var(--r); background: var(--surface); cursor: pointer; display: inline-flex; align-items: center; justify-content: center; color: var(--text2); transition: all .12s }
-.btn-icon:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-s) }
-.btn-icon--del:hover { border-color: var(--red); color: var(--red); background: var(--red-s) }
-
-/* Empty */
-.sp-empty { text-align: center; padding: 40px !important; color: var(--text3); font-size: 13px }
-.sp-empty a { color: var(--accent); text-decoration: none }
-
-/* ── BUTTONS ── */
-.btn-primary { display: inline-flex; align-items: center; gap: 6px; background: var(--ink); color: #fff; border: none; border-radius: var(--r); padding: 8px 16px; font-size: 13px; font-weight: 500; font-family: var(--font); cursor: pointer; transition: opacity .15s }
-.btn-primary:hover { opacity: .85 }
-.btn-ghost { background: var(--surface); border: 1px solid var(--border); color: var(--text); border-radius: var(--r); padding: 8px 16px; font-size: 13px; font-weight: 500; font-family: var(--font); cursor: pointer; transition: border-color .12s }
-.btn-ghost:hover { border-color: var(--text2) }
-
-/* ── MODAL ── */
-.sp-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.3); backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center; z-index: 1000; opacity: 0; pointer-events: none; transition: opacity .2s }
-.sp-overlay.show { opacity: 1; pointer-events: all }
-.sp-modal { background: var(--surface); border-radius: var(--r-lg); box-shadow: var(--shadow-md); width: 480px; max-width: calc(100vw - 32px); transform: translateY(8px) scale(.98); transition: transform .2s; border: 1px solid var(--border) }
-.sp-overlay.show .sp-modal { transform: none }
-.sp-modal--wide { width: 560px }
-.sp-modal__head { display: flex; align-items: center; justify-content: space-between; padding: 18px 20px; border-bottom: 1px solid var(--border2) }
-.sp-modal__title { font-size: 15px; font-weight: 600 }
-.sp-modal__close { background: none; border: none; cursor: pointer; font-size: 18px; color: var(--text3); line-height: 1; padding: 2px 6px; border-radius: 4px }
-.sp-modal__close:hover { background: var(--bg); color: var(--text) }
-.sp-modal__body { padding: 20px }
-.sp-modal__foot { display: flex; gap: 8px; justify-content: flex-end; padding: 16px 20px; border-top: 1px solid var(--border2) }
-
-/* Form */
-.sp-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px }
-.sp-field { display: flex; flex-direction: column; gap: 5px }
-.sp-field--full { grid-column: 1 / -1 }
-.sp-field label { font-size: 12px; font-weight: 500; color: var(--text2) }
-.sp-field label .req { color: var(--red) }
-.sp-field input, .sp-field textarea { border: 1px solid var(--border); border-radius: var(--r); padding: 8px 11px; font-size: 13px; font-family: var(--font); color: var(--text); background: var(--surface); outline: none; transition: border-color .12s }
-.sp-field input:focus, .sp-field textarea:focus { border-color: var(--accent) }
-.sp-field small { font-size: 11px; color: var(--text3) }
-.sp-check { display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 13px; color: var(--text2) }
-.sp-check input { width: 15px; height: 15px; accent-color: var(--accent); cursor: pointer }
-
-/* JSON editor */
-.sp-json { font-family: var(--mono); font-size: 12.5px; line-height: 1.6; resize: vertical; min-height: 140px; background: var(--bg) }
-.sp-json-err { font-size: 11.5px; color: var(--red); margin-top: 4px; min-height: 16px }
-.sp-hint { font-size: 12px; color: var(--text3); margin-bottom: 10px; line-height: 1.5 }
-
-/* Toast */
-.sp-toast {
-  position: fixed; bottom: 24px; right: 24px; z-index: 9999;
-  background: var(--ink); color: #fff; border-radius: var(--r-lg);
-  padding: 11px 18px; font-size: 13px; font-family: var(--font);
-  box-shadow: var(--shadow-md); transform: translateY(8px); opacity: 0;
-  transition: all .22s; pointer-events: none; display: flex; align-items: center; gap: 8px;
-}
-.sp-toast.show { transform: none; opacity: 1 }
-.sp-toast--err { background: var(--red) }
-.sp-toast--ok::before  { content: '✓'; font-weight: 700 }
-.sp-toast--err::before { content: '✕'; font-weight: 700 }
-
-@media (max-width: 600px) {
-  .sp-stats { grid-template-columns: 1fr }
-  .sp-grid  { grid-template-columns: 1fr }
-  .sp-field--full { grid-column: 1 }
-}
+    :root { --font-jakarta: 'Plus Jakarta Sans', sans-serif; }
+    body { font-family: var(--font-jakarta); background-color: #f8fafc; }
+    
+    .modern-card {
+        background: #ffffff;
+        border: 1px solid #f1f5f9;
+        border-radius: 1.5rem;
+        box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.03);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .modern-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 12px 30px -4px rgba(0, 0, 0, 0.06);
+    }
+    
+    .glass-nav { 
+        background: rgba(248, 250, 252, 0.85); 
+        backdrop-filter: blur(16px); 
+        -webkit-backdrop-filter: blur(16px); 
+    }
+    
+    .fade-up { opacity: 0; animation: fadeUpAnim 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+    @keyframes fadeUpAnim { 
+        from { opacity: 0; transform: translateY(20px); } 
+        to { opacity: 1; transform: translateY(0); } 
+    }
+    
+    /* Toast */
+    .sp-toast {
+      position: fixed; bottom: 24px; right: 24px; z-index: 9999;
+      background: #0f172a; color: #fff; border-radius: 1rem;
+      padding: 12px 20px; font-size: 13px; font-weight: 600;
+      box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1); transform: translateY(20px); opacity: 0;
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1); pointer-events: none; display: flex; align-items: center; gap: 8px;
+    }
+    .sp-toast.show { transform: translateY(0); opacity: 1 }
+    .sp-toast--err { background: #e11d48 }
+    .sp-toast--ok::before  { content: '✓'; font-weight: 700 }
+    .sp-toast--err::before { content: '✕'; font-weight: 700 }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="sp">
+<div class="min-h-screen pb-16 font-sans text-slate-800 selection:bg-indigo-500 selection:text-white">
 
-  <header class="sp-head">
-    <div>
-      <h1>Đơn vị vận chuyển</h1>
-      <p>Quản lý và cấu hình các hãng vận chuyển tích hợp</p>
-    </div>
-    <button class="btn-primary" onclick="openAdd()">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-      Thêm mới
-    </button>
-  </header>
-
-  <div class="sp-stats">
-    <div class="sp-stat">
-      <div class="sp-stat__icon sp-stat__icon--blue">📦</div>
-      <div><div class="sp-stat__num" id="sTotal">{{ providers|length }}</div><div class="sp-stat__label">Tổng cộng</div></div>
-    </div>
-    <div class="sp-stat">
-      <div class="sp-stat__icon sp-stat__icon--green">✅</div>
-      <div><div class="sp-stat__num" id="sActive">{{ providers|selectattr('is_active')|list|length }}</div><div class="sp-stat__label">Hoạt động</div></div>
-    </div>
-    <div class="sp-stat">
-      <div class="sp-stat__icon sp-stat__icon--red">⏸</div>
-      <div><div class="sp-stat__num" id="sOff">{{ providers|rejectattr('is_active')|list|length }}</div><div class="sp-stat__label">Tạm dừng</div></div>
-    </div>
-  </div>
-
-  <div class="sp-card">
-    <table class="sp-table">
-      <thead>
-        <tr>
-          <th style="width:44px">TT</th>
-          <th>Hãng vận chuyển</th>
-          <th>ID / Slug</th>
-          <th style="width:110px">Trạng thái</th>
-          <th style="width:130px; text-align:right">Thao tác</th>
-        </tr>
-      </thead>
-      <tbody id="tbody">
-        {% for p in providers %}
-        <tr class="sp-row{% if not p.is_active %} sp-row--off{% endif %}" data-id="{{ p.id }}">
-          <td><span style="font-family:var(--mono);font-size:12px;color:var(--text3)">{{ p.sort_order or 0 }}</span></td>
-          <td>
-            <div class="sp-provider">
-              <div class="sp-avatar">
-                {% if p.icon %}
-                  {% if p.icon.startswith('fa-') or p.icon.startswith('fas ') or p.icon.startswith('far ') %}
-                    <i class="fa-solid {{ p.icon }}" style="font-size:15px;color:var(--accent)"></i>
-                  {% elif p.icon.startswith('http') %}
-                    <img src="{{ p.icon }}" alt="">
-                  {% else %}
-                    <i class="fa-solid fa-{{ p.icon }}" style="font-size:15px;color:var(--accent)"></i>
-                  {% endif %}
-                {% else %}
-                  {{ p.name[0]|upper }}
-                {% endif %}
-              </div>
-              <div>
-                <div class="sp-name">{{ p.name }}</div>
-                {% if p.description %}<div class="sp-desc">{{ p.description }}</div>{% endif %}
-              </div>
+    {# ── STICKY TOP BAR ── #}
+    <div class="glass-nav sticky top-0 z-30 border-b border-slate-200/60 mb-8">
+        <div class="max-w-[1200px] mx-auto px-6 lg:px-12 py-4 flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div>
+                <h1 class="text-2xl font-bold tracking-tight text-slate-900">Đơn vị vận chuyển</h1>
+                <div class="flex items-center gap-2 mt-1">
+                    <a href="/admin/" class="text-slate-500 hover:text-indigo-600 text-xs font-semibold transition-colors">Dashboard</a>
+                    <i class="fa-solid fa-chevron-right text-[10px] text-slate-400"></i>
+                    <span class="text-indigo-600 text-xs font-semibold">Cấu hình vận chuyển</span>
+                </div>
             </div>
-          </td>
-          <td><code class="sp-code">{{ p.id }}</code></td>
-          <td>
-            <button class="sp-toggle{% if p.is_active %} sp-toggle--on{% endif %}" onclick="doToggle('{{ p.id }}', this)">
-              <span class="sp-dot"></span>{% if p.is_active %}Bật{% else %}Tắt{% endif %}
+            <div class="flex gap-3">
+                <button onclick="openAdd()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-xl text-sm font-semibold shadow-sm shadow-indigo-200 transition-all flex items-center gap-2">
+                    <i class="fa-solid fa-plus"></i> Thêm mới
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="max-w-[1200px] mx-auto px-6 lg:px-12 space-y-8 fade-up">
+        
+        {# ── THỐNG KÊ ── #}
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
+            <div class="modern-card p-6 flex items-center gap-5">
+                <div class="w-12 h-12 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center text-xl"><i class="fa-solid fa-box-open"></i></div>
+                <div>
+                    <p class="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Tổng cộng</p>
+                    <p class="text-3xl font-extrabold text-slate-900 mt-1" id="sTotal">{{ providers|length }}</p>
+                </div>
+            </div>
+            <div class="modern-card p-6 flex items-center gap-5">
+                <div class="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-xl"><i class="fa-solid fa-check-circle"></i></div>
+                <div>
+                    <p class="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Hoạt động</p>
+                    <p class="text-3xl font-extrabold text-slate-900 mt-1" id="sActive">{{ providers|selectattr('is_active')|list|length }}</p>
+                </div>
+            </div>
+            <div class="modern-card p-6 flex items-center gap-5">
+                <div class="w-12 h-12 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center text-xl"><i class="fa-solid fa-pause-circle"></i></div>
+                <div>
+                    <p class="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Tạm dừng</p>
+                    <p class="text-3xl font-extrabold text-slate-900 mt-1" id="sOff">{{ providers|rejectattr('is_active')|list|length }}</p>
+                </div>
+            </div>
+        </div>
+
+        {# ── TABLE BẢNG ĐƠN VỊ ── #}
+        <div class="modern-card overflow-hidden">
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-slate-50/50 border-b border-slate-100">
+                            <th class="py-4 px-6 text-[11px] font-bold uppercase tracking-wider text-slate-500 w-16">TT</th>
+                            <th class="py-4 px-6 text-[11px] font-bold uppercase tracking-wider text-slate-500">Hãng vận chuyển</th>
+                            <th class="py-4 px-6 text-[11px] font-bold uppercase tracking-wider text-slate-500">ID / Slug</th>
+                            <th class="py-4 px-6 text-[11px] font-bold uppercase tracking-wider text-slate-500 w-36">Trạng thái</th>
+                            <th class="py-4 px-6 text-[11px] font-bold uppercase tracking-wider text-slate-500 text-right w-40">Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tbody" class="divide-y divide-slate-100">
+                        {% for p in providers %}
+                        <tr class="hover:bg-slate-50/50 transition-colors group{% if not p.is_active %} opacity-60{% endif %}" data-id="{{ p.id }}">
+                            <td class="py-4 px-6 font-mono text-xs text-slate-400 font-bold align-middle">{{ p.sort_order or 0 }}</td>
+                            <td class="py-4 px-6 align-middle">
+                                <div class="flex items-center gap-4">
+                                    <div class="w-10 h-10 rounded-xl border border-slate-100 bg-white flex items-center justify-center shadow-sm overflow-hidden text-indigo-500 shrink-0 font-bold text-sm">
+                                        {% if p.icon %}
+                                          {% if p.icon.startswith('fa-') or p.icon.startswith('fas ') or p.icon.startswith('far ') %}
+                                            <i class="fa-solid {{ p.icon }}"></i>
+                                          {% elif p.icon.startswith('http') %}
+                                            <img src="{{ p.icon }}" alt="" class="w-full h-full object-cover">
+                                          {% else %}
+                                            <i class="fa-solid fa-{{ p.icon }}"></i>
+                                          {% endif %}
+                                        {% else %}
+                                          {{ p.name[0]|upper }}
+                                        {% endif %}
+                                    </div>
+                                    <div>
+                                        <p class="font-bold text-slate-900 text-sm">{{ p.name }}</p>
+                                        {% if p.description %}<p class="text-xs text-slate-500 font-medium mt-0.5">{{ p.description }}</p>{% endif %}
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="py-4 px-6 align-middle">
+                                <span class="bg-slate-100 text-slate-600 font-mono text-[11px] font-bold px-2 py-1 rounded">{{ p.id }}</span>
+                            </td>
+                            <td class="py-4 px-6 align-middle">
+                                <button class="toggle-btn inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest transition-colors {% if p.is_active %}bg-emerald-50 text-emerald-600 border border-emerald-200{% else %}bg-rose-50 text-rose-600 border border-rose-200{% endif %}" onclick="doToggle('{{ p.id }}', this)">
+                                    <span class="w-1.5 h-1.5 rounded-full {% if p.is_active %}bg-emerald-500{% else %}bg-rose-500{% endif %}"></span>
+                                    <span class="toggle-text">{% if p.is_active %}Hoạt động{% else %}Tạm dừng{% endif %}</span>
+                                </button>
+                            </td>
+                            <td class="py-4 px-6 align-middle text-right">
+                                <div class="flex items-center justify-end gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <button onclick="openConfig('{{ p.id }}')" class="w-8 h-8 rounded-lg bg-white border border-slate-200 text-slate-500 hover:text-indigo-600 hover:border-indigo-200 transition-all shadow-sm flex items-center justify-center" title="Cấu hình API">
+                                        <i class="fa-solid fa-sliders text-xs"></i>
+                                    </button>
+                                    <button onclick="openEdit('{{ p.id }}')" class="w-8 h-8 rounded-lg bg-white border border-slate-200 text-slate-500 hover:text-amber-500 hover:border-amber-200 transition-all shadow-sm flex items-center justify-center" title="Sửa">
+                                        <i class="fa-solid fa-pen text-xs"></i>
+                                    </button>
+                                    <button onclick="doDel('{{ p.id }}','{{ p.name }}')" class="w-8 h-8 rounded-lg bg-white border border-slate-200 text-slate-500 hover:text-rose-600 hover:border-rose-200 transition-all shadow-sm flex items-center justify-center" title="Xoá">
+                                        <i class="fa-solid fa-trash text-xs"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr><td colspan="5" class="py-16 text-center text-slate-400 font-medium">Chưa có hãng vận chuyển nào.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+{# ── MODALS (Thêm/Sửa & Config) ── #}
+<div id="ovMain" class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4 transition-opacity duration-300 opacity-0" aria-modal="true">
+    <div class="bg-white rounded-3xl shadow-2xl w-full max-w-xl transform scale-95 transition-transform duration-300">
+        <div class="flex items-center justify-between p-6 border-b border-slate-100">
+            <h3 class="text-lg font-bold text-slate-900" id="mTitle">Thêm đơn vị vận chuyển</h3>
+            <button onclick="closeAll()" class="w-8 h-8 flex items-center justify-center rounded-xl text-slate-400 hover:text-slate-900 hover:bg-slate-100 transition-colors">
+                <i class="fa-solid fa-xmark text-lg"></i>
             </button>
-          </td>
-          <td>
-            <div class="sp-actions">
-              <button class="btn-icon" onclick="openEdit('{{ p.id }}')" title="Chỉnh sửa">
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-              </button>
-              <button class="btn-icon" onclick="openConfig('{{ p.id }}')" title="Cấu hình API">
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93l-1.41 1.41M4.93 4.93l1.41 1.41M12 2v2M12 20v2M2 12h2M20 12h2M19.07 19.07l-1.41-1.41M4.93 19.07l1.41-1.41"/></svg>
-              </button>
-              <button class="btn-icon btn-icon--del" onclick="doDel('{{ p.id }}','{{ p.name }}')" title="Xóa">
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4h6v2"/></svg>
-              </button>
+        </div>
+        <div class="p-6 md:p-8">
+            <form id="mainForm" onsubmit="doSubmit(event)" class="space-y-5">
+                <input type="hidden" id="fEditId">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    <div id="fIdWrap">
+                        <label class="block text-xs font-bold text-slate-700 mb-2 uppercase tracking-wide">ID / Slug <span class="text-rose-500">*</span></label>
+                        <input type="text" id="fId" placeholder="ghn, ghtk..." autocomplete="off" class="w-full bg-slate-50 border border-slate-200 text-sm font-medium rounded-xl py-3 px-4 focus:ring-2 focus:ring-indigo-500 outline-none">
+                        <p class="text-[10px] text-slate-400 mt-1.5 font-medium">Chữ thường, không khoảng trắng</p>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-2 uppercase tracking-wide">Tên hãng <span class="text-rose-500">*</span></label>
+                        <input type="text" id="fName" placeholder="Giao Hàng Nhanh" required class="w-full bg-slate-50 border border-slate-200 text-sm font-medium rounded-xl py-3 px-4 focus:ring-2 focus:ring-indigo-500 outline-none">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-2 uppercase tracking-wide">Mô tả</label>
+                    <input type="text" id="fDesc" placeholder="Mô tả ngắn..." class="w-full bg-slate-50 border border-slate-200 text-sm font-medium rounded-xl py-3 px-4 focus:ring-2 focus:ring-indigo-500 outline-none">
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-2 uppercase tracking-wide">Icon (URL/FontAwesome)</label>
+                        <input type="text" id="fIcon" placeholder="fa-truck hoặc https://..." class="w-full bg-slate-50 border border-slate-200 text-sm font-medium rounded-xl py-3 px-4 focus:ring-2 focus:ring-indigo-500 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-2 uppercase tracking-wide">Thứ tự hiển thị</label>
+                        <input type="number" id="fSort" value="0" min="0" class="w-full bg-slate-50 border border-slate-200 text-sm font-medium rounded-xl py-3 px-4 focus:ring-2 focus:ring-indigo-500 outline-none">
+                    </div>
+                </div>
+                <label class="flex items-center gap-3 mt-4 cursor-pointer">
+                    <input type="checkbox" id="fActive" class="w-4 h-4 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500">
+                    <span class="text-sm font-bold text-slate-700">Kích hoạt ngay sau khi tạo</span>
+                </label>
+                
+                <div class="pt-6 flex justify-end gap-3 mt-4 border-t border-slate-100">
+                    <button type="button" onclick="closeAll()" class="px-5 py-2.5 bg-white border border-slate-200 text-slate-700 rounded-xl text-sm font-bold shadow-sm hover:bg-slate-50 transition-colors">Huỷ</button>
+                    <button type="submit" id="btnOk" class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-sm font-bold shadow-sm shadow-indigo-200 flex items-center gap-2 transition-colors">Tạo mới</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div id="ovConfig" class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4 transition-opacity duration-300 opacity-0" aria-modal="true">
+    <div class="bg-white rounded-3xl shadow-2xl w-full max-w-2xl transform scale-95 transition-transform duration-300">
+        <div class="flex items-center justify-between p-6 border-b border-slate-100 bg-slate-50 rounded-t-3xl">
+            <div>
+                <h3 class="text-lg font-bold text-slate-900">Cấu hình API</h3>
+                <p class="text-xs font-bold text-indigo-600 mt-0.5 uppercase tracking-widest" id="cfgName">GHN</p>
             </div>
-          </td>
-        </tr>
-        {% else %}
-        <tr><td colspan="5" class="sp-empty">Chưa có hãng nào. <a href="#" onclick="openAdd()">Thêm ngay →</a></td></tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  </div>
-</div>
-
-<!-- MODAL: THÊM / SỬA -->
-<div class="sp-overlay" id="ovMain" onclick="if(e.target===this)closeAll()">
-  <div class="sp-modal">
-    <div class="sp-modal__head">
-      <span class="sp-modal__title" id="mTitle">Thêm đơn vị vận chuyển</span>
-      <button class="sp-modal__close" onclick="closeAll()">✕</button>
-    </div>
-    <div class="sp-modal__body">
-      <form id="mainForm" onsubmit="doSubmit(event)">
-        <input type="hidden" id="fEditId">
-        <div class="sp-grid">
-          <div class="sp-field" id="fIdWrap">
-            <label>ID / Slug <span class="req">*</span></label>
-            <input type="text" id="fId" placeholder="ghn, ghtk, j_and_t" autocomplete="off">
-            <small>Chữ thường, không dấu, không khoảng trắng</small>
-          </div>
-          <div class="sp-field">
-            <label>Tên hãng <span class="req">*</span></label>
-            <input type="text" id="fName" placeholder="Giao Hàng Nhanh">
-          </div>
-          <div class="sp-field sp-field--full">
-            <label>Mô tả</label>
-            <input type="text" id="fDesc" placeholder="Mô tả ngắn...">
-          </div>
-          <div class="sp-field">
-            <label>Icon URL</label>
-            <input type="text" id="fIcon" placeholder="https://...">
-          </div>
-          <div class="sp-field">
-            <label>Thứ tự hiển thị</label>
-            <input type="number" id="fSort" value="0" min="0">
-          </div>
-          <div class="sp-field sp-field--full">
-            <label class="sp-check">
-              <input type="checkbox" id="fActive">
-              Kích hoạt ngay sau khi tạo
-            </label>
-          </div>
+            <button onclick="closeAll()" class="w-8 h-8 flex items-center justify-center rounded-xl text-slate-400 hover:text-slate-900 hover:bg-slate-200 transition-colors">
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
         </div>
-        <div class="sp-modal__foot" style="padding:16px 0 0;border-top:none">
-          <button type="button" class="btn-ghost" onclick="closeAll()">Hủy</button>
-          <button type="submit" class="btn-primary" id="btnOk">Tạo mới</button>
+        <div class="p-6 md:p-8">
+            <p class="text-xs text-slate-500 font-medium mb-4">Lưu API key, token, shop ID vào trường config dưới dạng JSON.</p>
+            <textarea id="cfgJson" class="w-full bg-slate-900 text-emerald-400 font-mono text-xs p-5 rounded-2xl h-[240px] focus:outline-none focus:ring-2 focus:ring-indigo-500" spellcheck="false"></textarea>
+            <p id="cfgErr" class="text-xs text-rose-500 font-bold mt-2 min-h-[16px]"></p>
+            
+            <div class="pt-6 flex justify-end gap-3 border-t border-slate-100 mt-4">
+                <button type="button" onclick="closeAll()" class="px-5 py-2.5 bg-white border border-slate-200 text-slate-700 rounded-xl text-sm font-bold shadow-sm hover:bg-slate-50 transition-colors">Huỷ</button>
+                <button type="button" onclick="saveConfig()" class="px-5 py-2.5 bg-slate-900 hover:bg-black text-white rounded-xl text-sm font-bold shadow-sm transition-colors">Lưu cấu hình</button>
+            </div>
         </div>
-      </form>
     </div>
-  </div>
-</div>
-
-<!-- MODAL: CẤU HÌNH API -->
-<div class="sp-overlay" id="ovConfig" onclick="if(e.target===this)closeAll()">
-  <div class="sp-modal sp-modal--wide">
-    <div class="sp-modal__head">
-      <span class="sp-modal__title">Cấu hình API — <span id="cfgName"></span></span>
-      <button class="sp-modal__close" onclick="closeAll()">✕</button>
-    </div>
-    <div class="sp-modal__body">
-      <p class="sp-hint">Lưu API key, token, shop ID vào trường <code>config</code> (JSON).</p>
-      <div class="sp-field">
-        <textarea id="cfgJson" class="sp-json" rows="10" spellcheck="false"></textarea>
-        <div id="cfgErr" class="sp-json-err"></div>
-      </div>
-    </div>
-    <div class="sp-modal__foot">
-      <button type="button" class="btn-ghost" onclick="closeAll()">Hủy</button>
-      <button type="button" class="btn-primary" onclick="saveConfig()">Lưu cấu hình</button>
-    </div>
-  </div>
 </div>
 
 <div id="toast" class="sp-toast"></div>
+{% endblock %}
 
+{% block extra_scripts %}
 <script>
 const BASE = '/admin/shipping/providers/api';
 let cfgId = null;
 
 const $  = id => document.getElementById(id);
-
-// ── CSRF: lấy token từ meta tag (Flask-WTF inject sẵn) ──
 const getCsrf = () => document.querySelector('meta[name="csrf-token"]')?.content || '';
 
-// ── api helper: tự động đính kèm CSRF cho mọi request ──
 const api = (url, opt={}) => {
   const headers = { 'Content-Type': 'application/json', 'X-CSRFToken': getCsrf(), ...opt.headers };
   return fetch(url, { ...opt, headers }).then(r => r.json());
@@ -339,19 +265,31 @@ const toast = (msg, ok=true) => {
   setTimeout(()=>el.classList.remove('show'), 3000);
 };
 
-const closeAll = () => document.querySelectorAll('.sp-overlay').forEach(o=>o.classList.remove('show'));
-const openOv   = id => $(id).classList.add('show');
+const closeAll = () => {
+    document.querySelectorAll('.fixed[id^="ov"]').forEach(o => {
+        o.classList.remove('opacity-100');
+        o.classList.add('opacity-0');
+        o.querySelector('div.transform')?.classList.replace('scale-100', 'scale-95');
+        setTimeout(() => o.classList.replace('flex', 'hidden'), 300);
+    });
+};
 
-// ── Stats refresh ──
+const openOv = id => {
+    const el = $(id);
+    el.classList.replace('hidden', 'flex');
+    void el.offsetWidth;
+    el.classList.replace('opacity-0', 'opacity-100');
+    el.querySelector('div.transform')?.classList.replace('scale-95', 'scale-100');
+};
+
 const refreshStats = () => {
   const rows = document.querySelectorAll('#tbody tr[data-id]');
-  const on   = document.querySelectorAll('#tbody tr[data-id]:not(.sp-row--off)').length;
+  const on   = document.querySelectorAll('#tbody tr[data-id]:not(.opacity-60)').length;
   $('sTotal').textContent = rows.length;
   $('sActive').textContent = on;
   $('sOff').textContent = rows.length - on;
 };
 
-// ── Add ──
 const openAdd = () => {
   $('mTitle').textContent = 'Thêm đơn vị vận chuyển';
   $('btnOk').textContent  = 'Tạo mới';
@@ -362,7 +300,6 @@ const openAdd = () => {
   $('fId').focus();
 };
 
-// ── Edit ──
 const openEdit = async id => {
   const d = await api(`${BASE}/${id}`);
   if (!d.id) return toast('Không tải được dữ liệu', false);
@@ -380,7 +317,6 @@ const openEdit = async id => {
   $('fName').focus();
 };
 
-// ── Submit ──
 const doSubmit = async e => {
   e.preventDefault();
   const editId = $('fEditId').value.trim();
@@ -402,21 +338,32 @@ const doSubmit = async e => {
   setTimeout(()=>location.reload(), 700);
 };
 
-// ── Toggle ──
 const doToggle = async (id, btn) => {
   const res = await api(`${BASE}/${id}/toggle`, { method:'PATCH' });
   if (!res.success) return toast('Cập nhật thất bại', false);
   const on = res.data.is_active;
-  btn.classList.toggle('sp-toggle--on', on);
-  btn.textContent = '';
-  const dot = document.createElement('span'); dot.className='sp-dot'; btn.appendChild(dot);
-  btn.append(on ? 'Bật' : 'Tắt');
-  btn.closest('tr').classList.toggle('sp-row--off', !on);
+  
+  // Update classes
+  if(on) {
+      btn.classList.replace('bg-rose-50', 'bg-emerald-50');
+      btn.classList.replace('text-rose-600', 'text-emerald-600');
+      btn.classList.replace('border-rose-200', 'border-emerald-200');
+      btn.querySelector('span.rounded-full').classList.replace('bg-rose-500', 'bg-emerald-500');
+      btn.querySelector('.toggle-text').textContent = 'Hoạt động';
+      btn.closest('tr').classList.remove('opacity-60');
+  } else {
+      btn.classList.replace('bg-emerald-50', 'bg-rose-50');
+      btn.classList.replace('text-emerald-600', 'text-rose-600');
+      btn.classList.replace('border-emerald-200', 'border-rose-200');
+      btn.querySelector('span.rounded-full').classList.replace('bg-emerald-500', 'bg-rose-500');
+      btn.querySelector('.toggle-text').textContent = 'Tạm dừng';
+      btn.closest('tr').classList.add('opacity-60');
+  }
+  
   refreshStats();
   toast(`Đã ${on?'kích hoạt':'tạm dừng'} hãng vận chuyển.`);
 };
 
-// ── Delete ──
 const doDel = async (id, name) => {
   if (!confirm(`Xóa hãng "${name}"?\n\nHành động không thể hoàn tác.`)) return;
   const res = await api(`${BASE}/${id}`, { method:'DELETE' });
@@ -426,7 +373,6 @@ const doDel = async (id, name) => {
   toast(`Đã xóa "${name}".`);
 };
 
-// ── Config ──
 const openConfig = async id => {
   const d = await api(`${BASE}/${id}`);
   if (!d.id) return toast('Không tải được dữ liệu', false);

@@ -1,338 +1,349 @@
+{# app/templates/admin/settings/index.html #}
 {% extends "admin/admin_base.html" %}
 {% block title %}Cài đặt Hệ thống — GUA Admin{% endblock %}
 
 {% block extra_head %}
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+  rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 <style>
-/* ── Design tokens ── */
-:root {
-  --gua-black:#0D0D0D; --gua-ink:#1A1A1A; --gua-charcoal:#2E2E2E; --gua-steel:#4A4A4A;
-  --gua-mid:#777; --gua-soft:#B0B0B0; --gua-line:#E0DEDB; --gua-surface:#F5F4F1;
-  --gua-paper:#FAFAF8; --gua-white:#FFFFFF;
-  --acc-gold:#B8953E; --acc-gold-light:#F2EDD7;
-  --acc-rust:#8B3A2A; --acc-rust-light:#F5EAE7;
-  --acc-sage:#3B5E44; --acc-sage-light:#E7EFE9;
-  --acc-navy:#1E3456; --acc-navy-light:#E6EAF2;
-  --acc-warn:#8B6B00; --acc-warn-light:#FFF8E1;
-  --acc-err:#8B1A1A;  --acc-err-light:#FFEBEB;
-  --r:3px; --rc:6px; --font-d:'Cormorant Garamond',Georgia,serif; --font-b:'DM Sans',system-ui,sans-serif;
-  --t:.18s ease; --sw:220px;
-}
-*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-body{font-family:var(--font-b);background:var(--gua-surface);color:var(--gua-ink)}
+  :root {
+    --font-jakarta: 'Plus Jakarta Sans', sans-serif;
+  }
 
-/* ── Header ── */
-.s-header{background:var(--gua-black);color:#fff;padding:0 32px;height:60px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50;border-bottom:1px solid #222}
-.s-header__brand{display:flex;align-items:baseline;gap:10px}
-.s-header__eyebrow{font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--gua-soft)}
-.s-header__title{font-family:var(--font-d);font-size:20px;font-weight:500;letter-spacing:.02em}
-.s-header__div{width:1px;height:16px;background:#333}
-.live-badge{display:flex;align-items:center;gap:6px;font-size:11px;letter-spacing:.08em;color:var(--gua-soft);text-transform:uppercase}
-.live-badge__dot{width:6px;height:6px;border-radius:50%;background:#4CAF50;box-shadow:0 0 0 2px rgba(76,175,80,.25);animation:pulse 2s infinite}
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
+  body {
+    font-family: var(--font-jakarta);
+    background-color: #f8fafc;
+  }
 
-/* ── Alerts ── */
-.s-alerts{padding:14px 32px 0}
-.alert{display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:var(--rc);font-size:13px;border-left:3px solid;margin-bottom:8px}
-.alert--success{background:var(--acc-sage-light);border-color:var(--acc-sage);color:var(--acc-sage)}
-.alert--danger{background:var(--acc-err-light);border-color:var(--acc-err);color:var(--acc-err)}
-.alert--info{background:var(--acc-navy-light);border-color:var(--acc-navy);color:var(--acc-navy)}
-.alert__close{margin-left:auto;background:none;border:none;cursor:pointer;font-size:18px;line-height:1;color:inherit;opacity:.6}
-.alert__close:hover{opacity:1}
+  .modern-card {
+    background: #ffffff;
+    border: 1px solid #f1f5f9;
+    border-radius: 1.5rem;
+    box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.03);
+  }
 
-/* ── Layout ── */
-.s-layout{display:grid;grid-template-columns:var(--sw) 1fr;min-height:calc(100vh - 60px)}
+  .glass-nav {
+    background: rgba(248, 250, 252, 0.85);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+  }
 
-/* ── Sidebar ── */
-.s-sidebar{background:var(--gua-white);border-right:1px solid var(--gua-line);padding:20px 0;position:sticky;top:60px;height:calc(100vh - 60px);overflow-y:auto}
-.s-nav__group{font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:var(--gua-soft);padding:14px 20px 5px;font-weight:500}
-.s-nav__item{display:flex;align-items:center;gap:10px;padding:9px 20px;cursor:pointer;border:none;background:none;width:100%;text-align:left;color:var(--gua-steel);font-size:13px;font-family:var(--font-b);transition:var(--t);border-left:2px solid transparent}
-.s-nav__item:hover{background:var(--gua-surface);color:var(--gua-ink)}
-.s-nav__item.active{color:var(--gua-black);font-weight:500;background:var(--gua-surface);border-left-color:var(--gua-black)}
-.s-nav__item svg{width:15px;height:15px;flex-shrink:0;stroke:currentColor;fill:none}
-.s-nav__badge{margin-left:auto;font-size:9px;letter-spacing:.06em;padding:2px 6px;border-radius:var(--r);font-weight:500;background:var(--gua-surface);color:var(--gua-mid);border:1px solid var(--gua-line);text-transform:uppercase}
-.s-nav__badge--new{background:var(--acc-gold-light);color:var(--acc-gold);border-color:#D4B86A}
-.s-nav__sep{height:1px;background:var(--gua-line);margin:10px 20px}
+  .fade-up {
+    opacity: 0;
+    animation: fadeUpAnim 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
 
-/* ── Content ── */
-.s-content{padding:28px 32px;background:var(--gua-surface)}
-.s-panel{display:none}
-.s-panel.active{display:block;animation:fadeIn .2s ease}
-@keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+  @keyframes fadeUpAnim {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
 
-/* ── Panel header ── */
-.panel-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:24px;padding-bottom:18px;border-bottom:1px solid var(--gua-line)}
-.panel-header__title{font-family:var(--font-d);font-size:26px;font-weight:500;color:var(--gua-black);line-height:1.1}
-.panel-header__desc{font-size:12px;color:var(--gua-mid);margin-top:4px}
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
 
-/* ── Buttons ── */
-.btn{display:inline-flex;align-items:center;gap:7px;padding:8px 16px;border-radius:var(--r);font-size:11px;font-weight:500;font-family:var(--font-b);letter-spacing:.06em;text-transform:uppercase;cursor:pointer;border:1px solid;transition:var(--t);white-space:nowrap;text-decoration:none}
-.btn svg{width:13px;height:13px}
-.btn--primary{background:var(--gua-black);color:#fff;border-color:var(--gua-black)}
-.btn--primary:hover{background:var(--gua-charcoal)}
-.btn--outline{background:transparent;color:var(--gua-ink);border-color:var(--gua-line)}
-.btn--outline:hover{border-color:var(--gua-steel);background:var(--gua-white)}
-.btn--ghost{background:transparent;color:var(--gua-steel);border-color:transparent}
-.btn--ghost:hover{background:var(--gua-surface)}
-.btn--danger{background:var(--acc-err-light);color:var(--acc-err);border-color:#D9A0A0}
-.btn--danger:hover{background:#FDDCDC}
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
 
-/* ── Form ── */
-.form-section{background:var(--gua-white);border:1px solid var(--gua-line);border-radius:var(--rc);padding:22px;margin-bottom:14px}
-.form-section__head{margin-bottom:18px}
-.form-section__brand{display:flex;align-items:center;gap:10px;margin-bottom:3px}
-.form-section__title{font-size:12px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;color:var(--gua-charcoal)}
-.form-section__sub{font-size:12px;color:var(--gua-mid);margin-top:3px}
-.form-row{display:flex;gap:14px;margin-bottom:14px}
-.form-row:last-child{margin-bottom:0}
-.form-row--2col>*{flex:1}
-.form-row--3col>*{flex:1}
-.form-group{display:flex;flex-direction:column;gap:5px}
-.form-label{font-size:11px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;color:var(--gua-steel);display:flex;align-items:center;gap:6px}
-.form-label__required{color:var(--acc-rust)}
-.form-label__sensitive{display:inline-flex;align-items:center;gap:3px;font-size:9px;padding:2px 6px;background:var(--acc-warn-light);color:var(--acc-warn);border-radius:var(--r);border:1px solid #E8C84A;text-transform:uppercase;letter-spacing:.06em}
-.form-label__sensitive svg{width:9px;height:9px}
-.form-input,.form-select,.form-textarea{width:100%;padding:9px 12px;border:1px solid var(--gua-line);border-radius:var(--r);background:var(--gua-paper);color:var(--gua-ink);font-size:13px;font-family:var(--font-b);transition:var(--t);outline:none}
-.form-input:focus,.form-select:focus,.form-textarea:focus{border-color:var(--gua-black);background:var(--gua-white);box-shadow:0 0 0 3px rgba(13,13,13,.06)}
-.form-input--mono{font-family:'SF Mono','Fira Code',monospace;letter-spacing:.04em;font-size:12px}
-.form-textarea{resize:vertical;min-height:78px}
-.form-hint{font-size:11px;color:var(--gua-soft)}
-.form-select-wrap{position:relative}
-.form-select{appearance:none;padding-right:30px;cursor:pointer}
-.form-select-arrow{position:absolute;right:10px;top:50%;transform:translateY(-50%);pointer-events:none;color:var(--gua-mid)}
-.form-select-arrow svg{width:10px;height:10px;stroke:currentColor;fill:none}
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
 
-/* Toggle */
-.toggle-group{display:flex;align-items:center;gap:10px;padding:8px 0}
-.toggle{position:relative;display:inline-block;width:36px;height:20px;flex-shrink:0}
-.toggle input{opacity:0;width:0;height:0}
-.toggle__slider{position:absolute;inset:0;cursor:pointer;background:var(--gua-line);border-radius:20px;transition:var(--t)}
-.toggle__slider::before{content:'';position:absolute;width:14px;height:14px;border-radius:50%;background:#fff;left:3px;top:3px;transition:var(--t);box-shadow:0 1px 3px rgba(0,0,0,.2)}
-.toggle input:checked+.toggle__slider{background:var(--gua-black)}
-.toggle input:checked+.toggle__slider::before{transform:translateX(16px)}
-.toggle__label{font-size:13px;color:var(--gua-steel)}
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background-color: #cbd5e1;
+    border-radius: 10px;
+  }
 
-/* Password */
-.input-pw{position:relative}
-.input-pw .form-input{padding-right:38px}
-.toggle-eye{position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--gua-mid);padding:2px}
-.toggle-eye:hover{color:var(--gua-ink)}
-.toggle-eye svg{width:15px;height:15px;stroke:currentColor;fill:none}
+  /* Settings Layout Layout */
+  .s-layout {
+    display: grid;
+    grid-template-columns: 240px 1fr;
+    min-height: calc(100vh - 72px);
+    gap: 2rem;
+  }
 
-/* Input + action */
-.input-row{display:flex;gap:8px}
-.input-row .form-input{flex:1}
-.input-action{padding:9px 13px;border-radius:var(--r);border:1px solid var(--gua-line);background:var(--gua-white);font-size:11px;font-weight:500;letter-spacing:.06em;text-transform:uppercase;color:var(--gua-steel);cursor:pointer;white-space:nowrap;transition:var(--t);font-family:var(--font-b)}
-.input-action:hover{border-color:var(--gua-steel);color:var(--gua-ink)}
+  @media(max-width: 900px) {
+    .s-layout {
+      grid-template-columns: 1fr;
+    }
+  }
 
-/* Icon btn */
-.btn-icon{width:30px;height:30px;display:inline-flex;align-items:center;justify-content:center;border-radius:var(--r);border:1px solid var(--gua-line);background:transparent;cursor:pointer;transition:var(--t);color:var(--gua-mid)}
-.btn-icon svg{width:14px;height:14px;stroke:currentColor;fill:none}
-.btn-icon--danger:hover{border-color:#D9A0A0;background:var(--acc-err-light);color:var(--acc-err)}
+  .s-panel {
+    display: none;
+  }
 
-/* ── Info blocks ── */
-.info-block{display:flex;gap:12px;align-items:flex-start;padding:12px 15px;border-radius:var(--rc);border:1px solid;margin:14px 0}
-.info-block__icon{width:16px;height:16px;flex-shrink:0;margin-top:2px;stroke:currentColor;fill:none}
-.info-block__title{font-size:12px;font-weight:500;margin-bottom:2px}
-.info-block__body{font-size:12px;line-height:1.5;opacity:.85}
-.info-block__body a{color:inherit;font-weight:600;text-decoration:underline}
-.info-block--neutral{background:var(--gua-surface);border-color:var(--gua-line);color:var(--gua-steel)}
-.info-block--warning{background:var(--acc-warn-light);border-color:#E8C84A;color:var(--acc-warn)}
-.info-block--success{background:var(--acc-sage-light);border-color:#7BA882;color:var(--acc-sage)}
-.info-block--danger{background:var(--acc-err-light);border-color:#D9A0A0;color:var(--acc-err)}
+  .s-panel.active {
+    display: block;
+    animation: fadeIn .2s ease;
+  }
 
-/* ── Badges ── */
-.brand-badge{font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;padding:3px 9px;border-radius:var(--r);font-family:var(--font-b)}
-.brand-badge--vnpay{background:#E8F0FE;color:#1A56DB;border:1px solid #A8C1F8}
-.brand-badge--ghn{background:#FFF3E0;color:#E65100;border:1px solid #FFAB40}
-.tag{display:inline-block;font-size:10px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;padding:2px 8px;border-radius:var(--r);border:1px solid}
-.tag--blue{background:var(--acc-navy-light);color:var(--acc-navy);border-color:#A8BFDF}
-.tag--green{background:var(--acc-sage-light);color:var(--acc-sage);border-color:#7BA882}
-.tag--red{background:var(--acc-err-light);color:var(--acc-err);border-color:#D9A0A0}
-.tag--orange{background:var(--acc-warn-light);color:var(--acc-warn);border-color:#E8C84A}
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(4px);
+    }
 
-/* ── Stats ── */
-.stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:18px}
-.stat-card{background:var(--gua-white);border:1px solid var(--gua-line);border-radius:var(--rc);padding:15px 18px;display:flex;flex-direction:column;gap:3px}
-.stat-card__num{font-family:var(--font-d);font-size:30px;font-weight:500;color:var(--gua-black);line-height:1}
-.stat-card__label{font-size:10px;color:var(--gua-mid);letter-spacing:.06em;text-transform:uppercase}
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
 
-/* ── Data table ── */
-.data-table-wrap{border:1px solid var(--gua-line);border-radius:var(--rc);overflow:hidden}
-.data-table{width:100%;border-collapse:collapse}
-.data-table thead{background:var(--gua-surface)}
-.data-table th{padding:9px 13px;font-size:10px;font-weight:500;letter-spacing:.12em;text-transform:uppercase;color:var(--gua-mid);border-bottom:1px solid var(--gua-line);text-align:left}
-.data-table td{padding:10px 13px;font-size:13px;color:var(--gua-ink);border-bottom:1px solid var(--gua-line)}
-.data-table tbody tr:last-child td{border-bottom:none}
-.data-table tbody tr:hover{background:var(--gua-surface)}
-.text-muted{color:var(--gua-soft)}
-.table-empty{text-align:center;color:var(--gua-soft);font-size:13px;padding:28px!important}
+  /* Toast */
+  #toastContainer {
+    position: fixed;
+    bottom: 22px;
+    right: 22px;
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    pointer-events: none;
+  }
 
-/* ── Banner preview ── */
-.banner-preview{position:relative;border-radius:var(--rc);overflow:hidden;border:1px solid var(--gua-line);margin-top:10px}
-.banner-preview__img{width:100%;display:block;max-height:180px;object-fit:cover}
-.banner-preview__close{position:absolute;top:7px;right:7px;background:rgba(0,0,0,.55);color:#fff;border:none;border-radius:3px;width:24px;height:24px;cursor:pointer;font-size:15px;display:flex;align-items:center;justify-content:center}
+  .toast {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 16px;
+    border-radius: 1rem;
+    font-size: 13px;
+    font-weight: 600;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, .08);
+    pointer-events: all;
+    animation: toastIn .22s ease;
+    min-width: 240px;
+    max-width: 340px;
+  }
 
-/* ── Lang cards ── */
-.lang-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
-.lang-card{border:1px solid var(--gua-line);border-radius:var(--rc);padding:14px;cursor:pointer;background:var(--gua-white);transition:var(--t);display:flex;align-items:center;gap:10px;font-size:13px;color:var(--gua-ink)}
-.lang-card:hover{border-color:var(--gua-steel);background:var(--gua-surface)}
-.lang-card.selected{border-color:var(--gua-black);background:var(--gua-black);color:#fff}
-.lang-card__flag{font-size:20px;line-height:1}
-.lang-card__name{font-size:13px;font-weight:500}
-.lang-card__code{font-size:10px;opacity:.6;letter-spacing:.06em;text-transform:uppercase}
+  @keyframes toastIn {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
 
-/* ── Permissions ── */
-.perm-table{width:100%;border-collapse:collapse}
-.perm-table th,.perm-table td{padding:11px 13px;border-bottom:1px solid var(--gua-line);text-align:left}
-.perm-table th{font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--gua-mid);background:var(--gua-surface)}
-.perm-table td{font-size:13px}
-.perm-table tbody tr:hover{background:var(--gua-surface)}
-.role-badge{display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:500;letter-spacing:.06em;text-transform:uppercase;padding:3px 8px;border-radius:var(--r);border:1px solid}
-.role-badge--admin{background:var(--gua-black);color:#fff;border-color:var(--gua-black)}
-.role-badge--editor{background:var(--acc-navy-light);color:var(--acc-navy);border-color:#A8BFDF}
-.role-badge--viewer{background:var(--gua-surface);color:var(--gua-mid);border-color:var(--gua-line)}
-.perm-check{display:flex;align-items:center;justify-content:center}
-.perm-check--yes{color:var(--acc-sage)}
-.perm-check--no{color:var(--gua-line)}
-.perm-check svg{width:15px;height:15px;stroke:currentColor;fill:none}
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
 
-/* ── Placeholder ── */
-.placeholder-box{background:var(--gua-white);border:1px dashed var(--gua-line);border-radius:var(--rc);padding:44px 28px;text-align:center}
-.placeholder-box svg{width:36px;height:36px;stroke:var(--gua-soft);fill:none;margin:0 auto 14px;display:block}
-.placeholder-box h3{font-family:var(--font-d);font-size:20px;color:var(--gua-charcoal);margin-bottom:6px}
-.placeholder-box p{font-size:13px;color:var(--gua-mid);line-height:1.6;max-width:340px;margin:0 auto 16px}
-.placeholder-box code{font-size:11px;background:var(--gua-surface);padding:2px 6px;border-radius:3px;color:var(--acc-rust);font-family:monospace}
+  .toast.fade-out {
+    animation: toastOut .22s ease forwards;
+  }
 
-/* ── Toast ── */
-#toastContainer{position:fixed;bottom:22px;right:22px;z-index:9999;display:flex;flex-direction:column;gap:8px;pointer-events:none}
-.toast{display:flex;align-items:center;gap:10px;padding:11px 15px;border-radius:var(--rc);font-size:13px;font-family:var(--font-b);box-shadow:0 4px 16px rgba(0,0,0,.12);pointer-events:all;animation:toastIn .22s ease;min-width:240px;max-width:340px}
-@keyframes toastIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
-.toast.fade-out{animation:toastOut .22s ease forwards}
-@keyframes toastOut{from{opacity:1}to{opacity:0;transform:translateY(4px)}}
-.toast--success{background:var(--gua-black);color:#fff}
-.toast--error{background:var(--acc-err);color:#fff}
-.toast--info{background:var(--acc-navy);color:#fff}
-.toast svg{width:15px;height:15px;stroke:currentColor;fill:none;flex-shrink:0}
+  @keyframes toastOut {
+    from {
+      opacity: 1;
+    }
 
-/* ── Responsive ── */
-@media(max-width:900px){
-  .s-layout{grid-template-columns:1fr}
-  .s-sidebar{position:static;height:auto;display:flex;flex-wrap:wrap;padding:10px;border-right:none;border-bottom:1px solid var(--gua-line)}
-  .s-nav__group,.s-nav__sep{display:none}
-  .s-nav__item{border-left:none;border-bottom:2px solid transparent;padding:7px 10px}
-  .s-nav__item.active{border-bottom-color:var(--gua-black);background:transparent}
-  .s-content{padding:18px 16px}
-  .form-row--2col,.form-row--3col{flex-direction:column}
-  .stats-row{grid-template-columns:1fr 1fr}
-}
-@media(max-width:600px){
-  .s-header{padding:0 16px}
-  .panel-header{flex-direction:column;gap:10px}
-  .stats-row{grid-template-columns:1fr}
-  .lang-grid{grid-template-columns:1fr 1fr}
-}
+    to {
+      opacity: 0;
+      transform: translateY(4px);
+    }
+  }
+
+  .toast--success {
+    background: #0f172a;
+    color: #fff;
+  }
+
+  /* slate-900 */
+  .toast--error {
+    background: #e11d48;
+    color: #fff;
+  }
+
+  /* rose-600 */
+  .toast--info {
+    background: #4f46e5;
+    color: #fff;
+  }
+
+  /* indigo-600 */
 </style>
 {% endblock %}
 
 {% block content %}
 <div id="toastContainer" aria-live="polite"></div>
 
-{# ── Header ── #}
-<header class="s-header">
-  <div class="s-header__brand">
-    <span class="s-header__eyebrow">GUA Admin</span>
-    <div class="s-header__div"></div>
-    <h1 class="s-header__title">Cài đặt Hệ thống</h1>
-  </div>
-  <span class="live-badge"><span class="live-badge__dot"></span>Live</span>
-</header>
+<div class="min-h-screen pb-16 font-sans text-slate-800 selection:bg-indigo-500 selection:text-white">
 
-{# ── Flash messages ── #}
-{% with messages = get_flashed_messages(with_categories=true) %}
-  {% if messages %}
-    <div class="s-alerts">
-      {% for category, msg in messages %}
-        <div class="alert alert--{{ category }}">
-          <span>{{ '✓' if category == 'success' else ('✕' if category == 'danger' else 'ℹ') }}</span>
-          <span>{{ msg }}</span>
-          <button class="alert__close" onclick="this.parentElement.remove()">×</button>
+  {# ── STICKY TOP BAR ── #}
+  <div class="glass-nav sticky top-0 z-30 border-b border-slate-200/60">
+    <div
+      class="max-w-[1400px] mx-auto px-6 lg:px-12 py-4 flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center shadow-sm">
+          <i class="fa-solid fa-gear text-lg"></i>
         </div>
-      {% endfor %}
+        <div>
+          <h1 class="text-xl font-bold tracking-tight text-slate-900 flex items-center gap-2">
+            Cài đặt Hệ thống
+            <span
+              class="flex items-center gap-1.5 text-[10px] bg-emerald-50 text-emerald-600 px-2 py-1 rounded-md uppercase tracking-widest font-bold">
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> Live
+            </span>
+          </h1>
+          <div class="flex items-center gap-2 mt-0.5">
+            <a href="/admin/"
+              class="text-slate-500 hover:text-indigo-600 text-xs font-semibold transition-colors">Dashboard</a>
+            <i class="fa-solid fa-chevron-right text-[10px] text-slate-400"></i>
+            <span class="text-indigo-600 text-xs font-semibold">Cấu hình</span>
+          </div>
+        </div>
+      </div>
     </div>
+  </div>
+
+  {# ── Flash messages ── #}
+  {% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+  <div class="max-w-[1400px] mx-auto px-6 lg:px-12 mt-6">
+    {% for category, msg in messages %}
+    <div class="flex items-center justify-between p-4 rounded-xl mb-3 text-sm font-bold border 
+                {% if category == 'success' %}bg-emerald-50 text-emerald-700 border-emerald-100
+                {% elif category == 'danger' %}bg-rose-50 text-rose-700 border-rose-100
+                {% else %}bg-indigo-50 text-indigo-700 border-indigo-100{% endif %}">
+      <div class="flex items-center gap-3">
+        <i
+          class="fa-solid {% if category == 'success' %}fa-circle-check{% elif category == 'danger' %}fa-circle-xmark{% else %}fa-circle-info{% endif %} text-lg"></i>
+        <span>{{ msg }}</span>
+      </div>
+      <button class="text-current opacity-60 hover:opacity-100 transition-opacity"
+        onclick="this.parentElement.remove()"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    {% endfor %}
+  </div>
   {% endif %}
-{% endwith %}
+  {% endwith %}
 
-<div class="s-layout">
+  <div class="max-w-[1400px] mx-auto px-6 lg:px-12 mt-8 fade-up s-layout">
 
-  {# ── Sidebar ── #}
-  <aside class="s-sidebar">
-    <div class="s-nav__group">Cơ bản</div>
-    <button class="s-nav__item active" data-tab="general" onclick="Settings.switchTab('general',this)">
-      <svg viewBox="0 0 20 20"><circle cx="10" cy="10" r="3"/><path d="M10 2v2M10 16v2M2 10h2M16 10h2M4.22 4.22l1.42 1.42M14.36 14.36l1.42 1.42M4.22 15.78l1.42-1.42M14.36 5.64l1.42-1.42" stroke-linecap="round"/></svg>
-      Thông tin chung
-    </button>
-    <button class="s-nav__item" data-tab="storefront" onclick="Settings.switchTab('storefront',this)">
-      <svg viewBox="0 0 20 20"><rect x="2" y="5" width="16" height="11" rx="1"/><path d="M2 8h16"/></svg>
-      Giao diện cửa hàng
-      <span class="s-nav__badge">Banner</span>
-    </button>
-    <button class="s-nav__item" data-tab="integrations" onclick="Settings.switchTab('integrations',this)">
-      <svg viewBox="0 0 20 20"><path d="M2 6h4v4H2zM8 6h4v4H8zM14 6h4v4h-4zM4 10v4M10 10v4M16 10v4" stroke-linecap="round"/></svg>
-      API &amp; Tích hợp
-    </button>
-    <button class="s-nav__item" data-tab="shipping" onclick="Settings.switchTab('shipping',this)">
-      <svg viewBox="0 0 20 20"><rect x="1" y="7" width="12" height="9" rx="1"/><path d="M13 9h3l3 3v4h-6V9z"/><circle cx="5" cy="17" r="1.5"/><circle cx="16" cy="17" r="1.5"/></svg>
-      Vận chuyển
-    </button>
+    {# ── Sidebar ── #}
+    <aside class="flex flex-col gap-1 md:sticky md:top-[88px] h-max">
+      <div class="text-[10px] font-bold tracking-widest text-slate-400 uppercase mb-2 px-3">Cơ bản</div>
 
-    <div class="s-nav__sep"></div>
-    <div class="s-nav__group">Hệ thống</div>
+      <button
+        class="s-nav__item active flex items-center justify-between w-full text-left px-4 py-2.5 rounded-xl text-sm font-semibold text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-all group"
+        data-tab="general" onclick="Settings.switchTab('general',this)">
+        <div class="flex items-center gap-3">
+          <i class="fa-solid fa-sliders text-slate-400 group-hover:text-indigo-500 w-4 text-center"></i>
+          Thông tin chung
+        </div>
+      </button>
 
-    <button class="s-nav__item" data-tab="language" onclick="Settings.switchTab('language',this)">
-      <svg viewBox="0 0 20 20"><circle cx="10" cy="10" r="8"/><path d="M10 2c-2 3-2 13 0 16M10 2c2 3 2 13 0 16M2 10h16"/></svg>
-      Ngôn ngữ Admin
-      <span class="s-nav__badge s-nav__badge--new">New</span>
-    </button>
-    <button class="s-nav__item" data-tab="admin_ui" onclick="Settings.switchTab('admin_ui',this)">
-      <svg viewBox="0 0 20 20"><rect x="3" y="5" width="14" height="12" rx="1"/><path d="M7 2h6"/></svg>
-      Giao diện Admin
-    </button>
-    <button class="s-nav__item" data-tab="permissions" onclick="Settings.switchTab('permissions',this)">
-      <svg viewBox="0 0 20 20"><circle cx="8" cy="6" r="3"/><path d="M2 17c0-3.3 2.7-6 6-6" stroke-linecap="round"/><path d="M14 12l1.5 1.5L18 11" stroke-linecap="round"/><circle cx="15" cy="15" r="4"/></svg>
-      Phân quyền
-    </button>
-  </aside>
+      <button
+        class="s-nav__item flex items-center justify-between w-full text-left px-4 py-2.5 rounded-xl text-sm font-semibold text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-all group"
+        data-tab="storefront" onclick="Settings.switchTab('storefront',this)">
+        <div class="flex items-center gap-3">
+          <i class="fa-solid fa-store text-slate-400 group-hover:text-indigo-500 w-4 text-center"></i>
+          Giao diện cửa hàng
+        </div>
+        <span
+          class="text-[9px] font-bold bg-amber-100 text-amber-700 px-2 py-0.5 rounded-md uppercase tracking-wider">Banner</span>
+      </button>
 
-  {# ── Panels ── #}
-  <main class="s-content">
-    <section class="s-panel active" id="panel-general">
-      {% include "admin/settings/_tab_general.html" %}
-    </section>
-    <section class="s-panel" id="panel-storefront">
-      {% include "admin/settings/_tab_storefront.html" %}
-    </section>
-    <section class="s-panel" id="panel-integrations">
-      {% include "admin/settings/_tab_integrations.html" %}
-    </section>
-    <section class="s-panel" id="panel-shipping">
-      {% include "admin/settings/_tab_shipping.html" %}
-    </section>
-    <section class="s-panel" id="panel-language">
-      {% include "admin/settings/_tab_language.html" ignore missing %}
-    </section>
-    <section class="s-panel" id="panel-admin_ui">
-      {% include "admin/settings/_tab_admin_ui.html" ignore missing %}
-    </section>
-    <section class="s-panel" id="panel-permissions">
-      {% include "admin/settings/_tab_permissions.html" ignore missing %}
-    </section>
-  </main>
+      <button
+        class="s-nav__item flex items-center justify-between w-full text-left px-4 py-2.5 rounded-xl text-sm font-semibold text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-all group"
+        data-tab="integrations" onclick="Settings.switchTab('integrations',this)">
+        <div class="flex items-center gap-3">
+          <i class="fa-solid fa-link text-slate-400 group-hover:text-indigo-500 w-4 text-center"></i>
+          API & Tích hợp
+        </div>
+      </button>
 
+      <button
+        class="s-nav__item flex items-center justify-between w-full text-left px-4 py-2.5 rounded-xl text-sm font-semibold text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-all group"
+        data-tab="shipping" onclick="Settings.switchTab('shipping',this)">
+        <div class="flex items-center gap-3">
+          <i class="fa-solid fa-truck-fast text-slate-400 group-hover:text-indigo-500 w-4 text-center"></i>
+          Vận chuyển
+        </div>
+      </button>
+
+      <div class="h-px bg-slate-200 my-4 mx-3"></div>
+      <div class="text-[10px] font-bold tracking-widest text-slate-400 uppercase mb-2 px-3">Hệ thống</div>
+
+      <button
+        class="s-nav__item flex items-center justify-between w-full text-left px-4 py-2.5 rounded-xl text-sm font-semibold text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-all group"
+        data-tab="language" onclick="Settings.switchTab('language',this)">
+        <div class="flex items-center gap-3">
+          <i class="fa-solid fa-earth-americas text-slate-400 group-hover:text-indigo-500 w-4 text-center"></i>
+          Ngôn ngữ Admin
+        </div>
+        <span
+          class="text-[9px] font-bold bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-md uppercase tracking-wider">New</span>
+      </button>
+
+    </aside>
+
+    {# ── Panels ── #}
+    <main class="w-full">
+      <section class="s-panel active" id="panel-general">
+        {% include "admin/settings/_tab_general.html" %}
+      </section>
+      <section class="s-panel" id="panel-storefront">
+        {% include "admin/settings/_tab_storefront.html" %}
+      </section>
+      <section class="s-panel" id="panel-integrations">
+        {% include "admin/settings/_tab_integrations.html" %}
+      </section>
+      <section class="s-panel" id="panel-shipping">
+        {% include "admin/settings/_tab_shipping.html" %}
+      </section>
+      <section class="s-panel" id="panel-language">
+        {% include "admin/settings/_tab_language.html" ignore missing %}
+      </section>
+      <section class="s-panel" id="panel-admin_ui">
+        {% include "admin/settings/_tab_admin_ui.html" ignore missing %}
+      </section>
+      <section class="s-panel" id="panel-permissions">
+        {% include "admin/settings/_tab_permissions.html" ignore missing %}
+      </section>
+    </main>
+  </div>
 </div>
 {% endblock %}
 
 {% block extra_scripts %}
+<script>
+  // Overriding the inline class toggling from the original js/admin/settings.js because the layout structure changed
+  // Wait for settings.js to load
+  document.addEventListener("DOMContentLoaded", () => {
+    if (window.Settings) {
+      window.Settings.switchTab = function (tabId, btn) {
+        document.querySelectorAll('.s-nav__item').forEach(el => {
+          el.classList.remove('active', 'bg-slate-100', 'text-indigo-600');
+          el.classList.add('text-slate-600');
+          const icon = el.querySelector('i');
+          if (icon) { icon.classList.remove('text-indigo-600'); icon.classList.add('text-slate-400'); }
+        });
+        btn.classList.add('active', 'bg-slate-100', 'text-indigo-600');
+        btn.classList.remove('text-slate-600');
+        const btnIcon = btn.querySelector('i');
+        if (btnIcon) { btnIcon.classList.remove('text-slate-400'); btnIcon.classList.add('text-indigo-600'); }
+
+        document.querySelectorAll('.s-panel').forEach(p => p.classList.remove('active'));
+        document.getElementById('panel-' + tabId).classList.add('active');
+      };
+
+      // Initialize active tab styling
+      const activeTab = document.querySelector('.s-nav__item.active');
+      if (activeTab) {
+        activeTab.classList.add('bg-slate-100', 'text-indigo-600');
+        activeTab.classList.remove('text-slate-600');
+        const btnIcon = activeTab.querySelector('i');
+        if (btnIcon) { btnIcon.classList.remove('text-slate-400'); btnIcon.classList.add('text-indigo-600'); }
+      }
+    }
+  });
+</script>
 <script src="{{ url_for('static', filename='js/admin/settings.js') }}"></script>
 {% endblock %}

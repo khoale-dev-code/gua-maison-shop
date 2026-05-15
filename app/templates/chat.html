@@ -1,73 +1,89 @@
 {# templates/chat.html #}
-<div id="gua-ai-chat" class="fixed bottom-6 right-6 z-[200] flex flex-col items-end gap-4 font-sans reveal" style="transition-delay: 500ms;">
+<div id="gua-ai-chat" class="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-[200] flex flex-col items-end gap-3 font-sans reveal" style="transition-delay: 500ms;">
 
-  {# ── CỬA SỔ CHAT ── #}
+  {# ── CỬA SỔ CHAT HIỆN ĐẠI (RESPONSIVE) ── #}
   <div id="chatbot-window" 
-       class="hidden w-[340px] sm:w-[380px] bg-white border border-stone-200 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.08)] flex-col overflow-hidden origin-bottom-right transition-all duration-300 transform scale-95 opacity-0">
+       class="hidden w-[calc(100vw-32px)] sm:w-[380px] md:w-[400px] h-[70vh] max-h-[580px] sm:h-[550px] bg-white border border-slate-200 shadow-[0_20px_50px_rgba(0,0,0,0.1)] rounded-[2rem] flex-col overflow-hidden origin-bottom-right transition-all duration-300 transform scale-95 opacity-0">
     
-    {# Header #}
-    <div class="bg-stone-900 text-white px-5 py-4 flex items-center justify-between">
+    {# Header: Gradient Slate #}
+    <div class="bg-gradient-to-r from-slate-900 to-slate-800 px-6 py-4 flex items-center justify-between shrink-0 border-b border-white/10">
       <div class="flex items-center gap-3">
-        <div class="relative flex items-center justify-center w-8 h-8 bg-white/10 rounded-full">
-          <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09l2.846.813-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456z"/></svg>
-          <span class="absolute bottom-0 right-0 w-2.5 h-2.5 bg-emerald-400 border-2 border-stone-900 rounded-full"></span>
+        <div class="w-10 h-10 bg-white/10 backdrop-blur-md rounded-full flex items-center justify-center shadow-inner">
+          <i class="fa-solid fa-sparkles text-sm text-amber-300"></i>
         </div>
         <div>
-          <h3 class="text-sm font-bold tracking-wide">GUA AI Assistant</h3>
-          <p class="text-[10px] text-stone-400 font-medium mt-0.5">Sẵn sàng hỗ trợ & chốt đơn</p>
+          <h3 class="text-[14px] font-bold tracking-wide text-white leading-tight">GUA Stylist AI</h3>
+          <p class="text-[10px] text-emerald-400 font-bold mt-0.5 flex items-center gap-1.5 uppercase tracking-wider">
+            <span class="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse shadow-[0_0_8px_#34d399]"></span> Đang online
+          </p>
         </div>
       </div>
-      <button onclick="toggleBot()" class="text-stone-400 hover:text-white transition-colors p-1">
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+      <button onclick="toggleBot()" class="w-8 h-8 rounded-full bg-white/10 flex justify-center items-center text-white/70 hover:text-white transition-all">
+        <i class="fa-solid fa-chevron-down text-xs"></i>
       </button>
     </div>
 
-    {# Khu vực hiển thị tin nhắn #}
-    <div id="chatbot-messages" class="h-[360px] overflow-y-auto p-5 flex flex-col gap-4 bg-stone-50/50 no-scrollbar">
-      <div class="flex gap-2 w-full">
-        <div class="w-6 h-6 rounded-full bg-stone-900 flex items-center justify-center text-white shrink-0 mt-1">
-          <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z"/></svg>
+    {# Khu vực tin nhắn #}
+    <div id="chatbot-messages" class="flex-1 overflow-y-auto p-5 flex flex-col gap-5 custom-scrollbar bg-slate-50/30">
+      <div class="flex gap-2.5 w-full">
+        <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-white shrink-0 mt-auto shadow-md">
+          <i class="fa-solid fa-robot text-[10px]"></i>
         </div>
-        <div class="bg-white border border-stone-200 rounded-2xl rounded-tl-sm px-4 py-3 shadow-sm text-sm text-stone-700 max-w-[85%] leading-relaxed">
-          Xin chào! Mình là AI của GUA Maison. Mình có thể giúp bạn <b>tìm sản phẩm</b>, <b>tư vấn size</b> hoặc <b>phối đồ</b> nhé!
+        <div class="bg-white border border-slate-100 px-4 py-3 shadow-sm text-[13.5px] text-slate-700 max-w-[85%] leading-relaxed font-medium rounded-2xl rounded-bl-sm">
+          Chào bạn! Mình là <b>Stylist riêng</b> của GUA. Bạn cần mình tư vấn phối đồ, chọn size hay tìm sản phẩm nào không? ✨
         </div>
       </div>
     </div>
 
-    {# Input chat #}
-    <div class="border-t border-stone-100 p-3 bg-white">
-      <div class="flex items-center gap-2 bg-stone-50 border border-stone-200 rounded-xl px-3 py-2 focus-within:border-stone-400 focus-within:bg-white transition-colors shadow-inner">
-        <input type="text" id="chatbot-input" placeholder="Hỏi AI về sản phẩm..." autocomplete="off"
-               class="flex-1 text-sm bg-transparent outline-none placeholder:text-stone-400 text-stone-800"
+    {# Input: Pill Shape #}
+    <div class="p-4 bg-white border-t border-slate-100 shrink-0">
+      <div class="flex items-center bg-slate-100/80 border border-slate-200/50 rounded-full p-1.5 focus-within:bg-white focus-within:border-blue-500 focus-within:ring-4 focus-within:ring-blue-500/10 transition-all">
+        <input type="text" id="chatbot-input" placeholder="Hỏi Stylist về phối đồ, size..." autocomplete="off"
+               class="flex-1 text-[13.5px] font-medium bg-transparent outline-none placeholder:text-slate-400 text-slate-800 px-4 w-full"
                onkeypress="if(event.key === 'Enter') sendBotMessage()" />
-        <button onclick="sendBotMessage()" class="w-8 h-8 bg-stone-900 text-white rounded-lg flex items-center justify-center hover:bg-stone-700 transition-colors shrink-0 shadow-sm">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5"/></svg>
+        <button onclick="sendBotMessage()" class="w-9 h-9 bg-blue-600 text-white rounded-full flex items-center justify-center hover:bg-blue-700 active:scale-90 transition-all shrink-0 shadow-lg shadow-blue-600/20 group">
+          <i class="fa-solid fa-paper-plane text-[10px] group-hover:-translate-y-0.5 group-hover:translate-x-0.5 transition-transform"></i>
         </button>
       </div>
     </div>
   </div>
 
-  {# ── NÚT BẤM MỞ CHAT ── #}
+  {# ── NÚT FAB MỞ CHAT ── #}
   <button onclick="toggleBot()" id="bot-toggle-btn"
-          class="w-14 h-14 bg-stone-900 text-white rounded-full flex items-center justify-center shadow-[0_8px_20px_rgba(0,0,0,0.15)] hover:bg-stone-700 hover:scale-105 active:scale-95 transition-all">
-    <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M7.5 8.25h9m-9 3H12m-9.75 1.51c0 1.6 1.123 2.994 2.707 3.227 1.087.16 2.185.283 3.293.369V21l4.184-4.183a1.14 1.14 0 01.778-.332 48.294 48.294 0 005.83-.498c1.585-.233 2.708-1.626 2.708-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0012 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018z"/></svg>
+          class="w-[56px] h-[52px] sm:w-14 sm:h-14 bg-gradient-to-tr from-slate-900 to-slate-800 text-white rounded-full flex items-center justify-center shadow-[0_10px_30px_rgba(0,0,0,0.2)] hover:shadow-[0_15px_35px_rgba(0,0,0,0.3)] hover:-translate-y-1 transition-all duration-300 group">
+    <i class="fa-solid fa-comment-dots text-xl group-hover:scale-110 transition-transform"></i>
   </button>
 
 </div>
 
 <style>
-  #chatbot-messages .product-card { animation: slideInUp 0.4s ease-out forwards; }
-  @keyframes slideInUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+  /* Scrollbar tinh tế */
+  #chatbot-messages.custom-scrollbar::-webkit-scrollbar { width: 4px; }
+  #chatbot-messages.custom-scrollbar::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 10px; }
+  
+  /* Hiệu ứng bong bóng chat pop-up */
+  .chat-bubble-anim { animation: bubblePop 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+  @keyframes bubblePop { 
+    from { opacity: 0; transform: translateY(12px) scale(0.97); } 
+    to { opacity: 1; transform: translateY(0) scale(1); } 
+  }
 </style>
 
 <script>
+  // Quản lý Session Trí nhớ AI
+  if (!sessionStorage.getItem('chat_session_id')) {
+      sessionStorage.setItem('chat_session_id', 'sess_' + Math.random().toString(36).substr(2, 9));
+  }
+  const sessionId = sessionStorage.getItem('chat_session_id');
+
   function toggleBot() {
     const win = document.getElementById('chatbot-window');
     const isHidden = win.classList.contains('hidden');
+    const toggleBtn = document.getElementById('bot-toggle-btn');
     
     if (isHidden) {
       win.classList.remove('hidden');
-      // Thêm timeout nhỏ để CSS Transition chạy mượt
+      toggleBtn.innerHTML = '<i class="fa-solid fa-xmark text-2xl group-hover:rotate-90 transition-transform"></i>';
       setTimeout(() => {
         win.classList.remove('scale-95', 'opacity-0');
         win.classList.add('flex', 'scale-100', 'opacity-100');
@@ -76,10 +92,8 @@
     } else {
       win.classList.remove('scale-100', 'opacity-100');
       win.classList.add('scale-95', 'opacity-0');
-      setTimeout(() => {
-        win.classList.add('hidden');
-        win.classList.remove('flex');
-      }, 300);
+      toggleBtn.innerHTML = '<i class="fa-solid fa-comment-dots text-xl group-hover:scale-110 transition-transform"></i>';
+      setTimeout(() => { win.classList.add('hidden'); win.classList.remove('flex'); }, 300);
     }
   }
 
@@ -88,13 +102,12 @@
     const chatBox = document.getElementById('chatbot-messages');
     const msg = input.value.trim();
     if (!msg) return;
-
     const csrfToken = document.querySelector('input[name="csrf_token"]')?.value || '';
 
-    // Bong bóng User
+    // ── 1. RENDER TIN NHẮN USER (MÀU XANH) ──
     chatBox.insertAdjacentHTML('beforeend', `
-      <div class="flex gap-2 w-full justify-end">
-        <div class="bg-stone-900 text-white rounded-2xl rounded-tr-sm px-4 py-2.5 shadow-sm text-sm max-w-[85%] break-words">
+      <div class="flex gap-2 w-full justify-end chat-bubble-anim">
+        <div class="bg-blue-600 text-white px-4 py-2.5 text-[13.5px] max-w-[80%] break-words font-medium rounded-2xl rounded-br-sm shadow-sm">
           ${msg}
         </div>
       </div>
@@ -102,17 +115,17 @@
     input.value = '';
     chatBox.scrollTop = chatBox.scrollHeight;
 
-    // Loading indicator
+    // ── 2. LOADING INDICATOR ──
     const typingId = 'typing-' + Date.now();
     chatBox.insertAdjacentHTML('beforeend', `
-      <div id="${typingId}" class="flex gap-2 w-full">
-        <div class="w-6 h-6 rounded-full bg-stone-200 flex items-center justify-center shrink-0 mt-1">
-          <span class="w-1 h-1 bg-stone-500 rounded-full animate-ping"></span>
+      <div id="${typingId}" class="flex gap-2.5 w-full chat-bubble-anim">
+        <div class="w-8 h-8 rounded-full bg-slate-200 flex items-center justify-center text-slate-400 shrink-0 mt-auto">
+          <i class="fa-solid fa-robot text-[10px]"></i>
         </div>
-        <div class="bg-white border border-stone-200 rounded-2xl rounded-tl-sm px-4 py-3 shadow-sm flex items-center gap-1">
-          <span class="w-1.5 h-1.5 bg-stone-400 rounded-full animate-bounce" style="animation-delay:0ms"></span>
-          <span class="w-1.5 h-1.5 bg-stone-400 rounded-full animate-bounce" style="animation-delay:150ms"></span>
-          <span class="w-1.5 h-1.5 bg-stone-400 rounded-full animate-bounce" style="animation-delay:300ms"></span>
+        <div class="bg-white border border-slate-100 px-4 py-3 flex items-center gap-1.5 h-[42px] rounded-2xl rounded-bl-sm shadow-sm">
+          <span class="w-1.5 h-1.5 bg-slate-300 rounded-full animate-bounce" style="animation-delay:0ms"></span>
+          <span class="w-1.5 h-1.5 bg-slate-300 rounded-full animate-bounce" style="animation-delay:150ms"></span>
+          <span class="w-1.5 h-1.5 bg-slate-300 rounded-full animate-bounce" style="animation-delay:300ms"></span>
         </div>
       </div>
     `);
@@ -122,31 +135,78 @@
       const res = await fetch('/api/bot', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrfToken },
-        body: JSON.stringify({ message: msg })
+        body: JSON.stringify({ session_id: sessionId, message: msg })
       });
+
+      // Xử lý lỗi Token hết hạn (403)
+      if (res.status === 403) {
+          document.getElementById(typingId)?.remove();
+          chatBox.insertAdjacentHTML('beforeend', `<div class="flex justify-center mt-2"><div class="bg-amber-50 text-amber-600 border border-amber-200/50 px-4 py-2 rounded-full text-[11px] font-bold shadow-sm flex items-center gap-2 animate-pulse"><i class="fa-solid fa-rotate"></i> Phiên đã hết hạn. Hãy tải lại trang (F5)</div></div>`);
+          chatBox.scrollTop = chatBox.scrollHeight; return;
+      }
+
       const data = await res.json();
       document.getElementById(typingId)?.remove();
 
-      // Bong bóng Bot (Render HTML do Backend trả về)
+      // ── 3. RENDER PHẢN HỒI AI ──
+      let htmlContent = `
+        <div class="bg-white border border-slate-100 px-4 py-3 shadow-sm text-[13.5px] text-slate-700 leading-relaxed max-w-[85%] break-words font-medium rounded-2xl rounded-bl-sm">
+          ${data.reply}
+      `;
+
+      // Intent: Tư vấn Size
+      if (data.intent === 'size_advice' && data.action_data?.height) {
+          htmlContent += `
+            <div class="mt-3 bg-slate-50 border border-slate-200/60 rounded-xl p-3 shadow-inner">
+                <div class="flex items-center gap-2 mb-2 text-blue-600">
+                  <i class="fa-solid fa-check-double text-[11px]"></i>
+                  <span class="text-[10px] font-bold uppercase tracking-wider">Phân tích Body</span>
+                </div>
+                <div class="flex justify-between items-center bg-white rounded-lg p-2.5 border border-slate-100">
+                  <span class="text-xs text-slate-500 font-medium">${data.action_data.height}cm / ${data.action_data.weight}kg</span>
+                  <span class="text-xs text-blue-700 font-black bg-blue-50 px-2.5 py-1 rounded-md">Size ${data.action_data.recommended_size}</span>
+                </div>
+            </div>
+          `;
+      }
+
+      // Intent: Tìm kiếm sản phẩm HOẶC Tư vấn phối đồ (Dùng chung card sản phẩm)
+      if ((data.intent === 'search_product' || data.intent === 'outfit_suggestion') && data.products?.length > 0) {
+          htmlContent += `<div class="mt-4 flex flex-col gap-2.5">`;
+          data.products.forEach(p => {
+              htmlContent += `
+                <a href="/product/${p.slug}" class="group flex items-center gap-3 p-2 bg-white border border-slate-100 hover:border-blue-200 hover:shadow-[0_8px_20px_-10px_rgba(37,99,235,0.2)] rounded-2xl transition-all duration-300">
+                    <div class="w-12 h-14 bg-slate-100 rounded-xl overflow-hidden shrink-0">
+                        <img src="${p.thumbnail_url}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"/>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <p class="text-[12px] font-bold text-slate-800 truncate leading-tight">${p.name}</p>
+                        <p class="text-[11px] font-bold text-blue-600 mt-1">${p.price} ₫</p>
+                    </div>
+                    <div class="w-7 h-7 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 group-hover:bg-blue-600 group-hover:text-white transition-all mr-1">
+                        <i class="fa-solid fa-arrow-right -rotate-45 text-[9px]"></i>
+                    </div>
+                </a>
+              `;
+          });
+          htmlContent += `</div>`;
+      }
+
+      htmlContent += `</div>`;
+
+      // Chèn tin nhắn của AI vào khung chat
       chatBox.insertAdjacentHTML('beforeend', `
-        <div class="flex gap-2 w-full">
-          <div class="w-6 h-6 rounded-full bg-stone-900 flex items-center justify-center text-white shrink-0 mt-1 shadow-sm">
-            <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z"/></svg>
+        <div class="flex gap-2.5 w-full chat-bubble-anim">
+          <div class="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-white shrink-0 mt-auto shadow-md">
+            <i class="fa-solid fa-robot text-[10px]"></i>
           </div>
-          <div class="bg-white border border-stone-200 rounded-2xl rounded-tl-sm px-4 py-3 shadow-sm text-sm text-stone-800 max-w-[85%] leading-relaxed">
-            ${data.reply}
-          </div>
+          ${htmlContent}
         </div>
       `);
-    } catch {
+      
+    } catch (err) {
       document.getElementById(typingId)?.remove();
-      chatBox.insertAdjacentHTML('beforeend', `
-        <div class="flex gap-2 w-full">
-          <div class="bg-red-50 text-red-600 border border-red-100 rounded-2xl rounded-tl-sm px-4 py-3 text-sm">
-            Hệ thống AI đang bảo trì. Vui lòng thử lại sau!
-          </div>
-        </div>
-      `);
+      chatBox.insertAdjacentHTML('beforeend', `<div class="flex justify-center mt-2"><div class="bg-rose-50 text-rose-600 border border-rose-200/50 px-4 py-2 rounded-full text-[11px] font-bold shadow-sm flex items-center gap-2"><i class="fa-solid fa-wifi"></i> Lỗi kết nối AI</div></div>`);
     }
     chatBox.scrollTop = chatBox.scrollHeight;
   }

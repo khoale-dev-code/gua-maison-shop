@@ -1,36 +1,66 @@
 """
 app/services/audit_service.py
-Dịch vụ ghi log tự động các thao tác của Admin/Nhân viên trên hệ thống.
+Service ghi nhận và truy xuất lịch sử thao tác của Admin/Staff.
 """
+
 import logging
+from datetime import datetime, timedelta, timezone
 from flask import request, session
 from app.utils.supabase_client import get_supabase
 
 logger = logging.getLogger(__name__)
 
-
 class AuditService:
 
     @staticmethod
-    def log(action: str, table_name: str, record_id: str, old_values: dict=None, new_values: dict=None):
-        """Ghi log hành động vào bảng audit_logs"""
+    def log_action(action: str, table_name: str, record_id: str=None, old_values: dict=None, new_values: dict=None):
         try:
-            user_id = session.get("user_id")
-            tenant_id = session.get("tenant_id")  # Trống cũng không sao nếu chưa dùng multi-tenant
-            ip_address = request.remote_addr if request else "Unknown"
-            user_agent = request.user_agent.string if request else "Unknown"
-
             db = get_supabase()
-            db.table("audit_logs").insert({
-                "tenant_id": tenant_id,
-                "user_id": user_id,
-                "action": action.upper(),
+            user_id = session.get("user_id")
+            ip_address = request.headers.get('X-Forwarded-For', request.remote_addr) if request else None
+
+            log_data = {
+                "action": action,
                 "table_name": table_name,
-                "record_id": str(record_id),
-                "old_values": old_values or {},
-                "new_values": new_values or {},
-                "ip_address": ip_address,
-                "user_agent": user_agent
-            }).execute()
+                "old_values": old_values if old_values else {},
+                "new_values": new_values if new_values else {},
+                "ip_address": ip_address
+            }
+            
+            if user_id: log_data["user_id"] = user_id
+            if record_id: log_data["record_id"] = str(record_id)
+
+            db.table("audit_logs").insert(log_data).execute()
         except Exception as e:
-            logger.error(f"[Audit Log Error] Không thể ghi log {action} trên {table_name}: {e}")
+            logger.error(f"[AuditService] Lỗi ghi log thao tác: {e}")
+
+    @staticmethod
+    def get_recent_logs(days: int = 7, role_slug: str = None, page: int = 1, per_page: int = 50) -> dict:
+        """
+        Lấy danh sách log trong X ngày qua. Có thể lọc theo nhóm quyền (role_slug).
+        """
+        db = get_supabase()
+        try:
+            # Mốc thời gian 7 ngày trước
+            time_threshold = (datetime.now(timezone.utc) - timedelta(days=days)).isoformat()
+            
+            # Nếu lọc theo Role, bắt buộc dùng !inner join để filter trên bảng users
+            if role_slug:
+                query = db.table("audit_logs").select("*, users!inner(full_name, email, admin_role_slug)", count="exact")
+                query = query.eq("users.admin_role_slug", role_slug)
+            else:
+                query = db.table("audit_logs").select("*, users(full_name, email, admin_role_slug)", count="exact")
+
+            query = query.gte("created_at", time_threshold).order("created_at", desc=True)
+            
+            offset = (page - 1) * per_page
+            res = query.range(offset, offset + per_page - 1).execute()
+            
+            return {
+                "items": res.data or [],
+                "total": res.count or 0,
+                "total_pages": max(1, -(- (res.count or 0) // per_page))
+            }
+        except Exception as e:
+            logger.error(f"[AuditService] Lỗi get_recent_logs: {e}")
+            return {"items": [], "total": 0, "total_pages": 1}

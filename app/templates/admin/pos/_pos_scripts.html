@@ -1,719 +1,448 @@
-{# =================================================================
+{# =============================================================
    templates/admin/pos/_pos_scripts.html
-   Partial chứa toàn bộ JavaScript của POS Terminal.
-   Được include bởi pos_terminal.html (sau thẻ products-data).
-   Yêu cầu QuaggaJS đã load trong extra_head.
-
-   Cấu trúc object POS:
-     INIT        — init(), _initUsbScanner()
-     BARCODE     — _handleBarcodeResult(), openCameraScanner(), closeCameraScanner()
-     UI UTILS    — fmt(), renderThumb(), showToast()
-     PAYMENT     — setMethod(), _updateTransferQR()
-     SEARCH      — filterProducts(), clearSearch()
-     PRODUCTS    — renderQuickGrid(), handleSelect()
-     VARIANTS    — openVariantModal(), confirmVariant(), closeVariantModal()
-     CART        — addToCart(), updateQty(), renderCart()
-     TOTALS      — calcTotal(), calcChange()
-     CHECKOUT    — submit()
-     TRANSFER    — openTransferModal(), startPolling(), onTransferConfirmed()
-                   printReceiptFromModal(), cancelTransferWait(), closeTransferModal()
-     RESET       — resetCart()
-     PRINT       — printReceipt()
-================================================================= #}
+   Toàn bộ logic JS POS — include sau thẻ #products-data
+   Cấu trúc: INIT · BARCODE · SEARCH · GRID · VARIANT · CART
+             TOTALS · PAYMENT · CHECKOUT · TRANSFER · PRINT · RESET
+   ============================================================= #}
 <script>
 const POS = {
-  db:     [],
-  cart:   [],
-  method: 'cash',               // 'cash' | 'transfer'
-  currentProductForVariant: null,
-  _pollTimer:      null,
-  _pendingInvoice: null,
+  db: [], cart: [], method: 'cash',
+  _variantProduct: null, _selColor: null, _selSize: null,
+  _pollTimer: null, _pendingInv: null, _cameraOn: false,
 
-  // ─────────────────────────────────────────────────────────────
-  //  INIT
-  // ─────────────────────────────────────────────────────────────
+  /* ─── INIT ─── */
   init() {
-    try {
-      this.db = JSON.parse(document.getElementById('products-data').textContent) || [];
-    } catch(e) {}
-    this.renderQuickGrid();
-    // Đóng dropdown khi click ngoài vùng search
+    try { this.db = JSON.parse(document.getElementById('products-data').textContent) || []; } catch {}
+    this.renderGrid();
+    this._initUsb();
     document.addEventListener('click', e => {
-      if (!document.getElementById('searchWrapper').contains(e.target))
-        document.getElementById('posDropdown').classList.add('hidden');
+      if (!document.getElementById('search-box').contains(e.target))
+        document.getElementById('posDropdown').style.display = 'none';
     });
-    // Live-format ô tiền mặt: tự thêm dấu chấm khi nhập
-    const inputCash = document.getElementById('inputCash');
-    if (inputCash) {
-      inputCash.addEventListener('input', () => {
-        const raw     = inputCash.value;
-        const digits  = raw.replace(/[^\d]/g, '');   // chỉ giữ số
-        const formatted = digits
-          ? Number(digits).toLocaleString('vi-VN').replace(/,/g, '.')
-          : '';
-        // Gán lại giá trị đã format (tránh vòng lặp vô hạn bằng cách so sánh)
-        if (inputCash.value !== formatted) {
-          inputCash.value = formatted;
-        }
-        POS.calcChange();
-      });
-    }
-    this._initUsbScanner();
   },
 
-  // ─────────────────────────────────────────────────────────────
-  //  BARCODE — USB SCANNER
-  //  USB scanner hoạt động như bàn phím gõ cực nhanh (< 80ms/ký tự)
-  //  rồi gửi Enter → buffer lại → xử lý khi nhận Enter
-  // ─────────────────────────────────────────────────────────────
-  _usbBuffer: '',
-  _usbTimer:  null,
-
-  _initUsbScanner() {
+  /* ─── USB SCANNER ─── */
+  _buf: '', _usbTimer: null,
+  _initUsb() {
     document.addEventListener('keydown', e => {
-      const tag  = document.activeElement.tagName;
-      const type = document.activeElement.type;
-
-      // Nếu đang focus input text, chỉ xử lý Enter tại ô posSearch
-      if (tag === 'INPUT' && type !== 'number') {
-        if (e.key === 'Enter' && document.activeElement.id === 'posSearch') {
+      const el = document.activeElement;
+      if (el.tagName === 'INPUT' && el.type !== 'number') {
+        if (e.key === 'Enter' && el.id === 'posSearch') {
           e.preventDefault();
-          const kw = document.getElementById('posSearch').value.trim();
-          if (kw) this._handleBarcodeResult(kw);
+          const v = el.value.trim();
+          if (v) this._onBarcode(v);
         }
         return;
       }
-
-      // Ngoài input: buffer ký tự từ scanner
       if (e.key === 'Enter') {
-        if (this._usbBuffer.length >= 3) this._handleBarcodeResult(this._usbBuffer);
-        this._usbBuffer = '';
-        clearTimeout(this._usbTimer);
-        return;
+        if (this._buf.length >= 3) this._onBarcode(this._buf);
+        this._buf = ''; clearTimeout(this._usbTimer); return;
       }
       if (e.key.length === 1) {
-        this._usbBuffer += e.key;
+        this._buf += e.key;
         clearTimeout(this._usbTimer);
-        // Reset buffer nếu ngừng nhập > 80ms (gõ tay chậm hơn scanner)
-        this._usbTimer = setTimeout(() => { this._usbBuffer = ''; }, 80);
+        this._usbTimer = setTimeout(() => { this._buf = ''; }, 80);
       }
     });
   },
 
-  _handleBarcodeResult(code) {
+  /* ─── BARCODE HANDLER ─── */
+  _onBarcode(code) {
     code = code.trim();
     const p = this.db.find(x =>
-      x.id      === code ||
-      x.barcode === code ||
-      x.sku     === code ||
+      x.id === code || x.sku === code || x.barcode === code ||
       x.name.toLowerCase() === code.toLowerCase()
     );
-    if (p) {
-      const searchBox = document.getElementById('posSearch');
-      searchBox.classList.add('scan-flash');
-      setTimeout(() => searchBox.classList.remove('scan-flash'), 400);
-      this.showToast(`✓ Quét: ${p.name}`, true);
-      this.handleSelect(p.id);
-    } else {
-      // Fallback: đổ vào ô search để nhân viên xử lý thủ công
-      document.getElementById('posSearch').value = code;
-      this.filterProducts();
-      this.showToast(`Mã "${code}" — chọn thủ công`, false);
-    }
+    const sb = document.getElementById('posSearch');
+    sb.classList.add('scan-flash');
+    setTimeout(() => sb.classList.remove('scan-flash'), 400);
+    if (p) { this.showToast('Quét: ' + p.name, true); this.handleSelect(p.id); }
+    else { sb.value = code; this.filterProducts(); this.showToast('Không tìm thấy: ' + code, false); }
   },
 
-  // ─────────────────────────────────────────────────────────────
-  //  BARCODE — CAMERA SCANNER (QuaggaJS)
-  // ─────────────────────────────────────────────────────────────
-  _cameraActive: false,
-
+  /* ─── CAMERA ─── */
   openCameraScanner() {
-    const modal = document.getElementById('barcodeCameraModal');
-    modal.classList.remove('hidden'); modal.classList.add('flex');
-    document.getElementById('bcScanResult').textContent = 'Đang khởi động camera...';
-
+    document.getElementById('barcodeCameraModal').classList.add('open');
+    document.getElementById('bcStatus').textContent = 'Đang khởi động camera...';
     Quagga.init({
-      inputStream: {
-        name: 'Live',
-        type: 'LiveStream',
-        target: document.querySelector('#interactive'),
-        constraints: { facingMode: 'environment', width: 640, height: 480 }
-      },
-      decoder: {
-        readers: [
-          'ean_reader', 'ean_8_reader', 'code_128_reader',
-          'code_39_reader', 'upc_reader', 'upc_e_reader', 'i2of5_reader'
-        ]
-      },
+      inputStream: { name: 'Live', type: 'LiveStream', target: document.querySelector('#interactive'),
+        constraints: { facingMode: 'environment', width: 640, height: 480 } },
+      decoder: { readers: ['ean_reader','ean_8_reader','code_128_reader','code_39_reader','upc_reader','upc_e_reader'] },
       locate: true
     }, err => {
-      if (err) {
-        document.getElementById('bcScanResult').textContent = 'Không thể mở camera: ' + err.message;
-        return;
-      }
-      Quagga.start();
-      this._cameraActive = true;
-      document.getElementById('bcScanResult').textContent = 'Đưa mã vạch vào khung hình...';
+      if (err) { document.getElementById('bcStatus').textContent = 'Không mở được camera'; return; }
+      Quagga.start(); this._cameraOn = true;
+      document.getElementById('bcStatus').textContent = 'Đưa mã vạch vào khung...';
     });
-
-    Quagga.onDetected(result => {
-      const code = result.codeResult?.code;
-      if (!code) return;
+    Quagga.onDetected(r => {
+      const code = r.codeResult?.code; if (!code) return;
       Quagga.offDetected();
-      document.getElementById('bcScanResult').textContent = `✓ Nhận mã: ${code}`;
-      setTimeout(() => {
-        this.closeCameraScanner();
-        this._handleBarcodeResult(code);
-      }, 500);
+      document.getElementById('bcStatus').textContent = '✓ ' + code;
+      setTimeout(() => { this.closeCameraScanner(); this._onBarcode(code); }, 500);
     });
   },
-
   closeCameraScanner() {
-    if (this._cameraActive) {
-      try { Quagga.stop(); } catch(e) {}
-      this._cameraActive = false;
-    }
-    const modal = document.getElementById('barcodeCameraModal');
-    modal.classList.add('hidden'); modal.classList.remove('flex');
+    if (this._cameraOn) { try { Quagga.stop(); } catch {} this._cameraOn = false; }
+    document.getElementById('barcodeCameraModal').classList.remove('open');
   },
 
-  // ─────────────────────────────────────────────────────────────
-  //  UI UTILS
-  // ─────────────────────────────────────────────────────────────
+  /* ─── UTILS ─── */
   fmt: n => Number(n || 0).toLocaleString('vi-VN') + ' ₫',
-
-  /**
-   * Định dạng số thành chuỗi có dấu chấm phân cách hàng nghìn (VN style).
-   * VD: 500000 → "500.000"
-   * Dùng cho hiển thị trong input text (không kèm " ₫").
-   */
-  fmtInput(n) {
-    const num = parseInt(String(n).replace(/\./g, '').replace(/[^\d]/g, ''), 10);
-    if (isNaN(num)) return '';
-    return num.toLocaleString('vi-VN').replace(/,/g, '.');
+  parseMoney: s => { const n = parseInt(String(s || '').replace(/[^\d]/g, ''), 10); return isNaN(n) ? 0 : n; },
+  _fmtCash(el) {
+    const d = el.value.replace(/[^\d]/g, '');
+    el.value = d ? parseInt(d, 10).toLocaleString('vi-VN') : '';
   },
-
-  /**
-   * Parse chuỗi tiền từ ô input về số nguyên.
-   * Xử lý mọi trường hợp: "500.000", "500000", "500,000", "500 000".
-   * BẮT BUỘC xóa tất cả ký tự không phải chữ số trước khi parseInt.
-   */
-  parseInputMoney(raw) {
-    if (!raw) return 0;
-    // Xóa dấu chấm, dấu phẩy, khoảng trắng, ký tự ₫ — giữ lại chỉ chữ số
-    const cleaned = String(raw).replace(/[^\d]/g, '');
-    const parsed  = parseInt(cleaned, 10);
-    return isNaN(parsed) ? 0 : parsed;
+  thumb(url) {
+    return url
+      ? `<img src="${url}" style="width:100%;height:100%;object-fit:cover;object-position:top">`
+      : `<i class="fa-solid fa-image" style="font-size:16px;color:var(--c-border2)"></i>`;
   },
-
-  renderThumb(url, large = false) {
-    if (url) return `<img src="${url}" class="w-full h-full object-cover object-top mix-blend-multiply ${large ? 'group-hover:scale-105 transition-transform duration-[1500ms]' : ''}">`;
-    return `<div class="w-full h-full flex items-center justify-center text-neutral-300 bg-neutral-50">
-              <i class="fa-solid fa-image ${large ? 'text-2xl' : 'text-sm'}"></i>
-            </div>`;
-  },
-
   showToast(msg, ok) {
     const t = document.getElementById('posToast');
-    t.className = `fixed top-6 left-1/2 -translate-x-1/2 z-[400] flex items-center gap-3 px-6 py-4 border text-[10px] font-bold uppercase tracking-widest shadow-2xl bg-white rounded-sm ${ok ? 'border-emerald-500 text-emerald-600' : 'border-red-500 text-red-600'}`;
-    document.getElementById('posToastIcon').className = `fa-solid ${ok ? 'fa-check' : 'fa-xmark'}`;
+    t.className = 'show ' + (ok ? 'ok' : 'err');
+    document.getElementById('posToastIcon').className = 'fa-solid ' + (ok ? 'fa-check' : 'fa-xmark');
     document.getElementById('posToastMsg').textContent = msg;
-    t.classList.remove('hidden');
-    setTimeout(() => t.classList.add('hidden'), 2800);
+    clearTimeout(this._toastT);
+    this._toastT = setTimeout(() => t.className = '', 2800);
   },
 
-  // ─────────────────────────────────────────────────────────────
-  //  PAYMENT METHOD
-  // ─────────────────────────────────────────────────────────────
-  setMethod(m) {
-    this.method = m;
-    const isCash = m === 'cash';
-    const activeClass   = 'border-black bg-black text-white';
-    const inactiveClass = 'border-neutral-200 bg-white text-neutral-500 hover:border-neutral-400';
-    const base = 'flex flex-col items-center gap-1.5 py-3 border-2 rounded-sm transition-all text-[10px] font-bold uppercase tracking-widest';
-    document.getElementById('btnCash').className     = `${base} ${isCash  ? activeClass : inactiveClass}`;
-    document.getElementById('btnTransfer').className = `${base} ${!isCash ? activeClass : inactiveClass}`;
-    document.getElementById('cashPanel').classList.toggle('hidden', !isCash);
-    document.getElementById('transferPanel').classList.toggle('hidden', isCash);
-    this.calcChange();
-    if (!isCash) this._updateTransferQR();
-  },
-
-  _updateTransferQR() {
-    const total   = parseFloat(document.getElementById('txtTotal').textContent.replace(/[^\d]/g, '')) || 0;
-    const addInfo = encodeURIComponent('GUA MAISON');
-    document.getElementById('transferQR').src =
-      `https://img.vietqr.io/image/TCB-4890440016335294-compact2.png?amount=${total}&addInfo=${addInfo}&accountName=GUA+MAISON`;
-  },
-
-  // ─────────────────────────────────────────────────────────────
-  //  SEARCH
-  // ─────────────────────────────────────────────────────────────
+  /* ─── SEARCH DROPDOWN ─── */
   filterProducts() {
     const kw = document.getElementById('posSearch').value.toLowerCase().trim();
     const dd = document.getElementById('posDropdown');
-    document.getElementById('posClearSearch').classList.toggle('hidden', !kw);
-    if (!kw) { dd.classList.add('hidden'); return; }
+    document.getElementById('posClearSearch').style.display = kw ? '' : 'none';
+    if (!kw) { dd.style.display = 'none'; return; }
 
     const res = this.db.filter(p =>
-      p.name.toLowerCase().includes(kw) || p.id.includes(kw)
+      p.name.toLowerCase().includes(kw) || String(p.id).includes(kw)
     ).slice(0, 15);
 
     dd.innerHTML = res.length
       ? res.map(p => {
           const stock = p.product_variants
-            ? p.product_variants.reduce((s, v) => s + (v.stock || 0), 0)
+            ? p.product_variants.reduce((s,v) => s + (v.stock||0), 0)
             : (p.stock || 0);
-          return `<div onclick="POS.handleSelect('${p.id}')"
-            class="flex items-center gap-4 p-3 border-b border-neutral-100 cursor-pointer hover:bg-neutral-50 ${stock <= 0 ? 'opacity-40' : ''}">
-            <div class="w-12 h-16 bg-[#f8f8f8] rounded-sm overflow-hidden flex-shrink-0 border border-neutral-200">${this.renderThumb(p.thumbnail_url)}</div>
-            <div class="flex-1 min-w-0">
-              <p class="text-[11px] font-bold text-black uppercase truncate">${p.name}</p>
-              <p class="text-[10px] font-medium text-neutral-500 mt-1">${this.fmt(p.price)}</p>
+          const oos = stock <= 0;
+          return `<div class="dd-row${oos ? '" style="opacity:.45' : ''}" onclick="POS.handleSelect('${p.id}')">
+            <div class="dd-thumb">${this.thumb(p.thumbnail_url)}</div>
+            <div class="dd-info">
+              <div class="dd-name">${p.name}</div>
+              <div class="dd-price">${this.fmt(p.price)}</div>
             </div>
-            ${stock <= 0
-              ? `<span class="text-[9px] text-red-500 font-bold uppercase tracking-widest px-2 py-1 bg-red-50 rounded-sm">Hết</span>`
-              : `<span class="text-[9px] text-neutral-500 font-bold">${stock} kho</span>`}
+            <span class="dd-pill ${oos ? 'oos' : 'stk'}">${oos ? 'Hết' : stock + ' kho'}</span>
           </div>`;
         }).join('')
-      : `<div class="p-5 text-center text-[10px] font-bold text-neutral-400 uppercase tracking-widest">Không tìm thấy</div>`;
-
-    dd.classList.remove('hidden');
+      : `<div style="padding:20px;text-align:center;font-size:11px;color:var(--c-muted);font-weight:600;text-transform:uppercase;letter-spacing:.1em">Không tìm thấy</div>`;
+    dd.style.display = '';
   },
-
   clearSearch() {
-    document.getElementById('posSearch').value = '';
-    document.getElementById('posClearSearch').classList.add('hidden');
-    document.getElementById('posDropdown').classList.add('hidden');
-    document.getElementById('posSearch').focus();
+    const el = document.getElementById('posSearch');
+    el.value = '';
+    document.getElementById('posClearSearch').style.display = 'none';
+    document.getElementById('posDropdown').style.display = 'none';
+    el.focus();
   },
 
-  // ─────────────────────────────────────────────────────────────
-  //  PRODUCTS
-  // ─────────────────────────────────────────────────────────────
-  renderQuickGrid() {
-    document.getElementById('quickProductsGrid').innerHTML = this.db.slice(0, 16).map(p => `
-      <div onclick="POS.handleSelect('${p.id}')"
-        class="bg-white border border-neutral-200 cursor-pointer hover:border-black transition-all rounded-sm flex flex-col group overflow-hidden shadow-sm hover:shadow-md">
-        <div class="aspect-[3/4] bg-[#f8f8f8] relative overflow-hidden border-b border-neutral-200">
-          ${this.renderThumb(p.thumbnail_url, true)}
-          ${(p.stock || 0) <= 0 && !(p.product_variants?.length)
-            ? `<div class="absolute inset-0 bg-white/60 flex items-center justify-center">
-                <span class="bg-black text-white text-[9px] font-bold px-2 py-1 uppercase tracking-widest">Hết hàng</span>
-               </div>` : ''}
+  /* ─── QUICK GRID ─── */
+  renderGrid() {
+    document.getElementById('quickGrid').innerHTML = this.db.slice(0, 20).map(p => {
+      const oos = (p.stock || 0) <= 0 && !p.product_variants?.length;
+      return `<div class="qcard" onclick="POS.handleSelect('${p.id}')">
+        <div class="qcard-img">
+          ${p.thumbnail_url ? `<img src="${p.thumbnail_url}" loading="lazy">` : ''}
+          ${oos ? `<div class="qcard-oos"><span>Hết hàng</span></div>` : ''}
         </div>
-        <div class="p-3 flex-1 bg-white">
-          <p class="text-[10px] font-bold text-black uppercase line-clamp-2 leading-snug">${p.name}</p>
-          <p class="text-[11px] font-black text-black mt-1.5 tabular-nums">${this.fmt(p.price)}</p>
+        <div class="qcard-body">
+          <div class="qcard-name">${p.name}</div>
+          <div class="qcard-price">${this.fmt(p.price)}</div>
         </div>
-      </div>`).join('');
+      </div>`;
+    }).join('');
   },
-
   handleSelect(id) {
-    const p = this.db.find(x => x.id === id);
-    if (!p) return;
-    document.getElementById('posDropdown').classList.add('hidden');
+    const p = this.db.find(x => String(x.id) === String(id)); if (!p) return;
+    document.getElementById('posDropdown').style.display = 'none';
     document.getElementById('posSearch').value = '';
-    document.getElementById('posClearSearch').classList.add('hidden');
-
+    document.getElementById('posClearSearch').style.display = 'none';
     if (p.product_variants?.length) { this.openVariantModal(p); return; }
     if ((p.stock || 0) <= 0) { this.showToast('Sản phẩm đã hết hàng', false); return; }
     this.addToCart(p, null, p.price);
   },
 
-  // ─────────────────────────────────────────────────────────────
-  //  VARIANTS
-  // ─────────────────────────────────────────────────────────────
-  _selColor: null,
-  _selSize:  null,
-
+  /* ─── VARIANT MODAL ─── */
   openVariantModal(p) {
-    this.currentProductForVariant = p;
+    this._variantProduct = p; this._selColor = null; this._selSize = null;
     document.getElementById('vmTitle').textContent = p.name;
     document.getElementById('vmPrice').textContent = this.fmt(p.price);
-    document.getElementById('vmImage').innerHTML   = this.renderThumb(p.thumbnail_url);
-
+    const img = document.getElementById('vmImg');
+    img.innerHTML = p.thumbnail_url ? `<img src="${p.thumbnail_url}" style="width:100%;height:100%;object-fit:cover">` : '';
     const colors = [...new Set(p.product_variants.map(v => v.color_name).filter(Boolean))];
     const sizes  = [...new Set(p.product_variants.map(v => v.size).filter(Boolean))];
-
-    document.getElementById('vmOptions').innerHTML = `
-      ${colors.length ? `
-        <div class="mb-4">
-          <p class="text-[9px] font-bold text-neutral-400 uppercase tracking-widest mb-2">Màu sắc</p>
-          <div class="flex flex-wrap gap-2">
-            ${colors.map(c => {
-              const v = p.product_variants.find(x => x.color_name === c);
-              return `<button
-                onclick="document.querySelectorAll('.vm-color').forEach(b=>b.classList.remove('border-black','bg-black','text-white'));this.classList.add('border-black','bg-black','text-white');POS._selColor='${c}'"
-                class="vm-color text-[10px] font-bold px-3 py-1.5 border border-neutral-300 rounded-sm hover:border-black uppercase tracking-widest transition-all flex items-center gap-1.5">
-                ${v?.color_hex ? `<span class="w-3 h-3 rounded-full inline-block border border-white/40" style="background:${v.color_hex}"></span>` : ''}${c}
-              </button>`;
-            }).join('')}
-          </div>
-        </div>` : ''}
-      ${sizes.length ? `
-        <div class="mb-4">
-          <p class="text-[9px] font-bold text-neutral-400 uppercase tracking-widest mb-2">Size</p>
-          <div class="flex flex-wrap gap-2">
-            ${sizes.map(s => `
-              <button
-                onclick="document.querySelectorAll('.vm-size').forEach(b=>b.classList.remove('border-black','bg-black','text-white'));this.classList.add('border-black','bg-black','text-white');POS._selSize='${s}'"
-                class="vm-size w-10 h-10 text-[11px] font-bold border border-neutral-300 rounded-sm hover:border-black transition-all uppercase">${s}
-              </button>`).join('')}
-          </div>
-        </div>` : ''}
-      <button onclick="POS.confirmVariant()"
-        class="w-full py-3 bg-black text-white text-[10px] font-bold uppercase tracking-widest rounded-sm hover:bg-neutral-800 transition-colors mt-2">
-        <i class="fa-solid fa-plus mr-2"></i>Thêm vào giỏ
-      </button>`;
-
-    this._selColor = colors[0] || null;
-    this._selSize  = sizes[0]  || null;
-    const modal = document.getElementById('variantModal');
-    modal.classList.remove('hidden'); modal.classList.add('flex');
+    let html = '';
+    if (colors.length) {
+      html += `<div class="vm-sect">Màu sắc</div><div class="chip-row">`;
+      colors.forEach(c => {
+        const v = p.product_variants.find(x => x.color_name === c);
+        const dot = v?.color_hex ? `<span class="cdot" style="background:${v.color_hex}"></span>` : '';
+        html += `<button class="chip vm-color" onclick="POS._pickColor(this,'${c}')">${dot}${c}</button>`;
+      });
+      html += `</div>`;
+    }
+    if (sizes.length) {
+      html += `<div class="vm-sect">Size</div><div class="chip-row">`;
+      sizes.forEach(s => {
+        html += `<button class="chip vm-size" onclick="POS._pickSize(this,'${s}')">${s}</button>`;
+      });
+      html += `</div>`;
+    }
+    document.getElementById('vmOptions').innerHTML = html;
+    if (colors[0]) { this._selColor = colors[0]; document.querySelector('.vm-color')?.classList.add('sel'); }
+    if (sizes[0])  { this._selSize  = sizes[0];  document.querySelector('.vm-size')?.classList.add('sel'); }
+    document.getElementById('variantModal').classList.add('open');
   },
-
+  _pickColor(btn, c) { document.querySelectorAll('.vm-color').forEach(b => b.classList.remove('sel')); btn.classList.add('sel'); this._selColor = c; },
+  _pickSize(btn, s)  { document.querySelectorAll('.vm-size').forEach(b => b.classList.remove('sel')); btn.classList.add('sel'); this._selSize  = s; },
   confirmVariant() {
-    const p = this.currentProductForVariant;
-    if (!p) return;
-    const variant = p.product_variants.find(v =>
-      (!this._selColor || v.color_name === this._selColor) &&
-      (!this._selSize  || v.size       === this._selSize)
+    const p = this._variantProduct; if (!p) return;
+    const v = p.product_variants.find(x =>
+      (!this._selColor || x.color_name === this._selColor) &&
+      (!this._selSize  || x.size       === this._selSize)
     );
-    if (!variant) { this.showToast('Vui lòng chọn phân loại', false); return; }
-    if ((variant.stock || 0) <= 0) { this.showToast('Phân loại này đã hết hàng', false); return; }
-    this.addToCart(p, variant, variant.price_override || p.price);
+    if (!v) { this.showToast('Vui lòng chọn đầy đủ phân loại', false); return; }
+    if ((v.stock || 0) <= 0) { this.showToast('Phân loại này đã hết hàng', false); return; }
+    this.addToCart(p, v, v.price_override || p.price);
     this.closeVariantModal();
   },
+  closeVariantModal() { document.getElementById('variantModal').classList.remove('open'); this._variantProduct = null; },
 
-  closeVariantModal() {
-    const m = document.getElementById('variantModal');
-    m.classList.add('hidden'); m.classList.remove('flex');
-    this.currentProductForVariant = null;
-  },
-
-  // ─────────────────────────────────────────────────────────────
-  //  CART
-  // ─────────────────────────────────────────────────────────────
+  /* ─── CART ─── */
   addToCart(product, variant, price) {
-    const key      = variant ? `${product.id}_${variant.id}` : product.id;
-    const existing = this.cart.find(i => i.cid === key);
-    if (existing) {
-      existing.qty++;
-    } else {
-      this.cart.push({ cid: key, product, variant, price, qty: 1 });
-    }
-    this.renderCart();
-    this.showToast(`Đã thêm: ${product.name}`, true);
+    const key = variant ? `${product.id}_${variant.id}` : String(product.id);
+    const ex = this.cart.find(i => i.cid === key);
+    if (ex) ex.qty++; else this.cart.push({ cid: key, product, variant, price, qty: 1 });
+    this.renderCart(); this.showToast('Đã thêm: ' + product.name, true);
   },
-
-  updateQty(cid, delta) {
-    const idx = this.cart.findIndex(i => i.cid === cid);
-    if (idx < 0) return;
-    this.cart[idx].qty += delta;
-    if (this.cart[idx].qty <= 0) this.cart.splice(idx, 1);
+  updateQty(cid, d) {
+    const i = this.cart.findIndex(x => x.cid === cid); if (i < 0) return;
+    this.cart[i].qty += d;
+    if (this.cart[i].qty <= 0) this.cart.splice(i, 1);
     this.renderCart();
   },
-
   renderCart() {
-    const list = document.getElementById('cartItemsList');
-    const msg  = document.getElementById('emptyCartMsg');
-    const btn  = document.getElementById('btnCheckout');
-
+    const list = document.getElementById('cartList');
+    const empty = document.getElementById('cart-empty');
+    const btn = document.getElementById('btnCheckout');
     if (!this.cart.length) {
-      list.innerHTML = ''; msg.style.display = 'flex'; btn.disabled = true;
-      ['cartCountTotal', 'txtSubtotal', 'txtDiscount'].forEach(id =>
-        document.getElementById(id).textContent =
-          id === 'txtDiscount' ? '- 0 ₫' : '0' + (id === 'cartCountTotal' ? '' : ' ₫')
-      );
-      document.getElementById('txtTotal').textContent = '0 ₫';
-      document.getElementById('posCouponWarning').classList.add('hidden');
+      list.innerHTML = ''; empty.style.display = ''; btn.disabled = true;
+      ['cartQty','txtSubtotal','txtDiscount','txtTotal'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.textContent = id === 'txtDiscount' ? '– 0 ₫' : (id === 'cartQty' ? '0' : '0 ₫');
+      });
       return;
     }
-
-    msg.style.display = 'none'; btn.disabled = false;
+    empty.style.display = 'none'; btn.disabled = false;
     list.innerHTML = this.cart.map(item => `
-      <div class="flex items-center gap-3 p-3 border border-neutral-200 rounded-sm bg-white shadow-sm hover:border-black transition-colors">
-        <div class="w-12 h-16 bg-[#f8f8f8] rounded-sm border border-neutral-200 overflow-hidden flex-shrink-0">
-          ${this.renderThumb(item.product.thumbnail_url)}
+      <div class="citem">
+        <div class="cthumb">${this.thumb(item.product.thumbnail_url)}</div>
+        <div class="cdata">
+          <div class="cname">${item.product.name}</div>
+          ${item.variant ? `<div class="cvar">${item.variant.color_name||''}${item.variant.size?' · Size '+item.variant.size:''}</div>` : ''}
+          <div class="cprice">${this.fmt(item.price)}</div>
         </div>
-        <div class="flex-1 min-w-0">
-          <p class="text-[10px] font-bold text-black uppercase line-clamp-2 leading-snug">${item.product.name}</p>
-          ${item.variant
-            ? `<p class="text-[9px] font-bold text-neutral-400 uppercase mt-1 tracking-widest">
-                ${item.variant.color_name || ''} ${item.variant.size ? '- Size ' + item.variant.size : ''}
-               </p>` : ''}
-          <p class="text-[10px] font-black text-red-500 mt-1">${this.fmt(item.price)}</p>
-        </div>
-        <div class="flex items-center border border-neutral-200 bg-neutral-50 rounded-sm overflow-hidden h-8">
-          <button onclick="POS.updateQty('${item.cid}',-1)" class="w-8 h-full text-neutral-500 hover:bg-white hover:text-black border-r border-neutral-200">
-            <i class="fa-solid fa-minus text-[10px]"></i>
-          </button>
-          <span class="w-8 text-center text-[11px] font-bold tabular-nums bg-white h-full flex items-center justify-center">${item.qty}</span>
-          <button onclick="POS.updateQty('${item.cid}',1)" class="w-8 h-full text-neutral-500 hover:bg-white hover:text-black border-l border-neutral-200">
-            <i class="fa-solid fa-plus text-[10px]"></i>
-          </button>
+        <div class="qty-ctrl">
+          <button class="qty-btn" onclick="POS.updateQty('${item.cid}',-1)"><i class="fa-solid fa-minus"></i></button>
+          <span class="qty-num">${item.qty}</span>
+          <button class="qty-btn" onclick="POS.updateQty('${item.cid}',1)"><i class="fa-solid fa-plus"></i></button>
         </div>
       </div>`).join('');
-
     this.calcTotal();
   },
 
-  // ─────────────────────────────────────────────────────────────
-  //  TOTALS
-  // ─────────────────────────────────────────────────────────────
+  /* ─── TOTALS ─── */
   calcTotal() {
-    let subtotal = 0, totalQty = 0;
-    this.cart.forEach(i => { subtotal += i.price * i.qty; totalQty += i.qty; });
-
-    const cp   = document.getElementById('posCoupon');
-    const warn = document.getElementById('posCouponWarning');
-    let discount = 0;
-    warn.classList.add('hidden');
-
-    if (cp.value && subtotal > 0) {
-      const opt  = cp.options[cp.selectedIndex];
+    let sub = 0, qty = 0;
+    this.cart.forEach(i => { sub += i.price * i.qty; qty += i.qty; });
+    const sel = document.getElementById('posCoupon');
+    const warn = document.getElementById('coupon-warn');
+    let disc = 0; warn.style.display = 'none';
+    if (sel.value && sub > 0) {
+      const opt = sel.options[sel.selectedIndex];
       const minV = parseFloat(opt.dataset.min) || 0;
-      if (subtotal < minV) {
-        warn.textContent = `Yêu cầu đơn tối thiểu ${this.fmt(minV)}`;
-        warn.classList.remove('hidden');
+      if (sub < minV) {
+        warn.style.display = ''; warn.textContent = `Đơn tối thiểu ${this.fmt(minV)} để dùng mã này`;
       } else {
-        const val  = parseFloat(opt.dataset.value);
-        const maxV = parseFloat(opt.dataset.max) || 0;
-        discount = opt.dataset.type === 'percent' ? subtotal * (val / 100) : val;
-        if (maxV > 0 && discount > maxV) discount = maxV;
-        if (discount > subtotal) discount = subtotal;
+        const val = parseFloat(opt.dataset.value), maxV = parseFloat(opt.dataset.max) || 0;
+        disc = opt.dataset.type === 'percent' ? sub * (val / 100) : val;
+        if (maxV > 0 && disc > maxV) disc = maxV;
+        if (disc > sub) disc = sub;
       }
     }
-
-    const total = Math.max(0, subtotal - discount);
-    document.getElementById('cartCountTotal').textContent = totalQty;
-    document.getElementById('txtSubtotal').textContent    = this.fmt(subtotal);
-    document.getElementById('txtDiscount').textContent    = '- ' + this.fmt(discount);
-    document.getElementById('txtTotal').textContent       = this.fmt(total);
+    const total = Math.max(0, sub - disc);
+    document.getElementById('cartQty').textContent = qty;
+    document.getElementById('txtSubtotal').textContent = this.fmt(sub);
+    document.getElementById('txtDiscount').textContent = '– ' + this.fmt(disc);
+    document.getElementById('txtTotal').textContent = this.fmt(total);
     this.calcChange();
-    if (this.method === 'transfer') this._updateTransferQR();
+    if (this.method !== 'cash') this._updateQR();
   },
-
   calcChange() {
     if (this.method !== 'cash') return;
-    // Lấy tổng đơn hàng: xóa mọi ký tự không phải số (dấu chấm, ₫, khoảng trắng)
-    const total = this.parseInputMoney(
-      document.getElementById('txtTotal').textContent
-    );
-    // Lấy tiền khách đưa: dùng parseInputMoney để xử lý cả "500.000" lẫn "500000"
-    const given  = this.parseInputMoney(
-      document.getElementById('inputCash').value
-    );
+    const total = this.parseMoney(document.getElementById('txtTotal').textContent);
+    const given = this.parseMoney(document.getElementById('inputCash').value);
     const change = given >= total ? given - total : 0;
-    document.getElementById('txtChange').textContent = this.fmt(change);
-    document.getElementById('txtChange').classList.toggle('text-red-500',    given > 0 && given < total);
-    document.getElementById('txtChange').classList.toggle('text-emerald-600', given >= total || given === 0);
+    const el = document.getElementById('txtChange');
+    el.textContent = this.fmt(change);
+    el.style.color = (given > 0 && given < total) ? 'var(--c-red)' : 'var(--c-green)';
   },
 
-  // ─────────────────────────────────────────────────────────────
-  //  CHECKOUT
-  // ─────────────────────────────────────────────────────────────
+  /* ─── PAYMENT METHOD ─── */
+  setMethod(m) {
+    this.method = m;
+    document.getElementById('btnCash').classList.toggle('active', m === 'cash');
+    document.getElementById('btnTransfer').classList.toggle('active', m !== 'cash');
+    document.getElementById('cashPanel').style.display = m === 'cash' ? '' : 'none';
+    document.getElementById('transferPanel').style.display = m !== 'cash' ? '' : 'none';
+    this.calcChange();
+    if (m !== 'cash') this._updateQR();
+  },
+  _updateQR() {
+    const total = this.parseMoney(document.getElementById('txtTotal').textContent);
+    document.getElementById('transferQR').src =
+      `https://img.vietqr.io/image/TCB-4890440016335294-compact2.png?amount=${total}&addInfo=GUA+MAISON&accountName=GUA+MAISON`;
+  },
+
+  /* ─── CHECKOUT ─── */
   submit: async function() {
     if (!this.cart.length) return;
-
     if (this.method === 'cash') {
-      const total = this.parseInputMoney(
-        document.getElementById('txtTotal').textContent
-      );
-      const given = this.parseInputMoney(
-        document.getElementById('inputCash').value
-      );
+      const total = this.parseMoney(document.getElementById('txtTotal').textContent);
+      const given = this.parseMoney(document.getElementById('inputCash').value);
       if (total > 0 && given < total) { this.showToast('Tiền khách đưa chưa đủ!', false); return; }
     }
-
-    const btn = document.getElementById('btnCheckout');
-    btn.disabled = true;
-    document.getElementById('lblCheckout').innerHTML = '<i class="fa-solid fa-rotate spin mr-2"></i>ĐANG XỬ LÝ...';
-
-    const cp        = document.getElementById('posCoupon');
-    const discountN = parseFloat(document.getElementById('txtDiscount').textContent.replace(/[^\d]/g, '')) || 0;
-
+    const btn = document.getElementById('btnCheckout'); btn.disabled = true;
+    document.getElementById('lblCheckout').innerHTML = '<i class="fa-solid fa-rotate spin" style="margin-right:6px"></i>Đang xử lý...';
+    const disc = this.parseMoney(document.getElementById('txtDiscount').textContent);
     const payload = {
       payment_method: this.method,
-      discount:       discountN,
-      coupon_id:      cp.value || null,
+      discount: disc,
+      coupon_id: document.getElementById('posCoupon').value || null,
       items: this.cart.map(i => ({
         product_id: i.product.id,
         variant_id: i.variant ? i.variant.id : '',
-        quantity:   i.qty,
-        price:      i.price,
-        name:       `${i.product.name}${i.variant
-          ? ` (${i.variant.color_name || ''} ${i.variant.size ? 'Size ' + i.variant.size : ''})`
-          : ''}`
+        quantity: i.qty, price: i.price,
+        name: `${i.product.name}${i.variant ? ` (${i.variant.color_name||''}${i.variant.size?' Size '+i.variant.size:''})` : ''}`
       }))
     };
-
     try {
-      const res  = await fetch("{{ url_for('admin.pos_checkout') }}", {
-        method:  'POST',
+      const res = await fetch("{{ url_for('admin.pos_checkout') }}", {
+        method: 'POST',
         headers: { 'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token() }}' },
-        body:    JSON.stringify(payload)
+        body: JSON.stringify(payload)
       });
       const data = await res.json();
-
       if (data.success) {
         if (this.method === 'cash') {
-          this.showToast('THANH TOÁN THÀNH CÔNG', true);
-          this.printReceipt(data.invoice);
-          this.resetCart();
+          this.showToast('Thanh toán thành công!', true);
+          this.printReceipt(data.invoice); this.resetCart();
         } else {
-          this._pendingInvoice = data.invoice;
-          this.openTransferModal();
-          this.startPolling(data.order_id);
+          this._pendingInv = data.invoice;
+          this.openTransferModal(); this.startPolling(data.order_id);
         }
-      } else {
-        this.showToast(data.message || 'Lỗi xử lý', false);
-      }
-    } catch(e) {
-      this.showToast('Lỗi kết nối máy chủ', false);
-    } finally {
+      } else { this.showToast(data.message || 'Lỗi xử lý', false); }
+    } catch { this.showToast('Lỗi kết nối máy chủ', false); }
+    finally {
       btn.disabled = false;
-      document.getElementById('lblCheckout').innerHTML =
-        '<i class="fa-solid fa-print mr-2"></i>THANH TOÁN & IN BILL';
+      document.getElementById('lblCheckout').innerHTML = '<i class="fa-solid fa-print" style="margin-right:6px"></i>Thanh toán &amp; In hoá đơn';
     }
   },
 
-  // ─────────────────────────────────────────────────────────────
-  //  TRANSFER MODAL + POLLING (Casso)
-  // ─────────────────────────────────────────────────────────────
+  /* ─── TRANSFER POLLING (Casso) ─── */
   openTransferModal() {
-    const m = document.getElementById('transferWaitModal');
-    m.classList.remove('hidden'); m.classList.add('flex');
-    document.getElementById('twIcon').innerHTML    = '<i class="fa-solid fa-rotate spin"></i>';
+    const m = document.getElementById('transferWaitModal'); m.classList.add('open');
+    document.getElementById('twIcon').innerHTML = '<i class="fa-solid fa-rotate spin" style="color:var(--c-accent)"></i>';
     document.getElementById('twTitle').textContent = 'Đang chờ thanh toán...';
-    document.getElementById('twSub').textContent   = 'Hệ thống tự động xác nhận khi nhận được tiền';
-    document.getElementById('twActions').classList.add('hidden');
-    document.getElementById('twCancelBtn').classList.remove('hidden');
+    document.getElementById('twSub').textContent = 'Hệ thống tự động xác nhận khi nhận được tiền';
+    document.getElementById('twActions').style.display = 'none';
+    document.getElementById('twCancelBtn').style.display = '';
   },
-
   startPolling(orderId) {
     clearInterval(this._pollTimer);
     this._pollTimer = setInterval(async () => {
       try {
-        const r = await fetch(`/admin/pos-check-payment/${orderId}`, {
-          headers: { 'X-CSRFToken': '{{ csrf_token() }}' }
-        });
+        const r = await fetch(`/admin/pos-check-payment/${orderId}`, { headers: { 'X-CSRFToken': '{{ csrf_token() }}' } });
         const d = await r.json();
         if (d.paid) { clearInterval(this._pollTimer); this.onTransferConfirmed(); }
-      } catch(e) {}
+      } catch {}
     }, 3000);
   },
-
   onTransferConfirmed() {
-    document.getElementById('twIcon').innerHTML    = '<i class="fa-solid fa-circle-check text-emerald-500"></i>';
-    document.getElementById('twTitle').textContent = 'THANH TOÁN THÀNH CÔNG!';
-    document.getElementById('twSub').textContent   = 'Chuyển khoản đã được xác nhận';
-    document.getElementById('twActions').classList.remove('hidden');
-    document.getElementById('twActions').classList.add('flex');
-    document.getElementById('twCancelBtn').classList.add('hidden');
-    this.showToast('THANH TOÁN THÀNH CÔNG', true);
-    this.resetCart();
+    document.getElementById('twIcon').innerHTML = '<i class="fa-solid fa-circle-check" style="color:var(--c-green)"></i>';
+    document.getElementById('twTitle').textContent = 'Thanh toán thành công!';
+    document.getElementById('twSub').textContent = 'Chuyển khoản đã được xác nhận';
+    const ac = document.getElementById('twActions'); ac.style.display = 'flex'; ac.style.flexDirection = 'column'; ac.style.gap = '8px';
+    document.getElementById('twCancelBtn').style.display = 'none';
+    this.showToast('Thanh toán thành công!', true); this.resetCart();
   },
+  printReceiptFromModal() { if (this._pendingInv) this.printReceipt(this._pendingInv); },
+  cancelTransferWait() { clearInterval(this._pollTimer); document.getElementById('transferWaitModal').classList.remove('open'); },
+  closeTransferModal() { this.cancelTransferWait(); },
 
-  printReceiptFromModal() {
-    if (this._pendingInvoice) this.printReceipt(this._pendingInvoice);
-  },
-
-  cancelTransferWait() {
-    clearInterval(this._pollTimer);
-    document.getElementById('transferWaitModal').classList.add('hidden');
-    document.getElementById('transferWaitModal').classList.remove('flex');
-  },
-
-  closeTransferModal() {
-    clearInterval(this._pollTimer);
-    this.cancelTransferWait();
-  },
-
-  // ─────────────────────────────────────────────────────────────
-  //  RESET
-  // ─────────────────────────────────────────────────────────────
+  /* ─── RESET ─── */
   resetCart() {
     this.cart = [];
-    document.getElementById('posCoupon').value   = '';
-    document.getElementById('inputCash').value   = '';
+    document.getElementById('posCoupon').value = '';
+    document.getElementById('inputCash').value = '';
     document.getElementById('txtChange').textContent = '0 ₫';
     this.renderCart();
   },
 
-  // ─────────────────────────────────────────────────────────────
-  //  PRINT RECEIPT (mở cửa sổ in 80mm)
-  // ─────────────────────────────────────────────────────────────
+  /* ─── IN HOÁ ĐƠN 80mm ─── */
   printReceipt(inv) {
-    const methodLabel = inv.payment_method === 'cash' ? 'Tiền mặt' : 'Chuyển khoản';
+    const label = inv.payment_method === 'cash' ? 'Tiền mặt' : 'Chuyển khoản';
     const rows = inv.items.map((i, idx) => `
       <tr>
-        <td style="text-align:center;padding:3px 2px;">${idx + 1}</td>
-        <td style="padding:3px 4px;">${i.name}</td>
-        <td style="text-align:center;padding:3px 2px;">${i.qty}</td>
-        <td style="text-align:right;padding:3px 2px;">${Number(i.price).toLocaleString('vi-VN')}</td>
-        <td style="text-align:right;padding:3px 2px;">${(i.qty * i.price).toLocaleString('vi-VN')}</td>
+        <td style="text-align:center;padding:3px 2px">${idx+1}</td>
+        <td style="padding:3px 4px">${i.name}</td>
+        <td style="text-align:center;padding:3px 2px">${i.qty}</td>
+        <td style="text-align:right;padding:3px 2px">${Number(i.price).toLocaleString('vi-VN')}</td>
+        <td style="text-align:right;padding:3px 2px">${(i.qty*i.price).toLocaleString('vi-VN')}</td>
       </tr>`).join('');
-
-    const cashGiven  = this.parseInputMoney(document.getElementById('inputCash')?.value);
-    const changeBack = cashGiven - inv.total;
-    const cashRows   = inv.payment_method === 'cash' && cashGiven > 0 ? `
-      <div class="flex"><span>Tiền khách đưa:</span><span>${cashGiven.toLocaleString('vi-VN')}</span></div>
-      <div class="flex"><span>Tiền thối lại:</span><span>${Math.max(0, changeBack).toLocaleString('vi-VN')}</span></div>` : '';
-
+    const cashGiven = this.parseMoney(document.getElementById('inputCash')?.value);
+    const cashRows = inv.payment_method === 'cash' && cashGiven > 0 ? `
+      <div class="r"><span>Tiền khách đưa:</span><span>${cashGiven.toLocaleString('vi-VN')}</span></div>
+      <div class="r"><span>Tiền thối lại:</span><span>${Math.max(0,cashGiven-inv.total).toLocaleString('vi-VN')}</span></div>` : '';
     const html = `<!DOCTYPE html><html lang="vi"><head><meta charset="UTF-8">
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Inconsolata:wght@400;700&display=swap');
-  @page { margin: 0; }
-  body { font-family:'Inconsolata',monospace; width:80mm; margin:0 auto; color:#000; font-size:12px; padding:8mm 4mm; line-height:1.5; }
-  .center { text-align:center; } .bold { font-weight:700; }
-  .flex { display:flex; justify-content:space-between; }
-  .divider { border:none; border-bottom:1px dashed #000; margin:6px 0; }
-  .store { font-size:20px; font-weight:700; letter-spacing:1px; }
-  table { width:100%; border-collapse:collapse; font-size:11px; }
-  th { border-bottom:1px solid #000; padding:3px 2px; font-weight:700; }
-  td { vertical-align:top; }
-  .total { font-size:14px; font-weight:700; }
+  @page{margin:0}body{font-family:'Inconsolata',monospace;width:80mm;margin:0 auto;color:#000;font-size:12px;padding:8mm 4mm;line-height:1.5}
+  .c{text-align:center}.b{font-weight:700}.r{display:flex;justify-content:space-between}
+  .d{border:none;border-bottom:1px dashed #000;margin:6px 0}
+  .store{font-size:20px;font-weight:700;letter-spacing:1px}
+  table{width:100%;border-collapse:collapse;font-size:11px}th{border-bottom:1px solid #000;padding:3px 2px;font-weight:700}td{vertical-align:top}
+  .tot{font-size:14px;font-weight:700}
 </style></head><body>
-  <div class="center">
-    <div class="store">GUA MAISON</div>
-    <div>123 Nguyễn Trãi, Q1, TP.HCM</div>
-    <div>0909 123 456</div>
-  </div>
-  <hr class="divider">
-  <div class="center bold" style="font-size:15px;margin:6px 0;">HÓA ĐƠN BÁN LẺ</div>
-  <div style="margin-bottom:6px;">
-    <div class="flex"><span>Số HĐ:</span><span class="bold">${inv.order_code}</span></div>
-    <div class="flex"><span>Ngày:</span><span>${inv.date}</span></div>
-    <div class="flex"><span>Thanh toán:</span><span class="bold">${methodLabel}</span></div>
-  </div>
-  <hr class="divider">
-  <table>
-    <thead><tr>
-      <th style="text-align:center;width:20px">STT</th>
-      <th style="text-align:left">Tên SP</th>
-      <th style="text-align:center;width:24px">SL</th>
-      <th style="text-align:right;width:55px">Đ.Giá</th>
-      <th style="text-align:right;width:60px">T.Tiền</th>
-    </tr></thead>
-    <tbody>${rows}</tbody>
-  </table>
-  <hr class="divider">
-  <div class="flex"><span>Tạm tính:</span><span>${inv.subtotal.toLocaleString('vi-VN')}</span></div>
-  ${inv.discount > 0 ? `<div class="flex"><span>Giảm giá:</span><span>- ${inv.discount.toLocaleString('vi-VN')}</span></div>` : ''}
-  <hr class="divider">
-  <div class="flex total"><span>THỰC THU:</span><span>${inv.total.toLocaleString('vi-VN')} ₫</span></div>
-  ${cashRows}
-  <hr class="divider">
-  <div class="center" style="margin-top:10px;">
-    <div class="bold">CẢM ƠN QUÝ KHÁCH!</div>
-    <div style="font-size:10px;margin-top:4px;">Vui lòng giữ hóa đơn để đổi trả trong 7 ngày</div>
-  </div>
-<script>window.onload=function(){window.print();setTimeout(()=>window.close(),500);}<\/script>
+  <div class="c"><div class="store">GUA MAISON</div><div>123 Nguyễn Trãi, Q1, TP.HCM</div><div>0909 123 456</div></div>
+  <hr class="d"><div class="c b" style="font-size:15px;margin:6px 0">HOÁ ĐƠN BÁN LẺ</div>
+  <div><div class="r"><span>Số HĐ:</span><span class="b">${inv.order_code}</span></div>
+  <div class="r"><span>Ngày:</span><span>${inv.date}</span></div>
+  <div class="r"><span>Thanh toán:</span><span class="b">${label}</span></div></div>
+  <hr class="d">
+  <table><thead><tr>
+    <th style="text-align:center;width:20px">STT</th><th style="text-align:left">Tên SP</th>
+    <th style="text-align:center;width:24px">SL</th><th style="text-align:right;width:55px">Đ.Giá</th>
+    <th style="text-align:right;width:60px">T.Tiền</th>
+  </tr></thead><tbody>${rows}</tbody></table>
+  <hr class="d">
+  <div class="r"><span>Tạm tính:</span><span>${inv.subtotal.toLocaleString('vi-VN')}</span></div>
+  ${inv.discount>0?`<div class="r"><span>Giảm giá:</span><span>-${inv.discount.toLocaleString('vi-VN')}</span></div>`:''}
+  <hr class="d"><div class="r tot"><span>THỰC THU:</span><span>${inv.total.toLocaleString('vi-VN')} ₫</span></div>
+  ${cashRows}<hr class="d">
+  <div class="c" style="margin-top:10px"><div class="b">CẢM ƠN QUÝ KHÁCH!</div>
+  <div style="font-size:10px;margin-top:4px">Giữ hoá đơn để đổi trả trong 7 ngày</div></div>
+  <script>window.onload=function(){window.print();setTimeout(()=>window.close(),500)}<\/script>
 </body></html>`;
-
-    const w = window.open('', '_blank', 'width=420,height=680');
+    const w = window.open('','_blank','width=420,height=680');
     w.document.open(); w.document.write(html); w.document.close();
   }
 
