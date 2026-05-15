@@ -32,11 +32,10 @@
 
   <style>
     /* ════════════════════════════════════════
-       GUA DESIGN TOKENS — nguồn sự thật duy nhất
-       Dùng var() thay vì hardcode màu ở mọi trang
+       GUA DESIGN TOKENS
        ════════════════════════════════════════ */
     :root {
-      --header-h:    68px;        /* Navbar height — JS sẽ overwrite */
+      --header-h:    68px;
       --gua-ink:     #0a0a0a;
       --gua-paper:   #fafaf9;
       --gua-muted:   #e8e5e0;
@@ -44,13 +43,12 @@
       --gua-warm:    #737065;
       --gua-sub:     #9e9890;
       --gua-faint:   #b5b0a8;
-      --gua-accent:  #c8a96e;     /* warm gold */
+      --gua-accent:  #c8a96e;
       --gua-radius:  2px;
       --gua-shadow:  0 1px 3px rgba(0,0,0,.06), 0 4px 16px rgba(0,0,0,.05);
       --gua-shadow-lg: 0 2px 8px rgba(0,0,0,.08), 0 16px 40px rgba(0,0,0,.08);
     }
 
-    /* ── Base ── */
     *, *::before, *::after { box-sizing: border-box; }
     html { scroll-behavior: smooth; }
     body {
@@ -60,18 +58,18 @@
       text-rendering: optimizeLegibility;
     }
 
-    /* ── Lenis smooth scroll ── */
+    /* Lenis smooth scroll */
     html.lenis, html.lenis body { height: auto; }
-    .lenis.lenis-smooth         { scroll-behavior: auto !important; }
+    .lenis.lenis-smooth { scroll-behavior: auto !important; }
     .lenis.lenis-smooth [data-lenis-prevent] { overscroll-behavior: contain; }
-    .lenis.lenis-stopped        { overflow: hidden; }
+    .lenis.lenis-stopped { overflow: hidden; }
 
-    /* ── Scrollbar (hidden globally, preserved for specific containers) ── */
+    /* Scrollbar ẩn toàn cục, có thể bật lại cho từng vùng */
     ::-webkit-scrollbar { width: 0; height: 0; }
     .no-scrollbar::-webkit-scrollbar { display: none; }
     .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
-    /* ── Scroll reveal (used by all pages) ── */
+    /* Scroll reveal */
     .reveal {
       opacity: 0;
       transform: translateY(20px);
@@ -80,7 +78,7 @@
     }
     .reveal.active { opacity: 1; transform: none; }
 
-    /* ── GUA Profile system classes (shared across profile/* pages) ── */
+    /* Profile system classes */
     .gua-card {
       background: #fff;
       border: 1px solid var(--gua-muted);
@@ -149,17 +147,38 @@
       .gua-sidebar { display: flex; flex-direction: column; gap: .25rem; position: sticky; top: calc(var(--header-h) + 1.5rem); }
     }
 
-    /* ── Top bar ── */
+    /* Topbar */
     .top-bar {
-      background: var(--gua-ghost); color: var(--gua-ink);
-      font-size: .6rem; font-weight: 600; letter-spacing: .1em;
-      text-transform: uppercase; text-align: center; padding: .5rem;
+      background: var(--gua-ink);
+      color: #fff;
+      font-size: 0.7rem;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      text-align: center;
+      padding: 0.6rem 1rem;
     }
 
-    /* ── Forms ── */
+    /* Ẩn spinner cho input number */
     input[type=number]::-webkit-inner-spin-button,
     input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
     input[type=number] { -moz-appearance: textfield; }
+
+    /* ── Notification Bell ── */
+    .notif-bell { position: relative; display: inline-flex; align-items: center; justify-content: center; }
+    .notif-badge {
+      position: absolute; top: -3px; right: -4px;
+      min-width: 16px; height: 16px; padding: 0 4px;
+      background: var(--gua-ink); color: #fff;
+      font-size: 9px; font-weight: 800; line-height: 16px;
+      border-radius: 8px; text-align: center;
+      border: 1.5px solid #fff;
+      transition: transform .2s cubic-bezier(.34,1.56,.64,1), opacity .2s;
+    }
+    .notif-badge.is-zero { transform: scale(0); opacity: 0; pointer-events: none; }
+    @keyframes notifPop { 0%{transform:scale(1)} 40%{transform:scale(1.4)} 100%{transform:scale(1)} }
+    .notif-badge.pop { animation: notifPop .3s ease; }
+  
   </style>
 
   {% block extra_head %}{% endblock %}
@@ -167,17 +186,23 @@
 
 <body class="bg-white text-black flex flex-col min-h-screen selection:bg-black selection:text-white">
 
+  {# ═══ TOPBAR (điều khiển từ Admin Settings) ═══ #}
   {% if system_settings.storefront.topbar_active == 'true' and system_settings.storefront.topbar_text %}
   <div class="top-bar">{{ system_settings.storefront.topbar_text }}</div>
   {% endif %}
 
+  {# ═══ NAVBAR ═══ #}
   {% include 'partials/navbar.html' ignore missing %}
+
+  {# ═══ FLASH MESSAGES ═══ #}
   {% include 'flash.html' ignore missing %}
 
+  {# ═══ MAIN CONTENT ═══ #}
   <main class="flex-1 w-full relative" id="main-content">
     {% block content %}{% endblock %}
   </main>
 
+  {# ═══ FOOTER ═══ #}
   <footer class="bg-white pt-16 pb-8 border-t border-neutral-200 mt-auto" aria-label="Footer">
     <div class="max-w-[1400px] mx-auto px-4 md:px-8">
       <div class="grid grid-cols-1 md:grid-cols-4 gap-12 md:gap-8 mb-16">
@@ -219,102 +244,157 @@
     </div>
   </footer>
 
+  {# ═══ GLOBAL COMPONENTS ═══ #}
   {% include 'chat.html' ignore missing %}
   {% include 'components/modals/_quick_view.html' ignore missing %}
 
   <script>
-  document.addEventListener('DOMContentLoaded', () => {
+    document.addEventListener('DOMContentLoaded', () => {
 
-    // ── 1. Đo navbar thực tế → set --header-h ──────────────────────────
-    const navbar = document.querySelector('nav, header, [data-navbar]');
-    if (navbar) {
-      const setH = () => document.documentElement.style.setProperty('--header-h', navbar.offsetHeight + 'px');
-      setH();
-      new ResizeObserver(setH).observe(navbar);
-    }
+      // Đo chiều cao navbar thực tế -> set CSS variable --header-h
+      const navbar = document.querySelector('nav, header, [data-navbar]');
+      if (navbar) {
+        const setHeaderH = () => document.documentElement.style.setProperty('--header-h', navbar.offsetHeight + 'px');
+        setHeaderH();
+        new ResizeObserver(setHeaderH).observe(navbar);
+      }
 
-    // ── 2. Mobile menu ──────────────────────────────────────────────────
-    const openBtn = document.getElementById('openMenu');
-    const closeBtn = document.getElementById('closeMenu');
-    const menu    = document.getElementById('mobileMenu');
-    if (openBtn && closeBtn && menu) {
-      const toggle = (show) => {
-        menu.classList.toggle('invisible', !show);
-        menu.classList.toggle('opacity-0', !show);
-        menu.classList.toggle('opacity-100', show);
-        openBtn.setAttribute('aria-expanded', show);
-        document.body.style.overflow = show ? 'hidden' : '';
-      };
-      openBtn.addEventListener('click',  () => toggle(true));
-      closeBtn.addEventListener('click', () => toggle(false));
-    }
+      // Mobile menu toggle
+      const openBtn = document.getElementById('openMenu');
+      const closeBtn = document.getElementById('closeMenu');
+      const menu    = document.getElementById('mobileMenu');
+      if (openBtn && closeBtn && menu) {
+        const toggleMenu = (show) => {
+          menu.classList.toggle('invisible', !show);
+          menu.classList.toggle('opacity-0', !show);
+          menu.classList.toggle('opacity-100', show);
+          openBtn.setAttribute('aria-expanded', show);
+          document.body.style.overflow = show ? 'hidden' : '';
+        };
+        openBtn.addEventListener('click', () => toggleMenu(true));
+        closeBtn.addEventListener('click', () => toggleMenu(false));
+      }
 
-    // ── 3. Scroll reveal ────────────────────────────────────────────────
-    const io = new IntersectionObserver(entries => {
-      entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('active'); io.unobserve(e.target); } });
-    }, { threshold: 0.08 });
-    document.querySelectorAll('.reveal').forEach(el => io.observe(el));
-  });
-
-  // ── CSRF helper ────────────────────────────────────────────────────────
-  function getCSRFToken() {
-    return document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
-  }
-
-  // ── Analytics helper ───────────────────────────────────────────────────
-  function trackEvent(data) {
-    return fetch('/api/analytics/track', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCSRFToken() },
-      body: JSON.stringify(data)
-    }).catch(() => {});
-  }
-
-  // ── Toast ──────────────────────────────────────────────────────────────
-  let _toastWrap = null;
-  function showToast(msg, isWarning = false) {
-    if (!_toastWrap) {
-      _toastWrap = Object.assign(document.createElement('div'), {
-        className: 'fixed bottom-8 left-1/2 -translate-x-1/2 z-[9999] flex flex-col gap-2 pointer-events-none'
-      });
-      document.body.appendChild(_toastWrap);
-    }
-    const t = Object.assign(document.createElement('div'), {
-      className: 'bg-white text-black px-6 py-3 flex items-center gap-3 text-[10px] font-bold uppercase tracking-widest shadow-lg border border-neutral-200 transition-all duration-300 translate-y-4 opacity-0 pointer-events-auto rounded-sm',
-      innerHTML: `<span>${msg}</span>`
+      // Scroll reveal
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('active');
+            observer.unobserve(entry.target);
+          }
+        });
+      }, { threshold: 0.08 });
+      document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
     });
-    _toastWrap.appendChild(t);
-    requestAnimationFrame(() => t.classList.remove('translate-y-4', 'opacity-0'));
-    setTimeout(() => { t.classList.add('opacity-0', 'translate-y-4'); setTimeout(() => t.remove(), 300); }, 2500);
-  }
 
-  // ── Wishlist toggle ────────────────────────────────────────────────────
-  async function toggleHeart(productId, btn) {
-    if (window.event) window.event.preventDefault();
-    const icon = btn.querySelector('.heart-icon');
-    try {
-      const res = await fetch('/api/favorites/toggle', {
+    // CSRF helper
+    function getCSRFToken() {
+      return document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+    }
+
+    // Analytics tracking
+    function trackEvent(data) {
+      fetch('/api/analytics/track', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCSRFToken() },
-        body: JSON.stringify({ product_id: productId })
-      });
-      if (res.status === 401) { showToast('Vui lòng đăng nhập', true); setTimeout(() => location.href = '/auth/login', 1400); return; }
-      const data = await res.json();
-      if (data.status === 'success') {
-        trackEvent({ product_id: productId, event_type: 'wishlist' });
-        const added = data.action === 'added';
-        icon?.classList.toggle('text-neutral-300', !added);
-        icon?.classList.toggle('text-black', added);
-        icon?.classList.toggle('fill-black', added);
-        showToast(added ? 'Đã thêm vào yêu thích' : 'Đã xóa khỏi yêu thích', !added);
-      }
-    } catch { showToast('Lỗi kết nối', true); }
-  }
+        body: JSON.stringify(data)
+      }).catch(() => {});
+    }
 
-  // ── Lenis smooth scroll ────────────────────────────────────────────────
-  const lenis = new Lenis({ duration: 1.2, easing: t => Math.min(1, 1.001 - Math.pow(2, -10 * t)) });
-  (function raf(t) { lenis.raf(t); requestAnimationFrame(raf); })(0);
+    // Toast notification
+    let toastContainer = null;
+    function showToast(msg, isError = false) {
+      if (!toastContainer) {
+        toastContainer = Object.assign(document.createElement('div'), {
+          className: 'fixed bottom-8 left-1/2 -translate-x-1/2 z-[9999] flex flex-col gap-2 pointer-events-none'
+        });
+        document.body.appendChild(toastContainer);
+      }
+      const toast = Object.assign(document.createElement('div'), {
+        className: `bg-white text-black px-6 py-3 flex items-center gap-3 text-[10px] font-bold uppercase tracking-widest shadow-lg border transition-all duration-300 translate-y-4 opacity-0 pointer-events-auto rounded-sm ${isError ? 'border-red-500 text-red-600' : 'border-neutral-200'}`,
+        innerHTML: `<span>${msg}</span>`
+      });
+      toastContainer.appendChild(toast);
+      requestAnimationFrame(() => toast.classList.remove('translate-y-4', 'opacity-0'));
+      setTimeout(() => {
+        toast.classList.add('opacity-0', 'translate-y-4');
+        setTimeout(() => toast.remove(), 300);
+      }, 2500);
+    }
+
+    // Wishlist toggle (heart)
+    async function toggleHeart(productId, btn) {
+      if (window.event) window.event.preventDefault();
+      const icon = btn.querySelector('.heart-icon');
+      try {
+        const res = await fetch('/api/favorites/toggle', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCSRFToken() },
+          body: JSON.stringify({ product_id: productId })
+        });
+        if (res.status === 401) {
+          showToast('Vui lòng đăng nhập', true);
+          setTimeout(() => location.href = '/auth/login', 1400);
+          return;
+        }
+        const data = await res.json();
+        if (data.status === 'success') {
+          trackEvent({ product_id: productId, event_type: 'wishlist' });
+          const added = data.action === 'added';
+          icon?.classList.toggle('text-neutral-300', !added);
+          icon?.classList.toggle('text-black', added);
+          icon?.classList.toggle('fill-black', added);
+          showToast(added ? 'Đã thêm vào yêu thích' : 'Đã xóa khỏi yêu thích');
+        }
+      } catch {
+        showToast('Lỗi kết nối', true);
+      }
+    }
+
+    // Lenis smooth scroll
+    const lenis = new Lenis({ duration: 1.2, easing: t => Math.min(1, 1.001 - Math.pow(2, -10 * t)) });
+    (function raf(time) {
+      lenis.raf(time);
+      requestAnimationFrame(raf);
+    })(0);
   </script>
+
+
+  {# ── Notification Bell Script ── #}
+  {% if current_user.id %}
+  <script>
+  (function () {
+    let _prevCount = -1;
+
+    async function refreshNotifBadge() {
+      try {
+        const res  = await fetch('/notifications/unread-count', {
+          headers: { 'X-CSRFToken': getCSRFToken() }
+        });
+        if (!res.ok) return;
+        const { count } = await res.json();
+        const n = parseInt(count) || 0;
+
+        document.querySelectorAll('.notif-badge').forEach(badge => {
+          badge.textContent = n > 99 ? '99+' : (n || '');
+          badge.classList.toggle('is-zero', n === 0);
+          // Pop animation khi số tăng
+          if (_prevCount >= 0 && n > _prevCount) {
+            badge.classList.remove('pop');
+            void badge.offsetWidth; // reflow
+            badge.classList.add('pop');
+          }
+        });
+        _prevCount = n;
+      } catch (_) {}
+    }
+
+    // Chạy ngay khi load + mỗi 60s
+    document.addEventListener('DOMContentLoaded', refreshNotifBadge);
+    setInterval(refreshNotifBadge, 60_000);
+  })();
+  </script>
+  {% endif %}
 
   {% block extra_scripts %}{% endblock %}
 </body>

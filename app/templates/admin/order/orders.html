@@ -2,35 +2,31 @@
 {% block title %}Quản lý Đơn hàng | GUA Admin{% endblock %}
 
 {% block content %}
-<div class="min-h-screen bg-[#f8f8f8] pb-24 font-sans selection:bg-black selection:text-white">
+<div class="max-w-screen-2xl mx-auto px-4 md:px-6 py-8 space-y-8">
 
-  {# ── HEADER ── #}
-  <div class="bg-white border-b border-neutral-200 sticky top-0 z-40">
-    <div class="max-w-[1600px] mx-auto px-4 lg:px-8 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-      <div class="flex items-center gap-4">
-        <div class="w-10 h-10 bg-black text-white flex items-center justify-center rounded-sm">
-          <i class="fa-solid fa-boxes-packing"></i>
-        </div>
-        <div>
-          <h1 class="text-lg font-bold tracking-tight text-black uppercase">Điều phối Đơn hàng</h1>
-          <p class="text-[9px] font-bold text-neutral-400 uppercase tracking-[0.2em] mt-0.5 flex items-center gap-1.5">
-            <span class="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse"></span>
-            {{ total }} giao dịch trong hệ thống
-          </p>
-        </div>
+  {# ── 1. HEADER TRANG ── #}
+  <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+    <div>
+      <div class="flex items-center gap-3 mb-1">
+        <h1 class="text-3xl font-bold tracking-tight text-stone-900 font-serif">Đơn hàng</h1>
+        <span class="px-3 py-1 bg-white border border-stone-200 text-stone-600 rounded-full text-xs font-semibold shadow-sm">
+          {{ total }}
+        </span>
       </div>
-      <div class="flex items-center gap-3">
-        <button class="inline-flex items-center gap-2 bg-white border border-neutral-200 text-black px-5 py-2.5 rounded-sm text-[10px] font-bold uppercase tracking-widest hover:bg-neutral-50 transition-colors shadow-sm">
-          <i class="fa-solid fa-file-excel"></i> Xuất Excel
-        </button>
-      </div>
+      <p class="text-sm text-stone-500">Quản lý, điều phối và xử lý giao dịch từ mọi kênh bán hàng.</p>
+    </div>
+    <div class="flex items-center gap-3">
+      <button class="inline-flex items-center gap-2 bg-white border border-stone-200 text-stone-700 px-5 py-2.5 rounded-2xl text-sm font-semibold hover:bg-stone-50 transition-all shadow-sm">
+        <i class="fa-solid fa-file-excel"></i> Xuất Excel
+      </button>
     </div>
   </div>
 
-  <div class="max-w-[1600px] mx-auto px-4 lg:px-8 mt-6 space-y-6">
-
-    {# ── TAB TRẠNG THÁI ── #}
-    <div class="bg-white p-1 border border-neutral-200 flex overflow-x-auto no-scrollbar shadow-sm rounded-sm">
+  {# ── 2. THANH CÔNG CỤ (TABS + SEARCH) - Bo tròn viên nhộng ── #}
+  <div class="bg-white border border-stone-100 rounded-[2rem] p-2 flex flex-col xl:flex-row items-center justify-between gap-4 shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)]">
+    
+    {# Tabs Trạng thái #}
+    <div class="flex items-center gap-1 overflow-x-auto no-scrollbar w-full xl:w-auto pl-2">
       {% set tabs = [
         ('', 'Tất cả'),
         ('pending', 'Chờ xác nhận'),
@@ -45,235 +41,232 @@
       
       {% for val, label in tabs %}
       <a href="{{ url_for('admin.orders', status=val, q=request.args.get('q','')) }}"
-         class="shrink-0 px-6 py-3 text-[10px] font-bold uppercase tracking-widest transition-colors rounded-sm
+         class="shrink-0 px-5 py-2.5 rounded-full text-[11px] font-bold uppercase tracking-wider transition-all
          {% if current_status == val or (not current_status and not val) %}
-           bg-black text-white
+           bg-stone-900 text-white shadow-md
          {% else %}
-           text-neutral-500 hover:bg-neutral-100 hover:text-black
+           text-stone-500 hover:bg-stone-50 hover:text-stone-900
          {% endif %}">
         {{ label }}
       </a>
       {% endfor %}
     </div>
 
-    {# ── THANH TÌM KIẾM & BỘ LỌC ── #}
-    <div class="bg-white p-4 border border-neutral-200 flex flex-col lg:flex-row gap-4 justify-between items-center shadow-sm rounded-sm">
-      
-      <form action="{{ url_for('admin.orders') }}" method="GET" class="w-full lg:w-1/2 relative group">
-        <input type="hidden" name="status" value="{{ current_status or '' }}">
-        <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-neutral-400 group-focus-within:text-black transition-colors z-10 pointer-events-none"></i>
-        <input type="text" name="q" value="{{ request.args.get('q', '') }}"
-               placeholder="Mã đơn, Tên khách hàng, Số điện thoại..."
-               class="w-full bg-[#f8f8f8] border border-neutral-200 rounded-sm pl-11 pr-24 py-2.5 text-xs font-bold text-black focus:border-black focus:bg-white outline-none transition-colors placeholder-neutral-400">
-        <button type="submit" class="absolute right-1 top-1/2 -translate-y-1/2 bg-black text-white px-4 py-1.5 rounded-sm text-[9px] font-bold uppercase tracking-widest hover:bg-neutral-800 transition-colors">
-          Tìm kiếm
-        </button>
-      </form>
-
-      {# Khối Thao tác hàng loạt #}
-      <div id="bulk-actions" class="hidden items-center gap-3 w-full lg:w-auto p-2 bg-neutral-50 border border-neutral-200 rounded-sm">
-        <span class="px-3 text-[9px] font-bold text-neutral-500 uppercase tracking-widest border-r border-neutral-200">Đã chọn <span id="selected-count" class="text-black font-black">0</span></span>
-        <button class="px-4 py-2 bg-white text-black rounded-sm text-[9px] font-bold uppercase tracking-widest hover:bg-neutral-100 transition-colors border border-neutral-200">
-          In phiếu giao
-        </button>
-        <button class="px-4 py-2 bg-black text-white rounded-sm text-[9px] font-bold uppercase tracking-widest hover:bg-neutral-800 transition-colors">
-          Xác nhận loạt
-        </button>
-      </div>
-    </div>
-
-    {# ── BẢNG DỮ LIỆU ĐƠN HÀNG ── #}
-    <div class="bg-white border border-neutral-200 overflow-hidden shadow-sm rounded-sm">
-      <div class="overflow-x-auto no-scrollbar">
-        <table class="w-full text-left border-collapse min-w-[1000px]">
-          <thead>
-            <tr class="bg-neutral-50 border-b border-neutral-200 text-[9px] uppercase tracking-[0.2em] text-neutral-400 font-black">
-              <th class="px-5 py-4 w-12 text-center">
-                <input type="checkbox" id="checkAll" class="w-3.5 h-3.5 border-neutral-300 rounded-sm text-black focus:ring-black cursor-pointer accent-black">
-              </th>
-              <th class="px-4 py-4 w-40">Mã đơn / Kênh</th>
-              <th class="px-4 py-4 w-64">Sản phẩm</th>
-              <th class="px-4 py-4">Khách hàng</th>
-              <th class="px-4 py-4">Thanh toán</th>
-              <th class="px-4 py-4 text-center">Tiến độ</th>
-              <th class="px-5 py-4 text-right w-32">Tổng tiền</th>
-              <th class="px-5 py-4 text-center w-16"></th>
-            </tr>
-          </thead>
-          <tbody class="text-sm divide-y divide-neutral-100">
-            {% for o in orders %}
-            <tr class="hover:bg-neutral-50 transition-colors group {% if o.status in ['cancelled', 'returned'] %}opacity-60{% endif %}">
-              
-              {# Checkbox #}
-              <td class="px-5 py-4 text-center align-top pt-5">
-                <input type="checkbox" value="{{ o.id }}" class="order-checkbox w-3.5 h-3.5 border-neutral-300 rounded-sm text-black focus:ring-black cursor-pointer accent-black">
-              </td>
-
-              {# ID & Kênh bán #}
-              <td class="px-4 py-4 align-top pt-5">
-                <a href="{{ url_for('admin.order_detail', order_id=o.id) }}" class="text-xs font-bold text-black uppercase hover:underline">
-                  #{{ o.code or o.id[:8]|upper }}
-                </a>
-                <div class="mt-2 flex flex-col items-start gap-1.5">
-                  {% if o.source == 'pos' %}
-                    <span class="inline-flex items-center gap-1 bg-neutral-100 border border-neutral-200 text-black px-2 py-0.5 text-[8px] font-bold uppercase tracking-widest rounded-sm">
-                      <i class="fa-solid fa-store text-neutral-400"></i> POS
-                    </span>
-                  {% else %}
-                    <span class="inline-flex items-center gap-1 bg-black text-white px-2 py-0.5 text-[8px] font-bold uppercase tracking-widest rounded-sm">
-                      <i class="fa-solid fa-globe text-neutral-300"></i> WEB
-                    </span>
-                  {% endif %}
-                  
-                  {# Xử lý ngày giờ an toàn #}
-                  {% if o.created_at and 'T' in o.created_at %}
-                    {% set dt_parts = o.created_at.split('T') %}
-                    {% set ymd = dt_parts[0].split('-') %}
-                    <span class="text-[9px] font-bold text-neutral-400 tracking-wider">
-                      {{ ymd[2] }}/{{ ymd[1] }} - {{ dt_parts[1].split('+')[0].split('.')[0][:5] }}
-                    </span>
-                  {% endif %}
-                </div>
-              </td>
-
-              {# Sản phẩm #}
-              <td class="px-4 py-4 align-top pt-5">
-                {% if o.order_items and o.order_items|length > 0 %}
-                  {% set first_item = o.order_items[0] %}
-                  {% set prod_info = first_item.get('products') or {} %}
-                  
-                  <div class="flex items-start gap-3">
-                    <div class="w-12 h-16 bg-[#f8f8f8] border border-neutral-200 overflow-hidden shrink-0 rounded-sm">
-                      <img src="{{ prod_info.get('thumbnail_url') or 'https://placehold.co/100x133' }}" class="w-full h-full object-cover mix-blend-multiply">
-                    </div>
-                    <div class="flex-1 min-w-0 pt-0.5">
-                      <p class="text-xs font-bold text-black uppercase line-clamp-2 leading-snug">
-                        {{ prod_info.get('name', 'Sản phẩm (Đã xóa)') }}
-                      </p>
-                      
-                      {% if o.order_items|length > 1 %}
-                        <p class="text-[9px] font-black text-blue-600 bg-blue-50 px-2 py-1 rounded-sm inline-block mt-1.5 tracking-widest uppercase border border-blue-100">
-                          +{{ o.order_items|length - 1 }} mặt hàng khác
-                        </p>
-                      {% else %}
-                        <p class="text-[9px] font-bold text-neutral-400 mt-1 uppercase tracking-widest">
-                          Số lượng: {{ first_item.quantity }}
-                        </p>
-                      {% endif %}
-                    </div>
-                  </div>
-                {% else %}
-                  <span class="text-[10px] text-neutral-400 italic uppercase tracking-widest">Không có dữ liệu SP</span>
-                {% endif %}
-              </td>
-
-              {# Khách hàng (Sử dụng Logic Fallback an toàn) #}
-              <td class="px-4 py-4 align-top pt-5">
-                {% set c_name = o.customer_name %}
-                {% if not c_name and o.users %} {% set c_name = o.users.full_name %} {% endif %}
-                {% if not c_name and o.shipping_address %} {% set c_name = o.shipping_address.get('full_name') %} {% endif %}
-                
-                {% set c_phone = o.customer_phone %}
-                {% if not c_phone and o.users %} {% set c_phone = o.users.phone %} {% endif %}
-                {% if not c_phone and o.shipping_address %} {% set c_phone = o.shipping_address.get('phone') %} {% endif %}
-
-                <p class="font-bold text-black text-xs uppercase truncate max-w-[140px]">{{ c_name or 'Khách lẻ' }}</p>
-                <p class="text-[10px] font-medium text-neutral-500 mt-1">{{ c_phone or '---' }}</p>
-              </td>
-
-              {# Thanh toán #}
-              <td class="px-4 py-4 align-top pt-5">
-                {% if o.payment_status == 'paid' %}
-                  <span class="inline-flex items-center gap-1 px-2 py-1 bg-emerald-50 text-emerald-600 rounded-sm text-[8px] font-black uppercase tracking-widest border border-emerald-200">
-                    <i class="fa-solid fa-check"></i> Đã thanh toán
-                  </span>
-                {% else %}
-                  <span class="inline-flex items-center gap-1 px-2 py-1 bg-amber-50 text-amber-600 rounded-sm text-[8px] font-black uppercase tracking-widest border border-amber-200">
-                    <span class="w-1 h-1 rounded-full bg-amber-500 animate-pulse"></span> Chờ thu tiền
-                  </span>
-                {% endif %}
-                <p class="text-[9px] font-bold text-neutral-400 mt-1.5 uppercase tracking-widest">{{ o.payment_method }}</p>
-              </td>
-
-              {# Trạng thái #}
-              <td class="px-4 py-4 align-top pt-5 text-center">
-                {% set s_map = {
-                  'pending': ('Chờ xác nhận', 'bg-orange-50 text-orange-600 border-orange-200'),
-                  'confirmed': ('Đã xác nhận', 'bg-blue-50 text-blue-600 border-blue-200'),
-                  'packed': ('Đã đóng gói', 'bg-indigo-50 text-indigo-600 border-indigo-200'),
-                  'shipped': ('Đang giao', 'bg-purple-50 text-purple-600 border-purple-200'),
-                  'completed': ('Hoàn tất', 'bg-emerald-50 text-emerald-600 border-emerald-200'),
-                  'delivered': ('Đã giao', 'bg-emerald-50 text-emerald-600 border-emerald-200'),
-                  'cancelled': ('Đã hủy', 'bg-neutral-100 text-neutral-500 border-neutral-200'),
-                  'failed': ('Thất bại', 'bg-red-50 text-red-600 border-red-200'),
-                  'returned': ('Hoàn hàng', 'bg-rose-50 text-rose-600 border-rose-200')
-                } %}
-                {% set st = s_map.get(o.status, ('N/A', 'bg-neutral-50 text-neutral-500')) %}
-                <span class="inline-block px-2 py-1 rounded-sm text-[8px] font-black uppercase tracking-widest border {{ st[1] }}">
-                  {{ st[0] }}
-                </span>
-              </td>
-
-              {# Tổng tiền #}
-              <td class="px-5 py-4 text-right align-top pt-5">
-                <p class="font-bold text-black text-xs tabular-nums">{{ "{:,.0f}".format(o.total_amount) }} ₫</p>
-                <p class="text-[9px] font-bold text-neutral-400 mt-1 uppercase tracking-widest">{{ o.order_items|length }} sản phẩm</p>
-              </td>
-
-              {# Thao tác #}
-              <td class="px-5 py-4 text-center align-top pt-5">
-                <a href="{{ url_for('admin.order_detail', order_id=o.id) }}" title="Xử lý đơn"
-                   class="inline-flex w-7 h-7 rounded-sm bg-white border border-neutral-200 text-neutral-400 items-center justify-center hover:bg-black hover:text-white transition-colors shadow-sm">
-                  <i class="fa-solid fa-arrow-right -rotate-45 text-xs"></i>
-                </a>
-              </td>
-            </tr>
-            {% else %}
-            <tr>
-              <td colspan="8" class="px-6 py-24 text-center bg-[#f8f8f8]">
-                <div class="flex flex-col items-center justify-center gap-3">
-                  <i class="fa-solid fa-box-open text-3xl text-neutral-300"></i>
-                  <p class="text-[10px] font-bold text-neutral-400 uppercase tracking-[0.2em]">Không tìm thấy đơn hàng nào.</p>
-                </div>
-              </td>
-            </tr>
-            {% endfor %}
-          </tbody>
-        </table>
-      </div>
-    </div>
-
-    {# ── PHÂN TRANG (PAGINATION) ── #}
-    {% if total_pages > 1 %}
-    <div class="flex justify-center items-center gap-1 mt-6">
-      {% if page > 1 %}
-      <a href="{{ url_for('admin.orders', page=page-1, status=current_status, q=request.args.get('q','')) }}"
-         class="w-8 h-8 flex items-center justify-center rounded-sm bg-white border border-neutral-200 text-black hover:bg-neutral-100 transition-colors">
-        <i class="fa-solid fa-chevron-left text-[10px]"></i>
-      </a>
-      {% endif %}
-
-      {% for pg in range(1, total_pages + 1) %}
-        {% if pg == page %}
-          <span class="w-8 h-8 flex items-center justify-center rounded-sm bg-black text-white text-xs font-bold">{{ pg }}</span>
-        {% elif pg == 1 or pg == total_pages or (pg >= page - 2 and pg <= page + 2) %}
-          <a href="{{ url_for('admin.orders', page=pg, status=current_status, q=request.args.get('q','')) }}"
-             class="w-8 h-8 flex items-center justify-center rounded-sm bg-white text-neutral-500 border border-neutral-200 hover:bg-neutral-50 hover:text-black text-xs font-bold transition-colors">{{ pg }}</a>
-        {% elif pg == page - 3 or pg == page + 3 %}
-          <span class="text-neutral-300 font-bold px-1 text-xs">…</span>
-        {% endif %}
-      {% endfor %}
-
-      {% if page < total_pages %}
-      <a href="{{ url_for('admin.orders', page=page+1, status=current_status, q=request.args.get('q','')) }}"
-         class="w-8 h-8 flex items-center justify-center rounded-sm bg-white border border-neutral-200 text-black hover:bg-neutral-100 transition-colors">
-        <i class="fa-solid fa-chevron-right text-[10px]"></i>
-      </a>
-      {% endif %}
-    </div>
-    {% endif %}
-
+    {# Form Tìm kiếm #}
+    <form action="{{ url_for('admin.orders') }}" method="GET" class="relative w-full xl:w-[360px] shrink-0 pr-2">
+      <input type="hidden" name="status" value="{{ current_status or '' }}">
+      <i class="fa-solid fa-magnifying-glass absolute left-5 top-1/2 -translate-y-1/2 text-stone-400"></i>
+      <input type="text" name="q" value="{{ request.args.get('q', '') }}"
+             placeholder="Mã đơn, Tên KH, Số điện thoại..."
+             class="w-full pl-11 pr-4 py-2.5 bg-stone-50 border-none rounded-full text-sm font-medium text-stone-900 placeholder:text-stone-400 focus:outline-none focus:ring-1 focus:ring-stone-300 transition-all">
+    </form>
   </div>
+
+  {# ── THANH THAO TÁC HÀNG LOẠT (BULK ACTIONS) ── #}
+  <div id="bulk-actions" class="hidden items-center gap-3 w-full p-3 bg-stone-900 border border-stone-800 rounded-2xl shadow-xl transition-all duration-300">
+    <span class="px-4 py-1 text-xs font-medium text-stone-400 border-r border-stone-700">Đã chọn: <span id="selected-count" class="text-white font-bold">0</span> đơn hàng</span>
+    <button class="px-5 py-2 bg-stone-800 text-white rounded-xl text-xs font-semibold hover:bg-stone-700 transition-colors border border-stone-700">
+      <i class="fa-solid fa-print mr-1"></i> In phiếu giao
+    </button>
+    <button class="px-5 py-2 bg-white text-stone-900 rounded-xl text-xs font-semibold hover:bg-stone-200 transition-colors shadow-sm">
+      <i class="fa-solid fa-check-double mr-1"></i> Xác nhận loạt
+    </button>
+  </div>
+
+  {# ── 3. BẢNG DỮ LIỆU ĐƠN HÀNG ── #}
+  <div class="bg-white border border-stone-100 rounded-3xl shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)] overflow-hidden">
+    <div class="overflow-x-auto no-scrollbar">
+      <table class="w-full text-left border-collapse min-w-[1100px]">
+        <thead>
+          <tr class="bg-stone-50/50 border-b border-stone-100">
+            <th class="px-6 py-4 w-12 text-center">
+              <input type="checkbox" id="checkAll" class="w-4 h-4 border-stone-300 rounded text-stone-900 focus:ring-stone-900 cursor-pointer accent-stone-900">
+            </th>
+            <th class="px-6 py-4 text-[11px] font-semibold uppercase tracking-widest text-stone-500 w-40">Mã đơn / Kênh</th>
+            <th class="px-6 py-4 text-[11px] font-semibold uppercase tracking-widest text-stone-500 w-72">Sản phẩm</th>
+            <th class="px-6 py-4 text-[11px] font-semibold uppercase tracking-widest text-stone-500">Khách hàng</th>
+            <th class="px-6 py-4 text-[11px] font-semibold uppercase tracking-widest text-stone-500">Thanh toán</th>
+            <th class="px-6 py-4 text-center text-[11px] font-semibold uppercase tracking-widest text-stone-500">Tiến độ</th>
+            <th class="px-6 py-4 text-right text-[11px] font-semibold uppercase tracking-widest text-stone-500 w-32">Tổng tiền</th>
+            <th class="px-6 py-4 text-center text-[11px] font-semibold uppercase tracking-widest text-stone-500 w-20">Thao tác</th>
+          </tr>
+        </thead>
+        <tbody class="text-sm divide-y divide-stone-50">
+          {% for o in orders %}
+          <tr class="hover:bg-stone-50/80 transition-colors group {% if o.status in ['cancelled', 'returned'] %}opacity-60 grayscale-[30%]{% endif %}">
+            
+            {# Checkbox #}
+            <td class="px-6 py-4 text-center align-top pt-6">
+              <input type="checkbox" value="{{ o.id }}" class="order-checkbox w-4 h-4 border-stone-300 rounded text-stone-900 focus:ring-stone-900 cursor-pointer accent-stone-900">
+            </td>
+
+            {# ID & Kênh bán #}
+            <td class="px-6 py-4 align-top pt-5">
+              <a href="{{ url_for('admin.order_detail', order_id=o.id) }}" class="text-sm font-bold text-stone-900 hover:text-blue-600 transition-colors">
+                #{{ o.code or o.id[:8]|upper }}
+              </a>
+              <div class="mt-2.5 flex flex-col items-start gap-2">
+                {% if o.source == 'pos' %}
+                  <span class="inline-flex items-center gap-1.5 bg-stone-100 text-stone-600 px-2.5 py-1 text-[9px] font-bold uppercase tracking-widest rounded-lg">
+                    <i class="fa-solid fa-store"></i> POS
+                  </span>
+                {% else %}
+                  <span class="inline-flex items-center gap-1.5 bg-stone-900 text-white px-2.5 py-1 text-[9px] font-bold uppercase tracking-widest rounded-lg shadow-sm">
+                    <i class="fa-solid fa-globe"></i> WEB
+                  </span>
+                {% endif %}
+                
+                {% if o.created_at and 'T' in o.created_at %}
+                  {% set dt_parts = o.created_at.split('T') %}
+                  {% set ymd = dt_parts[0].split('-') %}
+                  <span class="text-[10px] font-medium text-stone-500">
+                    {{ ymd[2] }}/{{ ymd[1] }} - {{ dt_parts[1].split('+')[0].split('.')[0][:5] }}
+                  </span>
+                {% endif %}
+              </div>
+            </td>
+
+            {# Sản phẩm #}
+            <td class="px-6 py-4 align-top pt-5">
+              {% if o.order_items and o.order_items|length > 0 %}
+                {% set first_item = o.order_items[0] %}
+                {% set prod_info = first_item.get('products') or {} %}
+                
+                <div class="flex items-start gap-4">
+                  <div class="w-14 h-[72px] bg-stone-50 border border-stone-100 overflow-hidden shrink-0 rounded-xl shadow-sm">
+                    <img src="{{ prod_info.get('thumbnail_url') or 'https://placehold.co/100x133' }}" class="w-full h-full object-cover">
+                  </div>
+                  <div class="flex-1 min-w-0 pt-0.5">
+                    <p class="text-sm font-bold text-stone-900 line-clamp-2 leading-snug">
+                      {{ prod_info.get('name', 'Sản phẩm (Đã xóa)') }}
+                    </p>
+                    
+                    {% if o.order_items|length > 1 %}
+                      <p class="text-[10px] font-bold text-blue-700 bg-blue-50 px-2.5 py-1 rounded-md inline-block mt-2">
+                        +{{ o.order_items|length - 1 }} sản phẩm khác
+                      </p>
+                    {% else %}
+                      <p class="text-[11px] font-medium text-stone-500 mt-1.5">
+                        Số lượng: <span class="font-bold text-stone-900">{{ first_item.quantity }}</span>
+                      </p>
+                    {% endif %}
+                  </div>
+                </div>
+              {% else %}
+                <span class="text-xs text-stone-400 italic">Không có dữ liệu SP</span>
+              {% endif %}
+            </td>
+
+            {# Khách hàng #}
+            <td class="px-6 py-4 align-top pt-5">
+              {% set c_name = o.customer_name %}
+              {% if not c_name and o.users %} {% set c_name = o.users.full_name %} {% endif %}
+              {% if not c_name and o.shipping_address %} {% set c_name = o.shipping_address.get('full_name') %} {% endif %}
+              
+              {% set c_phone = o.customer_phone %}
+              {% if not c_phone and o.users %} {% set c_phone = o.users.phone %} {% endif %}
+              {% if not c_phone and o.shipping_address %} {% set c_phone = o.shipping_address.get('phone') %} {% endif %}
+
+              <p class="font-bold text-stone-900 text-sm truncate max-w-[160px]">{{ c_name or 'Khách lẻ' }}</p>
+              <p class="text-xs font-medium text-stone-500 mt-1">{{ c_phone or '---' }}</p>
+            </td>
+
+            {# Thanh toán #}
+            <td class="px-6 py-4 align-top pt-5">
+              {% if o.payment_status == 'paid' %}
+                <span class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 text-emerald-700 rounded-full text-[10px] font-bold uppercase tracking-wider">
+                  <i class="fa-solid fa-check"></i> Đã thanh toán
+                </span>
+              {% else %}
+                <span class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-amber-50 text-amber-700 rounded-full text-[10px] font-bold uppercase tracking-wider">
+                  <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span> Chờ thu tiền
+                </span>
+              {% endif %}
+              <p class="text-[11px] font-semibold text-stone-500 mt-2 uppercase tracking-wider pl-1">{{ o.payment_method }}</p>
+            </td>
+
+            {# Trạng thái Tiến độ #}
+            <td class="px-6 py-4 align-top pt-5 text-center">
+              {% set s_map = {
+                'pending': ('Chờ xác nhận', 'bg-amber-50 text-amber-700'),
+                'confirmed': ('Đã xác nhận', 'bg-blue-50 text-blue-700'),
+                'packed': ('Đã đóng gói', 'bg-indigo-50 text-indigo-700'),
+                'shipped': ('Đang giao', 'bg-purple-50 text-purple-700'),
+                'completed': ('Hoàn tất', 'bg-emerald-50 text-emerald-700'),
+                'delivered': ('Đã giao', 'bg-emerald-50 text-emerald-700'),
+                'cancelled': ('Đã hủy', 'bg-stone-100 text-stone-500'),
+                'failed': ('Thất bại', 'bg-red-50 text-red-700'),
+                'returned': ('Hoàn hàng', 'bg-rose-50 text-rose-700')
+              } %}
+              {% set st = s_map.get(o.status, ('N/A', 'bg-stone-50 text-stone-500')) %}
+              <span class="inline-block px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest {{ st[1] }}">
+                {{ st[0] }}
+              </span>
+            </td>
+
+            {# Tổng tiền #}
+            <td class="px-6 py-4 text-right align-top pt-5">
+              <p class="font-bold text-stone-900 text-[15px] tabular-nums">{{ "{:,.0f}".format(o.total_amount) }} <span class="text-xs font-normal text-stone-500 underline decoration-stone-300">đ</span></p>
+              <p class="text-[10px] font-medium text-stone-500 mt-1.5">{{ o.order_items|length }} sản phẩm</p>
+            </td>
+
+            {# Thao tác #}
+            <td class="px-6 py-4 text-center align-top pt-5">
+              <a href="{{ url_for('admin.order_detail', order_id=o.id) }}" title="Chi tiết / Xử lý"
+                 class="inline-flex w-10 h-10 rounded-full bg-stone-50 text-stone-500 items-center justify-center hover:bg-black hover:text-white transition-all shadow-sm">
+                <i class="fa-solid fa-arrow-right -rotate-45"></i>
+              </a>
+            </td>
+          </tr>
+          {% else %}
+          <tr>
+            <td colspan="8" class="px-6 py-24 text-center">
+              <div class="flex flex-col items-center justify-center gap-4">
+                <div class="w-16 h-16 rounded-full bg-stone-50 flex items-center justify-center text-stone-300">
+                  <i class="fa-solid fa-box-open text-2xl"></i>
+                </div>
+                <p class="text-sm font-semibold text-stone-500">Không có đơn hàng nào khớp với tìm kiếm.</p>
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  {# ── 4. PHÂN TRANG (PAGINATION) - Pill Style ── #}
+  {% if total_pages > 1 %}
+  <div class="flex items-center justify-center gap-2 mt-8 mb-4">
+    {% if page > 1 %}
+    <a href="{{ url_for('admin.orders', page=page-1, status=current_status, q=request.args.get('q','')) }}" 
+       class="w-10 h-10 flex items-center justify-center rounded-full border border-stone-200 bg-white text-stone-500 hover:text-black hover:border-black transition-all shadow-sm">
+      <i class="fa-solid fa-chevron-left text-sm"></i>
+    </a>
+    {% endif %}
+    
+    {% for pg in range(1, total_pages+1) %}
+      {% if pg == page %}
+        <span class="w-10 h-10 flex items-center justify-center rounded-full bg-black text-white text-sm font-bold shadow-md">{{ pg }}</span>
+      {% elif pg == 1 or pg == total_pages or (pg >= page-2 and pg <= page+2) %}
+        <a href="{{ url_for('admin.orders', page=pg, status=current_status, q=request.args.get('q','')) }}" 
+           class="w-10 h-10 flex items-center justify-center rounded-full border border-stone-200 bg-white text-stone-600 text-sm font-semibold hover:text-black hover:border-black transition-all shadow-sm">
+          {{ pg }}
+        </a>
+      {% elif pg == page-3 or pg == page+3 %}
+        <span class="w-10 h-10 flex items-center justify-center text-stone-400 font-bold">…</span>
+      {% endif %}
+    {% endfor %}
+    
+    {% if page < total_pages %}
+    <a href="{{ url_for('admin.orders', page=page+1, status=current_status, q=request.args.get('q','')) }}" 
+       class="w-10 h-10 flex items-center justify-center rounded-full border border-stone-200 bg-white text-stone-500 hover:text-black hover:border-black transition-all shadow-sm">
+      <i class="fa-solid fa-chevron-right text-sm"></i>
+    </a>
+    {% endif %}
+  </div>
+  {% endif %}
+
 </div>
 
 <style>
@@ -282,7 +275,7 @@
 </style>
 
 <script>
-// Logic Checkbox Thao tác hàng loạt
+// Logic Checkbox Thao tác hàng loạt (Bulk Actions)
 document.addEventListener('DOMContentLoaded', function() {
     const checkAll = document.getElementById('checkAll');
     const checkboxes = document.querySelectorAll('.order-checkbox');
@@ -303,15 +296,19 @@ document.addEventListener('DOMContentLoaded', function() {
 
     if(checkAll) {
         checkAll.addEventListener('change', function() {
-            checkboxes.forEach(cb => cb.checked = this.checked);
+            checkboxes.forEach(cb => {
+                // Chỉ check những đơn hàng không bị disable/ẩn
+                if(!cb.disabled) cb.checked = this.checked;
+            });
             updateBulkActions();
         });
     }
 
     checkboxes.forEach(cb => {
         cb.addEventListener('change', function() {
-            const allChecked = document.querySelectorAll('.order-checkbox:checked').length === checkboxes.length;
-            checkAll.checked = allChecked;
+            const activeCheckboxes = document.querySelectorAll('.order-checkbox:not([disabled])');
+            const allChecked = document.querySelectorAll('.order-checkbox:checked').length === activeCheckboxes.length;
+            if(checkAll) checkAll.checked = allChecked && activeCheckboxes.length > 0;
             updateBulkActions();
         });
     });

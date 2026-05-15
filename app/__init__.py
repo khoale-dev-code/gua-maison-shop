@@ -178,6 +178,8 @@ def create_app() -> Flask:
     from app.controllers.admin.admin_shipping_providers_controller     import admin_providers_bp
     from app.controllers.promotions_controller                         import promotions_bp
     from app.controllers.analytics_controller                          import analytics_bp
+    from app.controllers.notification_controller                      import notification_bp
+
     try:
         import app.controllers.admin.settings
     except ImportError as e:
@@ -186,7 +188,7 @@ def create_app() -> Flask:
     for bp in [
         auth_bp, products_bp, cart_bp, admin_bp,
         profile_bp, chat_bp, ai_bp, favorite_bp, payment_bp,
-        admin_shipping_bp, admin_providers_bp, promotions_bp, analytics_bp
+        admin_shipping_bp, admin_providers_bp, promotions_bp, analytics_bp, notification_bp
     ]:
         flask_app.register_blueprint(bp)
 
@@ -211,9 +213,15 @@ def create_app() -> Flask:
         except Exception:
             logger.warning("context_processor: Lỗi khi lấy system_settings.")
 
+        unread_notification_count = 0
         if user_id:
             try:
                 cart_count = CartModel.get_count(user_id)
+            except Exception:
+                pass
+            try:
+                from app.models.notification_model import NotificationModel
+                unread_notification_count = NotificationModel.get_unread_count(user_id)
             except Exception:
                 pass
 
@@ -247,6 +255,7 @@ def create_app() -> Flask:
             "global_categories": categories,
             "pending_returns": pending_returns,
             "system_settings": system_settings,
+            "unread_notification_count": unread_notification_count,
         }
 
     # 5. Error Handlers

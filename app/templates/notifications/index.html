@@ -1,0 +1,165 @@
+{% extends "base.html" %}
+{% block title %}Thông báo | GUA Maison{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-[#f8f8f8] pt-28 pb-16">
+  <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+    
+    {# Header #}
+    <div class="mb-6 flex items-center justify-between">
+      <h1 class="text-2xl font-bold text-black">Thông báo</h1>
+      <button id="markAllReadBtn" class="text-sm text-neutral-500 hover:text-black transition-colors">
+        Đánh dấu đã đọc tất cả
+      </button>
+    </div>
+
+    {# Tabs (giống Shopee) #}
+    <div class="bg-white rounded-t-lg border-b border-neutral-200 flex overflow-x-auto no-scrollbar">
+      <a href="?filter=all" 
+         class="px-5 py-3 text-sm font-medium border-b-2 transition-colors {% if current_filter == 'all' %}border-black text-black{% else %}border-transparent text-neutral-500 hover:text-black{% endif %}">
+        Tất cả ({{ total }})
+      </a>
+      <a href="?filter=unread" 
+         class="px-5 py-3 text-sm font-medium border-b-2 transition-colors {% if current_filter == 'unread' %}border-black text-black{% else %}border-transparent text-neutral-500 hover:text-black{% endif %}">
+        Chưa đọc
+      </a>
+      <a href="?filter=read" 
+         class="px-5 py-3 text-sm font-medium border-b-2 transition-colors {% if current_filter == 'read' %}border-black text-black{% else %}border-transparent text-neutral-500 hover:text-black{% endif %}">
+        Đã đọc
+      </a>
+    </div>
+
+    {# Danh sách thông báo #}
+    <div class="bg-white rounded-b-lg shadow-sm divide-y divide-neutral-100">
+      {% if notifications %}
+        {% for notif in notifications %}
+        <div class="notification-item p-5 hover:bg-neutral-50 transition-colors {% if not notif.is_read %}bg-blue-50/20{% endif %}" data-id="{{ notif.id }}">
+          <div class="flex items-start gap-4">
+            {# Icon #}
+            <div class="flex-shrink-0">
+              <div class="w-10 h-10 rounded-full bg-neutral-100 flex items-center justify-center text-neutral-500">
+                {% if 'khuyến mãi' in notif.title.lower() or 'voucher' in notif.title.lower() %}
+                  <i class="fa-regular fa-tag"></i>
+                {% elif 'đơn hàng' in notif.title.lower() or 'order' in notif.title.lower() %}
+                  <i class="fa-regular fa-receipt"></i>
+                {% else %}
+                  <i class="fa-regular fa-bell"></i>
+                {% endif %}
+              </div>
+            </div>
+
+            {# Nội dung #}
+            <div class="flex-1 min-w-0">
+              <div class="flex flex-wrap items-center justify-between gap-2 mb-1">
+                <h3 class="text-sm font-semibold text-black {% if not notif.is_read %}font-bold{% endif %}">
+                  {{ notif.title }}
+                </h3>
+                <span class="text-xs text-neutral-400 whitespace-nowrap">
+                  {{ notif.created_at[:16].replace('T', ' ') }}
+                </span>
+              </div>
+              <p class="text-sm text-neutral-600 leading-relaxed mb-2">
+                {{ notif.content }}
+              </p>
+              {% if notif.link %}
+              <a href="{{ notif.link }}" target="_blank" class="text-xs text-blue-500 hover:underline">
+                {{ notif.link_text or 'Xem chi tiết' }} &rarr;
+              </a>
+              {% endif %}
+            </div>
+
+            {# Action buttons #}
+            <div class="flex-shrink-0 flex flex-col items-end gap-2">
+              {% if not notif.is_read %}
+              <button onclick="markAsRead('{{ notif.id }}', this)" 
+                      class="text-xs text-blue-500 hover:text-blue-700 transition-colors">
+                Đánh dấu đã đọc
+              </button>
+              {% endif %}
+              <button onclick="deleteNotification('{{ notif.id }}', this)" 
+                      class="text-xs text-neutral-400 hover:text-red-500 transition-colors">
+                Xóa
+              </button>
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+
+        {# Pagination #}
+        {% if total_pages > 1 %}
+        <div class="px-5 py-4 border-t border-neutral-100 flex justify-center gap-2">
+          {% if page > 1 %}
+          <a href="?page={{ page-1 }}&filter={{ current_filter }}" 
+             class="px-3 py-1 border border-neutral-200 rounded text-sm hover:bg-neutral-50">‹ Trước</a>
+          {% endif %}
+          <span class="px-3 py-1 text-sm text-neutral-500">Trang {{ page }} / {{ total_pages }}</span>
+          {% if page < total_pages %}
+          <a href="?page={{ page+1 }}&filter={{ current_filter }}" 
+             class="px-3 py-1 border border-neutral-200 rounded text-sm hover:bg-neutral-50">Sau ›</a>
+          {% endif %}
+        </div>
+        {% endif %}
+      {% else %}
+        <div class="py-16 text-center text-neutral-400">
+          <i class="fa-regular fa-bell-slash text-4xl mb-3 block"></i>
+          <p>Bạn chưa có thông báo nào.</p>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<script>
+  async function markAsRead(notificationId, btn) {
+    try {
+      const res = await fetch(`/notifications/mark-read/${notificationId}`, {
+        method: 'POST',
+        headers: { 'X-CSRFToken': getCSRFToken() }
+      });
+      const data = await res.json();
+      if (data.success) {
+        const item = btn.closest('.notification-item');
+        item.classList.remove('bg-blue-50/20');
+        btn.remove();
+        // Cập nhật số lượng chưa đọc (tuỳ chọn)
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  }
+
+  async function deleteNotification(notificationId, btn) {
+    if (!confirm('Bạn có chắc chắn muốn xóa thông báo này?')) return;
+    try {
+      const res = await fetch(`/notifications/delete/${notificationId}`, {
+        method: 'POST',
+        headers: { 'X-CSRFToken': getCSRFToken() }
+      });
+      const data = await res.json();
+      if (data.success) {
+        const item = btn.closest('.notification-item');
+        item.remove();
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  }
+
+  document.getElementById('markAllReadBtn')?.addEventListener('click', async () => {
+    try {
+      const res = await fetch('/notifications/mark-all-read', {
+        method: 'POST',
+        headers: { 'X-CSRFToken': getCSRFToken() }
+      });
+      const data = await res.json();
+      if (data.success) {
+        document.querySelectorAll('.notification-item').forEach(item => {
+          item.classList.remove('bg-blue-50/20');
+          const markBtn = item.querySelector('button:first-child');
+          if (markBtn && markBtn.innerText.includes('Đánh dấu')) markBtn.remove();
+        });
+      }
+    } catch (err) {}
+  });
+</script>
+{% endblock %}

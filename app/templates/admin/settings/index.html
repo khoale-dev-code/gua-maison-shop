@@ -1,426 +1,349 @@
+{# app/templates/admin/settings/index.html #}
 {% extends "admin/admin_base.html" %}
-{% block title %}Cài đặt hệ thống | GUA Admin{% endblock %}
+{% block title %}Cài đặt Hệ thống — GUA Admin{% endblock %}
+
+{% block extra_head %}
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+  rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<style>
+  :root {
+    --font-jakarta: 'Plus Jakarta Sans', sans-serif;
+  }
+
+  body {
+    font-family: var(--font-jakarta);
+    background-color: #f8fafc;
+  }
+
+  .modern-card {
+    background: #ffffff;
+    border: 1px solid #f1f5f9;
+    border-radius: 1.5rem;
+    box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.03);
+  }
+
+  .glass-nav {
+    background: rgba(248, 250, 252, 0.85);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+  }
+
+  .fade-up {
+    opacity: 0;
+    animation: fadeUpAnim 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+
+  @keyframes fadeUpAnim {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background-color: #cbd5e1;
+    border-radius: 10px;
+  }
+
+  /* Settings Layout Layout */
+  .s-layout {
+    display: grid;
+    grid-template-columns: 240px 1fr;
+    min-height: calc(100vh - 72px);
+    gap: 2rem;
+  }
+
+  @media(max-width: 900px) {
+    .s-layout {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .s-panel {
+    display: none;
+  }
+
+  .s-panel.active {
+    display: block;
+    animation: fadeIn .2s ease;
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(4px);
+    }
+
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  /* Toast */
+  #toastContainer {
+    position: fixed;
+    bottom: 22px;
+    right: 22px;
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    pointer-events: none;
+  }
+
+  .toast {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 16px;
+    border-radius: 1rem;
+    font-size: 13px;
+    font-weight: 600;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, .08);
+    pointer-events: all;
+    animation: toastIn .22s ease;
+    min-width: 240px;
+    max-width: 340px;
+  }
+
+  @keyframes toastIn {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  .toast.fade-out {
+    animation: toastOut .22s ease forwards;
+  }
+
+  @keyframes toastOut {
+    from {
+      opacity: 1;
+    }
+
+    to {
+      opacity: 0;
+      transform: translateY(4px);
+    }
+  }
+
+  .toast--success {
+    background: #0f172a;
+    color: #fff;
+  }
+
+  /* slate-900 */
+  .toast--error {
+    background: #e11d48;
+    color: #fff;
+  }
+
+  /* rose-600 */
+  .toast--info {
+    background: #4f46e5;
+    color: #fff;
+  }
+
+  /* indigo-600 */
+</style>
+{% endblock %}
 
 {% block content %}
-<div class="settings-page">
-  <div class="settings-header">
-    <div>
-      <h1 class="settings-title">Cài đặt hệ thống</h1>
-      <p class="settings-subtitle">Quản lý thông tin chung, giao diện, vận chuyển và các tích hợp đối tác.</p>
+<div id="toastContainer" aria-live="polite"></div>
+
+<div class="min-h-screen pb-16 font-sans text-slate-800 selection:bg-indigo-500 selection:text-white">
+
+  {# ── STICKY TOP BAR ── #}
+  <div class="glass-nav sticky top-0 z-30 border-b border-slate-200/60">
+    <div
+      class="max-w-[1400px] mx-auto px-6 lg:px-12 py-4 flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center shadow-sm">
+          <i class="fa-solid fa-gear text-lg"></i>
+        </div>
+        <div>
+          <h1 class="text-xl font-bold tracking-tight text-slate-900 flex items-center gap-2">
+            Cài đặt Hệ thống
+            <span
+              class="flex items-center gap-1.5 text-[10px] bg-emerald-50 text-emerald-600 px-2 py-1 rounded-md uppercase tracking-widest font-bold">
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> Live
+            </span>
+          </h1>
+          <div class="flex items-center gap-2 mt-0.5">
+            <a href="/admin/"
+              class="text-slate-500 hover:text-indigo-600 text-xs font-semibold transition-colors">Dashboard</a>
+            <i class="fa-solid fa-chevron-right text-[10px] text-slate-400"></i>
+            <span class="text-indigo-600 text-xs font-semibold">Cấu hình</span>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 
-  <div class="settings-layout">
-    
-    {# ══ TRỤC TRÁI: MENU VERTICAL TABS ══ #}
-    <aside class="settings-sidebar">
-      <nav class="settings-nav">
-        <button class="tab-btn active" data-target="tab-general">
-          <i class="fa-solid fa-store"></i> Thông tin chung
-        </button>
-        <button class="tab-btn" data-target="tab-storefront">
-          <i class="fa-solid fa-wand-magic-sparkles"></i> Giao diện cửa hàng
-        </button>
-        <button class="tab-btn" data-target="tab-integrations">
-          <i class="fa-solid fa-plug"></i> Tích hợp (API)
-        </button>
-        <button class="tab-btn" data-target="tab-shipping">
-          <i class="fa-solid fa-truck-fast"></i> Phí ship & Vùng miền
-        </button>
-      </nav>
+  {# ── Flash messages ── #}
+  {% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+  <div class="max-w-[1400px] mx-auto px-6 lg:px-12 mt-6">
+    {% for category, msg in messages %}
+    <div class="flex items-center justify-between p-4 rounded-xl mb-3 text-sm font-bold border 
+                {% if category == 'success' %}bg-emerald-50 text-emerald-700 border-emerald-100
+                {% elif category == 'danger' %}bg-rose-50 text-rose-700 border-rose-100
+                {% else %}bg-indigo-50 text-indigo-700 border-indigo-100{% endif %}">
+      <div class="flex items-center gap-3">
+        <i
+          class="fa-solid {% if category == 'success' %}fa-circle-check{% elif category == 'danger' %}fa-circle-xmark{% else %}fa-circle-info{% endif %} text-lg"></i>
+        <span>{{ msg }}</span>
+      </div>
+      <button class="text-current opacity-60 hover:opacity-100 transition-opacity"
+        onclick="this.parentElement.remove()"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+  {% endwith %}
+
+  <div class="max-w-[1400px] mx-auto px-6 lg:px-12 mt-8 fade-up s-layout">
+
+    {# ── Sidebar ── #}
+    <aside class="flex flex-col gap-1 md:sticky md:top-[88px] h-max">
+      <div class="text-[10px] font-bold tracking-widest text-slate-400 uppercase mb-2 px-3">Cơ bản</div>
+
+      <button
+        class="s-nav__item active flex items-center justify-between w-full text-left px-4 py-2.5 rounded-xl text-sm font-semibold text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-all group"
+        data-tab="general" onclick="Settings.switchTab('general',this)">
+        <div class="flex items-center gap-3">
+          <i class="fa-solid fa-sliders text-slate-400 group-hover:text-indigo-500 w-4 text-center"></i>
+          Thông tin chung
+        </div>
+      </button>
+
+      <button
+        class="s-nav__item flex items-center justify-between w-full text-left px-4 py-2.5 rounded-xl text-sm font-semibold text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-all group"
+        data-tab="storefront" onclick="Settings.switchTab('storefront',this)">
+        <div class="flex items-center gap-3">
+          <i class="fa-solid fa-store text-slate-400 group-hover:text-indigo-500 w-4 text-center"></i>
+          Giao diện cửa hàng
+        </div>
+        <span
+          class="text-[9px] font-bold bg-amber-100 text-amber-700 px-2 py-0.5 rounded-md uppercase tracking-wider">Banner</span>
+      </button>
+
+      <button
+        class="s-nav__item flex items-center justify-between w-full text-left px-4 py-2.5 rounded-xl text-sm font-semibold text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-all group"
+        data-tab="integrations" onclick="Settings.switchTab('integrations',this)">
+        <div class="flex items-center gap-3">
+          <i class="fa-solid fa-link text-slate-400 group-hover:text-indigo-500 w-4 text-center"></i>
+          API & Tích hợp
+        </div>
+      </button>
+
+      <button
+        class="s-nav__item flex items-center justify-between w-full text-left px-4 py-2.5 rounded-xl text-sm font-semibold text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-all group"
+        data-tab="shipping" onclick="Settings.switchTab('shipping',this)">
+        <div class="flex items-center gap-3">
+          <i class="fa-solid fa-truck-fast text-slate-400 group-hover:text-indigo-500 w-4 text-center"></i>
+          Vận chuyển
+        </div>
+      </button>
+
+      <div class="h-px bg-slate-200 my-4 mx-3"></div>
+      <div class="text-[10px] font-bold tracking-widest text-slate-400 uppercase mb-2 px-3">Hệ thống</div>
+
+      <button
+        class="s-nav__item flex items-center justify-between w-full text-left px-4 py-2.5 rounded-xl text-sm font-semibold text-slate-600 hover:bg-slate-50 hover:text-slate-900 transition-all group"
+        data-tab="language" onclick="Settings.switchTab('language',this)">
+        <div class="flex items-center gap-3">
+          <i class="fa-solid fa-earth-americas text-slate-400 group-hover:text-indigo-500 w-4 text-center"></i>
+          Ngôn ngữ Admin
+        </div>
+        <span
+          class="text-[9px] font-bold bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-md uppercase tracking-wider">New</span>
+      </button>
+
     </aside>
 
-    {# ══ TRỤC PHẢI: NỘI DUNG FORM ══ #}
-    <main class="settings-content">
-      
-      {# 1. FORM GENERAL (THÔNG TIN CHUNG) #}
-      <div class="tab-pane active" id="tab-general">
-        <form class="settings-form" onsubmit="Settings.save(event, 'general')">
-          <div class="card">
-            <h2 class="card-title">Cấu hình cơ bản</h2>
-            <div class="form-grid">
-              <div class="form-group">
-                <label>Tên cửa hàng</label>
-                <input type="text" name="shop_name" value="{{ general.get('shop_name', '') }}" placeholder="VD: GUA Maison" required>
-              </div>
-              <div class="form-group">
-                <label>Timezone (Múi giờ)</label>
-                <select name="timezone">
-                  <option value="Asia/Ho_Chi_Minh" {% if general.get('timezone') == 'Asia/Ho_Chi_Minh' %}selected{% endif %}>Asia/Ho_Chi_Minh (GMT+7)</option>
-                  <option value="UTC" {% if general.get('timezone') == 'UTC' %}selected{% endif %}>UTC (GMT+0)</option>
-                </select>
-              </div>
-            </div>
-            
-            <h2 class="card-title mt-6">Thông tin liên hệ</h2>
-            <div class="form-grid">
-              <div class="form-group">
-                <label>SĐT Hotline</label>
-                <input type="text" name="hotline" value="{{ general.get('hotline', '') }}" placeholder="VD: 090 123 4567">
-              </div>
-              <div class="form-group">
-                <label>Email CSKH</label>
-                <input type="email" name="email" value="{{ general.get('email', '') }}" placeholder="support@guamaison.com">
-              </div>
-              <div class="form-group full-width">
-                <label>Địa chỉ kho chính (Dùng cho GHTK/GHN đến lấy hàng)</label>
-                <input type="text" name="warehouse_address" value="{{ general.get('warehouse_address', '') }}" placeholder="VD: 123 Nguyễn Văn Cừ, Quận 5, HCM">
-              </div>
-            </div>
-          </div>
-          <div class="form-actions">
-            <button type="submit" class="btn-save"><i class="fa-solid fa-floppy-disk"></i> Lưu thay đổi</button>
-          </div>
-        </form>
-      </div>
-
-      {# 2. FORM STOREFRONT (GIAO DIỆN) #}
-      <div class="tab-pane" id="tab-storefront">
-        <form class="settings-form" onsubmit="Settings.save(event, 'storefront')">
-          <div class="card">
-            <h2 class="card-title">Thanh thông báo (Top Bar)</h2>
-            <div class="form-group flex-switch">
-              <label>Hiển thị thanh thông báo trên đỉnh trang</label>
-              <label class="switch">
-                <input type="checkbox" name="topbar_active" value="true" {% if storefront.get('topbar_active') == 'true' %}checked{% endif %}>
-                <span class="slider"></span>
-              </label>
-            </div>
-            <div class="form-group">
-              <label>Nội dung thông báo</label>
-              <input type="text" name="topbar_text" value="{{ storefront.get('topbar_text', '') }}" placeholder="VD: Miễn phí vận chuyển cho đơn hàng từ 1.500.000đ">
-            </div>
-
-            <h2 class="card-title mt-6">Banner Trang chủ</h2>
-            <div class="form-group">
-              <label>Link ảnh Banner chính (Desktop)</label>
-              <input type="text" name="banner_desktop_url" value="{{ storefront.get('banner_desktop_url', '') }}" placeholder="https://...">
-            </div>
-          </div>
-          <div class="form-actions">
-            <button type="submit" class="btn-save"><i class="fa-solid fa-floppy-disk"></i> Lưu giao diện</button>
-          </div>
-        </form>
-      </div>
-
-      {# 3. FORM INTEGRATIONS (TÍCH HỢP) #}
-      <div class="tab-pane" id="tab-integrations">
-        <form class="settings-form" onsubmit="Settings.save(event, 'integrations')">
-          
-          {# Cổng thanh toán VNPay #}
-          <div class="card">
-            <div class="card-header-logo">
-              <h2 class="card-title">Cổng thanh toán VNPay</h2>
-              <img src="https://vnpay.vn/s1/statics.vnpay.vn/2023/6/0oxhzjmxbksr1686814746087.png" alt="VNPay" class="h-6">
-            </div>
-            <div class="form-grid">
-              <div class="form-group">
-                <label>vnp_TmnCode (Mã Website)</label>
-                <input type="text" name="vnpay_tmncode" value="{{ integrations.get('vnpay_tmncode', '') }}">
-              </div>
-              <div class="form-group">
-                <label>vnp_HashSecret (Chuỗi bí mật)</label>
-                <input type="password" name="vnpay_hashsecret" value="{{ integrations.get('vnpay_hashsecret', '') }}" placeholder="••••••••••••••••">
-              </div>
-            </div>
-          </div>
-
-          {# Đơn vị vận chuyển #}
-          <div class="card mt-4">
-            <h2 class="card-title">Giao Hàng Nhanh (GHN)</h2>
-            <div class="form-group">
-              <label>API Token</label>
-              <input type="password" name="ghn_api_token" value="{{ integrations.get('ghn_api_token', '') }}" placeholder="••••••••••••••••">
-            </div>
-            <div class="form-grid">
-              <div class="form-group">
-                <label>Shop ID</label>
-                <input type="text" name="ghn_shop_id" value="{{ integrations.get('ghn_shop_id', '') }}">
-              </div>
-            </div>
-          </div>
-
-          <div class="form-actions">
-            <button type="submit" class="btn-save"><i class="fa-solid fa-floppy-disk"></i> Lưu khóa cấu hình</button>
-          </div>
-        </form>
-      </div>
-
-      {# 4. FORM SHIPPING RULES (PHÍ SHIP & CẢNH BÁO THIÊN TAI) #}
-      <div class="tab-pane" id="tab-shipping">
-        <form class="settings-form" onsubmit="Settings.save(event, 'shipping_rules')">
-          <div class="card">
-            <div class="flex justify-between items-center mb-6">
-              <div>
-                <h2 class="card-title mb-0 border-none pb-0">Tùy chỉnh cước & Cảnh báo khu vực</h2>
-                <p class="text-[11px] font-bold text-stone-400 uppercase tracking-widest mt-1">Ghi đè phí ship mặc định hoặc thêm thông báo bão lũ.</p>
-              </div>
-              <button type="button" onclick="ShippingZone.addRule()" class="px-4 py-2 bg-stone-900 text-white shadow-md text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-stone-800 transition-all active:scale-95 flex items-center gap-2">
-                <i class="fa-solid fa-plus"></i> Thêm khu vực
-              </button>
-            </div>
-
-            <div id="shipping-rules-container" class="space-y-4">
-              <!-- JS sẽ render các dòng tỉnh thành vào đây -->
-            </div>
-            
-          </div>
-          <div class="form-actions">
-            <button type="submit" class="btn-save"><i class="fa-solid fa-floppy-disk"></i> Lưu cấu hình vùng miền</button>
-          </div>
-        </form>
-      </div>
-
+    {# ── Panels ── #}
+    <main class="w-full">
+      <section class="s-panel active" id="panel-general">
+        {% include "admin/settings/_tab_general.html" %}
+      </section>
+      <section class="s-panel" id="panel-storefront">
+        {% include "admin/settings/_tab_storefront.html" %}
+      </section>
+      <section class="s-panel" id="panel-integrations">
+        {% include "admin/settings/_tab_integrations.html" %}
+      </section>
+      <section class="s-panel" id="panel-shipping">
+        {% include "admin/settings/_tab_shipping.html" %}
+      </section>
+      <section class="s-panel" id="panel-language">
+        {% include "admin/settings/_tab_language.html" ignore missing %}
+      </section>
+      <section class="s-panel" id="panel-admin_ui">
+        {% include "admin/settings/_tab_admin_ui.html" ignore missing %}
+      </section>
+      <section class="s-panel" id="panel-permissions">
+        {% include "admin/settings/_tab_permissions.html" ignore missing %}
+      </section>
     </main>
   </div>
 </div>
+{% endblock %}
 
-{# ══════════════════════ STYLES ══════════════════════ #}
-<style>
-:root {
-  --admin-bg: #f3f4f6;
-  --admin-card: #ffffff;
-  --admin-text: #111827;
-  --admin-text-muted: #6b7280;
-  --admin-border: #e5e7eb;
-  --admin-primary: #111827; 
-  --admin-primary-hover: #374151;
-}
-
-.settings-page { max-width: 1200px; margin: 0 auto; padding: 2rem; background: var(--admin-bg); min-height: 100vh; font-family: 'Inter', sans-serif; }
-.settings-header { margin-bottom: 2rem; }
-.settings-title { font-size: 1.75rem; font-weight: 800; color: var(--admin-text); margin-bottom: 0.25rem; }
-.settings-subtitle { font-size: 0.875rem; color: var(--admin-text-muted); }
-
-.settings-layout { display: flex; gap: 2.5rem; align-items: flex-start; }
-@media (max-width: 768px) { .settings-layout { flex-direction: column; } }
-
-.settings-sidebar { width: 260px; flex-shrink: 0; position: sticky; top: 100px; }
-.settings-nav { display: flex; flex-direction: column; gap: 0.5rem; }
-.tab-btn { display: flex; align-items: center; gap: 0.75rem; width: 100%; padding: 1rem 1.25rem; border-radius: 1rem; border: none; background: transparent; text-align: left; font-size: 0.875rem; font-weight: 700; color: var(--admin-text-muted); cursor: pointer; transition: all 0.2s; }
-.tab-btn:hover { background: #e5e7eb; color: var(--admin-text); }
-.tab-btn.active { background: var(--admin-card); color: var(--admin-primary); box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03); }
-.tab-btn i { font-size: 1.1rem; width: 1.5rem; text-align: center; }
-
-.settings-content { flex: 1; min-width: 0; }
-.tab-pane { display: none; animation: fadeIn 0.3s ease; }
-.tab-pane.active { display: block; }
-@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-
-.card { background: var(--admin-card); border-radius: 1.5rem; padding: 2rem; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02); border: 1px solid var(--admin-border); }
-.card-title { font-size: 1.1rem; font-weight: 800; color: var(--admin-text); border-bottom: 1px solid var(--admin-border); padding-bottom: 1rem; margin-bottom: 1.5rem; text-transform: uppercase; letter-spacing: 0.05em; }
-.card-header-logo { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--admin-border); padding-bottom: 1rem; margin-bottom: 1.5rem; }
-.card-header-logo .card-title { border: none; padding: 0; margin: 0; }
-
-.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
-@media (max-width: 640px) { .form-grid { grid-template-columns: 1fr; } }
-.full-width { grid-column: 1 / -1; }
-.mt-4 { margin-top: 1rem; }
-.mt-6 { margin-top: 1.5rem; }
-
-.form-group { display: flex; flex-direction: column; gap: 0.5rem; margin-bottom: 1.25rem; }
-.form-group label { font-size: 0.85rem; font-weight: 700; color: var(--admin-text-muted); }
-.form-group input, .form-group select { padding: 0.75rem 1rem; border: 1px solid var(--admin-border); border-radius: 0.75rem; font-size: 0.875rem; transition: all 0.2s; background: #f9fafb; }
-.form-group input:focus, .form-group select:focus { outline: none; border-color: var(--admin-primary); background: #fff; box-shadow: 0 0 0 3px rgba(17, 24, 39, 0.1); }
-
-.flex-switch { flex-direction: row; justify-content: space-between; align-items: center; background: #f9fafb; padding: 1rem 1.25rem; border-radius: 1rem; border: 1px solid var(--admin-border); }
-.switch { position: relative; display: inline-block; width: 48px; height: 26px; }
-.switch input { opacity: 0; width: 0; height: 0; }
-.slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #cbd5e1; transition: .3s; border-radius: 26px; }
-.slider:before { position: absolute; content: ""; height: 20px; width: 20px; left: 3px; bottom: 3px; background-color: white; transition: .3s; border-radius: 50%; box-shadow: 0 1px 2px rgba(0,0,0,0.2); }
-input:checked + .slider { background-color: var(--admin-primary); }
-input:checked + .slider:before { transform: translateX(22px); }
-
-.form-actions { display: flex; justify-content: flex-end; padding-top: 1.5rem; }
-.btn-save { background: var(--admin-primary); color: #fff; border: none; padding: 0.875rem 2rem; border-radius: 0.75rem; font-size: 0.875rem; font-weight: 700; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 0.5rem; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
-.btn-save:hover { background: var(--admin-primary-hover); transform: translateY(-1px); }
-.btn-save:active { transform: translateY(0); }
-.btn-save.loading { opacity: 0.7; pointer-events: none; }
-</style>
-
-
-{# ══════════════════════ DỮ LIỆU TỪ SERVER ══════════════════════ #}
-{# XỬ LÝ AN TOÀN TRÁNH LỖI JINJA2 "list object has no attribute get" #}
-<script id="shipping-rules-data" type="application/json">
-  {% if shipping_rules is mapping %}
-    {{ shipping_rules.get('rules', []) | tojson | safe }}
-  {% elif shipping_rules is iterable and shipping_rules is not string %}
-    {{ shipping_rules | tojson | safe }}
-  {% else %}
-    []
-  {% endif %}
-</script>
-
-
-{# ══════════════════════ SCRIPTS ══════════════════════ #}
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+{% block extra_scripts %}
 <script>
-document.addEventListener('DOMContentLoaded', () => {
-  const tabBtns = document.querySelectorAll('.tab-btn');
-  const tabPanes = document.querySelectorAll('.tab-pane');
-
-  tabBtns.forEach(btn => {
-    btn.addEventListener('click', () => {
-      tabBtns.forEach(b => b.classList.remove('active'));
-      tabPanes.forEach(p => p.classList.remove('active'));
-      
-      btn.classList.add('active');
-      document.getElementById(btn.dataset.target).classList.add('active');
-    });
-  });
-});
-
-// ── LOGIC QUẢN LÝ DANH SÁCH TỈNH & PHÍ SHIP ──
-const ShippingZone = (() => {
-  const container = document.getElementById('shipping-rules-container');
-  
-  // Parse dữ liệu từ script tag thay vì nhúng trực tiếp Jinja vào JS
-  const rulesDataElement = document.getElementById('shipping-rules-data');
-  let rules = [];
-  try {
-    rules = JSON.parse(rulesDataElement.textContent);
-    if (!Array.isArray(rules)) rules = [];
-  } catch (e) {
-    rules = [];
-  }
-
-  const PROVINCES = [
-    "An Giang", "Bà Rịa - Vũng Tàu", "Bạc Liêu", "Bắc Giang", "Bắc Kạn", "Bắc Ninh", 
-    "Bến Tre", "Bình Dương", "Bình Định", "Bình Phước", "Bình Thuận", "Cà Mau", 
-    "Cao Bằng", "Cần Thơ", "Đà Nẵng", "Đắk Lắk", "Đắk Nông", "Điện Biên", "Đồng Nai", 
-    "Đồng Tháp", "Gia Lai", "Hà Giang", "Hà Nam", "Hà Nội", "Hà Tĩnh", "Hải Dương", 
-    "Hải Phòng", "Hậu Giang", "Hòa Bình", "Hưng Yên", "Khánh Hòa", "Kiên Giang", 
-    "Kon Tum", "Lai Châu", "Lạng Sơn", "Lào Cai", "Lâm Đồng", "Long An", "Nam Định", 
-    "Nghệ An", "Ninh Bình", "Ninh Thuận", "Phú Thọ", "Phú Yên", "Quảng Bình", 
-    "Quảng Nam", "Quảng Ngãi", "Quảng Ninh", "Quảng Trị", "Sóc Trăng", "Sơn La", 
-    "Tây Ninh", "Thái Bình", "Thái Nguyên", "Thanh Hóa", "Thừa Thiên Huế", "Tiền Giang", 
-    "TP Hồ Chí Minh", "Trà Vinh", "Tuyên Quang", "Vĩnh Long", "Vĩnh Phúc", "Yên Bái"
-  ];
-
-  function render() {
-    container.innerHTML = '';
-    if (rules.length === 0) {
-      container.innerHTML = '<p class="text-sm text-stone-400 italic text-center py-8 bg-stone-50 rounded-2xl border border-stone-200 border-dashed">Chưa có thiết lập riêng nào. Hệ thống đang áp dụng phí ship mặc định cho toàn quốc.</p>';
-      return;
-    }
-
-    rules.forEach((rule, index) => {
-      let provinceOptions = '<option value="">-- Chọn Tỉnh/Thành phố --</option>';
-      PROVINCES.forEach(prov => {
-        const isSelected = (rule.province === prov) ? 'selected' : '';
-        provinceOptions += `<option value="${prov}" ${isSelected}>${prov}</option>`;
-      });
-
-      const html = `
-        <div class="rule-item p-5 border border-stone-200 rounded-2xl bg-white shadow-sm flex gap-5 items-start relative group transition-all hover:border-stone-300">
-          <div class="flex-1 space-y-4">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div class="form-group mb-0">
-                <label>Tỉnh / Thành phố</label>
-                <select name="rules[${index}][province]" class="w-full" required>
-                  ${provinceOptions}
-                </select>
-              </div>
-              <div class="form-group mb-0">
-                <label>Phí Ship Cố Định (VNĐ)</label>
-                <input type="number" name="rules[${index}][fee]" value="${rule.fee || 0}">
-              </div>
-            </div>
-            <div class="form-group mb-0">
-              <label class="text-amber-600 flex items-center gap-1.5"><i class="fa-solid fa-cloud-bolt"></i> Lời cảnh báo (Bão lũ, cách ly...)</label>
-              <input type="text" name="rules[${index}][warning]" value="${rule.warning || ''}" placeholder="VD: Hiện đang có bão Yagi, đơn hàng có thể giao chậm hơn 3-5 ngày." class="!border-amber-200 !bg-amber-50 focus:!border-amber-500">
-            </div>
-          </div>
-          <button type="button" onclick="ShippingZone.removeRule(${index})" class="mt-8 w-10 h-10 flex items-center justify-center bg-white border border-rose-200 text-rose-500 rounded-xl hover:bg-rose-500 hover:text-white hover:border-rose-500 transition-all shadow-sm">
-            <i class="fa-solid fa-trash-can"></i>
-          </button>
-        </div>
-      `;
-      container.insertAdjacentHTML('beforeend', html);
-    });
-  }
-
-  function addRule() {
-    rules.push({ province: '', fee: 35000, warning: '' });
-    render();
-  }
-
-  function removeRule(index) {
-    rules.splice(index, 1);
-    render();
-  }
-
-  function getRulesFromDOM() {
-    const currentRules = [];
-    const ruleBlocks = container.querySelectorAll('.rule-item');
-    ruleBlocks.forEach((block, idx) => {
-      currentRules.push({
-        province: block.querySelector(`[name="rules[${idx}][province]"]`).value,
-        fee: parseInt(block.querySelector(`[name="rules[${idx}][fee]"]`).value) || 0,
-        warning: block.querySelector(`[name="rules[${idx}][warning]"]`).value
-      });
-    });
-    return currentRules;
-  }
-
-  document.addEventListener('DOMContentLoaded', render);
-
-  return { addRule, removeRule, getRulesFromDOM };
-})();
-
-// ── LOGIC LƯU CÀI ĐẶT ──
-const Settings = (() => {
-  async function save(event, sectionName) {
-    event.preventDefault(); 
-    const form = event.target;
-    const btn = form.querySelector('.btn-save');
-    const originalText = btn.innerHTML;
-
-    btn.classList.add('loading');
-    btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Đang lưu...';
-
-    let dataObj = {};
-
-    if (sectionName === 'shipping_rules') {
-      dataObj = { rules: ShippingZone.getRulesFromDOM() };
-    } else {
-      const formData = new FormData(form);
-      formData.forEach((value, key) => { dataObj[key] = value; });
-      if(sectionName === 'storefront' && !dataObj['topbar_active']) {
-        dataObj['topbar_active'] = 'false';
-      }
-    }
-
-    try {
-      const response = await fetch(`/admin/settings/update/${sectionName}`, {
-        method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json',
-          'X-CSRFToken': '{{ csrf_token() }}'
-        },
-        body: JSON.stringify(dataObj)
-      });
-      
-      const result = await response.json();
-
-      if(result.success) {
-        Swal.fire({
-          toast: true, position: 'top-end', icon: 'success',
-          title: result.message, showConfirmButton: false, timer: 2000
+  // Overriding the inline class toggling from the original js/admin/settings.js because the layout structure changed
+  // Wait for settings.js to load
+  document.addEventListener("DOMContentLoaded", () => {
+    if (window.Settings) {
+      window.Settings.switchTab = function (tabId, btn) {
+        document.querySelectorAll('.s-nav__item').forEach(el => {
+          el.classList.remove('active', 'bg-slate-100', 'text-indigo-600');
+          el.classList.add('text-slate-600');
+          const icon = el.querySelector('i');
+          if (icon) { icon.classList.remove('text-indigo-600'); icon.classList.add('text-slate-400'); }
         });
-      } else {
-        Swal.fire('Lỗi', result.message, 'error');
-      }
-    } catch (error) {
-      console.error(error);
-      Swal.fire('Lỗi hệ thống', 'Không thể kết nối đến máy chủ.', 'error');
-    } finally {
-      btn.classList.remove('loading');
-      btn.innerHTML = originalText;
-    }
-  }
+        btn.classList.add('active', 'bg-slate-100', 'text-indigo-600');
+        btn.classList.remove('text-slate-600');
+        const btnIcon = btn.querySelector('i');
+        if (btnIcon) { btnIcon.classList.remove('text-slate-400'); btnIcon.classList.add('text-indigo-600'); }
 
-  return { save };
-})();
+        document.querySelectorAll('.s-panel').forEach(p => p.classList.remove('active'));
+        document.getElementById('panel-' + tabId).classList.add('active');
+      };
+
+      // Initialize active tab styling
+      const activeTab = document.querySelector('.s-nav__item.active');
+      if (activeTab) {
+        activeTab.classList.add('bg-slate-100', 'text-indigo-600');
+        activeTab.classList.remove('text-slate-600');
+        const btnIcon = activeTab.querySelector('i');
+        if (btnIcon) { btnIcon.classList.remove('text-slate-400'); btnIcon.classList.add('text-indigo-600'); }
+      }
+    }
+  });
 </script>
+<script src="{{ url_for('static', filename='js/admin/settings.js') }}"></script>
 {% endblock %}

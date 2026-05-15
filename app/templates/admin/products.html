@@ -2,61 +2,49 @@
 {% block title %}Kho hàng | GUA Admin{% endblock %}
 
 {% block extra_head %}
-<!-- JsBarcode: render barcode SVG phía client -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jsbarcode/3.11.6/JsBarcode.all.min.js"></script>
 <style>
   .no-scrollbar::-webkit-scrollbar { display: none; }
   .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-  .line-clamp-2 {
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-  }
+  .line-clamp-1 { display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden; }
+  .line-clamp-2 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 
-  /* ── Barcode popup ── */
+  /* ── Barcode popup (Premium Style) ── */
   .barcode-popup {
-    display: none;
-    position: fixed;
-    z-index: 9999;
-    background: #fff;
-    border: 1px solid #e7e5e4;
-    border-radius: 12px;
-    box-shadow: 0 20px 60px rgba(0,0,0,0.15), 0 4px 16px rgba(0,0,0,0.08);
-    padding: 16px 20px 14px;
-    min-width: 220px;
-    pointer-events: none;
-    opacity: 0;
-    transition: opacity 0.15s ease;
+    display: none; position: fixed; z-index: 9999;
+    background: #ffffff; border: 1px solid #f5f5f4;
+    border-radius: 20px;
+    box-shadow: 0 20px 40px -10px rgba(0,0,0,0.1), 0 10px 15px -3px rgba(0,0,0,0.05);
+    padding: 24px; min-width: 260px;
+    pointer-events: none; opacity: 0; transform: translateY(10px) scale(0.98);
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
   }
-  .barcode-popup.visible { display: block; opacity: 1; }
+  .barcode-popup.visible { display: block; opacity: 1; transform: translateY(0) scale(1); }
   .barcode-popup svg { display: block; width: 100%; height: auto; }
   .barcode-popup .bc-brand {
-    font-size: 9px; font-weight: 900; letter-spacing: 0.25em;
-    text-transform: uppercase; color: #78716c;
-    text-align: center; margin-bottom: 6px;
+    font-size: 10px; font-weight: 700; letter-spacing: 0.2em;
+    text-transform: uppercase; color: #a8a29e;
+    text-align: center; margin-bottom: 12px;
   }
   .barcode-popup .bc-label {
-    margin-top: 8px; font-family: 'Courier New', monospace;
-    font-size: 11px; font-weight: 700; letter-spacing: 0.12em;
+    margin-top: 12px; font-family: 'SF Mono', 'Courier New', monospace;
+    font-size: 13px; font-weight: 600; letter-spacing: 0.1em;
     color: #1c1917; text-align: center;
   }
   .barcode-popup .bc-actions {
-    display: flex; gap: 6px; margin-top: 10px;
-    pointer-events: all;
+    display: flex; gap: 8px; margin-top: 16px; pointer-events: all;
   }
   .barcode-popup .bc-btn {
-    flex: 1; padding: 5px 0; font-size: 9px; font-weight: 700;
-    text-transform: uppercase; letter-spacing: 0.1em;
-    border-radius: 6px; border: 1px solid #e7e5e4;
-    cursor: pointer; background: #fff; color: #44403c;
-    transition: all 0.15s;
+    flex: 1; padding: 8px 0; font-size: 11px; font-weight: 600;
+    border-radius: 10px; border: 1px solid #e7e5e4;
+    cursor: pointer; background: #fff; color: #57534e;
+    transition: all 0.2s;
   }
-  .barcode-popup .bc-btn:hover { background: #1c1917; color: #fff; border-color: #1c1917; }
+  .barcode-popup .bc-btn:hover { background: #f5f5f4; color: #1c1917; }
   .barcode-popup .bc-btn.print { background: #1c1917; color: #fff; border-color: #1c1917; }
-  .barcode-popup .bc-btn.print:hover { background: #44403c; }
+  .barcode-popup .bc-btn.print:hover { background: #292524; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
 
-  /* ── Inline barcode trong grid card ── */
+  /* ── Inline barcode ── */
   .bc-inline svg { width: 100%; height: auto; display: block; }
 
   /* ── Print ── */
@@ -64,8 +52,7 @@
     body * { visibility: hidden; }
     #barcode-print-area, #barcode-print-area * { visibility: visible; }
     #barcode-print-area {
-      position: fixed; inset: 0;
-      display: flex; flex-direction: column;
+      position: fixed; inset: 0; display: flex; flex-direction: column;
       align-items: center; justify-content: center; background: #fff;
     }
   }
@@ -76,324 +63,288 @@
 {% set current_q = request.args.get('q','') %}
 {% set current_status = request.args.get('status','') %}
 
-{# ── 1. HEADER TRANG ── #}
-<div class="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8 reveal">
-  <div>
-    <span class="text-[10px] font-bold uppercase tracking-[0.2em] text-stone-400 mb-1 block">GUA Admin</span>
-    <div class="flex items-center gap-4">
-      <h1 class="text-3xl md:text-4xl font-bold tracking-tight text-stone-900">Kho sản phẩm</h1>
-      <span class="px-3 py-1 bg-stone-200 text-stone-600 rounded-full text-[10px] font-black uppercase tracking-widest mt-1">
-        {{ total }} mục
-      </span>
-    </div>
-  </div>
-  <a href="{{ url_for('admin.add_product') }}" class="btn-admin inline-flex items-center gap-2 bg-stone-900 text-white px-6 py-3 rounded-xl text-[11px] font-bold uppercase tracking-[0.15em] hover:bg-stone-800 shadow-soft">
-    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
-    Thêm sản phẩm
-  </a>
-</div>
-
-{# ── 2. THANH LỌC (FILTER BAR) ── #}
-<div class="bg-white border border-stone-200 rounded-2xl p-4 flex flex-col xl:flex-row items-center justify-between gap-4 mb-8 reveal shadow-sm">
+<div class="max-w-screen-2xl mx-auto px-4 md:px-6 py-8 space-y-8">
   
-  <div class="flex flex-col md:flex-row items-center gap-4 w-full xl:w-auto">
-    <form action="{{ url_for('admin.products') }}" method="GET" class="relative w-full md:w-[320px]">
-      <input type="hidden" name="status" value="{{ current_status }}">
-      <svg class="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M21 21l-5.2-5.2m0 0A7.5 7.5 0 105.2 5.2a7.5 7.5 0 0010.6 10.6z"/></svg>
-      <input type="text" name="q" value="{{ current_q }}" placeholder="Tìm theo tên, SKU, tags…" 
-             class="w-full pl-11 pr-20 py-2.5 bg-stone-50 border border-stone-200 rounded-xl text-sm font-medium text-stone-900 placeholder:text-stone-400 focus:outline-none focus:border-stone-900 focus:ring-0 transition-colors">
-      <button type="submit" class="absolute right-1.5 top-1/2 -translate-y-1/2 px-3 py-1.5 bg-stone-900 text-white rounded-lg text-[10px] font-bold uppercase tracking-wider hover:bg-stone-800 transition-colors">
-        Tìm
-      </button>
-    </form>
-    
-    <div class="flex items-center gap-2 overflow-x-auto no-scrollbar w-full md:w-auto pb-1 md:pb-0">
-      {% for val, label in [('','Tất cả'),('active','Đang bán'),('hidden','Tạm ẩn'),('deleted','Thùng rác')] %}
-      <a href="{{ url_for('admin.products', q=current_q, status=val) }}"
-         class="shrink-0 px-4 py-2 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-colors border
-         {% if current_status == val %} bg-stone-900 text-white border-stone-900 {% else %} bg-white text-stone-500 border-stone-200 hover:border-stone-400 hover:text-stone-900 {% endif %}">
-        {{ label }}
-      </a>
-      {% endfor %}
-    </div>
-  </div>
-
-  <div class="hidden md:flex items-center p-1 bg-stone-100 rounded-xl border border-stone-200 shrink-0">
-    <button id="btn-table" onclick="setView('table')" class="w-10 h-8 flex items-center justify-center rounded-lg transition-colors text-stone-400 hover:text-stone-900" title="Dạng Bảng">
-      <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path d="M3 4a1 1 0 000 2h14a1 1 0 000-2H3zm0 5a1 1 0 000 2h14a1 1 0 000-2H3zm0 5a1 1 0 000 2h14a1 1 0 000-2H3z"/></svg>
-    </button>
-    <button id="btn-grid" onclick="setView('grid')" class="w-10 h-8 flex items-center justify-center rounded-lg transition-colors text-stone-400 hover:text-stone-900" title="Dạng Lưới">
-      <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path d="M5 3a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2V5a2 2 0 00-2-2H5zM5 11a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2v-2a2 2 0 00-2-2H5zM11 5a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V5zM11 13a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
-    </button>
-  </div>
-</div>
-
-{# ── 3. THỐNG KÊ (STATS) ── #}
-<div class="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-8 reveal">
-  {% set stats_data = [
-    ('bg-stone-100 text-stone-800', total, 'Tổng sản phẩm', 'M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4'),
-    ('bg-emerald-50 text-emerald-600', products|selectattr('is_active')|selectattr('deleted_at','none')|list|length, 'Đang hiển thị', 'M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z'),
-    ('bg-amber-50 text-amber-600', products|selectattr('is_featured')|list|length, 'Mục nổi bật', 'M11.48 3.499a.562.562 0 011.04 0l2.125 5.111a.563.563 0 00.475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 00-.182.557l1.285 5.385a.562.562 0 01-.84.61l-4.725-2.885a.563.563 0 00-.586 0L6.982 20.54a.562.562 0 01-.84-.61l1.285-5.386a.562.562 0 00-.182-.557l-4.204-3.602a.563.563 0 01.321-.988l5.518-.442a.563.563 0 00.475-.345L11.48 3.5z'),
-    ('bg-rose-50 text-rose-600', products|selectattr('stock','equalto',0)|list|length, 'Hết hàng', 'M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z'),
-  ] %}
-  {% for color_cls, num, lbl, path in stats_data %}
-  <div class="bg-white border border-stone-200 rounded-2xl p-6 flex items-center gap-5 card-hover shadow-sm">
-    <div class="w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 {{ color_cls }}">
-      <svg class="w-7 h-7" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="{{ path }}" stroke-linecap="round" stroke-linejoin="round"/></svg>
-    </div>
+  {# ── 1. HEADER TRANG ── #}
+  <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
     <div>
-      <div class="text-3xl font-black text-stone-900 leading-none mb-2">{{ num }}</div>
-      <div class="text-[10px] font-bold uppercase tracking-widest text-stone-500">{{ lbl }}</div>
-    </div>
-  </div>
-  {% endfor %}
-</div>
-
-{# ── 4A. GIAO DIỆN BẢNG (TABLE VIEW) ── #}
-<div id="view-table" class="bg-white border border-stone-200 rounded-2xl shadow-sm overflow-hidden reveal mb-8">
-  <div class="overflow-x-auto">
-    <table class="w-full text-left border-collapse min-w-[900px]">
-      <thead>
-        <tr class="bg-stone-50 border-b border-stone-200 text-[10px] font-bold uppercase tracking-widest text-stone-500">
-          <th class="px-6 py-4 w-24">Ảnh</th>
-          <th class="px-6 py-4">Sản phẩm</th>
-          <th class="px-6 py-4">Barcode</th>
-          <th class="px-6 py-4">Phân loại</th>
-          <th class="px-6 py-4">Giá bán</th>
-          <th class="px-6 py-4 text-center">Tồn kho</th>
-          <th class="px-6 py-4 text-center">Trạng thái</th>
-          <th class="px-6 py-4 text-right">Tùy chọn</th>
-        </tr>
-      </thead>
-      <tbody class="text-sm">
-        {% for p in products %}
-        
-        {# Logic xác định badge tồn kho #}
-        {% if p.stock == 0 %}
-          {% set sk_cls = 'text-rose-600 bg-rose-50 border-rose-100' %}
-          {% set dot_cls = 'bg-rose-500' %}
-          {% set sk_lbl = 'Hết hàng' %}
-        {% elif p.stock <= 5 %}
-          {% set sk_cls = 'text-amber-600 bg-amber-50 border-amber-200' %}
-          {% set dot_cls = 'bg-amber-500' %}
-          {% set sk_lbl = 'Dưới 5' %}
-        {% else %}
-          {% set sk_cls = 'text-emerald-700 bg-emerald-50 border-emerald-200' %}
-          {% set dot_cls = 'bg-emerald-500' %}
-          {% set sk_lbl = p.stock|string %}
-        {% endif %}
-        
-        <tr class="border-b border-stone-100 hover:bg-stone-50 transition-colors {{ 'opacity-50 grayscale-[50%]' if p.deleted_at else '' }}">
-          <td class="px-6 py-4">
-            <img class="w-14 h-[72px] object-cover rounded-lg border border-stone-200 bg-stone-100" 
-                 src="{{ p.thumbnail_url or 'https://placehold.co/88x116/f8fafc/94a3b8?text=?' }}" alt="{{ p.name }}">
-          </td>
-          <td class="px-6 py-4">
-            <div class="font-bold text-stone-900 text-sm max-w-[280px] truncate">{{ p.name }}</div>
-            <div class="flex items-center gap-2 mt-2 flex-wrap">
-              <span class="text-[11px] font-medium text-stone-500">{{ p.brand or 'GUA Maison' }}</span>
-              {% if p.is_featured %}
-                <span class="px-2 py-0.5 text-[9px] font-bold uppercase tracking-widest text-amber-700 bg-amber-50 border border-amber-200 rounded-md">★ Nổi bật</span>
-              {% endif %}
-              {% if p.gender and p.gender != 'unisex' %}
-                <span class="px-2 py-0.5 text-[9px] font-bold uppercase tracking-widest text-stone-600 bg-stone-100 border border-stone-200 rounded-md">{{ 'Nam' if p.gender == 'men' else 'Nữ' }}</span>
-              {% endif %}
-            </div>
-          </td>
-          {# ── Cột Barcode ── #}
-          <td class="px-6 py-4">
-            {% if p.barcode %}
-            <button
-              onclick="showBarcodePopup(this, '{{ p.barcode }}')"
-              class="group flex flex-col items-start gap-1.5 text-left">
-              <div class="bc-inline w-[140px] bg-white rounded border border-stone-200 p-1">
-                <svg class="bc-svg-mini" data-barcode="{{ p.barcode }}"></svg>
-              </div>
-              <span class="font-mono text-[10px] font-bold text-stone-500 tracking-wider group-hover:text-stone-900 transition-colors">
-                {{ p.barcode }}
-              </span>
-            </button>
-            {% else %}
-            <span class="text-[10px] text-stone-300 font-bold">—</span>
-            {% endif %}
-          </td>
-          <td class="px-6 py-4">
-            <span class="px-3 py-1.5 text-[10px] font-bold uppercase tracking-widest text-stone-600 bg-stone-100 border border-stone-200 rounded-lg">
-              {{ p.categories.name if p.categories else '—' }}
-            </span>
-          </td>
-          <td class="px-6 py-4">
-            <div class="font-bold text-stone-900 text-[15px]">{{ "{:,.0f}".format(p.price) }} <span class="text-[11px] font-medium text-stone-400">₫</span></div>
-          </td>
-          <td class="px-6 py-4 text-center">
-            <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-[10px] font-bold uppercase tracking-widest {{ sk_cls }}">
-              <span class="w-1.5 h-1.5 rounded-full {{ dot_cls }}"></span>{{ sk_lbl }}
-            </span>
-          </td>
-          <td class="px-6 py-4 text-center">
-            {% if p.deleted_at %}
-              <span class="inline-block px-3 py-1.5 rounded-lg border border-stone-200 bg-stone-100 text-stone-400 text-[10px] font-bold uppercase tracking-widest line-through">Đã xóa</span>
-            {% elif p.is_active %}
-              <span class="inline-block px-3 py-1.5 rounded-lg border border-stone-300 bg-white text-stone-900 text-[10px] font-bold uppercase tracking-widest shadow-sm">Đang bán</span>
-            {% else %}
-              <span class="inline-block px-3 py-1.5 rounded-lg border border-stone-200 bg-stone-50 text-stone-500 text-[10px] font-bold uppercase tracking-widest">Tạm ẩn</span>
-            {% endif %}
-          </td>
-          <td class="px-6 py-4">
-            <div class="flex items-center justify-end gap-2">
-              {% if p.slug and not p.deleted_at %}
-              <a href="/product/{{ p.slug }}" target="_blank" class="w-9 h-9 flex items-center justify-center rounded-lg border border-stone-200 text-stone-400 hover:text-stone-900 hover:border-stone-900 hover:bg-stone-50 transition-all" title="Xem trên cửa hàng">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25"/></svg>
-              </a>
-              {% endif %}
-              
-              <a href="{{ url_for('admin.edit_product', pid=p.id) }}" class="w-9 h-9 flex items-center justify-center rounded-lg border border-stone-200 text-stone-400 hover:text-emerald-600 hover:border-emerald-600 hover:bg-emerald-50 transition-all" title="Sửa">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931z"/></svg>
-              </a>
-
-              {% if not p.deleted_at %}
-              <form action="{{ url_for('admin.delete_product', pid=p.id) }}" method="POST" class="m-0"
-                    onsubmit="return confirm('Chuyển sản phẩm vào thùng rác?\n(Các đơn hàng cũ không bị ảnh hưởng)')">
-                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                <button type="submit" class="w-9 h-9 flex items-center justify-center rounded-lg border border-stone-200 text-stone-400 hover:text-rose-600 hover:border-rose-600 hover:bg-rose-50 transition-all" title="Xóa">
-                  <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M14.74 9l-.34 12m-4.72 0l-.34-12M4.5 6.375h15m-15 0A2.25 2.25 0 005.25 9h13.5A2.25 2.25 0 0021 6.375m-15 0V4.5a2.25 2.25 0 012.25-2.25h4.5A2.25 2.25 0 0116.5 4.5v1.875"/></svg>
-                </button>
-              </form>
-              {% endif %}
-            </div>
-          </td>
-        </tr>
-        {% else %}
-        <tr>
-          <td colspan="8" class="px-6 py-20 text-center">
-            <div class="flex flex-col items-center justify-center gap-4">
-              <div class="w-16 h-16 rounded-full bg-stone-100 flex items-center justify-center text-stone-400">
-                <svg class="w-8 h-8" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z"/></svg>
-              </div>
-              <p class="text-sm font-bold text-stone-500">Chưa có sản phẩm nào.</p>
-              <a href="{{ url_for('admin.add_product') }}" class="text-[11px] font-bold uppercase tracking-[0.15em] text-stone-900 border-b border-stone-900 pb-0.5">Tạo sản phẩm mới</a>
-            </div>
-          </td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  </div>
-</div>
-
-{# ── 4B. GIAO DIỆN LƯỚI (GRID VIEW) ── #}
-<div id="view-grid" class="hidden grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6 mb-8 reveal">
-  {% for p in products %}
-    {% if p.stock == 0 %}
-      {% set gsk = 'text-rose-600 bg-rose-50 border-rose-100' %}{% set gdot = 'bg-rose-500' %}{% set gsk_lbl = 'Hết hàng' %}
-    {% elif p.stock <= 5 %}
-      {% set gsk = 'text-amber-600 bg-amber-50 border-amber-200' %}{% set gdot = 'bg-amber-500' %}{% set gsk_lbl = p.stock|string %}
-    {% else %}
-      {% set gsk = 'text-emerald-700 bg-emerald-50 border-emerald-200' %}{% set gdot = 'bg-emerald-500' %}{% set gsk_lbl = p.stock|string %}
-    {% endif %}
-
-  <div class="bg-white border border-stone-200 rounded-2xl overflow-hidden group card-hover shadow-sm flex flex-col {{ 'opacity-60 grayscale-[30%]' if p.deleted_at else '' }}">
-    <div class="relative aspect-[3/4] bg-stone-100 overflow-hidden border-b border-stone-100">
-      <img src="{{ p.thumbnail_url or 'https://placehold.co/300x400/f8fafc/94a3b8?text=?' }}" alt="{{ p.name }}" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105">
-      
-      {% if p.is_featured %}
-      <div class="absolute top-3 right-3 w-8 h-8 rounded-full bg-amber-500 text-white flex items-center justify-center shadow-md">
-        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/></svg>
+      <div class="flex items-center gap-3 mb-1">
+        <h1 class="text-3xl font-bold tracking-tight text-stone-900 font-serif">Sản phẩm</h1>
+        <span class="px-3 py-1 bg-white border border-stone-200 text-stone-600 rounded-full text-xs font-semibold shadow-sm">
+          {{ total }}
+        </span>
       </div>
-      {% endif %}
+      <p class="text-sm text-stone-500">Quản lý kho hàng, giá bán và mã vạch của toàn bộ sản phẩm.</p>
+    </div>
+    <a href="{{ url_for('admin.add_product') }}" class="inline-flex items-center gap-2 bg-black text-white px-6 py-2.5 rounded-2xl text-sm font-semibold hover:bg-stone-800 transition-all shadow-[0_4px_12px_rgba(0,0,0,0.1)] hover:shadow-[0_6px_16px_rgba(0,0,0,0.15)] hover:-translate-y-0.5">
+      <i class="fa-solid fa-plus"></i>
+      Thêm sản phẩm
+    </a>
+  </div>
 
-      {% if p.deleted_at %}
-        <div class="absolute top-3 left-3 px-3 py-1.5 text-[9px] font-black uppercase tracking-widest bg-stone-900 text-white rounded-lg shadow-sm">Đã xóa</div>
-      {% elif not p.is_active %}
-        <div class="absolute top-3 left-3 px-3 py-1.5 text-[9px] font-bold uppercase tracking-widest bg-white/90 backdrop-blur text-stone-500 border border-stone-200 rounded-lg shadow-sm">Đang ẩn</div>
-      {% elif p.stock == 0 %}
-        <div class="absolute top-3 left-3 px-3 py-1.5 text-[9px] font-black uppercase tracking-widest bg-rose-600 text-white rounded-lg shadow-sm">Hết hàng</div>
-      {% endif %}
-
-      <div class="absolute inset-0 bg-stone-900/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center gap-3 backdrop-blur-[2px]">
-        <a href="{{ url_for('admin.edit_product', pid=p.id) }}" class="w-10 h-10 bg-white rounded-xl flex items-center justify-center text-stone-900 hover:bg-emerald-50 hover:text-emerald-600 transition-colors shadow-lg" title="Sửa">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931z"/></svg>
-        </a>
-        {% if p.slug and not p.deleted_at %}
-        <a href="/product/{{ p.slug }}" target="_blank" class="w-10 h-10 bg-white rounded-xl flex items-center justify-center text-stone-900 hover:bg-stone-100 transition-colors shadow-lg" title="Xem Storefront">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25"/></svg>
-        </a>
-        {% endif %}
-        {% if not p.deleted_at %}
-        <form action="{{ url_for('admin.delete_product', pid=p.id) }}" method="POST" class="m-0" onsubmit="return confirm('Chuyển sản phẩm vào thùng rác?')">
-          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-          <button type="submit" class="w-10 h-10 bg-white rounded-xl flex items-center justify-center text-rose-600 hover:bg-rose-50 transition-colors shadow-lg" title="Xóa">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M14.74 9l-.34 12m-4.72 0l-.34-12M4.5 6.375h15m-15 0A2.25 2.25 0 005.25 9h13.5A2.25 2.25 0 0021 6.375m-15 0V4.5a2.25 2.25 0 012.25-2.25h4.5A2.25 2.25 0 0116.5 4.5v1.875"/></svg>
-          </button>
-        </form>
-        {% endif %}
+  {# ── 2. THỐNG KÊ (STATS) - Phong cách thẻ nổi Soft Shadow ── #}
+  <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+    {% set stats_data = [
+      ('text-stone-800 bg-stone-100', total, 'Tổng phân loại', 'fa-box-open'),
+      ('text-emerald-600 bg-emerald-50', products|selectattr('is_active')|selectattr('deleted_at','none')|list|length, 'Đang mở bán', 'fa-tag'),
+      ('text-amber-600 bg-amber-50', products|selectattr('is_featured')|list|length, 'Sản phẩm nổi bật', 'fa-star'),
+      ('text-rose-600 bg-rose-50', products|selectattr('stock','equalto',0)|list|length, 'Cần nhập hàng', 'fa-triangle-exclamation'),
+    ] %}
+    {% for color_cls, num, lbl, icon in stats_data %}
+    <div class="bg-white rounded-3xl p-6 border border-stone-100 shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)] hover:shadow-md transition-shadow flex items-center gap-5">
+      <div class="w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 {{ color_cls }}">
+        <i class="fa-solid {{ icon }} text-xl"></i>
+      </div>
+      <div>
+        <div class="text-3xl font-bold text-stone-900 leading-tight">{{ num }}</div>
+        <div class="text-xs font-medium text-stone-500 mt-0.5">{{ lbl }}</div>
       </div>
     </div>
+    {% endfor %}
+  </div>
+
+  {# ── 3. THANH CÔNG CỤ (FILTER BAR) - Bo tròn viên nhộng ── #}
+  <div class="bg-white border border-stone-100 rounded-[2rem] p-2 pl-6 flex flex-col xl:flex-row items-center justify-between gap-4 shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)]">
     
-    <div class="p-4 bg-white flex flex-col flex-1">
-      <div class="font-bold text-sm text-stone-900 line-clamp-1 mb-1" title="{{ p.name }}">{{ p.name }}</div>
-      <div class="font-black text-[15px] text-stone-900 mb-2">{{ "{:,.0f}".format(p.price) }} ₫</div>
-      {% if p.barcode %}
-      <button onclick="showBarcodePopup(this, '{{ p.barcode }}')"
-        class="group flex flex-col items-start gap-1 text-left w-full mb-2">
-        <div class="bc-inline w-full bg-white rounded border border-stone-100 px-1 py-0.5">
-          <svg class="bc-svg-mini" data-barcode="{{ p.barcode }}"></svg>
-        </div>
-        <span class="font-mono text-[9px] font-bold text-stone-400 tracking-wider truncate w-full group-hover:text-stone-700 transition-colors">
-          {{ p.barcode }}
-        </span>
-      </button>
-      {% endif %}
+    <div class="flex flex-col md:flex-row items-center gap-4 w-full xl:w-auto">
+      <form action="{{ url_for('admin.products') }}" method="GET" class="relative w-full md:w-[320px]">
+        <input type="hidden" name="status" value="{{ current_status }}">
+        <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-stone-400"></i>
+        <input type="text" name="q" value="{{ current_q }}" placeholder="Tìm tên, SKU, Barcode..." 
+               class="w-full pl-10 pr-4 py-2.5 bg-transparent border-none text-sm font-medium text-stone-900 placeholder:text-stone-400 focus:outline-none focus:ring-0">
+      </form>
       
-      <div class="mt-auto pt-4 border-t border-stone-100 flex items-center justify-between gap-2">
-        <span class="inline-flex items-center gap-1.5 px-2 py-1 rounded border text-[9px] font-bold uppercase tracking-widest {{ gsk }}">
-          <span class="w-1.5 h-1.5 rounded-full {{ gdot }}"></span>{{ gsk_lbl }}
-        </span>
-        <span class="text-[9px] font-bold text-stone-400 uppercase tracking-widest line-clamp-1 text-right">
-          {{ p.categories.name if p.categories else '—' }}
-        </span>
+      <div class="h-8 w-px bg-stone-100 hidden md:block"></div>
+
+      <div class="flex items-center gap-1 overflow-x-auto no-scrollbar w-full md:w-auto">
+        {% for val, label in [('','Tất cả'),('active','Đang bán'),('hidden','Tạm ẩn'),('deleted','Thùng rác')] %}
+        <a href="{{ url_for('admin.products', q=current_q, status=val) }}"
+           class="shrink-0 px-5 py-2 rounded-full text-xs font-semibold transition-all
+           {% if current_status == val %} bg-stone-100 text-stone-900 {% else %} text-stone-500 hover:bg-stone-50 hover:text-stone-900 {% endif %}">
+          {{ label }}
+        </a>
+        {% endfor %}
       </div>
     </div>
-  </div>
-  {% else %}
-  <div class="col-span-full py-20 flex flex-col items-center justify-center bg-white border border-stone-200 rounded-2xl">
-    <p class="text-sm font-bold text-stone-400">Chưa có sản phẩm nào ở dạng lưới.</p>
-  </div>
-  {% endfor %}
-</div>
 
-{# ── 5. PHÂN TRANG (PAGINATION) ── #}
-{% if total_pages > 1 %}
-<div class="flex items-center justify-center gap-2 mt-8 mb-4 reveal">
-  {% if page > 1 %}
-  <a href="{{ url_for('admin.products', page=page-1, q=current_q, status=current_status) }}" 
-     class="w-10 h-10 flex items-center justify-center rounded-xl border border-stone-200 bg-white text-stone-500 hover:text-stone-900 hover:border-stone-900 transition-colors shadow-sm">
-    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5"/></svg>
-  </a>
-  {% endif %}
-  
-  {% for pg in range(1, total_pages+1) %}
-    {% if pg == page %}
-      <span class="w-10 h-10 flex items-center justify-center rounded-xl bg-stone-900 text-white text-sm font-bold shadow-md">{{ pg }}</span>
-    {% elif pg == 1 or pg == total_pages or (pg >= page-2 and pg <= page+2) %}
-      <a href="{{ url_for('admin.products', page=pg, q=current_q, status=current_status) }}" 
-         class="w-10 h-10 flex items-center justify-center rounded-xl border border-stone-200 bg-white text-stone-600 text-sm font-bold hover:text-stone-900 hover:border-stone-900 transition-colors shadow-sm">
-        {{ pg }}
-      </a>
-    {% elif pg == page-3 or pg == page+3 %}
-      <span class="w-10 h-10 flex items-center justify-center text-stone-400 font-bold">…</span>
+    <div class="hidden md:flex items-center p-1.5 bg-stone-50 rounded-full border border-stone-100 shrink-0 mr-2">
+      <button id="btn-table" onclick="setView('table')" class="w-10 h-8 flex items-center justify-center rounded-full transition-all text-stone-400 hover:text-stone-900" title="Dạng Bảng">
+        <i class="fa-solid fa-list-ul"></i>
+      </button>
+      <button id="btn-grid" onclick="setView('grid')" class="w-10 h-8 flex items-center justify-center rounded-full transition-all text-stone-400 hover:text-stone-900" title="Dạng Lưới">
+        <i class="fa-solid fa-border-all"></i>
+      </button>
+    </div>
+  </div>
+
+  {# ── 4A. GIAO DIỆN BẢNG (TABLE VIEW) ── #}
+  <div id="view-table" class="bg-white border border-stone-100 rounded-3xl shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)] overflow-hidden">
+    <div class="overflow-x-auto">
+      <table class="w-full text-left border-collapse min-w-[1000px]">
+        <thead>
+          <tr class="bg-stone-50/50 border-b border-stone-100">
+            <th class="px-6 py-4 w-24 text-[11px] font-semibold uppercase tracking-widest text-stone-500">Ảnh</th>
+            <th class="px-6 py-4 text-[11px] font-semibold uppercase tracking-widest text-stone-500">Sản phẩm</th>
+            <th class="px-6 py-4 text-[11px] font-semibold uppercase tracking-widest text-stone-500">Mã vạch</th>
+            <th class="px-6 py-4 text-[11px] font-semibold uppercase tracking-widest text-stone-500">Phân loại</th>
+            <th class="px-6 py-4 text-[11px] font-semibold uppercase tracking-widest text-stone-500">Giá bán</th>
+            <th class="px-6 py-4 text-center text-[11px] font-semibold uppercase tracking-widest text-stone-500">Kho</th>
+            <th class="px-6 py-4 text-center text-[11px] font-semibold uppercase tracking-widest text-stone-500">Trạng thái</th>
+            <th class="px-6 py-4 text-right text-[11px] font-semibold uppercase tracking-widest text-stone-500">Thao tác</th>
+          </tr>
+        </thead>
+        <tbody class="text-sm">
+          {% for p in products %}
+          
+          {% if p.stock == 0 %}
+            {% set sk_cls = 'text-rose-600 bg-rose-50' %}{% set dot_cls = 'bg-rose-500' %}{% set sk_lbl = 'Hết hàng' %}
+          {% elif p.stock <= 5 %}
+            {% set sk_cls = 'text-amber-600 bg-amber-50' %}{% set dot_cls = 'bg-amber-500' %}{% set sk_lbl = 'Sắp hết' %}
+          {% else %}
+            {% set sk_cls = 'text-emerald-700 bg-emerald-50' %}{% set dot_cls = 'bg-emerald-500' %}{% set sk_lbl = p.stock|string %}
+          {% endif %}
+          
+          <tr class="border-b border-stone-50 hover:bg-stone-50/80 transition-colors {{ 'opacity-50 grayscale' if p.deleted_at else '' }}">
+            <td class="px-6 py-4">
+              <div class="w-14 h-[72px] rounded-xl overflow-hidden border border-stone-100 bg-stone-50 shadow-sm">
+                  <img class="w-full h-full object-cover" src="{{ p.thumbnail_url or 'https://placehold.co/88x116/f8fafc/94a3b8?text=?' }}" alt="Img">
+              </div>
+            </td>
+            <td class="px-6 py-4">
+              <div class="font-bold text-stone-900 text-sm max-w-[280px] line-clamp-2 leading-tight">{{ p.name }}</div>
+              <div class="flex items-center gap-2 mt-2">
+                <span class="text-[11px] font-medium text-stone-500">{{ p.brand or 'GUA Maison' }}</span>
+                {% if p.is_featured %}
+                  <span class="px-2 py-0.5 text-[10px] font-bold text-amber-700 bg-amber-50 rounded-md"><i class="fa-solid fa-star text-[8px] mr-0.5"></i>Nổi bật</span>
+                {% endif %}
+              </div>
+            </td>
+            <td class="px-6 py-4">
+              {% if p.barcode %}
+              <button onclick="showBarcodePopup(this, '{{ p.barcode }}')" class="group text-left">
+                <div class="bc-inline w-[130px] bg-white rounded-lg border border-stone-200 p-1.5 shadow-sm group-hover:border-stone-400 transition-colors">
+                  <svg class="bc-svg-mini" data-barcode="{{ p.barcode }}"></svg>
+                </div>
+                <div class="font-mono text-[10px] font-medium text-stone-500 mt-1.5 group-hover:text-stone-900 transition-colors pl-1">
+                  {{ p.barcode }}
+                </div>
+              </button>
+              {% else %}
+              <span class="text-xs text-stone-300 italic">Chưa tạo mã</span>
+              {% endif %}
+            </td>
+            <td class="px-6 py-4">
+              <span class="px-3 py-1 text-xs font-medium text-stone-600 bg-stone-100 rounded-lg">
+                {{ p.categories.name if p.categories else 'Chưa phân loại' }}
+              </span>
+            </td>
+            <td class="px-6 py-4">
+              <div class="font-bold text-stone-900">{{ "{:,.0f}".format(p.price) }} <span class="text-xs font-normal text-stone-500 underline decoration-stone-300">đ</span></div>
+            </td>
+            <td class="px-6 py-4 text-center">
+              <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold {{ sk_cls }}">
+                <span class="w-1.5 h-1.5 rounded-full {{ dot_cls }}"></span>{{ sk_lbl }}
+              </span>
+            </td>
+            <td class="px-6 py-4 text-center">
+              {% if p.deleted_at %}
+                <span class="px-3 py-1 rounded-full bg-stone-100 text-stone-400 text-[11px] font-semibold uppercase tracking-wider">Đã xóa</span>
+              {% elif p.is_active %}
+                <span class="px-3 py-1 rounded-full bg-stone-900 text-white text-[11px] font-semibold uppercase tracking-wider shadow-sm">Đang bán</span>
+              {% else %}
+                <span class="px-3 py-1 rounded-full bg-white border border-stone-200 text-stone-500 text-[11px] font-semibold uppercase tracking-wider">Tạm ẩn</span>
+              {% endif %}
+            </td>
+            <td class="px-6 py-4">
+              <div class="flex items-center justify-end gap-2">
+                {% if p.slug and not p.deleted_at %}
+                <a href="/product/{{ p.slug }}" target="_blank" class="w-9 h-9 flex items-center justify-center rounded-full bg-stone-50 text-stone-500 hover:text-stone-900 hover:bg-stone-200 transition-all" title="Xem trên cửa hàng">
+                  <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                </a>
+                {% endif %}
+                
+                <a href="{{ url_for('admin.edit_product', pid=p.id) }}" class="w-9 h-9 flex items-center justify-center rounded-full bg-stone-50 text-stone-500 hover:text-blue-600 hover:bg-blue-50 transition-all" title="Sửa">
+                  <i class="fa-solid fa-pen text-sm"></i>
+                </a>
+
+                {% if not p.deleted_at %}
+                <form action="{{ url_for('admin.delete_product', pid=p.id) }}" method="POST" class="m-0"
+                      onsubmit="return confirm('Chuyển sản phẩm vào thùng rác?\n(Các đơn hàng cũ không bị ảnh hưởng)')">
+                  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                  <button type="submit" class="w-9 h-9 flex items-center justify-center rounded-full bg-stone-50 text-stone-500 hover:text-rose-600 hover:bg-rose-50 transition-all" title="Xóa">
+                    <i class="fa-solid fa-trash-can text-sm"></i>
+                  </button>
+                </form>
+                {% endif %}
+              </div>
+            </td>
+          </tr>
+          {% else %}
+          <tr>
+            <td colspan="8" class="px-6 py-24 text-center">
+              <div class="flex flex-col items-center justify-center">
+                <div class="w-16 h-16 rounded-full bg-stone-50 flex items-center justify-center text-stone-300 mb-4">
+                  <i class="fa-solid fa-box-open text-2xl"></i>
+                </div>
+                <p class="text-sm font-semibold text-stone-500 mb-1">Chưa có sản phẩm nào</p>
+                <a href="{{ url_for('admin.add_product') }}" class="text-sm font-medium text-black underline hover:text-stone-600">Thêm sản phẩm mới ngay</a>
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  {# ── 4B. GIAO DIỆN LƯỚI (GRID VIEW) - Thẻ Bo tròn chuẩn Apple ── #}
+  <div id="view-grid" class="hidden grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+    {% for p in products %}
+    <div class="bg-white border border-stone-100 rounded-3xl overflow-hidden group shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)] hover:shadow-[0_10px_20px_-10px_rgba(0,0,0,0.1)] transition-all flex flex-col {{ 'opacity-60 grayscale' if p.deleted_at else '' }}">
+      
+      <div class="relative aspect-[3/4] bg-stone-50 overflow-hidden">
+        <img src="{{ p.thumbnail_url or 'https://placehold.co/300x400/f8fafc/94a3b8?text=?' }}" alt="{{ p.name }}" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105">
+        
+        {% if p.is_featured %}
+        <div class="absolute top-4 right-4 w-8 h-8 rounded-full bg-amber-400 text-white flex items-center justify-center shadow-md">
+          <i class="fa-solid fa-star text-[10px]"></i>
+        </div>
+        {% endif %}
+
+        {% if p.deleted_at %}
+          <div class="absolute top-4 left-4 px-3 py-1 text-[10px] font-bold uppercase tracking-wider bg-black text-white rounded-full shadow-md">Đã xóa</div>
+        {% elif not p.is_active %}
+          <div class="absolute top-4 left-4 px-3 py-1 text-[10px] font-bold uppercase tracking-wider bg-white/90 backdrop-blur text-stone-600 rounded-full shadow-md">Tạm ẩn</div>
+        {% elif p.stock == 0 %}
+          <div class="absolute top-4 left-4 px-3 py-1 text-[10px] font-bold uppercase tracking-wider bg-rose-600 text-white rounded-full shadow-md">Hết hàng</div>
+        {% endif %}
+
+        <div class="absolute inset-0 bg-stone-900/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center gap-3 backdrop-blur-[1px]">
+          <a href="{{ url_for('admin.edit_product', pid=p.id) }}" class="w-12 h-12 bg-white rounded-full flex items-center justify-center text-stone-900 hover:scale-110 transition-transform shadow-xl" title="Sửa">
+            <i class="fa-solid fa-pen"></i>
+          </a>
+          {% if p.slug and not p.deleted_at %}
+          <a href="/product/{{ p.slug }}" target="_blank" class="w-12 h-12 bg-white rounded-full flex items-center justify-center text-stone-900 hover:scale-110 transition-transform shadow-xl" title="Xem cửa hàng">
+            <i class="fa-solid fa-arrow-up-right-from-square"></i>
+          </a>
+          {% endif %}
+        </div>
+      </div>
+      
+      <div class="p-5 flex flex-col flex-1 bg-white">
+        <div class="font-bold text-sm text-stone-900 line-clamp-2 mb-2 leading-snug" title="{{ p.name }}">{{ p.name }}</div>
+        <div class="font-bold text-lg text-stone-900 mb-3">{{ "{:,.0f}".format(p.price) }} <span class="text-sm font-normal text-stone-500 underline decoration-stone-300">đ</span></div>
+        
+        <div class="mt-auto border-t border-stone-50 pt-4 flex items-center justify-between">
+            <span class="text-xs font-medium text-stone-500 bg-stone-50 px-2 py-1 rounded-md line-clamp-1 max-w-[60%]">
+                {{ p.categories.name if p.categories else 'Chưa PL' }}
+            </span>
+            <span class="text-xs font-bold {% if p.stock == 0 %}text-rose-600{% elif p.stock <= 5 %}text-amber-600{% else %}text-emerald-600{% endif %}">
+                Kho: {{ p.stock }}
+            </span>
+        </div>
+      </div>
+    </div>
+    {% else %}
+    <div class="col-span-full py-20 flex flex-col items-center justify-center bg-white border border-stone-100 rounded-3xl shadow-sm">
+      <p class="text-sm font-medium text-stone-400">Không tìm thấy sản phẩm nào.</p>
+    </div>
+    {% endfor %}
+  </div>
+
+  {# ── 5. PHÂN TRANG (PAGINATION) - Pill Style ── #}
+  {% if total_pages > 1 %}
+  <div class="flex items-center justify-center gap-2 mt-8 mb-4">
+    {% if page > 1 %}
+    <a href="{{ url_for('admin.products', page=page-1, q=current_q, status=current_status) }}" 
+       class="w-10 h-10 flex items-center justify-center rounded-full border border-stone-200 bg-white text-stone-500 hover:text-black hover:border-black transition-all shadow-sm">
+      <i class="fa-solid fa-chevron-left text-sm"></i>
+    </a>
     {% endif %}
-  {% endfor %}
-  
-  {% if page < total_pages %}
-  <a href="{{ url_for('admin.products', page=page+1, q=current_q, status=current_status) }}" 
-     class="w-10 h-10 flex items-center justify-center rounded-xl border border-stone-200 bg-white text-stone-500 hover:text-stone-900 hover:border-stone-900 transition-colors shadow-sm">
-    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5"/></svg>
-  </a>
+    
+    {% for pg in range(1, total_pages+1) %}
+      {% if pg == page %}
+        <span class="w-10 h-10 flex items-center justify-center rounded-full bg-black text-white text-sm font-bold shadow-md">{{ pg }}</span>
+      {% elif pg == 1 or pg == total_pages or (pg >= page-2 and pg <= page+2) %}
+        <a href="{{ url_for('admin.products', page=pg, q=current_q, status=current_status) }}" 
+           class="w-10 h-10 flex items-center justify-center rounded-full border border-stone-200 bg-white text-stone-600 text-sm font-semibold hover:text-black hover:border-black transition-all shadow-sm">
+          {{ pg }}
+        </a>
+      {% elif pg == page-3 or pg == page+3 %}
+        <span class="w-10 h-10 flex items-center justify-center text-stone-400 font-bold">…</span>
+      {% endif %}
+    {% endfor %}
+    
+    {% if page < total_pages %}
+    <a href="{{ url_for('admin.products', page=page+1, q=current_q, status=current_status) }}" 
+       class="w-10 h-10 flex items-center justify-center rounded-full border border-stone-200 bg-white text-stone-500 hover:text-black hover:border-black transition-all shadow-sm">
+      <i class="fa-solid fa-chevron-right text-sm"></i>
+    </a>
+    {% endif %}
+  </div>
   {% endif %}
-</div>
-{% endif %}
 
+</div>
 {% endblock %}
 
 {% block extra_scripts %}
@@ -403,12 +354,11 @@
   <svg id="bc-popup-svg"></svg>
   <div class="bc-label" id="bc-popup-label"></div>
   <div class="bc-actions">
-    <button class="bc-btn" onclick="copyBarcode()">Copy mã</button>
-    <button class="bc-btn print" onclick="printBarcode()">In barcode</button>
+    <button class="bc-btn" onclick="copyBarcode()"><i class="fa-solid fa-copy mr-1"></i> Copy</button>
+    <button class="bc-btn print" onclick="printBarcode()"><i class="fa-solid fa-print mr-1"></i> In</button>
   </div>
 </div>
 
-{# Hidden print area #}
 <div id="barcode-print-area" style="display:none;">
   <div style="text-align:center; font-family:'Courier New',monospace; padding:24px;">
     <div style="font-size:11px; font-weight:900; letter-spacing:0.2em; color:#78716c; margin-bottom:8px;">GUA MAISON</div>
@@ -418,147 +368,100 @@
 </div>
 
 <script>
-// Logic chuyển đổi chế độ xem Grid/Table bằng Tailwind classes
+// Chuyển đổi View dạng Grid / Table
 function setView(v) {
   const t = document.getElementById('view-table'), g = document.getElementById('view-grid');
   const bt = document.getElementById('btn-table'), bg = document.getElementById('btn-grid');
   
   if (v === 'grid') {
-    t.classList.add('hidden');
-    g.classList.remove('hidden');
-    
-    bg.classList.add('bg-stone-900', 'text-white', 'shadow-md');
-    bg.classList.remove('text-stone-400');
-    
-    bt.classList.remove('bg-stone-900', 'text-white', 'shadow-md');
-    bt.classList.add('text-stone-400');
+    t.classList.add('hidden'); g.classList.remove('hidden');
+    bg.classList.add('bg-white', 'text-stone-900', 'shadow-sm', 'border', 'border-stone-200'); bg.classList.remove('text-stone-400');
+    bt.classList.remove('bg-white', 'text-stone-900', 'shadow-sm', 'border', 'border-stone-200'); bt.classList.add('text-stone-400');
   } else {
-    g.classList.add('hidden');
-    t.classList.remove('hidden');
-    
-    bt.classList.add('bg-stone-900', 'text-white', 'shadow-md');
-    bt.classList.remove('text-stone-400');
-    
-    bg.classList.remove('bg-stone-900', 'text-white', 'shadow-md');
-    bg.classList.add('text-stone-400');
+    g.classList.add('hidden'); t.classList.remove('hidden');
+    bt.classList.add('bg-white', 'text-stone-900', 'shadow-sm', 'border', 'border-stone-200'); bt.classList.remove('text-stone-400');
+    bg.classList.remove('bg-white', 'text-stone-900', 'shadow-sm', 'border', 'border-stone-200'); bg.classList.add('text-stone-400');
   }
-  localStorage.setItem('productView', v);
+  localStorage.setItem('productViewStyle', v);
 }
 
-// Khôi phục view người dùng đã chọn trước đó
-if (localStorage.getItem('productView') === 'grid') {
-  setView('grid');
-} else {
-  setView('table'); // Default
-}
+if (localStorage.getItem('productViewStyle') === 'grid') { setView('grid'); } else { setView('table'); }
 
-// ══════════════════════════════════════════════════════════
-//  BARCODE ENGINE
-// ══════════════════════════════════════════════════════════
+// Khởi tạo Barcode
 let _currentBarcode = '';
 const popup = document.getElementById('barcode-popup');
 
-/** Render tất cả mini barcode SVG inline khi trang load */
 function renderAllMiniBarcodes() {
   document.querySelectorAll('.bc-svg-mini[data-barcode]').forEach(svg => {
     const code = svg.getAttribute('data-barcode');
     if (!code) return;
     try {
       JsBarcode(svg, code, {
-        format:      'CODE128',
-        width:       1.4,
-        height:      32,
-        displayValue: false,
-        margin:      2,
-        background:  'transparent',
-        lineColor:   '#1c1917',
+        format: 'CODE128', width: 1.4, height: 32,
+        displayValue: false, margin: 0, background: 'transparent', lineColor: '#1c1917',
       });
     } catch(e) { svg.closest('.bc-inline')?.remove(); }
   });
 }
 
-/** Hiển thị popup barcode lớn khi click */
 function showBarcodePopup(triggerEl, code) {
   _currentBarcode = code;
-
-  // Render barcode vào popup
   const svgEl = document.getElementById('bc-popup-svg');
   try {
     JsBarcode(svgEl, code, {
-      format:      'CODE128',
-      width:       2,
-      height:      60,
-      displayValue: false,
-      margin:      4,
-      background:  '#ffffff',
-      lineColor:   '#1c1917',
+      format: 'CODE128', width: 2, height: 60, displayValue: false,
+      margin: 4, background: '#ffffff', lineColor: '#1c1917',
     });
   } catch(e) { return; }
 
   document.getElementById('bc-popup-label').textContent = code;
-
-  // Định vị popup gần trigger
   const rect = triggerEl.getBoundingClientRect();
   popup.style.display = 'block';
-  popup.style.opacity = '0';
-
-  // Tính toán vị trí để popup không ra ngoài màn hình
-  const pw = popup.offsetWidth  || 240;
-  const ph = popup.offsetHeight || 160;
-  const gap = 8;
-
-  let top  = rect.bottom + gap;
+  
+  // Animation reflow
+  void popup.offsetWidth;
+  
+  const pw = popup.offsetWidth || 260;
+  const ph = popup.offsetHeight || 180;
+  let top = rect.bottom + 12;
   let left = rect.left;
 
-  // Nếu popup tràn xuống dưới → hiện lên trên
-  if (top + ph > window.innerHeight - 16) {
-    top = rect.top - ph - gap;
-  }
-  // Nếu popup tràn sang phải → căn phải
-  if (left + pw > window.innerWidth - 16) {
-    left = window.innerWidth - pw - 16;
-  }
-  if (left < 8) left = 8;
+  if (top + ph > window.innerHeight - 16) top = rect.top - ph - 12;
+  if (left + pw > window.innerWidth - 16) left = window.innerWidth - pw - 16;
+  if (left < 16) left = 16;
 
-  popup.style.top  = top  + 'px';
+  popup.style.top = top + 'px';
   popup.style.left = left + 'px';
   popup.classList.add('visible');
-  popup.style.opacity = '1';
   popup.style.pointerEvents = 'all';
 }
 
-/** Đóng popup */
 function closeBarcodePopup() {
   popup.classList.remove('visible');
-  popup.style.display = 'none';
-  popup.style.pointerEvents = 'none';
+  setTimeout(() => {
+    if(!popup.classList.contains('visible')) {
+        popup.style.display = 'none';
+        popup.style.pointerEvents = 'none';
+    }
+  }, 200);
 }
 
-/** Copy mã vào clipboard */
 function copyBarcode() {
   navigator.clipboard.writeText(_currentBarcode).then(() => {
     const btn = popup.querySelector('.bc-btn:not(.print)');
-    const orig = btn.textContent;
-    btn.textContent = '✓ Đã copy!';
-    setTimeout(() => btn.textContent = orig, 1500);
+    const orig = btn.innerHTML;
+    btn.innerHTML = '<i class="fa-solid fa-check text-emerald-600"></i> Đã copy';
+    setTimeout(() => btn.innerHTML = orig, 1500);
   }).catch(() => {});
 }
 
-/** In barcode */
 function printBarcode() {
-  const printSvg   = document.getElementById('bc-print-svg');
+  const printSvg = document.getElementById('bc-print-svg');
   const printLabel = document.getElementById('bc-print-label');
   try {
     JsBarcode(printSvg, _currentBarcode, {
-      format:      'CODE128',
-      width:       3,
-      height:      80,
-      displayValue: true,
-      text:        _currentBarcode,
-      fontSize:    14,
-      margin:      8,
-      background:  '#ffffff',
-      lineColor:   '#000000',
+      format: 'CODE128', width: 3, height: 80, displayValue: true,
+      text: _currentBarcode, fontSize: 14, margin: 8, background: '#ffffff', lineColor: '#000000',
     });
   } catch(e) { return; }
   printLabel.textContent = _currentBarcode;
@@ -569,17 +472,12 @@ function printBarcode() {
   area.style.display = 'none';
 }
 
-// Đóng popup khi click ra ngoài
 document.addEventListener('click', e => {
   if (!popup.contains(e.target) && !e.target.closest('[onclick*="showBarcodePopup"]')) {
     closeBarcodePopup();
   }
 });
-
-// Đóng popup khi scroll
 window.addEventListener('scroll', closeBarcodePopup, { passive: true });
-
-// Render tất cả mini barcode khi DOM sẵn sàng
 document.addEventListener('DOMContentLoaded', renderAllMiniBarcodes);
 </script>
 {% endblock %}

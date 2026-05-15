@@ -6,6 +6,7 @@ Cập nhật 2026:
   - Tích hợp snapshot shipping_fee và discount_amount tại thời điểm Checkout.
   - get_stats() nâng cấp: Tính toán Lời/Lỗ phí vận chuyển (Logistics Profit/Loss).
   - Tích hợp State Machine Guard bảo vệ luồng trạng thái chặt chẽ.
+  - Fix lỗi Schema: Không query/update các cột ảo (refunded_amount, is_return_requested) trên bảng orders.
 """
 
 import logging
@@ -72,8 +73,8 @@ class OrderModel:
             return {}
 
     # ═══════════════════════════════════════════════════════════════
-#  THỐNG KÊ DASHBOARD  (Doanh Thu & KPI Vận Chuyển)
-# ═══════════════════════════════════════════════════════════════
+    #  THỐNG KÊ DASHBOARD  (Doanh Thu & KPI Vận Chuyển)
+    # ═══════════════════════════════════════════════════════════════
 
     @staticmethod
     def get_stats() -> dict:
@@ -103,10 +104,20 @@ class OrderModel:
         }
 
         try:
-            # 1. THỐNG KÊ DOANH THU & ĐƠN HÀNG
+            # Lấy trước dữ liệu hoàn tiền từ bảng return_requests để trừ vào doanh thu
+            try:
+                refunds_res = db.table("return_requests").select("order_id, refund_amount").eq("status", "refunded").execute()
+                refunds_map = defaultdict(float)
+                for r_req in (refunds_res.data or []):
+                    if r_req.get("refund_amount"):
+                        refunds_map[r_req["order_id"]] += float(r_req["refund_amount"])
+            except Exception:
+                refunds_map = defaultdict(float)
+
+            # 1. THỐNG KÊ DOANH THU & ĐƠN HÀNG (Đã bỏ cột refunded_amount)
             r = (
                 db.table("orders")
-                .select("id, total_amount, shipping_fee, refunded_amount, status, payment_method, payment_status, created_at, users(full_name, email)")
+                .select("id, total_amount, shipping_fee, status, payment_method, payment_status, created_at, users(full_name, email)")
                 .order("created_at", desc=True)
                 .limit(500)
                 .execute()
@@ -118,21 +129,21 @@ class OrderModel:
 
             status_counts = Counter()
             monthly_revenue = defaultdict(float)
-            valid_orders = []  # Đổi tên cho chuẩn nghĩa: Đơn hợp lệ để tính tiền
+            valid_orders = []  
             vnpay_paid = []
             pending_count = 0
 
             for o in orders:
                 status = o.get("status", "pending")
                 amount = float(o.get("total_amount", 0))
-                refunded = float(o.get("refunded_amount") or 0)
+                # Map tổng tiền hoàn tương ứng với đơn hàng
+                refunded = refunds_map.get(o["id"], 0.0) 
+                
                 payment_method = o.get("payment_method", "").upper()
                 payment_status = o.get("payment_status", "pending")
 
                 status_counts[status] += 1
 
-                # 👉 ĐỒNG BỘ LOGIC DOANH THU VỚI TRANG REPORT:
-                # Tính tiền khi: Giao thành công (Delivered/Completed) HOẶC Đã thanh toán (Paid)
                 is_delivered = status in ["delivered", "completed"]
                 is_paid = (payment_status == "paid")
 
@@ -145,10 +156,9 @@ class OrderModel:
                         vnpay_paid.append(o)
 
                     if o.get("created_at"):
-                        month = o["created_at"][:7]  # Lấy format YYYY-MM
+                        month = o["created_at"][:7]  # Format YYYY-MM
                         monthly_revenue[month] += net_revenue
 
-                # Đếm đơn đang chờ xử lý
                 if status == "pending" and (payment_method == "COD" or payment_status == "paid"):
                     pending_count += 1
 
@@ -177,15 +187,12 @@ class OrderModel:
             delivered_count = sum(1 for s in shipments if s["status"] == "delivered")
             returned_count = sum(1 for s in shipments if s["status"] in ("returned", "failed", "cancelled"))
             
-            # Tính toán Lời/Lỗ tiền vận chuyển
             for s in shipments:
                 if s["status"] not in ["cancelled"]:
                     stats["shipping_collected"] += float(s.get("shipping_fee") or 0)
                     stats["actual_shipping_cost"] += float(s.get("actual_shipping_fee") or 0)
             
             stats["logistics_profit_loss"] = stats["shipping_collected"] - stats["actual_shipping_cost"]
-            
-            # Lợi nhuận ròng = Tổng tiền hàng hợp lệ + Lời/Lỗ vận chuyển
             stats["net_revenue"] = stats["total_revenue"] + stats["logistics_profit_loss"]
 
             stats["delivery_success"] = round((delivered_count / total_shipped * 100), 1) if total_shipped > 0 else 0
@@ -261,7 +268,6 @@ class OrderModel:
             if status:
                 query = query.eq("status", status)
 
-            # TÌM KIẾM THEO TỪ KHÓA (ID, TÊN, SĐT)
             if keyword:
                 kw = keyword.strip()
                 if kw.startswith('#'):
@@ -392,13 +398,12 @@ class OrderModel:
     def request_return(order_id: str, user_id: str, reason: str, image_url: str) -> tuple[bool, str]:
         db = get_supabase()
         try:
-            order_res = db.table("orders").select("status, is_return_requested").eq("id", order_id).eq("user_id", user_id).single().execute()
+            order_res = db.table("orders").select("status").eq("id", order_id).eq("user_id", user_id).single().execute()
             if not order_res.data:
                 return False, "Không tìm thấy đơn hàng."
 
             order = order_res.data
             
-            # CẬP NHẬT Ở ĐÂY: Cho phép cả đơn 'delivered' và 'completed' được hoàn trả
             if order["status"] not in ["delivered", "completed"]:
                 return False, "Chỉ đơn hàng đã giao thành công mới được yêu cầu đổi/trả."
 
@@ -406,13 +411,10 @@ class OrderModel:
             if existing.data:
                 return False, "Bạn đã có yêu cầu đổi/trả đang được xử lý cho đơn này."
 
+            # Chỉ insert vào return_requests, không cập nhật bảng orders do schema không có các field is_return_requested, return_reason...
             db.table("return_requests").insert({
                 "order_id": order_id, "user_id": user_id, "reason": reason, "image_url": image_url, "status": "pending",
             }).execute()
-
-            db.table("orders").update({
-                "is_return_requested": True, "return_reason": reason, "return_image_url": image_url,
-            }).eq("id", order_id).execute()
 
             return True, "Yêu cầu đổi/trả đã được ghi nhận. Đội ngũ GUA sẽ liên hệ bạn trong 24 giờ."
         except Exception as e:
@@ -424,9 +426,10 @@ class OrderModel:
         db = get_supabase()
         offset = (page - 1) * per_page
         try:
+            # Đã bỏ lấy refunded_amount từ bảng orders
             query = (
                 db.table("return_requests")
-                .select("*, orders(id, total_amount, payment_status, payment_method, refunded_amount), users(full_name, email, phone)", count="exact")
+                .select("*, orders(id, total_amount, payment_status, payment_method), users(full_name, email, phone)", count="exact")
                 .order("requested_at", desc=True)
             )
             if status: query = query.eq("status", status)
@@ -477,7 +480,6 @@ class OrderModel:
                 "status": "rejected", "reviewed_by": admin_user_id, "reviewed_at": datetime.now(timezone.utc).isoformat(), "admin_note": admin_note.strip(),
             }).eq("id", rr_id).execute()
 
-            db.table("orders").update({"is_return_requested": False}).eq("id", rr["order_id"]).execute()
             return True, "Đã từ chối yêu cầu. Khách hàng có thể gửi lại nếu muốn."
         except Exception as e:
             logger.error(f"Lỗi từ chối return_request {rr_id}: {e}")
@@ -492,11 +494,15 @@ class OrderModel:
             if rr["status"] != "approved": return False, "Yêu cầu phải ở trạng thái 'Đã duyệt' trước khi xác nhận hoàn tiền."
 
             order_id = rr["order_id"]
-            order = db.table("orders").select("total_amount, refunded_amount, payment_status").eq("id", order_id).single().execute().data
+            # Đã bỏ lấy refunded_amount từ bảng orders
+            order = db.table("orders").select("total_amount, payment_status").eq("id", order_id).single().execute().data
             if not order: return False, "Không tìm thấy đơn hàng liên quan."
 
+            # Query tổng tiền đã hoàn cho đơn hàng này từ bảng return_requests
+            past_refunds = db.table("return_requests").select("refund_amount").eq("order_id", order_id).eq("status", "refunded").execute().data
+            already_refunded = sum(float(pr.get("refund_amount") or 0) for pr in (past_refunds or []))
+
             total_amount = float(order["total_amount"])
-            already_refunded = float(order.get("refunded_amount") or 0)
             max_refundable = total_amount - already_refunded
 
             amount_to_refund = float(refund_amount) if refund_amount else total_amount
@@ -505,11 +511,12 @@ class OrderModel:
             if amount_to_refund <= 0: return False, "Đơn hàng này đã được hoàn tiền đầy đủ trước đó."
 
             now_iso = datetime.now(timezone.utc).isoformat()
+            
+            # Cập nhật thông tin vào return_requests, KHÔNG update bảng orders
             db.table("return_requests").update({
                 "status": "refunded", "refunded_at": now_iso, "refund_amount": amount_to_refund, "reviewed_by": admin_user_id,
             }).eq("id", rr_id).execute()
 
-            db.table("orders").update({"refunded_amount": already_refunded + amount_to_refund}).eq("id", order_id).execute()
             return True, f"Đã xác nhận hoàn tiền {amount_to_refund:,.0f}đ. Doanh thu đã được cập nhật."
         except Exception as e:
             logger.error(f"Lỗi xác nhận hoàn tiền return_request {rr_id}: {e}")

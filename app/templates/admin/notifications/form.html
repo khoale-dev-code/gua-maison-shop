@@ -1,0 +1,88 @@
+{% extends "admin/admin_base.html" %}
+{% block title %}{{ 'Sửa' if notification else 'Thêm mới' }} thông báo | GUA Admin{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto">
+  <div class="bg-white rounded-sm shadow-sm border border-neutral-200 p-6 md:p-8">
+    <div class="mb-6 pb-4 border-b border-neutral-200">
+      <h2 class="text-xl font-black text-black uppercase tracking-tight">
+        {{ 'Chỉnh sửa thông báo' if notification else 'Thêm thông báo mới' }}
+      </h2>
+      <p class="text-xs text-neutral-500 mt-1">Thông báo sẽ hiển thị trên thanh navbar (cạnh biểu tượng giỏ hàng).</p>
+    </div>
+
+    <form method="POST">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+      <div class="space-y-6">
+        <div>
+          <label class="block text-[10px] font-bold uppercase tracking-widest text-black mb-2">Tiêu đề *</label>
+          <input type="text" name="title" value="{{ notification.title if notification else '' }}" required
+                 class="w-full border border-neutral-200 rounded-sm px-4 py-2.5 text-sm focus:border-black outline-none transition-colors">
+        </div>
+
+        <div>
+          <label class="block text-[10px] font-bold uppercase tracking-widest text-black mb-2">Nội dung *</label>
+          <textarea name="content" rows="3" required
+                    class="w-full border border-neutral-200 rounded-sm px-4 py-2.5 text-sm focus:border-black outline-none transition-colors">{{ notification.content if notification else '' }}</textarea>
+          <p class="text-[9px] text-neutral-400 mt-1">Hỗ trợ emoji, tối đa 160 ký tự.</p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <label class="block text-[10px] font-bold uppercase tracking-widest text-black mb-2">Link (URL)</label>
+            <input type="url" name="link" value="{{ notification.link if notification else '' }}"
+                   class="w-full border border-neutral-200 rounded-sm px-4 py-2.5 text-sm focus:border-black outline-none transition-colors"
+                   placeholder="https://...">
+          </div>
+          <div>
+            <label class="block text-[10px] font-bold uppercase tracking-widest text-black mb-2">Text link</label>
+            <input type="text" name="link_text" value="{{ notification.link_text if notification else '' }}"
+                   class="w-full border border-neutral-200 rounded-sm px-4 py-2.5 text-sm focus:border-black outline-none transition-colors"
+                   placeholder="Xem ngay">
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <label class="block text-[10px] font-bold uppercase tracking-widest text-black mb-2">Bắt đầu</label>
+            <input type="datetime-local" name="start_at" value="{{ notification.start_at[:16] if notification and notification.start_at else '' }}"
+                   class="w-full border border-neutral-200 rounded-sm px-4 py-2.5 text-sm focus:border-black outline-none transition-colors">
+          </div>
+          <div>
+            <label class="block text-[10px] font-bold uppercase tracking-widest text-black mb-2">Kết thúc</label>
+            <input type="datetime-local" name="end_at" value="{{ notification.end_at[:16] if notification and notification.end_at else '' }}"
+                   class="w-full border border-neutral-200 rounded-sm px-4 py-2.5 text-sm focus:border-black outline-none transition-colors">
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <label class="block text-[10px] font-bold uppercase tracking-widest text-black mb-2">Thứ tự hiển thị</label>
+            <input type="number" name="sort_order" value="{{ notification.sort_order if notification else 0 }}"
+                   class="w-full border border-neutral-200 rounded-sm px-4 py-2.5 text-sm focus:border-black outline-none transition-colors">
+            <p class="text-[9px] text-neutral-400 mt-1">Số càng nhỏ càng lên đầu.</p>
+          </div>
+          <div class="flex flex-col gap-2 pt-6">
+            <label class="inline-flex items-center gap-2 cursor-pointer">
+              <input type="checkbox" name="is_active" {% if not notification or notification.is_active %}checked{% endif %} class="w-4 h-4 accent-black">
+              <span class="text-xs font-bold uppercase tracking-widest">Kích hoạt ngay</span>
+            </label>
+            <label class="inline-flex items-center gap-2 cursor-pointer">
+              <input type="checkbox" name="is_permanent" {% if notification and notification.is_permanent %}checked{% endif %} class="w-4 h-4 accent-black">
+              <span class="text-xs font-bold uppercase tracking-widest">Hiển thị vĩnh viễn (bỏ qua thời gian)</span>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <div class="mt-8 pt-4 border-t border-neutral-200 flex justify-end gap-3">
+        <a href="{{ url_for('admin.notifications_index') }}" class="px-6 py-2.5 border border-neutral-200 rounded-sm text-xs font-bold uppercase tracking-widest hover:bg-neutral-50 transition-colors">Hủy</a>
+        <button type="submit" class="px-6 py-2.5 bg-black text-white rounded-sm text-xs font-bold uppercase tracking-widest hover:bg-neutral-800 transition-colors">
+          {{ 'Cập nhật' if notification else 'Thêm mới' }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

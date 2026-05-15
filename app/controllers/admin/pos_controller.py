@@ -92,11 +92,12 @@ def pos_checkout():
         order_status = "completed" if method == "cash" else "pending"
         payment_status = "paid"      if method == "cash" else "pending"
 
+        # FIX SCHEMA: Sử dụng "sales_channel" thay vì "source"
         order_res = db.table("orders").insert({
             "code": order_code,
             "customer_name": data.get("customer_name") or "Khách mua tại quầy",
             "customer_phone": data.get("customer_phone") or None,
-            "source": "pos",
+            "sales_channel": "pos",
             "status": order_status,
             "payment_status": payment_status,
             "payment_method": method,
@@ -190,35 +191,6 @@ def pos_webhook_casso():
     """
     Nhận callback từ Casso khi tài khoản Techcombank 4890440016335294
     nhận được giao dịch.
-
-    Cách thiết lập:
-      1. Đăng ký tài khoản tại https://casso.vn
-      2. Liên kết tài khoản Techcombank 4890440016335294
-      3. Vào Settings → Webhook → thêm URL:
-            https://<your-domain>/admin/pos-webhook-casso
-      4. Copy "Secure Token" → đặt vào biến môi trường CASSO_SECRET_KEY
-
-    Casso gửi POST với header:
-      Secure-Token: <token>      (so sánh trực tiếp với CASSO_SECRET_KEY)
-
-    Body JSON mẫu:
-      {
-        "data": [{
-          "id": 123456,
-          "tid": "FT24150123456",
-          "description": "GUAMAISON POS240601123456",   ← chứa order_code
-          "amount": 350000,
-          "cusum_balance": 1000000,
-          "when": "2024-06-01 12:34:56",
-          "bank_sub_acc_id": "4890440016335294",
-          "subAccId": "4890440016335294",
-          "bankName": "Techcombank",
-          "bankAbbreviation": "TCB",
-          "corresponsiveAccount": "...",
-          "virtualAccount": "",
-          "virtualAccountName": ""
-        }]
-      }
     """
     # ── 1. Xác thực Secure Token ──────────────────────────────────
     token = request.headers.get("Secure-Token", "")
@@ -247,17 +219,16 @@ def pos_webhook_casso():
                 continue
 
             # ── 2. Tìm order_code trong nội dung chuyển khoản ────────
-            # Khách chuyển khoản sẽ ghi nội dung là order_code (VD: POS240601123456)
-            # QR VietQR tự điền sẵn nội dung → khách chỉ cần quét & chuyển
             order_code = _extract_order_code(desc)
             if not order_code:
                 logger.info(f"[casso_webhook] Giao dịch {txn.get('tid')} không có order_code — bỏ qua.")
                 continue
 
             # ── 3. Tìm đơn hàng POS đang pending ─────────────────────
+            # FIX SCHEMA: Sử dụng "sales_channel" thay vì "source"
             res = db.table("orders").select("id, total_amount, payment_status").eq(
                 "code", order_code
-            ).eq("source", "pos").execute()
+            ).eq("sales_channel", "pos").execute()
 
             if not res.data:
                 logger.warning(f"[casso_webhook] Không tìm thấy đơn {order_code}")
@@ -282,8 +253,8 @@ def pos_webhook_casso():
             db.table("orders").update({
                 "payment_status": "paid",
                 "status": "completed",
-                "note": f"Casso tự xác nhận | TID: {txn.get('tid','')} | "
-                        f"Nhận: {amount:,.0f}đ lúc {txn.get('when','')}"
+                "order_notes": f"Casso tự xác nhận | TID: {txn.get('tid','')} | "
+                               f"Nhận: {amount:,.0f}đ lúc {txn.get('when','')}"
             }).eq("id", order["id"]).execute()
 
             processed += 1

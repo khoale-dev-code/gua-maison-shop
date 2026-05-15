@@ -1,180 +1,364 @@
 {% extends "base.html" %}
-{% block title %}Khuyến mãi & Ưu đãi đặc quyền | GUA Maison{% endblock %}
+{% block title %}Đặc quyền & Ưu đãi | GUA Maison{% endblock %}
+
+{% block extra_head %}
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link
+  href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Manrope:wght@400;500;600;700;800&display=swap"
+  rel="stylesheet">
+<style>
+  :root {
+    --ink: #0e0e0e;
+    --paper: #ffffff;
+    --warm: #6d1f1f;
+    --muted: #dfdfdf;
+  }
+
+  body {
+    background-color: var(--paper);
+    color: var(--ink);
+    font-family: 'Manrope', sans-serif;
+  }
+
+  .font-serif {
+    font-family: 'Lora', Georgia, serif;
+  }
+
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  @keyframes rise {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .rise {
+    animation: rise 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+</style>
+{% endblock %}
 
 {% block content %}
-<div class="min-h-screen bg-white pb-24 font-sans selection:bg-black selection:text-white">
-  
-  {# ── HEADER KHUYẾN MÃI (Nền Nude Tối Giản) ── #}
-  <section class="bg-[#F7F5F2] pt-32 pb-24 px-6 md:px-12 text-center border-b border-neutral-200 reveal">
-    <div class="max-w-3xl mx-auto">
-      <h1 class="text-3xl md:text-5xl font-light uppercase tracking-[0.25em] text-black mb-6">
-        Ưu Đãi Đặc Quyền
-      </h1>
-      <p class="text-[10px] md:text-xs font-bold tracking-[0.2em] text-neutral-500 uppercase leading-relaxed max-w-xl mx-auto">
-        Tận hưởng các chương trình ưu đãi mới nhất. Đặc quyền mua sắm dành riêng cho các tín đồ GUA Maison.
-      </p>
-    </div>
-  </section>
+<div class="min-h-screen pb-24 selection:bg-[#0e0e0e] selection:text-[#faf8f5]">
 
-  {# ── DANH SÁCH VOUCHER (Editorial Ticket Style) ── #}
-  <main class="max-w-[1400px] mx-auto px-4 md:px-8 lg:px-12 mt-16 md:mt-24">
-    
+  {# ── HEADER & BỘ LỌC (Cố định khi cuộn) ── #}
+  <header class="pt-24 pb-8 sticky top-0 bg-[#ffffff] z-40 border-b border-black/10">
+    <div class="max-w-[1320px] mx-auto px-6 md:px-12">
+
+      <div class="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-8 rise">
+        <div>
+          <p class="flex items-center gap-3 text-[10px] tracking-[0.25em] uppercase text-[#8a8580] mb-4 font-bold">
+            <span class="w-8 h-[1px] bg-[#6d1f1f] block"></span>
+            GUA Maison — Đặc Quyền
+          </p>
+          <h1 class="font-serif text-4xl md:text-[clamp(48px,5vw,72px)] leading-none tracking-[-0.01em] text-[#0e0e0e]">
+            Privileges <em class="text-[#6d1f1f]">&</em> Offers
+          </h1>
+        </div>
+        <p class="text-[11px] tracking-[0.2em] uppercase font-bold text-[#8a8580] whitespace-nowrap">
+          <span id="coupon-count">0</span> Đặc quyền khả dụng
+        </p>
+      </div>
+
+      <div
+        class="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 pt-6 border-t border-black/10 rise"
+        style="animation-delay: 0.1s;">
+
+        <nav class="flex gap-8 overflow-x-auto w-full md:w-auto no-scrollbar" id="filter-tabs">
+          <button data-filter="all"
+            class="tab-btn text-[11px] font-bold tracking-[0.2em] uppercase pb-1 border-b border-[#0e0e0e] text-[#0e0e0e] transition-colors whitespace-nowrap">Tất
+            cả</button>
+          <button data-filter="free_shipping"
+            class="tab-btn text-[11px] font-bold tracking-[0.2em] uppercase pb-1 border-b border-transparent text-[#8a8580] hover:text-[#0e0e0e] transition-colors whitespace-nowrap">Freeship</button>
+          <button data-filter="percent"
+            class="tab-btn text-[11px] font-bold tracking-[0.2em] uppercase pb-1 border-b border-transparent text-[#8a8580] hover:text-[#0e0e0e] transition-colors whitespace-nowrap">Giảm
+            %</button>
+          <button data-filter="fixed"
+            class="tab-btn text-[11px] font-bold tracking-[0.2em] uppercase pb-1 border-b border-transparent text-[#8a8580] hover:text-[#0e0e0e] transition-colors whitespace-nowrap">Giảm
+            tiền</button>
+        </nav>
+
+        <div class="relative w-full md:w-[300px]">
+          <input type="search" id="liveSearchInput" placeholder="TÌM MÃ HOẶC TÊN..."
+            class="w-full bg-transparent border-b border-black/20 text-[11px] font-bold tracking-[0.2em] uppercase text-[#0e0e0e] py-2 pr-8 outline-none focus:border-[#0e0e0e] transition-colors placeholder:text-[#8a8580]">
+          <svg class="absolute right-0 bottom-2.5 w-4 h-4 text-[#0e0e0e]" fill="none" stroke="currentColor"
+            stroke-width="1.5" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round"
+              d="m21 21-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
+          </svg>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  {# ── LƯỚI HIỂN THỊ MÃ KHUYẾN MÃI ── #}
+  <main class="max-w-[1320px] mx-auto px-6 md:px-12 pt-12">
+
+    <div id="empty-state"
+      class="hidden flex-col items-center justify-center py-32 text-center border-t border-black/10">
+      <h2 class="font-serif text-3xl text-[#0e0e0e] mb-4">Không tìm thấy đặc quyền phù hợp.</h2>
+      <button onclick="resetFilters()"
+        class="text-[11px] font-bold tracking-[0.2em] uppercase text-[#6d1f1f] border-b border-[#6d1f1f] pb-1 hover:pr-4 transition-all duration-300">Tải
+        lại danh sách</button>
+    </div>
+
     {% if coupons and coupons|length > 0 %}
-      <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8 lg:gap-10">
-        {% for coupon in coupons %}
-        
-        {# KHỐI VOUCHER VẬT LÝ #}
-        <div class="group flex flex-col bg-white border border-neutral-200 hover:border-black transition-all duration-500 reveal hover:shadow-2xl hover:-translate-y-1 relative">
-          
-          {# Nửa trên: Thông tin chi tiết #}
-          <div class="p-8 md:p-10 flex-1 flex flex-col relative bg-white z-10">
-            <div class="flex items-start justify-between mb-10">
-              
-              {# Badge Loại Khuyến Mãi (Fix lỗi Jinja dính class) #}
-              {% set badge_text = 'Giảm Tiền' %}
-              {% if coupon.discount_type == 'percent' %}
-                {% set badge_text = 'Giảm %' %}
-              {% elif coupon.discount_type == 'free_shipping' %}
-                {% set badge_text = 'Freeship' %}
-              {% endif %}
-              
-              <span class="inline-flex items-center justify-center border border-black text-black px-3 py-1.5 text-[9px] font-black uppercase tracking-[0.2em]">
+    <div id="coupon-grid"
+      class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-[1px] bg-black/10 border border-black/10 rise"
+      style="animation-delay: 0.2s;">
+
+      {% for coupon in coupons %}
+      {% set c_type = coupon.discount_type %}
+      {% set type_class = 'fixed' if c_type not in ['percent', 'free_shipping'] else c_type %}
+      {% set badge_text = 'Giảm %' if c_type == 'percent' else ('Freeship' if c_type == 'free_shipping' else 'Giảm
+      Tiền') %}
+
+      <article
+        class="coupon-card flex flex-col bg-[#ffffff] group hover:bg-[#ffffff] shadow-sm hover:shadow-md transition-all duration-500 relative"
+        data-type="{{ type_class }}" data-code="{{ coupon.code | lower }}" data-desc="{{ coupon.description | lower }}">
+
+        {# 1. KHỐI TRÊN: LINK DẪN TỚI TRANG CHI TIẾT #}
+        <a href="/promotions/{{ coupon.code }}" class="flex-1 flex flex-col block z-10">
+
+          {% if coupon.image_url %}
+          <div class="w-full aspect-[21/9] overflow-hidden bg-[#f5f2ee] border-b border-black/5 relative">
+            <img src="{{ coupon.image_url }}" alt="{{ coupon.code }}"
+              class="w-full h-full object-cover grayscale opacity-90 group-hover:grayscale-0 group-hover:opacity-100 group-hover:scale-105 transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)]">
+            <div class="absolute inset-0 bg-black/10 group-hover:bg-transparent transition-colors duration-500"></div>
+          </div>
+          {% endif %}
+
+          <div class="p-8 md:p-10 flex-1 flex flex-col">
+            <div class="flex items-start justify-between mb-8">
+              <span
+                class="text-[9px] font-bold uppercase tracking-[0.2em] text-[#6d1f1f] border-b border-[#6d1f1f]/20 pb-1">
                 {{ badge_text }}
               </span>
-              
               {% if coupon.expires_at %}
               <div class="text-right">
-                <p class="text-[8px] font-black text-neutral-400 uppercase tracking-[0.2em]">Hạn sử dụng</p>
-                <p class="text-[10px] font-bold text-black uppercase tracking-widest mt-1">
-                  {{ coupon.expires_at[:10] }}
-                </p>
+                <p class="text-[9px] text-[#8a8580] uppercase tracking-[0.2em]">Hạn sử dụng</p>
+                <p class="text-[11px] font-bold text-[#0e0e0e] uppercase tracking-[0.15em] mt-1">{{
+                  coupon.expires_at[:10] | replace('-', '.') }}</p>
               </div>
               {% endif %}
             </div>
 
-            {# Giá trị Voucher #}
-            <h3 class="text-4xl md:text-5xl font-light text-black tracking-tighter mb-5 uppercase leading-none">
-              {% if coupon.discount_type == 'percent' %}
-                {{ coupon.discount_value | int }}<span class="text-2xl">%</span>
-              {% elif coupon.discount_type == 'free_shipping' %}
-                <span class="text-3xl">GIAO HÀNG</span>
+            <h3 class="font-serif text-[clamp(40px,3.5vw,56px)] leading-none text-[#0e0e0e] mb-4">
+              {% if c_type == 'percent' %}
+              {{ coupon.discount_value | int }}<span class="text-3xl ml-1 font-sans">%</span>
+              {% elif c_type == 'free_shipping' %}
+              <span class="text-3xl tracking-tight">GIAO HÀNG</span>
               {% else %}
-                {{ "{:,.0f}".format(coupon.discount_value) }}<span class="text-xl font-medium tracking-normal ml-1">VND</span>
+              {{ "{:,.0f}".format(coupon.discount_value) }}<span class="text-lg font-bold ml-2">VND</span>
               {% endif %}
             </h3>
 
-            <p class="text-[11px] font-medium text-neutral-500 uppercase tracking-widest leading-loose mb-10 flex-1">
-              {{ coupon.description or 'Áp dụng cho các sản phẩm nằm trong danh mục ưu đãi. Không áp dụng cùng chương trình khác.' }}
+            <p class="text-[13px] font-medium leading-[1.8] text-[#444] mb-8 flex-1">
+              {{ coupon.description or 'Đặc quyền dành riêng cho các thành viên. Áp dụng theo điều khoản của GUA.' }}
             </p>
 
-            {# Điều kiện áp dụng (Đường kẻ đứt tạo hiệu ứng cuống vé) #}
-            <ul class="space-y-4 text-[10px] font-bold text-black uppercase tracking-[0.15em] border-t-2 border-dashed border-neutral-200 pt-8 relative">
-              
-              {# Dấu cắt góc mô phỏng vé (Trái/Phải) #}
-              <div class="absolute -top-3 -left-11 w-6 h-6 bg-white rounded-full border-r-2 border-b-2 border-neutral-200 rotate-45 group-hover:border-black transition-colors duration-500 hidden sm:block"></div>
-              <div class="absolute -top-3 -right-11 w-6 h-6 bg-white rounded-full border-l-2 border-b-2 border-neutral-200 -rotate-45 group-hover:border-black transition-colors duration-500 hidden sm:block"></div>
-
+            <ul
+              class="pt-6 border-t border-dashed border-black/20 space-y-3 text-[11px] font-bold text-[#8a8580] uppercase tracking-[0.1em]">
               {% if coupon.min_order_value > 0 %}
               <li class="flex items-start gap-3">
-                <i class="fa-solid fa-check text-neutral-300 mt-0.5"></i>
-                <span class="flex-1">Đơn tối thiểu: {{ "{:,.0f}".format(coupon.min_order_value) }}₫</span>
+                <span class="text-[#0e0e0e]">+</span>
+                <span>Tối thiểu: {{ "{:,.0f}".format(coupon.min_order_value) }}₫</span>
               </li>
               {% endif %}
-              
               {% if coupon.max_discount %}
               <li class="flex items-start gap-3">
-                <i class="fa-solid fa-check text-neutral-300 mt-0.5"></i>
-                <span class="flex-1">Giảm tối đa: {{ "{:,.0f}".format(coupon.max_discount) }}₫</span>
+                <span class="text-[#0e0e0e]">+</span>
+                <span>Giảm tối đa: {{ "{:,.0f}".format(coupon.max_discount) }}₫</span>
               </li>
               {% endif %}
             </ul>
-          </div>
 
-          {# Nửa dưới: Code & Nút Copy (Thiết kế khối đen tương phản) #}
-          <div class="p-6 md:px-10 md:py-8 bg-[#F7F5F2] flex items-center justify-between gap-6 border-t border-neutral-200 group-hover:bg-black transition-colors duration-500">
-            <div class="flex-1">
-              <p class="text-[9px] font-black uppercase text-neutral-400 tracking-[0.25em] mb-2 group-hover:text-neutral-500 transition-colors">
-                Mã Khuyến Mãi
-              </p>
-              <p class="text-base md:text-lg font-black text-black tracking-[0.2em] group-hover:text-white transition-colors">
-                {{ coupon.code }}
-              </p>
+            <div
+              class="text-[9px] font-bold uppercase tracking-[0.2em] text-[#0e0e0e] border-b border-[#0e0e0e]/20 pb-1 inline-block mt-8 w-max group-hover:border-[#0e0e0e] transition-colors">
+              Xem chi tiết đặc quyền &rarr;
             </div>
-            
-            <button type="button" 
-                    onclick="copyPromoCode('{{ coupon.code }}', this)"
-                    class="px-6 py-4 bg-white text-black text-[10px] font-black uppercase tracking-[0.2em] hover:bg-neutral-200 transition-all shrink-0 min-w-[120px] text-center shadow-sm">
-              <span class="btn-text">Sao chép</span>
-            </button>
+          </div>
+        </a>
+
+        {# 2. KHỐI DƯỚI: CUỐNG VÉ CHỨA QR VÀ NÚT COPY (Không bị dẫn link) #}
+        <div
+          class="relative z-20 p-6 md:p-8 border-t border-black/5 bg-[#ffffff] group-hover:bg-black/5 transition-colors mt-auto flex items-center justify-between gap-4">
+
+          <div class="flex items-center gap-4">
+            <div class="w-16 h-16 shrink-0 bg-white border border-black/10 p-1 flex items-center justify-center">
+              <img src="/api/coupons/qr/{{ coupon.code }}" alt="QR Code" class="w-full h-full mix-blend-multiply"
+                loading="lazy">
+            </div>
+            <div class="hidden sm:block">
+              <p class="text-[9px] font-bold uppercase tracking-[0.2em] text-[#8a8580] mb-1">Mã định danh</p>
+              <p class="text-[14px] font-bold text-[#0e0e0e] tracking-[0.15em]">{{ coupon.code }}</p>
+            </div>
           </div>
 
+          <button type="button" onclick="copyCode('{{ coupon.code }}', this, event)"
+            class="text-[10px] font-bold uppercase tracking-[0.2em] text-[#0e0e0e] border border-[#0e0e0e] px-5 py-3 hover:bg-[#0e0e0e] hover:text-[#ffffff] transition-all duration-300 whitespace-nowrap text-center bg-white">
+            Sao chép
+          </button>
         </div>
-        {% endfor %}
-      </div>
+      </article>
+      {% endfor %}
+    </div>
+
+    <div id="load-more-container" class="mt-16 text-center hidden">
+      <button id="load-more-btn"
+        class="inline-flex items-center gap-3 text-[11px] font-bold uppercase tracking-[0.2em] text-[#0e0e0e] border-b border-black/20 pb-1 hover:border-[#6d1f1f] hover:text-[#6d1f1f] transition-colors">
+        Khám phá thêm <span>&darr;</span>
+      </button>
+    </div>
+
     {% else %}
-      {# ── TRẠNG THÁI TRỐNG (MINIMAL EMPTY STATE) ── #}
-      <div class="flex flex-col items-center justify-center py-32 px-4 text-center reveal">
-        <div class="w-16 h-16 border border-neutral-200 flex items-center justify-center mb-8 rotate-45">
-          <i class="fa-solid fa-ticket -rotate-45 text-2xl text-neutral-300"></i>
-        </div>
-        <h2 class="text-2xl font-light uppercase tracking-[0.25em] text-black mb-4">
-          Chưa có ưu đãi
-        </h2>
-        <p class="text-[11px] font-bold tracking-[0.2em] text-neutral-400 uppercase max-w-md mx-auto mb-10 leading-loose">
-          Hiện tại GUA Maison chưa phát hành mã giảm giá mới. Đăng ký nhận bản tin để được ưu tiên nhận các đặc quyền mua sắm.
-        </p>
-        <a href="/" class="border border-black bg-black text-white px-10 py-4 text-[10px] font-black uppercase tracking-[0.2em] hover:bg-white hover:text-black transition-colors">
-          Tiếp tục mua sắm
-        </a>
-      </div>
+    <div class="flex flex-col items-center justify-center py-32 text-center rise">
+      <h2 class="font-serif text-3xl text-[#0e0e0e] mb-4">Chưa có đặc quyền mới</h2>
+      <a href="/shop"
+        class="text-[11px] font-bold tracking-[0.2em] uppercase text-[#0e0e0e] border-b border-[#0e0e0e] pb-1 hover:pr-4 transition-all">Về
+        cửa hàng</a>
+    </div>
     {% endif %}
 
   </main>
 </div>
 
-<style>
-  /* Hiệu ứng Reveal nhẹ nhàng sang trọng */
-  .reveal { opacity: 0; animation: revealUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-  @keyframes revealUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
-  
-  /* Tạo delay so le cho các Card Voucher */
-  .grid > div:nth-child(1) { animation-delay: 100ms; }
-  .grid > div:nth-child(2) { animation-delay: 200ms; }
-  .grid > div:nth-child(3) { animation-delay: 300ms; }
-  .grid > div:nth-child(4) { animation-delay: 400ms; }
-  .grid > div:nth-child(5) { animation-delay: 500ms; }
-</style>
+<div id="toast-msg"
+  class="fixed bottom-8 left-1/2 -translate-x-1/2 bg-[#0e0e0e] text-[#ffffff] px-8 py-4 text-[10px] font-bold tracking-[0.2em] uppercase opacity-0 translate-y-4 pointer-events-none transition-all duration-300 z-50 shadow-2xl">
+</div>
 
+{% block extra_scripts %}
 <script>
-  function copyPromoCode(code, btnElement) {
-    const textSpan = btnElement.querySelector('.btn-text');
-    const originalText = textSpan.innerText;
+  document.addEventListener('DOMContentLoaded', () => {
+    const cards = Array.from(document.querySelectorAll('.coupon-card'));
+    const grid = document.getElementById('coupon-grid');
+    const emptyState = document.getElementById('empty-state');
+    const searchInput = document.getElementById('liveSearchInput');
+    const tabs = document.querySelectorAll('.tab-btn');
+    const countEl = document.getElementById('coupon-count');
+    const loadMoreBtn = document.getElementById('load-more-btn');
+    const loadMoreContainer = document.getElementById('load-more-container');
+
+    let currentFilter = 'all';
+    let searchTerm = '';
+    const ITEMS_PER_PAGE = 12;
+    let visibleLimit = ITEMS_PER_PAGE;
+    let filteredCards = [];
+
+    function renderUI() {
+      filteredCards = cards.filter(card => {
+        const matchType = (currentFilter === 'all') || (card.dataset.type === currentFilter);
+        const matchSearch = card.dataset.code.includes(searchTerm) || card.dataset.desc.includes(searchTerm);
+        return matchType && matchSearch;
+      });
+
+      countEl.textContent = filteredCards.length;
+      cards.forEach(c => c.style.display = 'none');
+
+      if (filteredCards.length === 0) {
+        grid.classList.add('hidden');
+        emptyState.classList.remove('hidden');
+        emptyState.classList.add('flex');
+        loadMoreContainer.classList.add('hidden');
+      } else {
+        grid.classList.remove('hidden');
+        emptyState.classList.add('hidden');
+        emptyState.classList.remove('flex');
+
+        filteredCards.slice(0, visibleLimit).forEach(c => c.style.display = 'flex');
+
+        if (visibleLimit < filteredCards.length) {
+          loadMoreContainer.classList.remove('hidden');
+        } else {
+          loadMoreContainer.classList.add('hidden');
+        }
+      }
+    }
+
+    renderUI();
+
+    if (loadMoreBtn) {
+      loadMoreBtn.addEventListener('click', () => {
+        visibleLimit += ITEMS_PER_PAGE;
+        renderUI();
+      });
+    }
+
+    let debounceTimer;
+    if (searchInput) {
+      searchInput.addEventListener('input', (e) => {
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(() => {
+          searchTerm = e.target.value.toLowerCase().trim();
+          visibleLimit = ITEMS_PER_PAGE;
+          renderUI();
+        }, 250);
+      });
+    }
+
+    tabs.forEach(tab => {
+      tab.addEventListener('click', () => {
+        tabs.forEach(t => {
+          t.classList.remove('text-[#0e0e0e]', 'border-[#0e0e0e]');
+          t.classList.add('text-[#8a8580]', 'border-transparent');
+        });
+        tab.classList.remove('text-[#8a8580]', 'border-transparent');
+        tab.classList.add('text-[#0e0e0e]', 'border-[#0e0e0e]');
+
+        currentFilter = tab.dataset.filter;
+        visibleLimit = ITEMS_PER_PAGE;
+        renderUI();
+      });
+    });
+
+    window.resetFilters = () => {
+      if (searchInput) searchInput.value = '';
+      searchTerm = '';
+      currentFilter = 'all';
+      visibleLimit = ITEMS_PER_PAGE;
+      tabs[0].click();
+    };
+  });
+
+  function copyCode(code, btn, event) {
+    // Ngăn chặn sự kiện click lan truyền lên thẻ <a> (nếu có nhầm lẫn layout)
+    if (event) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
 
     navigator.clipboard.writeText(code).then(() => {
-      // Đổi UI của nút khi copy thành công
-      textSpan.innerText = "Đã chép";
-      btnElement.classList.remove('bg-white', 'text-black');
-      btnElement.classList.add('bg-emerald-500', 'text-white');
-      
-      if(typeof showToast === 'function') {
-        showToast(`ĐÃ SAO CHÉP MÃ: ${code}`);
-      }
+      const origText = btn.innerText;
+      btn.innerText = "Đã chép ✓";
+      btn.classList.add('bg-[#6d1f1f]', 'text-[#ffffff]', 'border-[#6d1f1f]');
+      btn.classList.remove('text-[#0e0e0e]', 'border-[#0e0e0e]', 'bg-white');
 
-      // Phục hồi lại nút sau 2 giây
+      const toast = document.getElementById('toast-msg');
+      toast.innerText = `ĐÃ LƯU MÃ: ${code}`;
+      toast.classList.remove('opacity-0', 'translate-y-4');
+
       setTimeout(() => {
-        textSpan.innerText = "Sao chép";
-        btnElement.classList.remove('bg-emerald-500', 'text-white');
-        btnElement.classList.add('bg-white', 'text-black');
+        btn.innerText = "Sao chép";
+        btn.classList.remove('bg-[#6d1f1f]', 'text-[#ffffff]', 'border-[#6d1f1f]');
+        btn.classList.add('text-[#0e0e0e]', 'border-[#0e0e0e]', 'bg-white');
+        toast.classList.add('opacity-0', 'translate-y-4');
       }, 2000);
-      
-    }).catch(err => {
-      console.error('Lỗi khi sao chép: ', err);
-      if(typeof showToast === 'function') {
-        showToast("LỖI SAO CHÉP MÃ", true);
-      } else {
-        alert('Trình duyệt không hỗ trợ. Vui lòng tự bôi đen mã.');
-      }
-    });
+    }).catch(() => alert('Vui lòng tự bôi đen mã để copy.'));
   }
 </script>
+{% endblock %}
 {% endblock %}

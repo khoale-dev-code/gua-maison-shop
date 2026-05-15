@@ -1,0 +1,114 @@
+{# ════════════════════════════════════════════════════════════════
+   _modal_role.html
+   Modal tạo mới / chỉnh sửa nhóm quyền.
+   Dùng chung cho cả CREATE và EDIT (phân biệt qua data-mode).
+   ════════════════════════════════════════════════════════════════ #}
+
+<div id="modal-role" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="modal-role-title">
+  <div class="modal-box">
+
+    {# ── Header ── #}
+    <div class="flex items-center justify-between px-6 py-4 border-b border-line shrink-0">
+      <div class="flex items-center gap-3">
+        <div class="w-8 h-8 bg-ink text-paper rounded-md flex items-center justify-center text-sm">
+          <i class="fa-solid fa-user-shield fa-xs"></i>
+        </div>
+        <h2 id="modal-role-title" class="text-[15px] font-bold text-ink">Tạo nhóm quyền mới</h2>
+      </div>
+      <button onclick="RolesUI.closeRole()"
+        class="w-8 h-8 flex items-center justify-center rounded-md text-muted hover:text-ink hover:bg-paper transition-colors">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+    </div>
+
+    {# ── Body ── #}
+    <div class="modal-body">
+
+      {# Tên nhóm quyền #}
+      <div class="mb-5">
+        <label for="role-form-name"
+               class="block text-[10px] font-bold text-muted uppercase tracking-[0.15em] mb-2">
+          Tên nhóm quyền <span class="text-red-500">*</span>
+        </label>
+        <input
+          type="text"
+          id="role-form-name"
+          autocomplete="off"
+          placeholder="Ví dụ: Nhân viên kinh doanh"
+          class="w-full bg-paper border border-line text-ink text-sm px-4 py-2.5
+                 rounded-md focus:outline-none focus:border-ink/40 focus:bg-white
+                 transition-colors placeholder-muted">
+      </div>
+
+      {# Slug #}
+      <div class="mb-6">
+        <label for="role-form-slug"
+               class="block text-[10px] font-bold text-muted uppercase tracking-[0.15em] mb-2">
+          Slug (định danh)
+          <i id="slug-lock-icon" class="fa-solid fa-lock text-muted ml-1" style="display:none;" title="Slug không thể thay đổi sau khi tạo"></i>
+          <span class="text-red-500">*</span>
+        </label>
+        <input
+          type="text"
+          id="role-form-slug"
+          autocomplete="off"
+          placeholder="Ví dụ: sales_staff"
+          class="w-full bg-paper border border-line text-ink text-sm px-4 py-2.5
+                 rounded-md focus:outline-none focus:border-ink/40 focus:bg-white
+                 transition-colors placeholder-muted font-mono read-only:bg-stone-100
+                 read-only:text-muted read-only:cursor-not-allowed">
+        <p class="text-[10px] text-muted mt-1.5">
+          Chỉ dùng chữ thường, số, dấu gạch dưới. Không thể thay đổi sau khi tạo.
+        </p>
+      </div>
+
+      {# Permissions #}
+      <div>
+        <div class="flex items-center justify-between mb-3">
+          <label class="text-[10px] font-bold text-muted uppercase tracking-[0.15em]">
+            Danh sách quyền hạn
+          </label>
+          <div class="flex items-center gap-3">
+            <button type="button"
+              onclick="document.querySelectorAll('#perm-grid-container input[type=checkbox]').forEach(el=>el.checked=true)"
+              class="text-[10px] font-bold text-ink underline underline-offset-2 hover:text-warm transition-colors">
+              Chọn tất cả
+            </button>
+            <span class="text-muted text-[10px]">·</span>
+            <button type="button"
+              onclick="document.querySelectorAll('#perm-grid-container input[type=checkbox]').forEach(el=>el.checked=false)"
+              class="text-[10px] font-bold text-muted underline underline-offset-2 hover:text-ink transition-colors">
+              Bỏ chọn
+            </button>
+          </div>
+        </div>
+
+        {# Grid permissions được build bởi JS #}
+        <div id="perm-grid-container"
+             class="max-h-[340px] overflow-y-auto pr-1 space-y-0 no-scrollbar">
+          {# JS: RolesUI → buildPermGrid() #}
+        </div>
+      </div>
+
+    </div>{# /modal-body #}
+
+    {# ── Footer ── #}
+    <div class="flex items-center justify-end gap-3 px-6 py-4 border-t border-line shrink-0">
+      <button
+        onclick="RolesUI.closeRole()"
+        class="px-5 py-2 text-[11px] font-bold uppercase tracking-wider
+               border border-line rounded-md text-muted hover:text-ink transition-colors">
+        Hủy
+      </button>
+      <button
+        id="btn-save-role"
+        onclick="RolesUI.submitRole()"
+        class="px-6 py-2 text-[11px] font-bold uppercase tracking-wider
+               bg-ink text-paper rounded-md hover:bg-warm transition-colors
+               disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2">
+        Lưu thay đổi
+      </button>
+    </div>
+
+  </div>
+</div>

@@ -3,13 +3,15 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  
+  <!-- CSRF Token (quan trọng cho Ajax POST) -->
+  <meta name="csrf-token" content="{{ csrf_token() }}">
+
   {# 👉 TỰ ĐỘNG LẤY TÊN SHOP TỪ DATABASE #}
   <title>{% block title %}{{ system_settings.get('general', {}).get('shop_name') or 'GUA ADMIN' }} | Trung tâm quản trị{% endblock %}</title>
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,500&display=swap" 
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant:ital,wght@0,400;0,600;0,700;1,400&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,500&display=swap" 
         rel="stylesheet">
 
   <script src="https://cdn.tailwindcss.com"></script>
@@ -21,7 +23,8 @@
       theme: {
         extend: {
           fontFamily: { 
-            sans: ['DM Sans', 'system-ui', 'sans-serif'],
+            sans: ['"DM Sans"', 'system-ui', 'sans-serif'],
+            display: ['"Cormorant"', 'serif'],
             mono: ['ui-monospace', 'SFMono-Regular', 'Menlo', 'Monaco', 'Consolas', 'monospace']
           },
           boxShadow: {
@@ -145,7 +148,6 @@
     });
     
     function initTailwind() {
-      // Lấy tên shop động thả vào console log
       const shopName = "{{ system_settings.get('general', {}).get('shop_name') or 'GUA' }}";
       console.log(`%c${shopName} Admin Dashboard loaded successfully`, 'color: #4f46e5; font-weight: 600;');
     }
