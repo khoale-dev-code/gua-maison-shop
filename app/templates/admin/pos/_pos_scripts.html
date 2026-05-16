@@ -1,8 +1,6 @@
 {# =============================================================
    templates/admin/pos/_pos_scripts.html
    Toàn bộ logic JS POS — include sau thẻ #products-data
-   Cấu trúc: INIT · BARCODE · SEARCH · GRID · VARIANT · CART
-             TOTALS · PAYMENT · CHECKOUT · TRANSFER · PRINT · RESET
    ============================================================= #}
 <script>
 const POS = {
@@ -16,9 +14,119 @@ const POS = {
     this.renderGrid();
     this._initUsb();
     document.addEventListener('click', e => {
-      if (!document.getElementById('search-box').contains(e.target))
-        document.getElementById('posDropdown').style.display = 'none';
+      if (e.target.id !== 'posSearch' && !document.getElementById('posDropdown').contains(e.target)) {
+          document.getElementById('posDropdown').style.display = 'none';
+      }
     });
+  },
+
+  /* ─── TRA CỨU KHÁCH HÀNG & QUẢN LÝ ĐIỂM (CẬP NHẬT MỚI) ─── */
+  lookupCustomer: async function() {
+    const phoneInput = document.getElementById('customerPhone');
+    const suggestBox = document.getElementById('loyaltySuggest');
+    const redeemWrapper = document.getElementById('redeemPointsWrapper');
+    const nameInput = document.getElementById('customerName');
+    const redeemInput = document.getElementById('redeemPoints');
+    const lblAvailPoints = document.getElementById('lblAvailPoints');
+
+    if (!phoneInput) return;
+    const phone = phoneInput.value.trim();
+
+    // Nếu xóa trắng số điện thoại -> Ẩn toàn bộ form hỏi điểm & reset
+    if (!phone) {
+        if(suggestBox) suggestBox.classList.replace('flex', 'hidden');
+        if(redeemWrapper) redeemWrapper.classList.replace('block', 'hidden');
+        if(redeemInput) redeemInput.value = '';
+        if(nameInput) nameInput.value = '';
+        this.calcTotal();
+        return;
+    }
+    
+    if (nameInput) nameInput.placeholder = "Đang tra cứu...";
+
+    try {
+        const res = await fetch('/admin/pos-lookup-customer', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token() }}' },
+            body: JSON.stringify({ phone })
+        });
+        const data = await res.json();
+        
+        if (data.success) {
+            // 1. Điền tên khách hàng
+            if (nameInput) {
+                nameInput.value = data.name || '';
+                nameInput.placeholder = "Tên khách (tùy chọn)";
+            }
+            this.showToast(`${data.name ? data.name : 'Khách hàng'} hiện có ${data.points} điểm (${data.tier})`, true);
+            
+            // 2. Xử lý luồng hỏi ý kiến Tiêu điểm
+            if (data.points > 0) {
+                if(lblAvailPoints) lblAvailPoints.textContent = data.points;
+                if(redeemInput) redeemInput.max = data.points;
+                
+                // Hiện câu hỏi "Có muốn dùng không?"
+                if(suggestBox) {
+                    suggestBox.classList.remove('hidden');
+                    suggestBox.classList.add('flex');
+                }
+                // Ẩn ô nhập điểm tạm thời cho đến khi bấm Có
+                if(redeemWrapper) {
+                    redeemWrapper.classList.remove('block');
+                    redeemWrapper.classList.add('hidden');
+                }
+            } else {
+                // Khách có tài khoản nhưng 0 điểm -> Giấu khung hỏi
+                if(suggestBox) suggestBox.classList.replace('flex', 'hidden');
+                if(redeemWrapper) redeemWrapper.classList.replace('block', 'hidden');
+            }
+
+        } else {
+            // 3. Không tìm thấy khách (Chưa có tài khoản) -> Bỏ qua, giấu hết khung điểm
+            this.showToast(data.message, false);
+            if (nameInput) {
+                nameInput.value = '';
+                nameInput.placeholder = "Tên khách (tùy chọn)";
+            }
+            if(suggestBox) suggestBox.classList.replace('flex', 'hidden');
+            if(redeemWrapper) redeemWrapper.classList.replace('block', 'hidden');
+            if(redeemInput) redeemInput.value = '';
+            
+            this.calcTotal(); 
+        }
+    } catch (e) {
+        this.showToast('Lỗi tra cứu thông tin khách hàng', false);
+        if (nameInput) nameInput.placeholder = "Tên khách (tùy chọn)";
+    }
+  },
+
+  // Hàm xử lý khi thu ngân bấm CÓ hoặc KHÔNG
+  showRedeemInput: function(show) {
+      const suggestBox = document.getElementById('loyaltySuggest');
+      const redeemWrapper = document.getElementById('redeemPointsWrapper');
+      const redeemInput = document.getElementById('redeemPoints');
+
+      if (show) {
+          // Khách đồng ý dùng điểm -> Ẩn câu hỏi, Hiện ô nhập, Focus
+          if(suggestBox) suggestBox.classList.replace('flex', 'hidden');
+          if(redeemWrapper) {
+              redeemWrapper.classList.remove('hidden');
+              redeemWrapper.classList.add('block');
+          }
+          if(redeemInput) {
+              redeemInput.placeholder = `Tối đa ${redeemInput.max} điểm...`;
+              redeemInput.focus();
+          }
+      } else {
+          // Khách không dùng -> Ẩn câu hỏi, Ẩn ô nhập, Xóa dữ liệu điểm cũ
+          if(suggestBox) suggestBox.classList.replace('flex', 'hidden');
+          if(redeemWrapper) {
+              redeemWrapper.classList.remove('block');
+              redeemWrapper.classList.add('hidden');
+          }
+          if(redeemInput) redeemInput.value = '';
+          this.calcTotal(); 
+      }
   },
 
   /* ─── USB SCANNER ─── */
@@ -54,15 +162,27 @@ const POS = {
       x.name.toLowerCase() === code.toLowerCase()
     );
     const sb = document.getElementById('posSearch');
-    sb.classList.add('scan-flash');
-    setTimeout(() => sb.classList.remove('scan-flash'), 400);
+    if (sb) {
+        sb.classList.add('scan-flash');
+        setTimeout(() => sb.classList.remove('scan-flash'), 400);
+    }
+    
     if (p) { this.showToast('Quét: ' + p.name, true); this.handleSelect(p.id); }
-    else { sb.value = code; this.filterProducts(); this.showToast('Không tìm thấy: ' + code, false); }
+    else { 
+        if(sb) { sb.value = code; this.filterProducts(); }
+        this.showToast('Không tìm thấy: ' + code, false); 
+    }
   },
 
   /* ─── CAMERA ─── */
   openCameraScanner() {
-    document.getElementById('barcodeCameraModal').classList.add('open');
+    document.getElementById('barcodeCameraModal').classList.remove('hidden');
+    document.getElementById('barcodeCameraModal').classList.add('flex');
+    setTimeout(() => {
+        document.getElementById('barcodeCameraModal').classList.replace('opacity-0', 'opacity-100');
+        document.getElementById('camContent').classList.replace('scale-95', 'scale-100');
+    }, 10);
+    
     document.getElementById('bcStatus').textContent = 'Đang khởi động camera...';
     Quagga.init({
       inputStream: { name: 'Live', type: 'LiveStream', target: document.querySelector('#interactive'),
@@ -83,7 +203,12 @@ const POS = {
   },
   closeCameraScanner() {
     if (this._cameraOn) { try { Quagga.stop(); } catch {} this._cameraOn = false; }
-    document.getElementById('barcodeCameraModal').classList.remove('open');
+    document.getElementById('barcodeCameraModal').classList.replace('opacity-100', 'opacity-0');
+    document.getElementById('camContent').classList.replace('scale-100', 'scale-95');
+    setTimeout(() => {
+        document.getElementById('barcodeCameraModal').classList.remove('flex');
+        document.getElementById('barcodeCameraModal').classList.add('hidden');
+    }, 200);
   },
 
   /* ─── UTILS ─── */
@@ -96,27 +221,42 @@ const POS = {
   thumb(url) {
     return url
       ? `<img src="${url}" style="width:100%;height:100%;object-fit:cover;object-position:top">`
-      : `<i class="fa-solid fa-image" style="font-size:16px;color:var(--c-border2)"></i>`;
+      : `<i class="fa-solid fa-image" style="font-size:16px;color:#d6d3d1"></i>`;
   },
   showToast(msg, ok) {
     const t = document.getElementById('posToast');
-    t.className = 'show ' + (ok ? 'ok' : 'err');
-    document.getElementById('posToastIcon').className = 'fa-solid ' + (ok ? 'fa-check' : 'fa-xmark');
-    document.getElementById('posToastMsg').textContent = msg;
+    if(!t) return;
+    t.classList.replace('hidden', 'flex');
+    void t.offsetWidth;
+    t.classList.replace('opacity-0', 'opacity-100');
+    t.style.backgroundColor = ok ? '#10b981' : '#f43f5e';
+    t.style.borderColor = ok ? '#059669' : '#e11d48';
+    
+    const icon = document.getElementById('posToastIcon');
+    if(icon) icon.className = 'fa-solid ' + (ok ? 'fa-check' : 'fa-xmark');
+    
+    const msgEl = document.getElementById('posToastMsg');
+    if(msgEl) msgEl.textContent = msg;
+    
     clearTimeout(this._toastT);
-    this._toastT = setTimeout(() => t.className = '', 2800);
+    this._toastT = setTimeout(() => {
+        t.classList.replace('opacity-100', 'opacity-0');
+        setTimeout(() => t.classList.replace('flex', 'hidden'), 200);
+    }, 3500); 
   },
 
   /* ─── SEARCH DROPDOWN ─── */
   filterProducts() {
     const kw = document.getElementById('posSearch').value.toLowerCase().trim();
     const dd = document.getElementById('posDropdown');
-    document.getElementById('posClearSearch').style.display = kw ? '' : 'none';
+    const clearBtn = document.getElementById('posClearSearch');
+    
+    if(clearBtn) clearBtn.style.display = kw ? 'flex' : 'none';
     if (!kw) { dd.style.display = 'none'; return; }
 
     const res = this.db.filter(p =>
-      p.name.toLowerCase().includes(kw) || String(p.id).includes(kw)
-    ).slice(0, 15);
+      p.name.toLowerCase().includes(kw) || String(p.id).includes(kw) || String(p.barcode || '').includes(kw)
+    ).slice(0, 10);
 
     dd.innerHTML = res.length
       ? res.map(p => {
@@ -124,47 +264,54 @@ const POS = {
             ? p.product_variants.reduce((s,v) => s + (v.stock||0), 0)
             : (p.stock || 0);
           const oos = stock <= 0;
-          return `<div class="dd-row${oos ? '" style="opacity:.45' : ''}" onclick="POS.handleSelect('${p.id}')">
-            <div class="dd-thumb">${this.thumb(p.thumbnail_url)}</div>
-            <div class="dd-info">
-              <div class="dd-name">${p.name}</div>
-              <div class="dd-price">${this.fmt(p.price)}</div>
-            </div>
-            <span class="dd-pill ${oos ? 'oos' : 'stk'}">${oos ? 'Hết' : stock + ' kho'}</span>
-          </div>`;
+          return `
+            <div class="flex items-center gap-3 p-2 rounded-xl cursor-pointer hover:bg-stone-50 border border-transparent hover:border-stone-200 transition-all ${oos ? 'opacity-50 grayscale' : ''}" onclick="POS.handleSelect('${p.id}')">
+              <div class="w-10 h-12 rounded-lg overflow-hidden shrink-0 border border-stone-200 bg-white">${this.thumb(p.thumbnail_url)}</div>
+              <div class="flex-1 min-w-0">
+                <div class="text-[11px] font-bold text-stone-900 truncate">${p.name}</div>
+                <div class="text-[10px] font-black text-blue-600 mt-0.5">${this.fmt(p.price)}</div>
+              </div>
+              <span class="px-2 py-1 rounded-md text-[9px] font-bold uppercase tracking-widest ${oos ? 'bg-rose-50 text-rose-600 border border-rose-100' : 'bg-stone-100 text-stone-500 border border-stone-200'}">
+                ${oos ? 'Hết' : stock + ' kho'}
+              </span>
+            </div>`;
         }).join('')
-      : `<div style="padding:20px;text-align:center;font-size:11px;color:var(--c-muted);font-weight:600;text-transform:uppercase;letter-spacing:.1em">Không tìm thấy</div>`;
-    dd.style.display = '';
+      : `<div class="p-6 text-center flex flex-col items-center"><div class="w-10 h-10 bg-stone-50 rounded-full flex items-center justify-center mb-2"><i class="fa-solid fa-box-open text-stone-300"></i></div><span class="text-[10px] font-bold text-stone-400 uppercase tracking-widest">Không tìm thấy</span></div>`;
+    dd.style.display = 'block';
   },
   clearSearch() {
     const el = document.getElementById('posSearch');
     el.value = '';
-    document.getElementById('posClearSearch').style.display = 'none';
+    const clearBtn = document.getElementById('posClearSearch');
+    if(clearBtn) clearBtn.style.display = 'none';
     document.getElementById('posDropdown').style.display = 'none';
     el.focus();
   },
 
   /* ─── QUICK GRID ─── */
   renderGrid() {
-    document.getElementById('quickGrid').innerHTML = this.db.slice(0, 20).map(p => {
+    const grid = document.getElementById('quickGrid');
+    if(!grid) return;
+    
+    grid.innerHTML = this.db.slice(0, 30).map(p => {
       const oos = (p.stock || 0) <= 0 && !p.product_variants?.length;
-      return `<div class="qcard" onclick="POS.handleSelect('${p.id}')">
-        <div class="qcard-img">
-          ${p.thumbnail_url ? `<img src="${p.thumbnail_url}" loading="lazy">` : ''}
-          ${oos ? `<div class="qcard-oos"><span>Hết hàng</span></div>` : ''}
+      return `
+      <div class="bg-white border border-stone-200 rounded-[1.25rem] overflow-hidden cursor-pointer hover:border-blue-500 hover:shadow-lg hover:-translate-y-0.5 transition-all flex flex-col group ${oos ? 'opacity-50 grayscale' : ''}" onclick="POS.handleSelect('${p.id}')">
+        <div class="relative aspect-[3/4] bg-stone-50 overflow-hidden border-b border-stone-100">
+            <div class="absolute inset-0 group-hover:scale-105 transition-transform duration-500">${this.thumb(p.thumbnail_url)}</div>
+            ${oos ? `<div class="absolute inset-0 bg-white/70 flex items-center justify-center backdrop-blur-[2px]"><span class="bg-stone-900 text-white text-[9px] font-bold px-3 py-1.5 rounded-lg uppercase tracking-widest shadow-sm">Hết hàng</span></div>` : ''}
         </div>
-        <div class="qcard-body">
-          <div class="qcard-name">${p.name}</div>
-          <div class="qcard-price">${this.fmt(p.price)}</div>
+        <div class="p-3.5 flex flex-col flex-1 bg-white relative z-10">
+            <div class="font-bold text-[11px] text-stone-900 line-clamp-2 leading-snug mb-1">${p.name}</div>
+            <div class="font-black text-xs text-blue-600 mt-auto">${this.fmt(p.price)}</div>
         </div>
       </div>`;
     }).join('');
   },
+  
   handleSelect(id) {
     const p = this.db.find(x => String(x.id) === String(id)); if (!p) return;
-    document.getElementById('posDropdown').style.display = 'none';
-    document.getElementById('posSearch').value = '';
-    document.getElementById('posClearSearch').style.display = 'none';
+    this.clearSearch();
     if (p.product_variants?.length) { this.openVariantModal(p); return; }
     if ((p.stock || 0) <= 0) { this.showToast('Sản phẩm đã hết hàng', false); return; }
     this.addToCart(p, null, p.price);
@@ -177,32 +324,57 @@ const POS = {
     document.getElementById('vmPrice').textContent = this.fmt(p.price);
     const img = document.getElementById('vmImg');
     img.innerHTML = p.thumbnail_url ? `<img src="${p.thumbnail_url}" style="width:100%;height:100%;object-fit:cover">` : '';
+    
     const colors = [...new Set(p.product_variants.map(v => v.color_name).filter(Boolean))];
     const sizes  = [...new Set(p.product_variants.map(v => v.size).filter(Boolean))];
     let html = '';
+    
     if (colors.length) {
-      html += `<div class="vm-sect">Màu sắc</div><div class="chip-row">`;
+      html += `<div class="text-[10px] font-bold text-stone-400 uppercase tracking-widest mb-2.5">Màu sắc</div><div class="flex flex-wrap gap-2 mb-5">`;
       colors.forEach(c => {
         const v = p.product_variants.find(x => x.color_name === c);
-        const dot = v?.color_hex ? `<span class="cdot" style="background:${v.color_hex}"></span>` : '';
-        html += `<button class="chip vm-color" onclick="POS._pickColor(this,'${c}')">${dot}${c}</button>`;
+        const dot = v?.color_hex ? `<span class="w-3 h-3 rounded-full border border-black/10 shadow-sm" style="background:${v.color_hex}"></span>` : '';
+        html += `<button class="vm-color px-4 py-2.5 bg-white border border-stone-200 rounded-xl text-xs font-bold text-stone-600 flex items-center gap-2 hover:border-stone-400 transition-colors" onclick="POS._pickColor(this,'${c}')">${dot}${c}</button>`;
       });
       html += `</div>`;
     }
     if (sizes.length) {
-      html += `<div class="vm-sect">Size</div><div class="chip-row">`;
+      html += `<div class="text-[10px] font-bold text-stone-400 uppercase tracking-widest mb-2.5">Kích cỡ</div><div class="flex flex-wrap gap-2 mb-2">`;
       sizes.forEach(s => {
-        html += `<button class="chip vm-size" onclick="POS._pickSize(this,'${s}')">${s}</button>`;
+        html += `<button class="vm-size min-w-[3rem] px-4 py-2.5 bg-white border border-stone-200 rounded-xl text-xs font-bold text-stone-600 hover:border-stone-400 transition-colors text-center" onclick="POS._pickSize(this,'${s}')">${s}</button>`;
       });
       html += `</div>`;
     }
     document.getElementById('vmOptions').innerHTML = html;
-    if (colors[0]) { this._selColor = colors[0]; document.querySelector('.vm-color')?.classList.add('sel'); }
-    if (sizes[0])  { this._selSize  = sizes[0];  document.querySelector('.vm-size')?.classList.add('sel'); }
-    document.getElementById('variantModal').classList.add('open');
+    
+    if (colors[0]) { 
+        this._selColor = colors[0]; 
+        setTimeout(() => document.querySelector('.vm-color')?.classList.add('ring-2', 'ring-blue-600', 'border-blue-600', 'text-blue-700', 'bg-blue-50'), 0); 
+    }
+    if (sizes[0]) { 
+        this._selSize = sizes[0]; 
+        setTimeout(() => document.querySelector('.vm-size')?.classList.add('ring-2', 'ring-blue-600', 'border-blue-600', 'text-blue-700', 'bg-blue-50'), 0); 
+    }
+    
+    document.getElementById('variantModal').classList.remove('hidden');
+    document.getElementById('variantModal').classList.add('flex');
+    setTimeout(() => {
+        document.getElementById('variantModal').classList.replace('opacity-0', 'opacity-100');
+        document.getElementById('vmContent').classList.replace('scale-95', 'scale-100');
+    }, 10);
   },
-  _pickColor(btn, c) { document.querySelectorAll('.vm-color').forEach(b => b.classList.remove('sel')); btn.classList.add('sel'); this._selColor = c; },
-  _pickSize(btn, s)  { document.querySelectorAll('.vm-size').forEach(b => b.classList.remove('sel')); btn.classList.add('sel'); this._selSize  = s; },
+  
+  _pickColor(btn, c) { 
+      document.querySelectorAll('.vm-color').forEach(b => b.classList.remove('ring-2', 'ring-blue-600', 'border-blue-600', 'text-blue-700', 'bg-blue-50')); 
+      btn.classList.add('ring-2', 'ring-blue-600', 'border-blue-600', 'text-blue-700', 'bg-blue-50'); 
+      this._selColor = c; 
+  },
+  _pickSize(btn, s) { 
+      document.querySelectorAll('.vm-size').forEach(b => b.classList.remove('ring-2', 'ring-blue-600', 'border-blue-600', 'text-blue-700', 'bg-blue-50')); 
+      btn.classList.add('ring-2', 'ring-blue-600', 'border-blue-600', 'text-blue-700', 'bg-blue-50'); 
+      this._selSize = s; 
+  },
+  
   confirmVariant() {
     const p = this._variantProduct; if (!p) return;
     const v = p.product_variants.find(x =>
@@ -214,7 +386,16 @@ const POS = {
     this.addToCart(p, v, v.price_override || p.price);
     this.closeVariantModal();
   },
-  closeVariantModal() { document.getElementById('variantModal').classList.remove('open'); this._variantProduct = null; },
+  
+  closeVariantModal() { 
+      document.getElementById('variantModal').classList.replace('opacity-100', 'opacity-0');
+      document.getElementById('vmContent').classList.replace('scale-100', 'scale-95');
+      setTimeout(() => {
+          document.getElementById('variantModal').classList.remove('flex');
+          document.getElementById('variantModal').classList.add('hidden');
+      }, 200);
+      this._variantProduct = null; 
+  },
 
   /* ─── CART ─── */
   addToCart(product, variant, price) {
@@ -223,110 +404,227 @@ const POS = {
     if (ex) ex.qty++; else this.cart.push({ cid: key, product, variant, price, qty: 1 });
     this.renderCart(); this.showToast('Đã thêm: ' + product.name, true);
   },
+  
   updateQty(cid, d) {
     const i = this.cart.findIndex(x => x.cid === cid); if (i < 0) return;
     this.cart[i].qty += d;
     if (this.cart[i].qty <= 0) this.cart.splice(i, 1);
     this.renderCart();
   },
+  
   renderCart() {
     const list = document.getElementById('cartList');
     const empty = document.getElementById('cart-empty');
     const btn = document.getElementById('btnCheckout');
+    
     if (!this.cart.length) {
-      list.innerHTML = ''; empty.style.display = ''; btn.disabled = true;
-      ['cartQty','txtSubtotal','txtDiscount','txtTotal'].forEach(id => {
-        const el = document.getElementById(id);
-        if (el) el.textContent = id === 'txtDiscount' ? '– 0 ₫' : (id === 'cartQty' ? '0' : '0 ₫');
-      });
+      if(list) list.innerHTML = ''; 
+      if(empty) empty.style.display = 'flex'; 
+      if(btn) btn.disabled = true;
+      
+      const elements = {
+          'cartQty': '0',
+          'txtSubtotal': '0 ₫',
+          'txtDiscount': '- 0 ₫',
+          'txtTotal': '0 <span class="text-xl xl:text-2xl underline decoration-blue-200">₫</span>'
+      };
+      
+      for(let id in elements) {
+          const el = document.getElementById(id);
+          if (el) {
+              if(id === 'txtTotal') el.innerHTML = elements[id];
+              else el.textContent = elements[id];
+          }
+      }
+      
+      const txtPointsUsed = document.getElementById('txtPointsUsed');
+      if (txtPointsUsed) txtPointsUsed.style.display = 'none';
+      
       return;
     }
-    empty.style.display = 'none'; btn.disabled = false;
+    
+    if(empty) empty.style.display = 'none'; 
+    if(btn) btn.disabled = false;
+    
     list.innerHTML = this.cart.map(item => `
-      <div class="citem">
-        <div class="cthumb">${this.thumb(item.product.thumbnail_url)}</div>
-        <div class="cdata">
-          <div class="cname">${item.product.name}</div>
-          ${item.variant ? `<div class="cvar">${item.variant.color_name||''}${item.variant.size?' · Size '+item.variant.size:''}</div>` : ''}
-          <div class="cprice">${this.fmt(item.price)}</div>
+      <div class="flex items-center gap-3.5 bg-white border border-stone-200 rounded-[1.25rem] p-3 hover:border-blue-300 transition-colors shadow-sm">
+        <div class="w-14 h-16 rounded-xl overflow-hidden border border-stone-100 shrink-0 bg-stone-50">${this.thumb(item.product.thumbnail_url)}</div>
+        <div class="flex-1 min-w-0">
+          <div class="font-bold text-[11px] text-stone-900 line-clamp-2 leading-tight">${item.product.name}</div>
+          ${item.variant ? `<div class="text-[9px] font-bold text-stone-500 mt-1 uppercase tracking-widest bg-stone-100 inline-block px-1.5 py-0.5 rounded">${item.variant.color_name||''} ${item.variant.size||''}</div>` : ''}
+          <div class="font-black text-xs text-blue-600 mt-1.5">${this.fmt(item.price)}</div>
         </div>
-        <div class="qty-ctrl">
-          <button class="qty-btn" onclick="POS.updateQty('${item.cid}',-1)"><i class="fa-solid fa-minus"></i></button>
-          <span class="qty-num">${item.qty}</span>
-          <button class="qty-btn" onclick="POS.updateQty('${item.cid}',1)"><i class="fa-solid fa-plus"></i></button>
+        <div class="flex flex-col items-center bg-stone-50 border border-stone-200 rounded-xl overflow-hidden shrink-0 shadow-inner">
+          <button class="w-9 h-8 flex items-center justify-center text-stone-500 hover:bg-white hover:text-blue-600 transition-colors" onclick="POS.updateQty('${item.cid}',1)"><i class="fa-solid fa-plus text-[10px]"></i></button>
+          <span class="w-9 text-center font-black text-xs text-stone-900 bg-white py-1 border-y border-stone-200">${item.qty}</span>
+          <button class="w-9 h-8 flex items-center justify-center text-stone-500 hover:bg-white hover:text-rose-600 transition-colors" onclick="POS.updateQty('${item.cid}',-1)"><i class="fa-solid fa-minus text-[10px]"></i></button>
         </div>
       </div>`).join('');
     this.calcTotal();
   },
 
-  /* ─── TOTALS ─── */
+  /* ─── TOTALS & LOYALTY REDEEM ─── */
   calcTotal() {
     let sub = 0, qty = 0;
     this.cart.forEach(i => { sub += i.price * i.qty; qty += i.qty; });
+    
     const sel = document.getElementById('posCoupon');
     const warn = document.getElementById('coupon-warn');
-    let disc = 0; warn.style.display = 'none';
-    if (sel.value && sub > 0) {
+    let disc = 0; 
+    
+    if(warn) warn.style.display = 'none';
+    
+    if (sel && sel.value && sub > 0) {
       const opt = sel.options[sel.selectedIndex];
       const minV = parseFloat(opt.dataset.min) || 0;
       if (sub < minV) {
-        warn.style.display = ''; warn.textContent = `Đơn tối thiểu ${this.fmt(minV)} để dùng mã này`;
+        if(warn) { warn.style.display = 'block'; warn.textContent = `⚠️ Đơn tối thiểu ${this.fmt(minV)} để dùng mã`; }
       } else {
         const val = parseFloat(opt.dataset.value), maxV = parseFloat(opt.dataset.max) || 0;
         disc = opt.dataset.type === 'percent' ? sub * (val / 100) : val;
         if (maxV > 0 && disc > maxV) disc = maxV;
-        if (disc > sub) disc = sub;
       }
     }
+    
+    const redeemInput = document.getElementById('redeemPoints');
+    let redeemPoints = 0;
+    
+    if (redeemInput) {
+        redeemPoints = parseInt(redeemInput.value, 10) || 0;
+        const maxPoints = parseInt(redeemInput.max, 10) || 0;
+        if (redeemPoints > maxPoints) {
+            redeemPoints = maxPoints;
+            redeemInput.value = redeemPoints;
+        }
+    }
+
+    let pointsDiscount = redeemPoints * 100;
+    
+    if (pointsDiscount > (sub - disc)) {
+        pointsDiscount = sub - disc;
+        redeemPoints = Math.floor(pointsDiscount / 100);
+        if (redeemInput) redeemInput.value = redeemPoints > 0 ? redeemPoints : '';
+    }
+    
+    disc += pointsDiscount;
+    if (disc > sub) disc = sub;
+
     const total = Math.max(0, sub - disc);
-    document.getElementById('cartQty').textContent = qty;
-    document.getElementById('txtSubtotal').textContent = this.fmt(sub);
-    document.getElementById('txtDiscount').textContent = '– ' + this.fmt(disc);
-    document.getElementById('txtTotal').textContent = this.fmt(total);
+    
+    if(document.getElementById('cartQty')) document.getElementById('cartQty').textContent = qty;
+    if(document.getElementById('txtSubtotal')) document.getElementById('txtSubtotal').textContent = this.fmt(sub);
+    if(document.getElementById('txtDiscount')) document.getElementById('txtDiscount').textContent = '- ' + this.fmt(disc);
+    
+    const txtPointsUsed = document.getElementById('txtPointsUsed');
+    if (txtPointsUsed) {
+        if (redeemPoints > 0) {
+            txtPointsUsed.textContent = `(Đã trừ ${redeemPoints} điểm)`;
+            txtPointsUsed.style.display = 'block';
+        } else {
+            txtPointsUsed.style.display = 'none';
+        }
+    }
+    
+    if(document.getElementById('txtTotal')) document.getElementById('txtTotal').innerHTML = `${Number(total).toLocaleString('vi-VN')} <span class="text-xl xl:text-2xl underline decoration-blue-200">₫</span>`;
+    
     this.calcChange();
-    if (this.method !== 'cash') this._updateQR();
+    if (this.method !== 'cash') this._updateQR(total);
   },
+  
   calcChange() {
     if (this.method !== 'cash') return;
-    const total = this.parseMoney(document.getElementById('txtTotal').textContent);
-    const given = this.parseMoney(document.getElementById('inputCash').value);
+    
+    const tEl = document.getElementById('txtTotal');
+    if(!tEl) return;
+    
+    const total = this.parseMoney(tEl.textContent);
+    
+    const iCash = document.getElementById('inputCash');
+    const given = iCash ? this.parseMoney(iCash.value) : 0;
+    
     const change = given >= total ? given - total : 0;
     const el = document.getElementById('txtChange');
-    el.textContent = this.fmt(change);
-    el.style.color = (given > 0 && given < total) ? 'var(--c-red)' : 'var(--c-green)';
+    
+    if(el) {
+        el.textContent = this.fmt(change);
+        el.style.color = (given > 0 && given < total) ? '#e11d48' : '#059669';
+    }
   },
 
   /* ─── PAYMENT METHOD ─── */
   setMethod(m) {
     this.method = m;
-    document.getElementById('btnCash').classList.toggle('active', m === 'cash');
-    document.getElementById('btnTransfer').classList.toggle('active', m !== 'cash');
-    document.getElementById('cashPanel').style.display = m === 'cash' ? '' : 'none';
-    document.getElementById('transferPanel').style.display = m !== 'cash' ? '' : 'none';
-    this.calcChange();
-    if (m !== 'cash') this._updateQR();
+    const c = document.getElementById('btnCash');
+    const t = document.getElementById('btnTransfer');
+    const cp = document.getElementById('cashPanel');
+    const tp = document.getElementById('transferPanel');
+    
+    if (!c || !t || !cp || !tp) return;
+
+    if(m === 'cash'){
+        c.className = "flex-1 py-3 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all bg-white border-2 border-blue-600 text-blue-700 shadow-sm flex items-center justify-center gap-2";
+        t.className = "flex-1 py-3 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all border-2 border-transparent text-stone-500 hover:bg-stone-200 hover:text-stone-900 flex items-center justify-center gap-2";
+        cp.style.display = 'block'; tp.style.display = 'none';
+    } else {
+        t.className = "flex-1 py-3 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all bg-white border-2 border-blue-600 text-blue-700 shadow-sm flex items-center justify-center gap-2";
+        c.className = "flex-1 py-3 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all border-2 border-transparent text-stone-500 hover:bg-stone-200 hover:text-stone-900 flex items-center justify-center gap-2";
+        cp.style.display = 'none'; tp.style.display = 'block';
+    }
+    this.calcChange(); if (m !== 'cash') this._updateQR();
   },
-  _updateQR() {
-    const total = this.parseMoney(document.getElementById('txtTotal').textContent);
-    document.getElementById('transferQR').src =
-      `https://img.vietqr.io/image/TCB-4890440016335294-compact2.png?amount=${total}&addInfo=GUA+MAISON&accountName=GUA+MAISON`;
+  
+  _updateQR(totalOverride) {
+    const tEl = document.getElementById('txtTotal');
+    if(!tEl) return;
+    const total = totalOverride !== undefined ? totalOverride : this.parseMoney(tEl.textContent);
+    
+    const qrImg = document.getElementById('transferQR');
+    if(qrImg) qrImg.src = `https://img.vietqr.io/image/TCB-4890440016335294-compact2.png?amount=${total}&addInfo=GUA+MAISON&accountName=GUA+MAISON`;
   },
 
   /* ─── CHECKOUT ─── */
   submit: async function() {
     if (!this.cart.length) return;
+    
+    const tEl = document.getElementById('txtTotal');
+    const total = this.parseMoney(tEl.textContent);
+    
+    const redeemInput = document.getElementById('redeemPoints');
+    const redeemPoints = redeemInput ? parseInt(redeemInput.value, 10) || 0 : 0;
+    
+    const phoneInput = document.getElementById('customerPhone');
+    const phone = phoneInput ? phoneInput.value.trim() : '';
+    
+    if (redeemPoints > 0 && !phone) {
+        this.showToast('Vui lòng nhập Số điện thoại để tiêu điểm!', false);
+        if (phoneInput) phoneInput.focus();
+        return;
+    }
+
     if (this.method === 'cash') {
-      const total = this.parseMoney(document.getElementById('txtTotal').textContent);
-      const given = this.parseMoney(document.getElementById('inputCash').value);
+      const iCash = document.getElementById('inputCash');
+      const given = iCash ? this.parseMoney(iCash.value) : 0;
       if (total > 0 && given < total) { this.showToast('Tiền khách đưa chưa đủ!', false); return; }
     }
-    const btn = document.getElementById('btnCheckout'); btn.disabled = true;
-    document.getElementById('lblCheckout').innerHTML = '<i class="fa-solid fa-rotate spin" style="margin-right:6px"></i>Đang xử lý...';
-    const disc = this.parseMoney(document.getElementById('txtDiscount').textContent);
+    
+    const btn = document.getElementById('btnCheckout'); 
+    if(btn) btn.disabled = true;
+    
+    const lbl = document.getElementById('lblCheckout');
+    if(lbl) lbl.innerHTML = '<i class="fa-solid fa-rotate spin mr-2"></i>Đang xử lý...';
+    
+    const dEl = document.getElementById('txtDiscount');
+    const disc = this.parseMoney(dEl ? dEl.textContent : '0');
+    
+    const cName = document.getElementById('customerName');
+    
     const payload = {
       payment_method: this.method,
       discount: disc,
-      coupon_id: document.getElementById('posCoupon').value || null,
+      coupon_id: document.getElementById('posCoupon')?.value || null,
+      customer_phone: phone,
+      customer_name: cName ? cName.value.trim() : '',
+      redeem_points: redeemPoints,
       items: this.cart.map(i => ({
         product_id: i.product.id,
         variant_id: i.variant ? i.variant.id : '',
@@ -334,6 +632,7 @@ const POS = {
         name: `${i.product.name}${i.variant ? ` (${i.variant.color_name||''}${i.variant.size?' Size '+i.variant.size:''})` : ''}`
       }))
     };
+    
     try {
       const res = await fetch("{{ url_for('admin.pos_checkout') }}", {
         method: 'POST',
@@ -341,31 +640,46 @@ const POS = {
         body: JSON.stringify(payload)
       });
       const data = await res.json();
+      
       if (data.success) {
+        const invoiceData = { ...data.invoice, customer_phone: payload.customer_phone, customer_name: payload.customer_name, redeem_points: payload.redeem_points };
+
         if (this.method === 'cash') {
-          this.showToast('Thanh toán thành công!', true);
-          this.printReceipt(data.invoice); this.resetCart();
+          this.showToast(data.message || 'Thanh toán thành công!', true);
+          this.printReceipt(invoiceData); 
+          this.resetCart();
         } else {
-          this._pendingInv = data.invoice;
-          this.openTransferModal(); this.startPolling(data.order_id);
+          this._pendingInv = invoiceData;
+          this.openTransferModal(); 
+          this.startPolling(data.order_id);
         }
-      } else { this.showToast(data.message || 'Lỗi xử lý', false); }
-    } catch { this.showToast('Lỗi kết nối máy chủ', false); }
+      } else { 
+          this.showToast(data.message || 'Lỗi xử lý', false); 
+      }
+    } catch { 
+        this.showToast('Lỗi kết nối máy chủ', false); 
+    }
     finally {
-      btn.disabled = false;
-      document.getElementById('lblCheckout').innerHTML = '<i class="fa-solid fa-print" style="margin-right:6px"></i>Thanh toán &amp; In hoá đơn';
+      if(btn) btn.disabled = false;
+      if(lbl) lbl.innerHTML = 'Chốt Đơn & In Bill';
     }
   },
 
   /* ─── TRANSFER POLLING (Casso) ─── */
   openTransferModal() {
-    const m = document.getElementById('transferWaitModal'); m.classList.add('open');
-    document.getElementById('twIcon').innerHTML = '<i class="fa-solid fa-rotate spin" style="color:var(--c-accent)"></i>';
+    const m = document.getElementById('transferWaitModal');
+    const c = document.getElementById('twContent');
+    if(m && c) {
+        m.classList.remove('hidden'); m.classList.add('flex');
+        setTimeout(() => { m.classList.replace('opacity-0', 'opacity-100'); c.classList.replace('scale-95', 'scale-100'); }, 10);
+    }
+    document.getElementById('twIcon').innerHTML = '<i class="fa-solid fa-rotate spin"></i>';
     document.getElementById('twTitle').textContent = 'Đang chờ thanh toán...';
-    document.getElementById('twSub').textContent = 'Hệ thống tự động xác nhận khi nhận được tiền';
+    document.getElementById('twSub').textContent = 'Hệ thống tự động chốt đơn khi nhận được tiền';
     document.getElementById('twActions').style.display = 'none';
-    document.getElementById('twCancelBtn').style.display = '';
+    document.getElementById('twCancelBtn').style.display = 'block';
   },
+  
   startPolling(orderId) {
     clearInterval(this._pollTimer);
     this._pollTimer = setInterval(async () => {
@@ -376,77 +690,67 @@ const POS = {
       } catch {}
     }, 3000);
   },
+  
   onTransferConfirmed() {
-    document.getElementById('twIcon').innerHTML = '<i class="fa-solid fa-circle-check" style="color:var(--c-green)"></i>';
+    document.getElementById('twIcon').innerHTML = '<i class="fa-solid fa-circle-check text-emerald-500"></i>';
     document.getElementById('twTitle').textContent = 'Thanh toán thành công!';
-    document.getElementById('twSub').textContent = 'Chuyển khoản đã được xác nhận';
-    const ac = document.getElementById('twActions'); ac.style.display = 'flex'; ac.style.flexDirection = 'column'; ac.style.gap = '8px';
-    document.getElementById('twCancelBtn').style.display = 'none';
-    this.showToast('Thanh toán thành công!', true); this.resetCart();
+    document.getElementById('twSub').textContent = 'Chuyển khoản hoàn tất. Điểm sẽ tự động cộng cho thành viên.';
+    
+    const ac = document.getElementById('twActions'); 
+    if(ac) { ac.style.display = 'flex'; ac.classList.remove('hidden'); }
+    
+    const cb = document.getElementById('twCancelBtn');
+    if(cb) cb.style.display = 'none';
+    
+    this.showToast('Thanh toán thành công!', true); 
+    this.resetCart();
   },
+  
   printReceiptFromModal() { if (this._pendingInv) this.printReceipt(this._pendingInv); },
-  cancelTransferWait() { clearInterval(this._pollTimer); document.getElementById('transferWaitModal').classList.remove('open'); },
-  closeTransferModal() { this.cancelTransferWait(); },
+  cancelTransferWait() { clearInterval(this._pollTimer); this.closeTransferModal(); },
+  closeTransferModal() { 
+      const m = document.getElementById('transferWaitModal');
+      const c = document.getElementById('twContent');
+      if(m && c) {
+          m.classList.replace('opacity-100', 'opacity-0');
+          c.classList.replace('scale-100', 'scale-95');
+          setTimeout(() => { m.classList.remove('flex'); m.classList.add('hidden'); }, 200);
+      }
+      clearInterval(this._pollTimer);
+  },
 
   /* ─── RESET ─── */
   resetCart() {
     this.cart = [];
-    document.getElementById('posCoupon').value = '';
-    document.getElementById('inputCash').value = '';
-    document.getElementById('txtChange').textContent = '0 ₫';
+    const elementsToClear = ['posCoupon', 'inputCash', 'customerPhone', 'customerName', 'redeemPoints'];
+    elementsToClear.forEach(id => { const el = document.getElementById(id); if(el) el.value = ''; });
+    
+    const redeemInput = document.getElementById('redeemPoints');
+    if(redeemInput) redeemInput.placeholder = 'Tiêu điểm (1 Điểm = 100 ₫)...';
+    
+    // Giấu khung gợi ý dùng điểm
+    const suggestBox = document.getElementById('loyaltySuggest');
+    const redeemWrapper = document.getElementById('redeemPointsWrapper');
+    if(suggestBox) suggestBox.classList.replace('flex', 'hidden');
+    if(redeemWrapper) redeemWrapper.classList.replace('block', 'hidden');
+
+    const txtChange = document.getElementById('txtChange');
+    if(txtChange) txtChange.textContent = '0 ₫';
+    
     this.renderCart();
   },
 
   /* ─── IN HOÁ ĐƠN 80mm ─── */
   printReceipt(inv) {
     const label = inv.payment_method === 'cash' ? 'Tiền mặt' : 'Chuyển khoản';
-    const rows = inv.items.map((i, idx) => `
-      <tr>
-        <td style="text-align:center;padding:3px 2px">${idx+1}</td>
-        <td style="padding:3px 4px">${i.name}</td>
-        <td style="text-align:center;padding:3px 2px">${i.qty}</td>
-        <td style="text-align:right;padding:3px 2px">${Number(i.price).toLocaleString('vi-VN')}</td>
-        <td style="text-align:right;padding:3px 2px">${(i.qty*i.price).toLocaleString('vi-VN')}</td>
-      </tr>`).join('');
-    const cashGiven = this.parseMoney(document.getElementById('inputCash')?.value);
-    const cashRows = inv.payment_method === 'cash' && cashGiven > 0 ? `
-      <div class="r"><span>Tiền khách đưa:</span><span>${cashGiven.toLocaleString('vi-VN')}</span></div>
-      <div class="r"><span>Tiền thối lại:</span><span>${Math.max(0,cashGiven-inv.total).toLocaleString('vi-VN')}</span></div>` : '';
-    const html = `<!DOCTYPE html><html lang="vi"><head><meta charset="UTF-8">
-<style>
-  @import url('https://fonts.googleapis.com/css2?family=Inconsolata:wght@400;700&display=swap');
-  @page{margin:0}body{font-family:'Inconsolata',monospace;width:80mm;margin:0 auto;color:#000;font-size:12px;padding:8mm 4mm;line-height:1.5}
-  .c{text-align:center}.b{font-weight:700}.r{display:flex;justify-content:space-between}
-  .d{border:none;border-bottom:1px dashed #000;margin:6px 0}
-  .store{font-size:20px;font-weight:700;letter-spacing:1px}
-  table{width:100%;border-collapse:collapse;font-size:11px}th{border-bottom:1px solid #000;padding:3px 2px;font-weight:700}td{vertical-align:top}
-  .tot{font-size:14px;font-weight:700}
-</style></head><body>
-  <div class="c"><div class="store">GUA MAISON</div><div>123 Nguyễn Trãi, Q1, TP.HCM</div><div>0909 123 456</div></div>
-  <hr class="d"><div class="c b" style="font-size:15px;margin:6px 0">HOÁ ĐƠN BÁN LẺ</div>
-  <div><div class="r"><span>Số HĐ:</span><span class="b">${inv.order_code}</span></div>
-  <div class="r"><span>Ngày:</span><span>${inv.date}</span></div>
-  <div class="r"><span>Thanh toán:</span><span class="b">${label}</span></div></div>
-  <hr class="d">
-  <table><thead><tr>
-    <th style="text-align:center;width:20px">STT</th><th style="text-align:left">Tên SP</th>
-    <th style="text-align:center;width:24px">SL</th><th style="text-align:right;width:55px">Đ.Giá</th>
-    <th style="text-align:right;width:60px">T.Tiền</th>
-  </tr></thead><tbody>${rows}</tbody></table>
-  <hr class="d">
-  <div class="r"><span>Tạm tính:</span><span>${inv.subtotal.toLocaleString('vi-VN')}</span></div>
-  ${inv.discount>0?`<div class="r"><span>Giảm giá:</span><span>-${inv.discount.toLocaleString('vi-VN')}</span></div>`:''}
-  <hr class="d"><div class="r tot"><span>THỰC THU:</span><span>${inv.total.toLocaleString('vi-VN')} ₫</span></div>
-  ${cashRows}<hr class="d">
-  <div class="c" style="margin-top:10px"><div class="b">CẢM ƠN QUÝ KHÁCH!</div>
-  <div style="font-size:10px;margin-top:4px">Giữ hoá đơn để đổi trả trong 7 ngày</div></div>
-  <script>window.onload=function(){window.print();setTimeout(()=>window.close(),500)}<\/script>
-</body></html>`;
-    const w = window.open('','_blank','width=420,height=680');
-    w.document.open(); w.document.write(html); w.document.close();
+    const rows = inv.items.map((i, idx) => `<tr><td style="text-align:center;padding:3px 2px">${idx+1}</td><td style="padding:3px 4px">${i.name}</td><td style="text-align:center;padding:3px 2px">${i.qty}</td><td style="text-align:right;padding:3px 2px">${Number(i.price).toLocaleString('vi-VN')}</td><td style="text-align:right;padding:3px 2px">${(i.qty*i.price).toLocaleString('vi-VN')}</td></tr>`).join('');
+    const iCash = document.getElementById('inputCash');
+    const cashGiven = iCash ? this.parseMoney(iCash.value) : 0;
+    const cashRows = inv.payment_method === 'cash' && cashGiven > 0 ? `<div class="r"><span>Tiền khách đưa:</span><span>${cashGiven.toLocaleString('vi-VN')}</span></div><div class="r"><span>Tiền thối lại:</span><span>${Math.max(0,cashGiven-inv.total).toLocaleString('vi-VN')}</span></div>` : '';
+    const customerInfoHtml = inv.customer_phone ? `<hr class="d"><div class="r"><span>Khách hàng:</span><span class="b">${inv.customer_name || 'Khách mua tại quầy'}</span></div><div class="r"><span>SĐT (Tích điểm):</span><span>${inv.customer_phone}</span></div>` : '';
+    const html = `<!DOCTYPE html><html lang="vi"><head><meta charset="UTF-8"><style>@import url('https://fonts.googleapis.com/css2?family=Inconsolata:wght@400;700&display=swap');@page{margin:0}body{font-family:'Inconsolata',monospace;width:80mm;margin:0 auto;color:#000;font-size:12px;padding:8mm 4mm;line-height:1.5}.c{text-align:center}.b{font-weight:700}.r{display:flex;justify-content:space-between}.d{border:none;border-bottom:1px dashed #000;margin:6px 0}.store{font-size:20px;font-weight:700;letter-spacing:1px}table{width:100%;border-collapse:collapse;font-size:11px}th{border-bottom:1px solid #000;padding:3px 2px;font-weight:700}td{vertical-align:top}.tot{font-size:14px;font-weight:700}</style></head><body><div class="c"><div class="store">GUA MAISON</div><div>123 Nguyễn Trãi, Q1, TP.HCM</div><div>0909 123 456</div></div><hr class="d"><div class="c b" style="font-size:15px;margin:6px 0">HOÁ ĐƠN BÁN LẺ</div><div><div class="r"><span>Số HĐ:</span><span class="b">${inv.order_code}</span></div><div class="r"><span>Ngày:</span><span>${inv.date}</span></div><div class="r"><span>Thanh toán:</span><span class="b">${label}</span></div></div>${customerInfoHtml}<hr class="d"><table><thead><tr><th style="text-align:center;width:20px">STT</th><th style="text-align:left">Tên SP</th><th style="text-align:center;width:24px">SL</th><th style="text-align:right;width:55px">Đ.Giá</th><th style="text-align:right;width:60px">T.Tiền</th></tr></thead><tbody>${rows}</tbody></table><hr class="d"><div class="r"><span>Tạm tính:</span><span>${inv.subtotal.toLocaleString('vi-VN')}</span></div>${inv.discount>0?`<div class="r"><span>Giảm giá${inv.redeem_points>0?` (${inv.redeem_points} điểm)`:''}:</span><span>-${inv.discount.toLocaleString('vi-VN')}</span></div>`:''}<hr class="d"><div class="r tot"><span>THỰC THU:</span><span>${inv.total.toLocaleString('vi-VN')} ₫</span></div>${cashRows}<hr class="d"><div class="c" style="margin-top:10px"><div class="b">CẢM ƠN QUÝ KHÁCH!</div><div style="font-size:10px;margin-top:4px">Giữ hoá đơn để đổi trả trong 7 ngày</div></div><script>window.onload=function(){window.print();setTimeout(()=>window.close(),500)}<\/script></body></html>`;
+    const w = window.open('','_blank','width=420,height=680'); w.document.open(); w.document.write(html); w.document.close();
   }
-
-}; // end POS
-
+};
 document.addEventListener('DOMContentLoaded', () => POS.init());
 </script>

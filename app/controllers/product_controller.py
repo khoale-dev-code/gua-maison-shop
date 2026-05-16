@@ -305,3 +305,10 @@ def contact():
     """Trang liên hệ chăm sóc khách hàng."""
     # Trỏ đúng vào thư mục partials theo ý bạn
     return render_template("partials/contact.html")
+
+
+# Khai báo đường dẫn /size-guide
+@products_bp.route('/size-guide')  # (Hoặc @shop_bp.route tùy vào cách bạn thiết lập Blueprint)
+def size_guide():
+    # Render file size_guide.html nằm trong thư mục templates/products
+    return render_template('products/size_guide.html')

@@ -4,162 +4,157 @@
 {% block extra_head %}
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Libre+Barcode+39+Extended+Text&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Manrope:wght@400;500;600;700;800&family=Libre+Barcode+39+Extended+Text&display=swap" rel="stylesheet">
 <style>
   :root {
     --ink: #0e0e0e;
-    --paper: #faf8f5;
+    --paper: #f8fafc; /* Đồng bộ nền với trang danh sách */
     --warm: #6d1f1f;
   }
 
   body {
     background-color: var(--paper);
     color: var(--ink);
+    font-family: 'Manrope', sans-serif;
   }
 
-  .font-barcode {
-    font-family: 'Libre Barcode 39 Extended Text', cursive;
-  }
+  .font-serif { font-family: 'Lora', Georgia, serif; }
+  .font-barcode { font-family: 'Libre Barcode 39 Extended Text', cursive; }
 
   @keyframes flyIn {
-    from {
-      opacity: 0;
-      transform: translateY(30px);
-    }
-
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
+    from { opacity: 0; transform: translateY(30px) scale(0.98); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
   }
+  .fly-in { animation: flyIn 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
 
-  .fly-in {
-    animation: flyIn 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-  }
-
-  /* Hiệu ứng xé vé (Cắt ở 2 bên hông) */
+  /* Hiệu ứng xé vé chuẩn xác hơn */
   .ticket-dash {
-    border-top: 1.5px dashed rgba(14, 14, 14, 0.15);
+    border-top: 2px dashed rgba(0, 0, 0, 0.06);
     position: relative;
   }
-
-  .ticket-dash::before,
-  .ticket-dash::after {
-    content: '';
-    position: absolute;
-    top: -13px;
-    width: 26px;
-    height: 26px;
-    background-color: var(--paper);
-    border-radius: 50%;
-    border: 1px solid rgba(14, 14, 14, 0.1);
+  .ticket-dash::before, .ticket-dash::after {
+    content: ''; position: absolute; top: -14px;
+    width: 28px; height: 28px; background-color: var(--paper);
+    border-radius: 50%; z-index: 10;
   }
-
-  .ticket-dash::before {
-    left: -14px;
-    border-right-color: transparent;
-    border-top-color: transparent;
-    border-bottom-color: transparent;
-    transform: rotate(45deg);
-  }
-
-  .ticket-dash::after {
-    right: -14px;
-    border-left-color: transparent;
-    border-top-color: transparent;
-    border-bottom-color: transparent;
-    transform: rotate(-45deg);
-  }
+  .ticket-dash::before { left: -14px; box-shadow: inset -1px 0 0 rgba(0,0,0,0.05); }
+  .ticket-dash::after { right: -14px; box-shadow: inset 1px 0 0 rgba(0,0,0,0.05); }
 </style>
 {% endblock %}
 
 {% block content %}
-<div
-  class="min-h-screen py-24 px-4 sm:px-6 flex flex-col items-center justify-center selection:bg-[#0e0e0e] selection:text-white">
+<div class="min-h-screen py-24 px-4 sm:px-6 flex flex-col items-center justify-center selection:bg-[#0e0e0e] selection:text-white relative overflow-hidden">
 
-  <div class="w-full max-w-[480px] mb-8">
-    <a href="/promotions"
-      class="inline-flex items-center gap-3 text-[10px] font-bold uppercase tracking-[0.3em] text-[#8a8580] hover:text-[#0e0e0e] transition-colors border-b border-transparent hover:border-[#0e0e0e] pb-1 fly-in">
-      &larr; Trở lại danh sách
+  {# Hiệu ứng ánh sáng nền (Glow) #}
+  <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-indigo-500/5 rounded-full blur-[100px] pointer-events-none z-0"></div>
+
+  {# Nút Trở lại #}
+  <div class="w-full max-w-[440px] mb-8 relative z-10">
+    <a href="/promotions" class="inline-flex items-center gap-3 text-[10px] font-bold uppercase tracking-[0.2em] text-stone-500 hover:text-[#0e0e0e] transition-colors hover:-translate-x-1 duration-300 fly-in">
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" /></svg>
+      Danh sách ưu đãi
     </a>
   </div>
 
-  <div class="w-full max-w-[480px] bg-white border border-black/10 shadow-xl fly-in overflow-hidden relative"
-    style="animation-delay: 0.1s;">
+  {# ── CARD VÉ CHÍNH ── #}
+  <div class="w-full max-w-[440px] bg-white rounded-3xl shadow-2xl shadow-black/5 fly-in relative z-10 border border-stone-100 flex flex-col" style="animation-delay: 0.1s;">
 
-    {# ── HEADER: HÃNG BAY & HẠNG VÉ ── #}
-    <div class="bg-[#0e0e0e] text-[#ffffff] px-8 py-6 flex items-center justify-between">
-      <div class="flex items-center gap-3">
-        <i class="fa-solid fa-plane text-[12px] -rotate-45"></i>
-        <span class="text-[11px] font-bold tracking-[0.25em] uppercase mt-0.5">GUA Voucher</span>
+    {# 1. HEADER (Brand & Badge) #}
+    <div class="bg-[#0e0e0e] text-white px-8 py-5 flex items-center justify-between rounded-t-3xl relative overflow-hidden">
+      <div class="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full blur-2xl -translate-y-1/2 translate-x-1/4"></div>
+      <div class="flex items-center gap-3 relative z-10">
+        <i class="fa-solid fa-gem text-amber-200 text-sm"></i>
+        <span class="text-[11px] font-bold tracking-[0.25em] uppercase mt-0.5 text-stone-100">GUA Exclusive</span>
       </div>
-      <span class="text-[9px] font-bold tracking-[0.2em] uppercase border border-white/30 px-3 py-1.5">First
-        Class</span>
+      <span class="text-[9px] font-bold tracking-[0.2em] uppercase border border-white/20 bg-white/10 backdrop-blur-md px-3 py-1.5 rounded-md relative z-10">
+        VOUCHER
+      </span>
     </div>
 
-    {# ── BODY: THÔNG TIN ƯU ĐÃI ── #}
+    {# 2. BODY (Giá trị & Điều kiện) #}
     <div class="p-8 md:p-10">
-      <p class="text-[10px] font-bold uppercase tracking-[0.2em] text-[#8a8580] mb-3">Giá trị vé (Ưu đãi)</p>
+      
+      {# Mức giảm giá #}
+      <div class="mb-8">
+        <p class="text-[10px] font-bold uppercase tracking-[0.2em] text-stone-400 mb-2">Đặc quyền ưu đãi</p>
+        <h1 class="font-serif text-6xl md:text-7xl leading-none text-[#0e0e0e] tracking-tighter">
+          {% if coupon.discount_type == 'percent' %}
+            {{ coupon.discount_value | int }}<span class="text-4xl ml-1 font-sans text-stone-400">%</span>
+          {% elif coupon.discount_type == 'free_shipping' %}
+            <span class="text-4xl tracking-tight uppercase">Freeship</span>
+          {% else %}
+            {{ "{:,.0f}".format(coupon.discount_value).replace(',', '.') }}<span class="text-xl font-sans font-bold ml-1 text-stone-400">₫</span>
+          {% endif %}
+        </h1>
+      </div>
 
-      <h1 class="font-display text-6xl md:text-7xl leading-none text-[#0e0e0e] mb-6 tracking-tighter">
-        {% if coupon.discount_type == 'percent' %}
-        {{ coupon.discount_value | int }}<span class="text-4xl ml-1 font-sans">%</span>
-        {% elif coupon.discount_type == 'free_shipping' %}
-        <span class="text-4xl tracking-tight">FREESHIP</span>
-        {% else %}
-        {{ "{:,.0f}".format(coupon.discount_value).replace(',', '.') }}<span
-          class="text-xl font-sans font-bold ml-2 text-[#8a8580]">₫</span>
-        {% endif %}
-      </h1>
-
-      <p class="text-[14px] font-medium leading-[1.85] text-[#444] mb-8">
+      <p class="text-[13px] font-medium leading-[1.8] text-stone-600 mb-6">
         {{ coupon.description or 'Quyền lợi áp dụng cho các hành khách thân thiết của GUA Maison.' }}
       </p>
 
-      <div class="grid grid-cols-2 gap-y-6 gap-x-6 bg-[#faf8f5] p-6 border border-black/5">
-        <div>
-          <p class="text-[9px] font-bold uppercase tracking-[0.2em] text-[#8a8580] mb-1.5">Đơn tối thiểu</p>
-          <p class="text-[13px] font-bold text-[#0e0e0e]">{{ "{:,.0f}".format(coupon.min_order_value or 0).replace(',',
-            '.') }} ₫</p>
-        </div>
-        <div>
-          <p class="text-[9px] font-bold uppercase tracking-[0.2em] text-[#8a8580] mb-1.5">Giảm tối đa</p>
-          <p class="text-[13px] font-bold text-[#0e0e0e]">{{ "{:,.0f}".format(coupon.max_discount).replace(',', '.') ~ "
-            ₫" if coupon.max_discount else 'Không giới hạn' }}</p>
-        </div>
-        <div class="col-span-2 border-t border-black/5 pt-5 mt-1">
-          <div class="flex justify-between items-center mb-2">
-            <p class="text-[9px] font-bold uppercase tracking-[0.2em] text-[#8a8580]">Khởi hành</p>
-            <p class="text-[9px] font-bold uppercase tracking-[0.2em] text-[#8a8580]">Hạ cánh</p>
+      {# Tags điều kiện mới (Kênh & Điểm) #}
+      <div class="flex flex-wrap gap-2 mb-8">
+          {% if coupon.applicable_channel == 'web' %}
+              <span class="px-3 py-1.5 rounded-lg border border-stone-200 text-[10px] font-bold text-stone-700 uppercase tracking-wider flex items-center gap-1.5 bg-stone-50"><i class="fa-solid fa-globe text-stone-400"></i> Chỉ Website</span>
+          {% elif coupon.applicable_channel == 'pos' %}
+              <span class="px-3 py-1.5 rounded-lg border border-stone-200 text-[10px] font-bold text-stone-700 uppercase tracking-wider flex items-center gap-1.5 bg-stone-50"><i class="fa-solid fa-store text-stone-400"></i> Chỉ Tại Quầy</span>
+          {% else %}
+              <span class="px-3 py-1.5 rounded-lg border border-stone-200 text-[10px] font-bold text-stone-500 uppercase tracking-wider bg-stone-50">Áp dụng Mọi Kênh</span>
+          {% endif %}
+          
+          {% if coupon.min_loyalty_points and coupon.min_loyalty_points > 0 %}
+              <span class="px-3 py-1.5 rounded-lg border border-amber-200 text-[10px] font-bold text-amber-600 uppercase tracking-wider flex items-center gap-1.5 bg-amber-50">
+                  <i class="fa-solid fa-star"></i> Từ {{ coupon.min_loyalty_points }} Điểm
+              </span>
+          {% endif %}
+      </div>
+
+      {# Lưới thông số (Min, Max, Dates) #}
+      <div class="bg-stone-50 rounded-2xl p-6 border border-stone-100 space-y-5">
+        <div class="flex justify-between items-center pb-4 border-b border-stone-200 border-dashed">
+          <div>
+            <p class="text-[9px] font-bold uppercase tracking-[0.2em] text-stone-400 mb-1">Đơn tối thiểu</p>
+            <p class="text-xs font-bold text-[#0e0e0e]">{{ "{:,.0f}".format(coupon.min_order_value or 0).replace(',', '.') }} ₫</p>
           </div>
-          <div class="flex justify-between items-center">
-            <p class="text-[11px] font-bold text-[#0e0e0e] uppercase">{{ coupon.starts_at[:16] | replace('T', ' ') if
-              coupon.starts_at else 'Ngay bây giờ' }}</p>
-            <i class="fa-solid fa-plane text-[#d1d1d1] text-[10px]"></i>
-            <p
-              class="text-[11px] font-bold uppercase {% if not coupon.expires_at %}text-[#0e0e0e]{% else %}text-[#6d1f1f]{% endif %}">
-              {{ coupon.expires_at[:16] | replace('T', ' ') if coupon.expires_at else 'Vĩnh viễn' }}
+          <div class="text-right">
+            <p class="text-[9px] font-bold uppercase tracking-[0.2em] text-stone-400 mb-1">Giảm tối đa</p>
+            <p class="text-xs font-bold text-rose-600">{{ "{:,.0f}".format(coupon.max_discount).replace(',', '.') ~ " ₫" if coupon.max_discount else 'Không giới hạn' }}</p>
+          </div>
+        </div>
+
+        <div class="flex justify-between items-center">
+          <div>
+            <p class="text-[9px] font-bold uppercase tracking-[0.2em] text-stone-400 mb-1">Khởi hành</p>
+            <p class="text-[11px] font-bold text-[#0e0e0e] uppercase">{{ coupon.starts_at[:10] | replace('-', '/') if coupon.starts_at else 'Ngay lập tức' }}</p>
+          </div>
+          <div class="px-4 text-stone-300">
+             <i class="fa-solid fa-arrow-right-long"></i>
+          </div>
+          <div class="text-right">
+            <p class="text-[9px] font-bold uppercase tracking-[0.2em] text-stone-400 mb-1">Hết hạn</p>
+            <p class="text-[11px] font-bold uppercase {% if not coupon.expires_at %}text-[#0e0e0e]{% else %}text-rose-600{% endif %}">
+              {{ coupon.expires_at[:10] | replace('-', '/') if coupon.expires_at else 'Vĩnh viễn' }}
             </p>
           </div>
         </div>
       </div>
     </div>
 
-    {# ── STUB: ĐƯỜNG XÉ & MÃ QUÉT ── #}
-    <div class="ticket-dash bg-white p-8 md:p-10 flex flex-col items-center text-center mt-auto">
+    {# 3. STUB (ĐƯỜNG XÉ VÉ & QR CODE) #}
+    <div class="ticket-dash bg-white p-8 md:p-10 flex flex-col items-center text-center mt-auto rounded-b-3xl">
 
-      <p class="text-[9px] font-bold uppercase tracking-[0.2em] text-[#8a8580] mb-3">Gate / Mã định danh</p>
-      <p class="font-display text-5xl text-[#0e0e0e] tracking-[0.1em] mb-8">{{ coupon.code }}</p>
+      <p class="text-[9px] font-bold uppercase tracking-[0.2em] text-stone-400 mb-2">Mã định danh (CODE)</p>
+      <p class="font-black text-4xl text-[#0e0e0e] tracking-[0.1em] mb-6">{{ coupon.code }}</p>
 
-      <div class="bg-white p-4 border border-black/5 inline-block mb-8 shadow-sm">
-        <img src="/api/coupons/qr/{{ coupon.code }}" alt="QR Code" class="w-32 h-32 mix-blend-multiply">
+      <div class="bg-white p-3 border border-stone-200 rounded-xl inline-block mb-6 shadow-sm">
+        <img src="/api/coupons/qr/{{ coupon.code }}" alt="QR Code" class="w-24 h-24 mix-blend-multiply">
       </div>
 
-      <p class="font-barcode text-6xl text-black/20 overflow-hidden w-full px-4 mb-8">*{{ coupon.code }}*</p>
+      <p class="font-barcode text-6xl text-stone-200 overflow-hidden w-full px-4 mb-8 select-none pointer-events-none">*{{ coupon.code }}*</p>
 
       <button onclick="copyDetailCode('{{ coupon.code }}', this)"
-        class="w-full bg-[#0e0e0e] text-[#ffffff] px-6 py-5 text-[11px] font-bold uppercase tracking-[0.2em] hover:bg-[#6d1f1f] transition-all duration-300 flex items-center justify-center gap-3">
-        <i class="fa-regular fa-copy"></i> Sao chép mã vé
+        class="w-full bg-[#0e0e0e] text-[#ffffff] px-6 py-4 rounded-xl text-[11px] font-bold uppercase tracking-[0.2em] hover:bg-indigo-600 hover:-translate-y-1 transition-all duration-300 flex items-center justify-center gap-3 shadow-lg shadow-black/10">
+        <i class="fa-regular fa-copy"></i> Sao chép mã
       </button>
 
     </div>
@@ -167,8 +162,9 @@
   </div>
 </div>
 
+{# ── TOAST THÔNG BÁO ── #}
 <div id="toast-msg"
-  class="fixed bottom-8 left-1/2 -translate-x-1/2 bg-[#0e0e0e] text-[#ffffff] px-8 py-4 text-[10px] font-bold tracking-[0.2em] uppercase opacity-0 translate-y-4 pointer-events-none transition-all duration-300 z-50 shadow-2xl">
+  class="fixed bottom-8 left-1/2 -translate-x-1/2 bg-emerald-600 text-white px-8 py-4 rounded-full text-[10px] font-bold tracking-[0.15em] uppercase opacity-0 translate-y-4 pointer-events-none transition-all duration-300 z-50 shadow-2xl flex items-center gap-2">
 </div>
 
 {% block extra_scripts %}
@@ -176,16 +172,22 @@
   function copyDetailCode(code, btn) {
     navigator.clipboard.writeText(code).then(() => {
       const originalHTML = btn.innerHTML;
-      btn.innerHTML = "<i class='fa-solid fa-check'></i> Đã lưu vé an toàn";
-      btn.classList.replace('bg-[#0e0e0e]', 'bg-[#6d1f1f]');
+      
+      // Đổi trạng thái Nút
+      btn.innerHTML = "<i class='fa-solid fa-check'></i> Đã lưu mã";
+      btn.classList.replace('bg-[#0e0e0e]', 'bg-emerald-600');
+      btn.classList.add('shadow-emerald-600/30');
 
+      // Đổi trạng thái Toast
       const toast = document.getElementById('toast-msg');
-      toast.innerText = `ĐÃ LƯU BOARDING PASS: ${code}`;
+      toast.innerHTML = `<i class="fa-solid fa-circle-check text-sm"></i> Đã sao chép: ${code}`;
       toast.classList.remove('opacity-0', 'translate-y-4');
 
+      // Reset sau 2.5s
       setTimeout(() => {
         btn.innerHTML = originalHTML;
-        btn.classList.replace('bg-[#6d1f1f]', 'bg-[#0e0e0e]');
+        btn.classList.replace('bg-emerald-600', 'bg-[#0e0e0e]');
+        btn.classList.remove('shadow-emerald-600/30');
         toast.classList.add('opacity-0', 'translate-y-4');
       }, 2500);
     }).catch(() => alert('Trình duyệt không hỗ trợ, vui lòng copy thủ công.'));

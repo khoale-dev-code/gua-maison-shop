@@ -1,357 +1,499 @@
-{% extends "base.html" %}
-{% block title %}{% if keyword %}Tìm kiếm "{{ keyword }}"{% elif category %}{{ category|title }}{% else %}Cửa hàng{%
-endif %} | GUA Maison{% endblock %}
+  {% extends "base.html" %}
+  {% block title %}{% if keyword %}« {{ keyword }} »{% elif category %}{{ category|title }}{% else %}Shop All{% endif %} — GUA Maison{% endblock %}
 
-{% block extra_head %}
-<meta name="csrf-token" content="{{ csrf_token() }}">
-<style>
-  /* Base Editorial Typography & Animation */
+  {% block extra_head %}
+  <meta name="csrf-token" content="{{ csrf_token() }}">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;700&display=swap" rel="stylesheet">
+  <style>
   :root {
-    --ink: #0e0e0e;
-    --paper: #ffffff;
-    --warm: #6d1f1f;
-    --muted: #f8f6f0;
-    --line: rgba(14, 14, 14, 0.1);
+    /* Tông màu Sáng (Light Editorial Theme) */
+    --bg: #ffffff;
+    --card: #fcfcfc;
+    --border: #e5e5e5;
+    --text: #111111;
+    --text-muted: #888888;
+    --text-light: #a3a3a3;
+    --red: #d32f2f;
+    --accent: #f4f4f5;
+    
+    --sm: 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    --ff: 'DM Sans', system-ui, sans-serif;
+    --fd: 'Bebas Neue', sans-serif;
   }
 
-  body {
-    background-color: var(--paper);
-    color: var(--ink);
-  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{background:var(--bg);color:var(--text);font-family:var(--ff);font-size:14px;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+  ::selection{background:var(--text);color:var(--bg)}
 
-  .no-scrollbar::-webkit-scrollbar {
-    display: none;
-  }
+  /* ── SCROLLBAR ── */
+  ::-webkit-scrollbar{width:8px;height:8px}
+  ::-webkit-scrollbar-track{background:var(--bg)}
+  ::-webkit-scrollbar-thumb{background:#d4d4d4;border-radius:10px;border:2px solid var(--bg)}
+  ::-webkit-scrollbar-thumb:hover{background:var(--text-muted)}
 
-  .no-scrollbar {
-    -ms-overflow-style: none;
-    scrollbar-width: none;
-  }
+  /* ── HERO BANNER (CÓ GIF) ── */
+  .s-hero{position:relative;height:380px;display:flex;align-items:flex-end;overflow:hidden;border-bottom:1px solid var(--border)}
+  .hero-bg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:0;filter:grayscale(20%) contrast(1.1)}
+  .hero-overlay{position:absolute;inset:0;background:linear-gradient(to top, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.2) 50%, transparent 100%);z-index:1}
+  .s-hero-inner{position:relative;z-index:2;max-width:1520px;width:100%;margin:0 auto;padding:0 2.5rem 2.5rem;display:flex;align-items:flex-end;justify-content:space-between;gap:2rem;flex-wrap:wrap}
+  .s-hero-title{font-family:var(--fd);font-size:clamp(3.5rem,8vw,7.5rem);line-height:0.9;letter-spacing:.02em;color:#ffffff;text-shadow:0 4px 12px rgba(0,0,0,0.3)}
+  .s-hero-title em{color:#dcdcdc;font-style:normal}
+  .s-hero-meta{display:flex;flex-direction:column;align-items:flex-end;gap:.5rem}
+  .s-hero-label{font-size:10px;font-weight:700;letter-spacing:.3em;text-transform:uppercase;color:rgba(255,255,255,0.7)}
+  .s-hero-count{font-family:var(--fd);font-size:2.5rem;color:#ffffff;line-height:1;text-shadow:0 2px 8px rgba(0,0,0,0.3)}
 
-  @keyframes rise {
-    from {
-      opacity: 0;
-      transform: translateY(20px);
-    }
+  /* ── TOOLBAR (Ghim lên trên) ── */
+  .s-toolbar{border-bottom:1px solid var(--border);background:var(--bg);position:sticky;top:54px;z-index:40}
+  .s-toolbar-inner{max-width:1520px;margin:0 auto;padding:0 2.5rem;height:54px;display:flex;align-items:center;justify-content:space-between;gap:1rem}
+  .s-fbtn{display:flex;align-items:center;gap:.5rem;font-size:11px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;background:none;border:none;color:var(--text);cursor:pointer;padding:0;transition:opacity .2s;white-space:nowrap}
+  .s-fbtn:hover{opacity:0.6}
 
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
+  /* Thanh tìm kiếm dời vào Toolbar */
+  .s-search{display:flex;align-items:center;gap:.6rem;padding:0 1rem;border:1px solid var(--border);border-radius:30px;height:34px;background:var(--bg);width:100%;max-width:280px;transition:border-color 0.3s}
+  .s-search:focus-within{border-color:var(--text)}
+  .s-search input{background:transparent;border:none;font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--text);outline:none;width:100%}
+  .s-search input::placeholder{color:var(--text-light)}
+  @media(max-width:768px){.s-search{display:none}} /* Ẩn ở mobile, mang vào Drawer */
 
-  .rise {
-    animation: rise 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-  }
+  .s-toolbar-right{display:flex;align-items:center;gap:1.5rem}
+  .s-cnt{font-size:11px;font-weight:600;letter-spacing:.15em;text-transform:uppercase;color:var(--text-muted);white-space:nowrap}
+  .s-gcols{display:none;gap:.5rem}
+  @media(min-width:1024px){.s-gcols{display:flex}}
+  .s-gcol{background:none;border:none;cursor:pointer;color:var(--border);transition:color .2s;padding:0;line-height:0}
+  .s-gcol.on,.s-gcol:hover{color:var(--text)}
 
-  /* Ẩn nút X mặc định của input type="search" trên trình duyệt */
-  input[type="search"]::-webkit-search-cancel-button {
-    appearance: none;
-  }
-</style>
-{% endblock %}
+  /* ── GRID ── */
+  .s-grid{max-width:1520px;margin:0 auto;padding:2rem 2.5rem 6rem;display:grid;grid-template-columns:repeat(2,1fr);gap:1px;background:var(--border);border:1px solid var(--border)}
+  @media(min-width:640px){.s-grid{grid-template-columns:repeat(3,1fr)}}
+  @media(min-width:1024px){.s-grid{grid-template-columns:repeat(4,1fr)}}
+  @media(min-width:1400px){.s-grid{grid-template-columns:repeat(5,1fr)}}
+  .s-grid.g3{grid-template-columns:repeat(2,1fr)}
+  @media(min-width:640px){.s-grid.g3{grid-template-columns:repeat(3,1fr)}}
 
-{% block content %}
-<div class="min-h-screen pb-24 font-sans selection:bg-[#0e0e0e] selection:text-white">
+  /* ── PRODUCT CARD ── */
+  .p-card{position:relative;display:flex;flex-direction:column;background:var(--card);overflow:hidden;cursor:pointer}
+  .p-card:hover{background:var(--bg)}
 
-  <header class="pt-20 pb-6 relative z-20 bg-[#ffffff]">
-    <div class="max-w-[1320px] mx-auto px-6 md:px-12">
-      <div class="flex flex-col md:flex-row md:items-end justify-between gap-6 rise">
-        <div>
-          <p class="flex items-center gap-3 text-[10px] tracking-[0.25em] uppercase text-[#8a8580] mb-4 font-bold">
-            <span class="w-8 h-[1px] bg-[#6d1f1f] block"></span>
-            GUA Maison — SS 2026
-          </p>
-          <h1
-            class="font-display text-4xl md:text-[clamp(48px,5vw,72px)] leading-none tracking-[-0.01em] text-[#0e0e0e]">
-            {% if keyword %}Tìm kiếm: <em class="text-[#6d1f1f]">"{{ keyword }}"</em>
-            {% elif category %}
-            {% set ac = global_categories|selectattr("slug","equalto",category)|first %}
-            {{ ac.name if ac else (category|title) }}
-            {% else %}Explore <em class="text-[#6d1f1f]">All Pieces</em>{% endif %}
-          </h1>
-        </div>
-        <p class="text-[11px] tracking-[0.2em] uppercase font-bold text-[#8a8580] whitespace-nowrap">
-          <span id="product-count">{{ total if total else (products|length) }}</span> Thiết kế
-        </p>
+  /* image */
+  .p-img{position:relative;overflow:hidden;aspect-ratio:3/4;background:var(--accent);flex-shrink:0}
+  .p-img a{position:absolute;inset:0;z-index:4}
+  .p-img img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:top}
+  .p-img .pm{transition:opacity 0.25s ease-in-out, transform 0.6s ease;z-index:1;transform:scale(1.0)}
+  .p-img .ph{opacity:0;z-index:2;transition:opacity 0.4s ease, transform 0.6s ease;transform:scale(1.03)}
+  .p-card:hover .pm{opacity:0;transform:scale(1.03)}
+  .p-card:hover .ph{opacity:1;transform:scale(1.0)}
+
+  /* arrows */
+  .p-arrows{position:absolute;inset:0;display:flex;align-items:center;justify-content:space-between;padding:0 .6rem;opacity:0;transition:opacity .2s;z-index:5;pointer-events:none}
+  .p-card:hover .p-arrows{opacity:1}
+  .p-arw{width:32px;height:32px;background:rgba(255,255,255,0.85);border:1px solid var(--border);border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;pointer-events:all;transition:all .2s;backdrop-filter:blur(4px);box-shadow:0 2px 8px rgba(0,0,0,0.05)}
+  .p-arw:hover{background:var(--text);color:var(--bg);border-color:var(--text);transform:scale(1.1)}
+  .p-arw svg{width:14px;height:14px;stroke:currentColor}
+
+  /* fav */
+  .p-fav{position:absolute;top:.8rem;right:.8rem;z-index:6;width:30px;height:30px;background:rgba(255,255,255,0.9);border:1px solid var(--border);border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s;backdrop-filter:blur(4px);box-shadow:0 2px 8px rgba(0,0,0,0.05)}
+  .p-fav:hover{transform:scale(1.1)}
+  .p-fav svg{width:14px;height:14px;transition:all .25s;stroke:var(--text);fill:none}
+  .p-fav.on svg{stroke:var(--red);fill:var(--red)}
+
+  /* badges */
+  .p-sold{position:absolute;bottom:.8rem;left:.8rem;z-index:6;background:var(--text);color:var(--bg);font-size:9px;font-weight:800;letter-spacing:.22em;text-transform:uppercase;padding:.3rem .6rem;border-radius:2px}
+  .p-new{position:absolute;top:.8rem;left:.8rem;z-index:6;background:var(--bg);color:var(--text);border:1px solid var(--border);font-size:9px;font-weight:800;letter-spacing:.22em;text-transform:uppercase;padding:.3rem .6rem;border-radius:2px}
+
+  /* info */
+  .p-info{padding:1.2rem 1.2rem 1.5rem;flex:1;display:flex;flex-direction:column;gap:.4rem}
+  .p-cat{font-size:9px;font-weight:700;letter-spacing:.28em;text-transform:uppercase;color:var(--text-muted)}
+  .p-name{font-size:12px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:var(--text);line-height:1.4;text-decoration:none;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;transition:color .2s;margin-bottom:auto}
+  .p-name:hover{color:var(--red)}
+  .p-price{font-family:var(--fd);font-size:1.3rem;color:var(--text);letter-spacing:.04em;margin-top:.5rem}
+
+  /* ── EMPTY ── */
+  .s-empty{display:none;flex-direction:column;align-items:center;justify-content:center;min-height:50vh;text-align:center;gap:1rem;padding:4rem 2rem}
+  .s-empty.show{display:flex}
+  .s-empty-title{font-family:var(--fd);font-size:3.5rem;color:var(--text);letter-spacing:.05em}
+  .s-empty-btn{font-size:11px;font-weight:700;letter-spacing:.22em;text-transform:uppercase;background:none;border:none;border-bottom:1px solid var(--text-muted);color:var(--text-muted);cursor:pointer;padding-bottom:.2rem;transition:all .25s}
+  .s-empty-btn:hover{color:var(--text);border-color:var(--text)}
+
+  /* ── DRAWER (Tối ưu vuốt chạm mượt mà) ── */
+  .s-ov{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:90;display:none;opacity:0;transition:opacity .3s;backdrop-filter:blur(2px)}
+  .s-ov.show{display:block}
+  .s-ov.vis{opacity:1}
+  .s-drawer{position:fixed;top:0;right:0;height:100dvh;width:380px;max-width:90vw;background:var(--bg);z-index:100;transform:translateX(100%);transition:transform var(--sm);display:flex;flex-direction:column;border-left:1px solid var(--border);box-shadow:-10px 0 30px rgba(0,0,0,0.05)}
+  .s-drawer.open{transform:translateX(0)}
+  .s-dh{padding:1.5rem 2rem;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+  .s-dh-title{font-family:var(--fd);font-size:1.8rem;letter-spacing:.06em;color:var(--text)}
+  .s-dcls{background:none;border:none;cursor:pointer;color:var(--text-muted);transition:all .3s;line-height:0;padding:4px}
+  .s-dcls:hover{color:var(--red);transform:rotate(90deg)}
+  .s-db{flex:1 1 auto;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior-y:contain;padding:2rem;display:flex;flex-direction:column;gap:2.5rem;scrollbar-width:none}
+  .s-db::-webkit-scrollbar{display:none}
+  .s-sec{display:flex;flex-direction:column;gap:1.2rem}
+  .s-sec-title{font-size:10px;font-weight:800;letter-spacing:.3em;text-transform:uppercase;color:var(--text-light);padding-bottom:.5rem;border-bottom:1px solid var(--border)}
+  .s-radio-g,.s-check-g{display:flex;flex-direction:column;gap:.8rem}
+  .s-rl,.s-cl{display:flex;align-items:center;gap:1rem;cursor:pointer;padding:.2rem 0}
+  .s-rl input,.s-cl input{width:16px;height:16px;accent-color:var(--text);cursor:pointer;flex-shrink:0;border:1px solid var(--border)}
+  .s-rl span,.s-cl span{font-size:11px;font-weight:600;letter-spacing:.15em;text-transform:uppercase;color:var(--text-muted);transition:color .2s}
+  .s-rl:hover span,.s-cl:hover span,.s-rl input:checked~span,.s-cl input:checked~span{color:var(--text)}
+  .s-chips{display:flex;flex-wrap:wrap;gap:.5rem}
+  .s-chip-l{cursor:pointer}
+  .s-chip-l input{display:none}
+  .s-chip{display:inline-block;padding:.5rem 1rem;border:1px solid var(--border);font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--text-muted);transition:all .2s;border-radius:4px}
+  .s-chip-l input:checked+.s-chip{background:var(--text);border-color:var(--text);color:var(--bg)}
+  .s-chip:hover{border-color:var(--text);color:var(--text)}
+  .s-df{padding:1.5rem 2rem;border-top:1px solid var(--border);display:flex;gap:.75rem;flex-shrink:0;background:var(--bg)}
+  .s-bcl{flex:1;padding:1rem;font-size:11px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;background:none;border:1px solid var(--border);color:var(--text-muted);cursor:pointer;transition:all .2s;border-radius:4px}
+  .s-bcl:hover{border-color:var(--text);color:var(--text)}
+  .s-bap{flex:1;padding:1rem;font-size:11px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;background:var(--text);color:var(--bg);border:none;cursor:pointer;transition:background .2s;border-radius:4px}
+  .s-bap:hover{background:var(--red)}
+
+  /* ── TOAST ── */
+  .s-toast{position:fixed;bottom:2.5rem;left:50%;transform:translateX(-50%) translateY(1.5rem);background:var(--text);color:var(--bg);font-size:11px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;padding:1rem 2rem;opacity:0;pointer-events:none;transition:all .35s;z-index:9999;white-space:nowrap;border-radius:4px;box-shadow:0 10px 30px rgba(0,0,0,0.15)}
+  .s-toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+  /* ── ANIM ── */
+  @keyframes fadeUp{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}
+  .fu{animation:fadeUp .7s cubic-bezier(0.16,1,0.3,1) both}
+  .fu1{animation-delay:.05s}.fu2{animation-delay:.1s}
+  </style>
+  {% endblock %}
+
+  {% block content %}
+
+  {# ── HERO BANNER VỚI GIF ── #}
+  <section class="s-hero fu">
+    <img src="https://d2w9rnfcy7mm78.cloudfront.net/29334430/original_f3ab732e0aeafd6b8cd6002334dcc905.gif?1720621365?bc=0" class="hero-bg" alt="GUA Maison Campaign">
+    <div class="hero-overlay"></div>
+    <div class="s-hero-inner">
+      <h1 class="s-hero-title">
+        {% if keyword %}&ldquo;<em>{{ keyword }}</em>&rdquo;
+        {% elif category %}
+          {% set ac = global_categories|selectattr("slug","equalto",category)|first %}
+          {{ ac.name if ac else category|title }}
+        {% else %}Shop<br><em>All</em>{% endif %}
+      </h1>
+      <div class="s-hero-meta">
+        <span class="s-hero-label">GUA Maison — SS26</span>
+        <span class="s-hero-count" id="heroCount">{{ total if total else (products|length) }}</span>
+        <span class="s-hero-label">Artworks</span>
       </div>
     </div>
-  </header>
+  </section>
 
-  <div class="sticky top-0 bg-[#ffffff] z-50 border-y border-black/10">
-    <div class="max-w-[1320px] mx-auto px-6 md:px-12 relative z-20 bg-[#ffffff]">
-      <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 py-4 rise"
-        style="animation-delay: 0.1s;">
-        <div class="flex items-center gap-8">
-          <a href="/shop"
-            class="text-[11px] font-bold tracking-[0.2em] uppercase pb-1 border-b transition-colors whitespace-nowrap {% if not category %}text-[#0e0e0e] border-[#0e0e0e]{% else %}text-[#8a8580] border-transparent hover:text-[#0e0e0e]{% endif %}">
-            Tất cả
-          </a>
-
-          <button id="toggle-mega-menu" aria-expanded="false"
-            class="group flex items-center gap-2 text-[11px] font-bold tracking-[0.2em] uppercase pb-1 border-b transition-colors whitespace-nowrap {% if category %}text-[#0e0e0e] border-[#0e0e0e]{% else %}text-[#8a8580] border-transparent hover:text-[#0e0e0e]{% endif %}">
-            Danh mục
-            <span id="menu-icon"
-              class="text-[14px] font-normal leading-none transition-transform duration-300 group-hover:text-[#6d1f1f]">
-              {% if category %}&times;{% else %}+{% endif %}
-            </span>
-          </button>
-        </div>
-
-        <div class="relative w-full md:w-[300px]">
-          <input type="search" id="liveSearchInput" value="{{ keyword or '' }}" placeholder="TÌM KIẾM TÁC PHẨM..."
-            class="w-full bg-transparent border-b border-black/20 text-[11px] font-bold tracking-[0.2em] uppercase text-[#0e0e0e] py-2 pr-8 outline-none focus:border-[#0e0e0e] transition-colors placeholder:text-[#8a8580]">
-          <svg class="absolute right-0 bottom-2.5 w-4 h-4 text-[#0e0e0e]" fill="none" stroke="currentColor"
-            stroke-width="1.5" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round"
-              d="m21 21-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
-          </svg>
-        </div>
+  {# ── TOOLBAR (Đã bỏ thanh Danh mục, gom Search vào đây) ── #}
+  <div class="s-toolbar fu fu1">
+    <div class="s-toolbar-inner">
+      <button class="s-fbtn" onclick="openDrawer()">
+        <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 6h18M6 12h12m-9 6h6"/></svg>
+        Filter & Sort
+      </button>
+      
+      {# Thanh tìm kiếm chuyển vào đây #}
+      <div class="s-search">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="color:var(--text-light);flex-shrink:0"><path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"/></svg>
+        <input type="search" id="liveSearch" value="{{ keyword or '' }}" placeholder="Tìm kiếm thiết kế...">
       </div>
-    </div>
 
-    <div id="category-mega-menu"
-      class="absolute top-full left-0 w-full bg-[#ffffff] shadow-2xl transition-all duration-[600ms] ease-[cubic-bezier(0.16,1,0.3,1)] overflow-hidden max-h-0 opacity-0 z-10 border-b-0 border-black/10">
-      <div class="max-w-[1320px] mx-auto px-6 md:px-12 py-10">
-        <div
-          class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-x-8 gap-y-3 max-h-[50vh] overflow-y-auto pr-4 no-scrollbar">
-          {% for cat in global_categories %}
-          <a href="/shop?category={{ cat.slug }}"
-            class="group flex items-center justify-between text-[10px] md:text-[11px] font-bold tracking-[0.15em] uppercase transition-colors border-b border-black/5 pb-2 {% if category == cat.slug %}text-[#0e0e0e] border-[#0e0e0e]{% else %}text-[#8a8580] hover:text-[#0e0e0e] hover:border-black/20{% endif %}">
-            <span class="truncate pr-2">{{ cat.name }}</span>
-            {% if category == cat.slug %}
-            <span class="w-1.5 h-1.5 bg-[#6d1f1f] block flex-shrink-0"></span>
-            {% endif %}
-          </a>
-          {% endfor %}
-        </div>
-        <div class="mt-10 flex justify-end">
-          <button id="close-mega-menu"
-            class="text-[10px] tracking-[0.2em] font-bold uppercase text-[#8a8580] hover:text-[#6d1f1f] border-b border-transparent hover:border-[#6d1f1f] transition-colors pb-1">
-            Đóng [ &times; ]
-          </button>
+      <div class="s-toolbar-right">
+        <span class="s-cnt"><span id="pcount">{{ total if total else (products|length) }}</span> Items</span>
+        <div class="s-gcols">
+          <button class="s-gcol" data-c="3" aria-label="3 cột"><svg width="15" height="15" fill="currentColor" viewBox="0 0 24 24"><path d="M4 4h4v16H4V4zm6 0h4v16h-4V4zm6 0h4v16h-4V4z"/></svg></button>
+          <button class="s-gcol on" data-c="4" aria-label="4 cột"><svg width="15" height="15" fill="currentColor" viewBox="0 0 24 24"><path d="M3 4h3v16H3V4zm5 0h3v16H8V4zm5 0h3v16h-3V4zm5 0h3v16h-3V4z"/></svg></button>
+          <button class="s-gcol" data-c="5" aria-label="5 cột"><svg width="15" height="15" fill="currentColor" viewBox="0 0 24 24"><path d="M2 4h2v16H2V4zm4 0h2v16H6V4zm4 0h2v16h-2V4zm4 0h2v16h-2V4zm4 0h2v16h-2V4z"/></svg></button>
         </div>
       </div>
     </div>
   </div>
 
-  <main class="w-full pt-12">
-    <div id="empty-state"
-      class="hidden flex-col items-center justify-center py-32 text-center border-t border-black/10 px-6">
-      <h2 class="font-display text-3xl text-[#0e0e0e] mb-4">Không tìm thấy thiết kế phù hợp.</h2>
-      <button
-        onclick="document.getElementById('liveSearchInput').value=''; document.getElementById('liveSearchInput').dispatchEvent(new Event('input'));"
-        class="text-[11px] font-bold tracking-[0.2em] uppercase text-[#6d1f1f] border-b border-[#6d1f1f] pb-1 hover:pr-4 transition-all duration-300">Khám
-        phá lại</button>
+  {# ── MAIN GRID ── #}
+  <main>
+    <div class="s-empty" id="emptyState">
+      <p class="s-empty-title">Không tìm thấy</p>
+      <button class="s-empty-btn" onclick="clearFilters()">Xóa bộ lọc để xem thêm &rarr;</button>
     </div>
 
     {% if products %}
-    <div id="product-grid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 w-full rise"
-      style="animation-delay: 0.2s;">
+    {% set ns = namespace(sizes=[], colors=[]) %}
+    {% for p in products %}{% for v in (p.product_variants or []) %}
+      {% if v.size and v.size not in ns.sizes %}{% set _ = ns.sizes.append(v.size) %}{% endif %}
+      {% if v.color_name and v.color_name not in ns.colors %}{% set _ = ns.colors.append(v.color_name) %}{% endif %}
+    {% endfor %}{% endfor %}
 
+    <div id="productGrid" class="s-grid fu fu2">
       {% for product in products %}
-      {% set cn = product.categories.name if product.categories else 'Core' %}
       {% set _v = product.product_variants or [] %}
       {% set _i = product.product_images or [] %}
-      {% set vj = _v|tojson %}
-      {% set ij = _i|map(attribute='url')|list|tojson %}
-      {% set fi = product.thumbnail_url or '' %}
-      {% set ps = (_v|sum(attribute='stock')) if _v else (product.stock or 0) %}
+      {% set imgs = _i|map(attribute='url')|list %}
+      {% if product.thumbnail_url and product.thumbnail_url not in imgs %}{% set _ = imgs.insert(0, product.thumbnail_url) %}{% endif %}
+      {% set img1 = imgs[0] if imgs else 'https://placehold.co/600x800/f4f4f5/111?text=GUA' %}
+      {% set img2 = imgs[1] if imgs|length > 1 else img1 %}
+      {% set stock = (_v|sum(attribute='stock')) if _v else (product.stock or 0) %}
+      {% set cn = product.categories.name if product.categories else 'Core' %}
+      {% set p_sizes=[] %}{% set p_colors=[] %}
+      {% for v in _v %}
+        {% if v.size and v.size not in p_sizes %}{% set _ = p_sizes.append(v.size) %}{% endif %}
+        {% if v.color_name and v.color_name not in p_colors %}{% set _ = p_colors.append(v.color_name) %}{% endif %}
+      {% endfor %}
 
-      <article class="product-card group bg-[#ffffff] flex flex-col relative" data-name="{{ product.name }}"
-        data-category="{{ cn }}">
-        <div class="relative overflow-hidden aspect-[3/4] bg-[#ffffff]">
-          <a href="/product/{{ product.slug }}" class="block w-full h-full">
-            {% if product.thumbnail_url %}
-            <img src="{{ product.thumbnail_url }}" alt="{{ product.name }}" loading="lazy"
-              class="w-full h-full object-cover transform transition-transform duration-[1500ms] ease-out group-hover:scale-105">
-            {% else %}
-            <div
-              class="w-full h-full flex items-center justify-center text-[10px] font-bold tracking-[0.2em] text-[#8a8580] uppercase">
-              GUA Maison</div>
-            {% endif %}
-          </a>
+      <article class="p-card"
+        data-id="{{ product.id }}"
+        data-name="{{ product.name|lower }}"
+        data-category="{{ cn|lower }}"
+        data-price="{{ product.price }}"
+        data-created="{{ product.created_at }}"
+        data-sold="{{ product.sold_count|default(0) }}"
+        data-sizes='{{ p_sizes|tojson }}'
+        data-colors='{{ p_colors|tojson }}'
+        data-imgs='{{ imgs|tojson }}'>
 
-          <div
-            class="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-colors duration-700 pointer-events-none">
-          </div>
+        <div class="p-img">
+          <a href="/product/{{ product.slug }}" tabindex="-1"></a>
+          <img class="pm" src="{{ img1 }}" alt="{{ product.name }}" loading="eager">
+          <img class="ph" src="{{ img2 }}" alt="{{ product.name }}" loading="lazy">
 
-          <button type="button" onclick="triggerQuickView(this)" data-id="{{ product.id }}"
-            data-slug="{{ product.slug }}" data-name="{{ product.name }}" data-price="{{ product.price }}"
-            data-image="{{ fi }}" data-images='{{ ij }}' data-category="{{ cn }}" data-stock="{{ ps }}"
-            data-variants='{{ vj }}'
-            class="absolute bottom-0 left-0 w-full bg-[#0e0e0e] text-white text-[10px] font-bold uppercase tracking-[0.2em] py-4 translate-y-full opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300 hidden md:block z-20 hover:bg-[#6d1f1f]">
-            Quick Add +
-          </button>
-
-          <button type="button"
-            class="btn-fav absolute top-3 right-3 z-30 w-8 h-8 bg-[#ffffff]/90 border border-black/10 flex items-center justify-center text-[#0e0e0e] transition-all duration-200 hover:scale-110"
-            data-product-id="{{ product.id }}" onclick="toggleFav(this)" aria-label="Yêu thích">
-            <svg class="w-4 h-4 icon-outline" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round"
-                d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" />
-            </svg>
-            <svg class="w-4 h-4 icon-solid hidden text-[#6d1f1f]" fill="currentColor" viewBox="0 0 24 24">
-              <path
-                d="M11.645 20.91l-.007-.003-.022-.012a15.247 15.247 0 01-.383-.218 25.18 25.18 0 01-4.244-3.17C4.688 15.36 2.25 12.174 2.25 8.25 2.25 5.322 4.714 3 7.688 3A5.5 5.5 0 0112 5.052 5.5 5.5 0 0116.313 3c2.973 0 5.437 2.322 5.437 5.25 0 3.925-2.438 7.111-4.739 9.256a25.175 25.175 0 01-4.244 3.17 15.247 15.247 0 01-.383.218l-.022.012-.007.003-.003.001a.752.752 0 01-.704 0l-.003-.001z" />
-            </svg>
-          </button>
-        </div>
-
-        <div class="p-4 md:p-6 flex flex-col flex-1">
-          <p class="text-[9px] uppercase tracking-[0.25em] text-[#8a8580] font-bold mb-2">{{ cn }}</p>
-          <a href="/product/{{ product.slug }}"
-            class="font-display text-[17px] text-[#0e0e0e] leading-snug mb-3 hover:text-[#6d1f1f] transition-colors line-clamp-2">{{
-            product.name }}</a>
-          <div class="mt-auto flex items-center justify-between">
-            <span class="font-sans text-[15px] font-bold text-[#0e0e0e]">{{ "{:,.0f}".format(product.price).replace(',',
-              '.') }} ₫</span>
-            <button class="md:hidden w-8 h-8 border border-black/10 flex items-center justify-center text-[#0e0e0e]"
-              onclick="triggerQuickView(this)" data-id="{{ product.id }}" data-slug="{{ product.slug }}"
-              data-name="{{ product.name }}" data-price="{{ product.price }}" data-image="{{ fi }}"
-              data-images='{{ ij }}' data-category="{{ cn }}" data-stock="{{ ps }}" data-variants='{{ vj }}'>
-              <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-              </svg>
+          {% if imgs|length > 1 %}
+          <div class="p-arrows">
+            <button class="p-arw" onclick="imgSlide(event,'{{ product.id }}',-1)" aria-label="Ảnh trước">
+              <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
+            </button>
+            <button class="p-arw" onclick="imgSlide(event,'{{ product.id }}',1)" aria-label="Ảnh sau">
+              <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
             </button>
           </div>
+          {% endif %}
+
+          <button class="p-fav" data-pid="{{ product.id }}" onclick="toggleFav(event,this)" aria-label="Yêu thích">
+            <svg viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z"/></svg>
+          </button>
+
+          {% if stock <= 0 %}<div class="p-sold">Sold Out</div>
+          {% elif product.created_at and (product.created_at | string)[:10] >= (now().strftime('%Y-%m-%d') if now is defined else '2099') %}<div class="p-new">New</div>
+          {% endif %}
+        </div>
+
+        <div class="p-info">
+          <p class="p-cat">{{ cn }}</p>
+          <a href="/product/{{ product.slug }}" class="p-name">{{ product.name }}</a>
+          <p class="p-price">{{ "{:,.0f}".format(product.price).replace(',','.') }}<small style="font-size:.6em;font-weight:700;margin-left:2px;color:var(--text-light)"> ₫</small></p>
         </div>
       </article>
       {% endfor %}
     </div>
+
+    <script id="fmeta" type="application/json">{"sizes":{{ ns.sizes|sort|tojson }},"colors":{{ ns.colors|sort|tojson }}}</script>
     {% endif %}
   </main>
-</div>
 
-<div id="fav-toast"
-  class="fixed bottom-6 left-1/2 -translate-x-1/2 bg-[#0e0e0e] text-[#faf8f5] text-[10px] font-bold uppercase tracking-[0.15em] px-6 py-3 opacity-0 pointer-events-none transition-all duration-300 translate-y-4 z-[9999]">
-</div>
-{% endblock %}
+  {# ── FILTER DRAWER ── #}
+  <div class="s-ov" id="sOv" onclick="closeDrawer()"></div>
+  <aside class="s-drawer" id="sDrawer" aria-label="Bộ lọc">
+    <div class="s-dh">
+      <span class="s-dh-title">Filter & Sort</span>
+      <button class="s-dcls" onclick="closeDrawer()" aria-label="Đóng">
+        <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <div class="s-db">
+      
+      {# Thanh tìm kiếm riêng cho Mobile (vì Navbar ẩn search) #}
+      <div class="s-sec sm:hidden">
+        <h4 class="s-sec-title">Tìm kiếm</h4>
+        <div class="s-search" style="display:flex; max-width:100%; border-radius:8px">
+          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="color:var(--text-light);flex-shrink:0"><path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"/></svg>
+          <input type="search" id="liveSearchMobile" placeholder="Tìm thiết kế..." oninput="document.getElementById('liveSearch').value=this.value; applyFilters();">
+        </div>
+      </div>
 
-{% block extra_scripts %}
-<script>
-  document.addEventListener('DOMContentLoaded', () => {
+      <div class="s-sec">
+        <h4 class="s-sec-title">Sắp xếp theo</h4>
+        <div class="s-radio-g">
+          <label class="s-rl"><input type="radio" name="sort" value="newest" checked onchange="applyFilters()"><span>Mới nhất</span></label>
+          <label class="s-rl"><input type="radio" name="sort" value="best" onchange="applyFilters()"><span>Yêu thích nhất</span></label>
+          <label class="s-rl"><input type="radio" name="sort" value="price_asc" onchange="applyFilters()"><span>Giá từ thấp đến cao</span></label>
+          <label class="s-rl"><input type="radio" name="sort" value="price_desc" onchange="applyFilters()"><span>Giá từ cao xuống thấp</span></label>
+        </div>
+      </div>
+      <div class="s-sec">
+        <h4 class="s-sec-title">Danh mục</h4>
+        <div class="s-check-g" id="sCatFilters">
+          {% for cat in global_categories %}
+          <label class="s-cl"><input type="checkbox" class="f-cat" value="{{ cat.name|lower }}" onchange="applyFilters()"><span>{{ cat.name }}</span></label>
+          {% endfor %}
+        </div>
+      </div>
+      <div class="s-sec" id="sSzSec" style="display:none">
+        <h4 class="s-sec-title">Kích cỡ</h4>
+        <div class="s-chips" id="sSzChips"></div>
+      </div>
+      <div class="s-sec" id="sClSec" style="display:none">
+        <h4 class="s-sec-title">Màu sắc</h4>
+        <div class="s-chips" id="sClChips"></div>
+      </div>
+    </div>
+    <div class="s-df">
+      <button class="s-bcl" onclick="clearFilters()">Bỏ lọc</button>
+      <button class="s-bap" onclick="closeDrawer()">Áp dụng</button>
+    </div>
+  </aside>
 
-    /* ── 1. LIVE SEARCH ── */
-    const searchInput = document.getElementById('liveSearchInput');
-    const cards = document.querySelectorAll('.product-card');
-    const emptyState = document.getElementById('empty-state');
-    const productGrid = document.getElementById('product-grid');
-    const countDisplay = document.getElementById('product-count');
-    let debounceTimer;
+  <div class="s-toast" id="sToast"></div>
+  {% endblock %}
 
-    if (searchInput) {
-      searchInput.addEventListener('input', (e) => {
-        clearTimeout(debounceTimer);
-        debounceTimer = setTimeout(() => {
-          const term = e.target.value.toLowerCase().trim();
-          let visibleCount = 0;
+  {% block extra_scripts %}
+  <script>
+  const _idx={};
 
-          cards.forEach(card => {
-            const name = card.dataset.name.toLowerCase();
-            const category = card.dataset.category.toLowerCase();
+  function openDrawer(){
+    const o=document.getElementById('sOv');
+    o.classList.add('show');
+    setTimeout(()=>o.classList.add('vis'),10);
+    document.getElementById('sDrawer').classList.add('open');
+    document.body.style.overflow='hidden';
+  }
+  function closeDrawer(){
+    const o=document.getElementById('sOv');
+    o.classList.remove('vis');
+    setTimeout(()=>o.classList.remove('show'),320);
+    document.getElementById('sDrawer').classList.remove('open');
+    document.body.style.overflow='';
+  }
 
-            if (name.includes(term) || category.includes(term)) {
-              card.style.display = 'flex';
-              visibleCount++;
-            } else {
-              card.style.display = 'none';
-            }
-          });
+  /* ── HIỆU ỨNG CHUYỂN ẢNH SIÊU MƯỢT ── */
+  function imgSlide(e, pid, d){
+    e.preventDefault(); e.stopPropagation();
+    const card = document.querySelector(`.p-card[data-id="${pid}"]`);
+    if(!card) return;
+    const imgs = JSON.parse(card.dataset.imgs||'[]');
+    if(imgs.length < 2) return;
+    
+    _idx[pid] = ((_idx[pid]||0) + d + imgs.length) % imgs.length;
+    
+    const pm = card.querySelector('.pm');
+    const ph = card.querySelector('.ph');
+    
+    // Khóa hiệu ứng hover CSS gốc để không bị giật
+    pm.classList.remove('group-hover:opacity-0');
+    ph.style.display = 'none';
+    
+    // Hiệu ứng mờ dần (Fade out)
+    pm.style.transition = 'opacity 0.15s ease-out';
+    pm.style.opacity = '0.3';
+    
+    // Sau khi mờ thì đổi ảnh và hiện lên (Fade in)
+    setTimeout(() => {
+        pm.src = imgs[_idx[pid]];
+        pm.style.opacity = '1';
+    }, 150);
+  }
 
-          if (countDisplay) countDisplay.textContent = visibleCount;
+  function applyFilters(){
+    const ls=document.getElementById('liveSearch');
+    const term=(ls?ls.value:'').toLowerCase().trim();
+    const sort=(document.querySelector('input[name="sort"]:checked')||{value:'newest'}).value;
+    const cats=Array.from(document.querySelectorAll('.f-cat:checked')).map(c=>c.value);
+    const sizes=Array.from(document.querySelectorAll('.f-sz:checked')).map(c=>c.value);
+    const colors=Array.from(document.querySelectorAll('.f-cl:checked')).map(c=>c.value);
+    const cards=Array.from(document.querySelectorAll('.p-card'));
+    let vis=[];
+    cards.forEach(c=>{
+      let ok=true;
+      if(term&&!c.dataset.name.includes(term)&&!c.dataset.category.includes(term))ok=false;
+      if(ok&&cats.length&&!cats.includes(c.dataset.category))ok=false;
+      if(ok&&sizes.length){const s=JSON.parse(c.dataset.sizes||'[]');if(!sizes.some(x=>s.includes(x)))ok=false;}
+      if(ok&&colors.length){const cl=JSON.parse(c.dataset.colors||'[]');if(!colors.some(x=>cl.includes(x)))ok=false;}
+      c.style.display=ok?'flex':'none';
+      if(ok)vis.push(c);
+    });
+    vis.sort((a,b)=>{
+      if(sort==='price_asc')return+a.dataset.price-+b.dataset.price;
+      if(sort==='price_desc')return+b.dataset.price-+a.dataset.price;
+      if(sort==='best')return+b.dataset.sold-+a.dataset.sold;
+      return new Date(b.dataset.created)-new Date(a.dataset.created);
+    });
+    const g=document.getElementById('productGrid');
+    if(g)vis.forEach(c=>g.appendChild(c));
+    const n=vis.length;
+    document.getElementById('pcount').textContent=n;
+    document.getElementById('heroCount').textContent=n;
+    const em=document.getElementById('emptyState');
+    if(g)g.style.display=n?'grid':'none';
+    if(em)em.classList.toggle('show',n===0);
+  }
 
-          if (visibleCount === 0) {
-            if (productGrid) productGrid.classList.add('hidden');
-            if (emptyState) { emptyState.classList.remove('hidden'); emptyState.classList.add('flex'); }
-          } else {
-            if (productGrid) productGrid.classList.remove('hidden');
-            if (emptyState) { emptyState.classList.add('hidden'); emptyState.classList.remove('flex'); }
-          }
-        }, 250);
+  function clearFilters(){
+    document.querySelectorAll('.f-cat,.f-sz,.f-cl').forEach(c=>c.checked=false);
+    const r=document.querySelector('input[name="sort"][value="newest"]');if(r)r.checked=true;
+    const ls=document.getElementById('liveSearch');if(ls)ls.value='';
+    const lsm=document.getElementById('liveSearchMobile');if(lsm)lsm.value='';
+    applyFilters();
+  }
+
+  function showToast(m){
+    const t=document.getElementById('sToast');
+    t.textContent=m;t.classList.add('show');
+    clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),2400);
+  }
+
+  function getFavs(){try{return JSON.parse(localStorage.getItem('gua_favs')||'[]')}catch{return[]}}
+  function setFavs(l){try{localStorage.setItem('gua_favs',JSON.stringify(l))}catch{}}
+
+  async function toggleFav(e,btn){
+    e.preventDefault();e.stopPropagation();
+    const pid=String(btn.dataset.pid||'');if(!pid)return;
+    const was=btn.classList.contains('on');
+    btn.classList.toggle('on',!was);
+    const csrf=(document.querySelector('meta[name="csrf-token"]')||{}).content||'';
+    try{
+      const r=await fetch('/api/favorites/toggle',{
+        method:'POST',
+        headers:{'Content-Type':'application/json','X-CSRFToken':csrf},
+        body:JSON.stringify({product_id:pid})
       });
-    }
+      if(r.status===401){btn.classList.toggle('on',was);showToast('Vui lòng đăng nhập');return;}
+      if(!r.ok){btn.classList.toggle('on',was);showToast('Có lỗi xảy ra');return;}
+      let favs=getFavs();
+      if(!was){if(!favs.includes(pid))favs.push(pid);}else{favs=favs.filter(id=>id!==pid);}
+      setFavs(favs);
+      showToast(!was?'Đã lưu vào bộ sưu tập ♥':'Đã bỏ yêu thích');
+    }catch{btn.classList.toggle('on',was);showToast('Lỗi kết nối');}
+  }
 
-    /* ── 2. MEGA MENU ── */
-    const btnToggleMenu = document.getElementById('toggle-mega-menu');
-    const btnCloseMenu = document.getElementById('close-mega-menu');
-    const megaMenu = document.getElementById('category-mega-menu');
-    const menuIcon = document.getElementById('menu-icon');
-
-    function toggleMenu() {
-      if (!btnToggleMenu || !megaMenu) return;
-      const isExpanded = btnToggleMenu.getAttribute('aria-expanded') === 'true';
-
-      if (isExpanded) {
-        megaMenu.classList.replace('max-h-[80vh]', 'max-h-0');
-        megaMenu.classList.replace('opacity-100', 'opacity-0');
-        megaMenu.classList.replace('border-b', 'border-b-0');
-        btnToggleMenu.setAttribute('aria-expanded', 'false');
-        if (!"{{ category }}") menuIcon.innerHTML = '+';
-      } else {
-        megaMenu.classList.replace('max-h-0', 'max-h-[80vh]');
-        megaMenu.classList.replace('opacity-0', 'opacity-100');
-        megaMenu.classList.replace('border-b-0', 'border-b');
-        btnToggleMenu.setAttribute('aria-expanded', 'true');
-        menuIcon.innerHTML = '&times;';
+  document.addEventListener('DOMContentLoaded',()=>{
+    const meta=document.getElementById('fmeta');
+    if(meta){
+      const {sizes,colors}=JSON.parse(meta.textContent);
+      const sc=document.getElementById('sSzChips'),cc=document.getElementById('sClChips');
+      if(sizes.length&&sc){
+        document.getElementById('sSzSec').style.display='';
+        sizes.forEach(s=>{sc.innerHTML+=`<label class="s-chip-l"><input type="checkbox" class="f-sz" value="${s}" onchange="applyFilters()"><span class="s-chip">${s}</span></label>`;});
+      }
+      if(colors.length&&cc){
+        document.getElementById('sClSec').style.display='';
+        colors.forEach(c=>{cc.innerHTML+=`<label class="s-chip-l"><input type="checkbox" class="f-cl" value="${c}" onchange="applyFilters()"><span class="s-chip">${c}</span></label>`;});
       }
     }
 
-    if (btnToggleMenu) btnToggleMenu.addEventListener('click', toggleMenu);
-    if (btnCloseMenu) btnCloseMenu.addEventListener('click', toggleMenu);
-
-    document.addEventListener('click', (e) => {
-      if (btnToggleMenu && btnToggleMenu.getAttribute('aria-expanded') === 'true' &&
-        !megaMenu.contains(e.target) && !btnToggleMenu.contains(e.target)) {
-        toggleMenu();
-      }
+    getFavs().forEach(pid=>{
+      const b=document.querySelector(`.p-fav[data-pid="${pid}"]`);
+      if(b)b.classList.add('on');
     });
 
-    /* ── 3. FAVORITES ── */
-    const saved = getSavedFavs();
-    document.querySelectorAll('.btn-fav').forEach(b => {
-      if (saved.includes(String(b.dataset.productId))) markFav(b, true);
+    let dt;
+    const ls=document.getElementById('liveSearch');
+    if(ls)ls.addEventListener('input',()=>{clearTimeout(dt);dt=setTimeout(applyFilters,280);});
+
+    document.querySelectorAll('.s-gcol').forEach(btn=>{
+      btn.addEventListener('click',function(){
+        document.querySelectorAll('.s-gcol').forEach(b=>b.classList.remove('on'));
+        this.classList.add('on');
+        const g=document.getElementById('productGrid');
+        if(!g)return;
+        const c=this.dataset.c;
+        g.className='s-grid fu fu2'+(c==='3'?' g3':c==='5'?' g5':'');
+      });
     });
+
+    document.addEventListener('keydown',e=>{if(e.key==='Escape')closeDrawer();});
   });
-
-  function markFav(btn, isFav) {
-    const outline = btn.querySelector('.icon-outline');
-    const solid = btn.querySelector('.icon-solid');
-    if (isFav) {
-      btn.classList.add('border-[#f5b8b8]', 'bg-[#fff0ef]');
-      outline.classList.add('hidden'); solid.classList.remove('hidden');
-    } else {
-      btn.classList.remove('border-[#f5b8b8]', 'bg-[#fff0ef]');
-      outline.classList.remove('hidden'); solid.classList.add('hidden');
-    }
-  }
-
-  function getSavedFavs() { try { return JSON.parse(localStorage.getItem('gua_favs') || '[]'); } catch { return []; } }
-  function setSavedFavs(l) { try { localStorage.setItem('gua_favs', JSON.stringify(l)); } catch { } }
-
-  function showToast(m) {
-    const t = document.getElementById('fav-toast'); if (!t) return;
-    t.textContent = m; t.classList.remove('translate-y-4', 'opacity-0');
-    clearTimeout(t._t); t._t = setTimeout(() => t.classList.add('translate-y-4', 'opacity-0'), 2500);
-  }
-
-  async function toggleFav(btn) {
-    const pid = String(btn.dataset.productId || ''); if (!pid) return;
-    const wasFav = !btn.querySelector('.icon-outline').classList.contains('hidden');
-
-    markFav(btn, !wasFav); // Optimistic UI
-    let favs = getSavedFavs();
-    if (!wasFav) { if (!favs.includes(pid)) favs.push(pid); }
-    else { favs = favs.filter(id => id !== pid); }
-    setSavedFavs(favs);
-
-    const csrf = (document.querySelector('meta[name="csrf-token"]') || {}).content || '';
-    try {
-      const r = await fetch('/api/favorites/toggle', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrf }, body: JSON.stringify({ product_id: pid }) });
-      if (r.status === 401) { markFav(btn, wasFav); showToast('Vui lòng đăng nhập'); return; }
-      if (!r.ok) throw new Error();
-      showToast(!wasFav ? 'Đã lưu thiết kế ♥' : 'Đã bỏ yêu thích');
-    } catch { markFav(btn, wasFav); showToast('Lỗi kết nối'); }
-  }
-</script>
-{% endblock %}
+  </script>
+  {% endblock %}

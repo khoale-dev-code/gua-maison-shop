@@ -22,7 +22,7 @@
     </div>
   </div>
 
-  {# ── 2. THANH CÔNG CỤ (TABS + SEARCH) - Bo tròn viên nhộng ── #}
+  {# ── 2. THANH CÔNG CỤ (TABS + SEARCH) ── #}
   <div class="bg-white border border-stone-100 rounded-[2rem] p-2 flex flex-col xl:flex-row items-center justify-between gap-4 shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)]">
     
     {# Tabs Trạng thái #}
@@ -76,7 +76,7 @@
   {# ── 3. BẢNG DỮ LIỆU ĐƠN HÀNG ── #}
   <div class="bg-white border border-stone-100 rounded-3xl shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)] overflow-hidden">
     <div class="overflow-x-auto no-scrollbar">
-      <table class="w-full text-left border-collapse min-w-[1100px]">
+      <table class="w-full text-left border-collapse min-w-[1150px]">
         <thead>
           <tr class="bg-stone-50/50 border-b border-stone-100">
             <th class="px-6 py-4 w-12 text-center">
@@ -87,7 +87,7 @@
             <th class="px-6 py-4 text-[11px] font-semibold uppercase tracking-widest text-stone-500">Khách hàng</th>
             <th class="px-6 py-4 text-[11px] font-semibold uppercase tracking-widest text-stone-500">Thanh toán</th>
             <th class="px-6 py-4 text-center text-[11px] font-semibold uppercase tracking-widest text-stone-500">Tiến độ</th>
-            <th class="px-6 py-4 text-right text-[11px] font-semibold uppercase tracking-widest text-stone-500 w-32">Tổng tiền</th>
+            <th class="px-6 py-4 text-right text-[11px] font-semibold uppercase tracking-widest text-stone-500 w-36">Tổng tiền</th>
             <th class="px-6 py-4 text-center text-[11px] font-semibold uppercase tracking-widest text-stone-500 w-20">Thao tác</th>
           </tr>
         </thead>
@@ -106,7 +106,7 @@
                 #{{ o.code or o.id[:8]|upper }}
               </a>
               <div class="mt-2.5 flex flex-col items-start gap-2">
-                {% if o.source == 'pos' %}
+                {% if o.sales_channel == 'pos' %}
                   <span class="inline-flex items-center gap-1.5 bg-stone-100 text-stone-600 px-2.5 py-1 text-[9px] font-bold uppercase tracking-widest rounded-lg">
                     <i class="fa-solid fa-store"></i> POS
                   </span>
@@ -157,7 +157,7 @@
               {% endif %}
             </td>
 
-            {# Khách hàng #}
+            {# Khách hàng (Cập nhật hiển thị Member) #}
             <td class="px-6 py-4 align-top pt-5">
               {% set c_name = o.customer_name %}
               {% if not c_name and o.users %} {% set c_name = o.users.full_name %} {% endif %}
@@ -167,7 +167,12 @@
               {% if not c_phone and o.users %} {% set c_phone = o.users.phone %} {% endif %}
               {% if not c_phone and o.shipping_address %} {% set c_phone = o.shipping_address.get('phone') %} {% endif %}
 
-              <p class="font-bold text-stone-900 text-sm truncate max-w-[160px]">{{ c_name or 'Khách lẻ' }}</p>
+              <div class="flex items-center gap-1.5">
+                  <p class="font-bold text-stone-900 text-sm truncate max-w-[160px]">{{ c_name or 'Khách lẻ' }}</p>
+                  {% if o.user_id %}
+                      <span class="text-amber-500" title="Thành viên có tài khoản"><i class="fa-solid fa-crown text-[10px]"></i></span>
+                  {% endif %}
+              </div>
               <p class="text-xs font-medium text-stone-500 mt-1">{{ c_phone or '---' }}</p>
             </td>
 
@@ -204,10 +209,26 @@
               </span>
             </td>
 
-            {# Tổng tiền #}
+            {# Tổng tiền & Tích Điểm #}
             <td class="px-6 py-4 text-right align-top pt-5">
               <p class="font-bold text-stone-900 text-[15px] tabular-nums">{{ "{:,.0f}".format(o.total_amount) }} <span class="text-xs font-normal text-stone-500 underline decoration-stone-300">đ</span></p>
-              <p class="text-[10px] font-medium text-stone-500 mt-1.5">{{ o.order_items|length }} sản phẩm</p>
+              <p class="text-[10px] font-medium text-stone-500 mt-1.5 mb-2">{{ o.order_items|length }} sản phẩm</p>
+              
+              {# Hiển thị Huy hiệu Điểm (Earned / Redeemed) #}
+              {% if o.earned_points or o.redeemed_points %}
+              <div class="flex flex-col items-end gap-1.5">
+                  {% if o.redeemed_points %}
+                  <span class="inline-flex items-center gap-1.5 text-[9px] font-bold text-rose-600 bg-rose-50 px-2 py-1 rounded-md border border-rose-100 shadow-sm" title="Khách đã dùng điểm để giảm giá">
+                      <i class="fa-solid fa-star text-[8px]"></i> -{{ o.redeemed_points }} Pts
+                  </span>
+                  {% endif %}
+                  {% if o.earned_points %}
+                  <span class="inline-flex items-center gap-1.5 text-[9px] font-bold text-emerald-600 bg-emerald-50 px-2 py-1 rounded-md border border-emerald-100 shadow-sm" title="Đã tích điểm cho tài khoản này">
+                      <i class="fa-solid fa-gem text-[8px]"></i> +{{ o.earned_points }} Pts
+                  </span>
+                  {% endif %}
+              </div>
+              {% endif %}
             </td>
 
             {# Thao tác #}
@@ -297,7 +318,6 @@ document.addEventListener('DOMContentLoaded', function() {
     if(checkAll) {
         checkAll.addEventListener('change', function() {
             checkboxes.forEach(cb => {
-                // Chỉ check những đơn hàng không bị disable/ẩn
                 if(!cb.disabled) cb.checked = this.checked;
             });
             updateBulkActions();

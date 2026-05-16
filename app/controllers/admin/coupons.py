@@ -69,6 +69,9 @@ def _coupon_data_from_form(form: dict) -> dict:
         "expires_at": form.get("expires_at") or None,
         "starts_at": form.get("starts_at")  or None,
         "is_stackable": "is_stackable" in form,
+        # LẤY THÊM DỮ LIỆU KÊNH VÀ ĐIỂM
+        "applicable_channel": form.get("applicable_channel", "all"),
+        "min_loyalty_points": _int("min_loyalty_points") or 0,
     }
 
 

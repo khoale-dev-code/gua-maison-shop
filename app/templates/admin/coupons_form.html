@@ -153,6 +153,31 @@
                         </div>
                     </div>
                 </div>
+
+                {# ĐIỀU KIỆN MỞ RỘNG (KÊNH & ĐIỂM) #}
+                <div class="modern-card p-6 md:p-8">
+                    <h2 class="text-lg font-bold text-slate-900 mb-6 flex items-center gap-2">
+                        <div class="w-8 h-8 rounded-lg bg-rose-50 text-rose-500 flex items-center justify-center"><i class="fa-solid fa-sliders"></i></div>
+                        04. Điều kiện mở rộng
+                    </h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                        <div>
+                            <label class="block text-sm font-bold text-slate-700 mb-2">Kênh áp dụng</label>
+                            <select name="applicable_channel" id="inputChannel" class="w-full bg-slate-50 border border-slate-200 text-sm font-semibold rounded-xl py-3 px-4 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all">
+                                <option value="all" {% if coupon and coupon.applicable_channel == 'all' %}selected{% endif %}>Tất cả các kênh</option>
+                                <option value="web" {% if coupon and coupon.applicable_channel == 'web' %}selected{% endif %}>Chỉ mua trên Website</option>
+                                <option value="pos" {% if coupon and coupon.applicable_channel == 'pos' %}selected{% endif %}>Chỉ mua tại Quầy (POS)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-bold text-slate-700 mb-2">Điểm thành viên yêu cầu</label>
+                            <input type="number" name="min_loyalty_points" id="inputPoints" value="{{ coupon.min_loyalty_points | int if coupon and coupon.min_loyalty_points else '0' }}" min="0" placeholder="VD: 100"
+                                class="w-full bg-slate-50 border border-slate-200 text-sm font-medium rounded-xl py-3 px-4 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition-all">
+                            <p class="text-[10px] font-medium text-slate-500 mt-2">Khách cần đạt mức điểm này để thấy và sử dụng mã ưu đãi.</p>
+                        </div>
+                    </div>
+                </div>
+
             </form>
         </div>
 
@@ -185,6 +210,17 @@
                             <div>
                                 <p class="text-[10px] uppercase font-bold text-slate-400">Max Discount</p>
                                 <p id="previewMax" class="text-sm font-bold text-indigo-600 mt-1">Không giới hạn</p>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-4 mt-4 pt-4 border-t border-slate-50">
+                            <div>
+                                <p class="text-[10px] uppercase font-bold text-slate-400">Kênh áp dụng</p>
+                                <p id="previewChannel" class="text-xs font-bold text-slate-900 mt-1">Tất cả</p>
+                            </div>
+                            <div>
+                                <p class="text-[10px] uppercase font-bold text-slate-400">Điểm yêu cầu</p>
+                                <p id="previewPoints" class="text-xs font-bold text-amber-500 mt-1">0 Pts</p>
                             </div>
                         </div>
 
@@ -229,6 +265,8 @@
         start: document.getElementById('inputStart'),
         expiry: document.getElementById('inputExpiry'),
         noLimit: document.getElementById('noLimit'),
+        channel: document.getElementById('inputChannel'),
+        points: document.getElementById('inputPoints'),
         qr: document.getElementById('previewQR')
     };
 
@@ -247,7 +285,9 @@
         min: document.getElementById('previewMin'),
         max: document.getElementById('previewMax'),
         start: document.getElementById('previewStart'),
-        expiry: document.getElementById('previewExpiry')
+        expiry: document.getElementById('previewExpiry'),
+        channel: document.getElementById('previewChannel'),
+        points: document.getElementById('previewPoints')
     };
 
     function formatVND(number) {
@@ -324,6 +364,14 @@
         previews.max.innerText = inputs.max.value ? `${formatVND(inputs.max.value)} ₫` : 'Không giới hạn';
         previews.start.innerText = inputs.start.value ? formatDateTime(inputs.start.value) : 'Tức thì';
         previews.expiry.innerText = inputs.noLimit.checked ? 'Vĩnh viễn' : (inputs.expiry.value ? formatDateTime(inputs.expiry.value) : '---');
+        
+        // Update new fields
+        let channelText = "Tất cả";
+        if (inputs.channel.value === 'web') channelText = "Chỉ Website";
+        if (inputs.channel.value === 'pos') channelText = "Chỉ tại Quầy";
+        previews.channel.innerText = channelText;
+        
+        previews.points.innerText = inputs.points.value > 0 ? `${inputs.points.value} Pts` : 'Mọi KH';
     }
 
     function syncPreview() {
