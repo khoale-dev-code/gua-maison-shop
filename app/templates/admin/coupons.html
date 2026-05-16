@@ -71,6 +71,7 @@
 
     <div class="max-w-[1400px] mx-auto px-6 lg:px-12 mt-8 fade-up">
         
+        {# CỤM LỌC (FILTERS) #}
         <div class="flex flex-wrap items-center gap-2 mb-6 border-b border-slate-200 pb-2">
             {% for key, label in [('all','Tất cả mã'),('active','Đang hoạt động'),('expired','Đã hết hạn'),('percent','Chiết khấu %'),('fixed','Giảm tiền')] %}
             <a href="?filter={{ key }}" class="px-4 py-2 text-sm font-semibold rounded-lg transition-colors {% if request.args.get('filter','all') == key %}bg-indigo-50 text-indigo-600{% else %}text-slate-500 hover:text-slate-800 hover:bg-slate-50{% endif %}">
@@ -79,15 +80,16 @@
             {% endfor %}
         </div>
 
+        {# BẢNG DỮ LIỆU CHÍNH #}
         <div class="modern-card overflow-hidden">
             <div class="overflow-x-auto custom-scrollbar">
-                <table class="w-full text-left border-collapse">
+                <table class="w-full text-left border-collapse min-w-[1000px]">
                     <thead>
                         <tr class="bg-slate-50/50 border-b border-slate-100">
-                            <th class="py-4 px-6 text-xs font-bold uppercase tracking-wider text-slate-500 w-[25%]">Chương trình</th>
-                            <th class="py-4 px-6 text-xs font-bold uppercase tracking-wider text-slate-500 w-[18%]">Mức ưu đãi</th>
-                            <th class="py-4 px-6 text-xs font-bold uppercase tracking-wider text-slate-500 w-[17%]">Điều kiện</th>
-                            <th class="py-4 px-6 text-xs font-bold uppercase tracking-wider text-slate-500 w-[20%]">Thời hạn</th>
+                            <th class="py-4 px-6 text-xs font-bold uppercase tracking-wider text-slate-500 w-[24%]">Chương trình</th>
+                            <th class="py-4 px-6 text-xs font-bold uppercase tracking-wider text-slate-500 w-[16%]">Mức ưu đãi</th>
+                            <th class="py-4 px-6 text-xs font-bold uppercase tracking-wider text-slate-500 w-[22%]">Điều kiện áp dụng</th>
+                            <th class="py-4 px-6 text-xs font-bold uppercase tracking-wider text-slate-500 w-[18%]">Thời hạn</th>
                             <th class="py-4 px-6 text-xs font-bold uppercase tracking-wider text-slate-500 text-center w-[10%]">Trạng thái</th>
                             <th class="py-4 px-6 text-xs font-bold uppercase tracking-wider text-slate-500 text-right w-[10%]">Thao tác</th>
                         </tr>
@@ -97,6 +99,7 @@
                         {% set is_expired = c.expires_at is not none and c.expires_at < now %}
                         <tr class="hover:bg-slate-50/50 transition-colors group">
                             
+                            {# 1. CỘT: CHƯƠNG TRÌNH #}
                             <td class="py-5 px-6 align-top">
                                 <div class="flex items-start gap-4">
                                     {% if c.image_url %}
@@ -117,6 +120,7 @@
                                 </div>
                             </td>
 
+                            {# 2. CỘT: MỨC ƯU ĐÃI #}
                             <td class="py-5 px-6 align-top">
                                 <div class="text-xl font-bold text-indigo-600 flex items-baseline gap-1">
                                     {% if c.discount_type == 'percent' %}
@@ -127,27 +131,52 @@
                                         <span class="text-sm font-bold tracking-widest text-emerald-600 bg-emerald-50 px-3 py-1 rounded-lg border border-emerald-100">FREESHIP</span>
                                     {% endif %}
                                 </div>
+                                {% if c.max_discount and c.max_discount > 0 %}
+                                    <p class="text-[10px] font-bold text-slate-400 mt-1 uppercase tracking-wider">Max: {{ '{:,.0f}'.format(c.max_discount) | replace(',', '.') }} ₫</p>
+                                {% endif %}
                             </td>
 
+                            {# 3. CỘT: ĐIỀU KIỆN ÁP DỤNG (ĐÃ CẬP NHẬT KÊNH & ĐIỂM) #}
                             <td class="py-5 px-6 align-top">
-                                <div class="flex flex-col gap-2">
-                                    <p class="text-xs font-bold text-slate-700">Min: <span class="text-slate-900">{{ '{:,.0f}'.format(c.min_order_value or 0) | replace(',', '.') }} ₫</span></p>
+                                <div class="flex flex-col gap-2.5">
+                                    <p class="text-xs font-bold text-slate-700">Min Order: <span class="text-slate-900">{{ '{:,.0f}'.format(c.min_order_value or 0) | replace(',', '.') }} ₫</span></p>
                                     
-                                    <div class="w-full max-w-[120px] h-1.5 bg-slate-100 rounded-full overflow-hidden mt-1 relative">
-                                        {% set used = c.used_count | default(0) %}
-                                        {% set limit = c.usage_limit or 0 %}
-                                        {% set pct = ((used / limit) * 100) if limit > 0 else 0 %}
-                                        <div class="absolute top-0 left-0 h-full bg-indigo-500 rounded-full" style="width: {{ pct if pct <= 100 else 100 }}%;"></div>
+                                    {# Huy hiệu Kênh & Điểm Loyalty #}
+                                    <div class="flex flex-wrap gap-1.5">
+                                        {% if c.applicable_channel == 'web' %}
+                                            <span class="px-2 py-0.5 rounded text-[9px] font-bold bg-slate-800 text-white uppercase tracking-wider shadow-sm">Chỉ WEB</span>
+                                        {% elif c.applicable_channel == 'pos' %}
+                                            <span class="px-2 py-0.5 rounded text-[9px] font-bold bg-blue-100 text-blue-700 border border-blue-200 uppercase tracking-wider shadow-sm">Chỉ POS</span>
+                                        {% else %}
+                                            <span class="px-2 py-0.5 rounded text-[9px] font-bold bg-stone-100 text-stone-600 border border-stone-200 uppercase tracking-wider shadow-sm">Mọi kênh</span>
+                                        {% endif %}
+                                        
+                                        {% if c.min_loyalty_points and c.min_loyalty_points > 0 %}
+                                            <span class="px-2 py-0.5 rounded text-[9px] font-bold bg-amber-50 text-amber-600 border border-amber-200 uppercase tracking-wider flex items-center gap-1 shadow-sm" title="Yêu cầu điểm thành viên tối thiểu">
+                                                <i class="fa-solid fa-star text-[8px]"></i> >= {{ c.min_loyalty_points }} Pts
+                                            </span>
+                                        {% endif %}
                                     </div>
                                     
-                                    <p class="text-[10px] text-slate-500 font-bold uppercase tracking-wider">
-                                        Đã dùng: <span class="text-slate-900">{{ used }}</span> / {{ limit if limit > 0 else '∞' }}
-                                    </p>
+                                    {# Thanh Process Bar cho lượt dùng #}
+                                    <div class="mt-1.5">
+                                        <div class="w-full max-w-[140px] h-1.5 bg-slate-100 rounded-full overflow-hidden relative mb-1.5">
+                                            {% set used = c.used_count | default(0) %}
+                                            {% set limit = c.usage_limit or 0 %}
+                                            {% set pct = ((used / limit) * 100) if limit > 0 else 0 %}
+                                            <div class="absolute top-0 left-0 h-full bg-indigo-500 rounded-full" style="width: {{ pct if pct <= 100 else 100 }}%;"></div>
+                                        </div>
+                                        
+                                        <p class="text-[9px] text-slate-500 font-bold uppercase tracking-wider">
+                                            Đã dùng: <span class="text-slate-900">{{ used }}</span> / {{ limit if limit > 0 else '∞' }}
+                                        </p>
+                                    </div>
                                 </div>
                             </td>
 
+                            {# 4. CỘT: THỜI HẠN #}
                             <td class="py-5 px-6 align-top">
-                                <div class="flex flex-col gap-1.5">
+                                <div class="flex flex-col gap-2">
                                     {% if c.starts_at %}
                                         <p class="text-[11px] font-semibold text-slate-500 flex justify-between">
                                             <span>Từ:</span> <span class="text-slate-900 font-bold">{{ c.starts_at[:10] | replace('-', '.') }}</span>
@@ -163,6 +192,7 @@
                                 </div>
                             </td>
 
+                            {# 5. CỘT: TRẠNG THÁI (TOGGLE) #}
                             <td class="py-5 px-6 align-top text-center">
                                 <form action="{{ url_for('admin.toggle_coupon', coupon_id=c.id) }}" method="POST" class="inline-block m-0">
                                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
@@ -170,14 +200,15 @@
                                 </form>
                             </td>
 
+                            {# 6. CỘT: THAO TÁC #}
                             <td class="py-5 px-6 align-top text-right">
                                 <div class="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                    <a href="{{ url_for('admin.edit_coupon', coupon_id=c.id) }}" class="w-8 h-8 rounded-lg bg-slate-50 text-slate-500 flex items-center justify-center hover:bg-indigo-50 hover:text-indigo-600 transition-colors">
+                                    <a href="{{ url_for('admin.edit_coupon', coupon_id=c.id) }}" class="w-8 h-8 rounded-lg bg-slate-50 text-slate-500 flex items-center justify-center hover:bg-indigo-50 hover:text-indigo-600 transition-colors shadow-sm" title="Sửa khuyến mãi">
                                         <i class="fa-solid fa-pen"></i>
                                     </a>
                                     <form action="{{ url_for('admin.delete_coupon', coupon_id=c.id) }}" method="POST" class="m-0" onsubmit="return confirm('Bạn có chắc chắn muốn xóa vĩnh viễn voucher này?')">
                                         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                                        <button type="submit" class="w-8 h-8 rounded-lg bg-slate-50 text-slate-500 flex items-center justify-center hover:bg-rose-50 hover:text-rose-600 transition-colors">
+                                        <button type="submit" class="w-8 h-8 rounded-lg bg-slate-50 text-slate-500 flex items-center justify-center hover:bg-rose-50 hover:text-rose-600 transition-colors shadow-sm" title="Xóa khuyến mãi">
                                             <i class="fa-solid fa-trash-can"></i>
                                         </button>
                                     </form>
@@ -188,7 +219,7 @@
                         {% else %}
                         <tr>
                             <td colspan="6" class="py-24 text-center">
-                                <div class="w-20 h-20 mx-auto bg-slate-50 rounded-2xl flex items-center justify-center mb-4">
+                                <div class="w-20 h-20 mx-auto bg-slate-50 rounded-2xl flex items-center justify-center mb-4 border border-slate-100">
                                     <i class="fa-solid fa-ticket text-3xl text-slate-300"></i>
                                 </div>
                                 <p class="text-sm font-bold text-slate-900 mb-1">Chưa có dữ liệu khuyến mãi</p>
@@ -203,6 +234,30 @@
                 </table>
             </div>
         </div>
+        
+        {# PHÂN TRANG (Nếu danh sách dài) #}
+        {% if total_pages > 1 %}
+        <div class="flex justify-center mt-8">
+            <div class="flex items-center gap-1 bg-white p-1 rounded-xl shadow-sm border border-slate-100">
+                {% if page > 1 %}
+                    <a href="?page={{ page - 1 }}&filter={{ filter_mode }}" class="w-8 h-8 flex items-center justify-center rounded-lg text-slate-400 hover:bg-slate-50 hover:text-slate-900"><i class="fa-solid fa-chevron-left text-xs"></i></a>
+                {% endif %}
+                
+                {% for p in range(1, total_pages + 1) %}
+                    {% if p == page %}
+                        <span class="w-8 h-8 flex items-center justify-center rounded-lg bg-indigo-600 text-white font-bold text-xs shadow-sm">{{ p }}</span>
+                    {% else %}
+                        <a href="?page={{ p }}&filter={{ filter_mode }}" class="w-8 h-8 flex items-center justify-center rounded-lg text-slate-600 hover:bg-slate-50 text-xs font-bold">{{ p }}</a>
+                    {% endif %}
+                {% endfor %}
+                
+                {% if page < total_pages %}
+                    <a href="?page={{ page + 1 }}&filter={{ filter_mode }}" class="w-8 h-8 flex items-center justify-center rounded-lg text-slate-400 hover:bg-slate-50 hover:text-slate-900"><i class="fa-solid fa-chevron-right text-xs"></i></a>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+        
     </div>
 </div>
 {% endblock %}

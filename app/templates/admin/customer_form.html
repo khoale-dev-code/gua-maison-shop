@@ -18,142 +18,310 @@
                         ID: {{ customer.id[:8].upper() }}
                     </span>
                     <span class="text-stone-300">•</span>
-                    <span class="text-sm text-stone-500">Cập nhật thông tin định danh khách hàng</span>
+                    <span class="text-sm text-stone-500">Chi tiết thông tin, Thẻ thành viên và Lịch sử</span>
                 </div>
             </div>
         </div>
         
-        {# Avatar Badge - Đồng bộ style #}
-        <div class="flex items-center gap-3 bg-white p-2 pr-6 border border-stone-100 rounded-2xl shadow-sm self-start md:self-center">
-            <div class="w-12 h-12 bg-black text-white rounded-xl flex items-center justify-center font-bold text-lg shadow-lg">
-                {{ customer.full_name[0].upper() }}
+        {# Avatar Badge & Hạng Thành Viên #}
+        {% set pts = customer.points|default(0, true) %}
+        {% set tier_name = 'Member' %}
+        {% set tier_color = 'text-stone-500' %}
+        {% set tier_bg = 'bg-stone-100' %}
+        {% set tier_icon = 'fa-user' %}
+        
+        {% if pts >= 5000 %}
+            {% set tier_name = 'Black Member' %}
+            {% set tier_color = 'text-stone-100' %}
+            {% set tier_bg = 'bg-stone-900' %}
+            {% set tier_icon = 'fa-gem' %}
+        {% elif pts >= 1000 %}
+            {% set tier_name = 'Gold Member' %}
+            {% set tier_color = 'text-amber-600' %}
+            {% set tier_bg = 'bg-amber-50 border-amber-200' %}
+            {% set tier_icon = 'fa-crown' %}
+        {% elif pts >= 300 %}
+            {% set tier_name = 'Silver Member' %}
+            {% set tier_color = 'text-slate-500' %}
+            {% set tier_bg = 'bg-slate-50 border-slate-200' %}
+            {% set tier_icon = 'fa-medal' %}
+        {% endif %}
+
+        <div class="flex items-center gap-4 {{ tier_bg }} p-2 pr-6 border border-stone-100 rounded-2xl shadow-sm self-start md:self-center transition-all">
+            <div class="w-12 h-12 bg-white text-stone-900 rounded-xl flex items-center justify-center font-bold text-lg shadow-sm">
+                {{ customer.full_name[0].upper() if customer.full_name else '?' }}
             </div>
             <div>
                 <p class="text-sm font-bold text-stone-900">{{ customer.full_name }}</p>
-                <p class="text-[10px] font-bold text-emerald-600 uppercase tracking-widest">Khách hàng thân thiết</p>
+                <p class="text-[10px] font-black {{ tier_color }} uppercase tracking-widest flex items-center gap-1.5 mt-0.5">
+                    <i class="fa-solid {{ tier_icon }}"></i> {{ tier_name }}
+                </p>
             </div>
         </div>
     </div>
 
-    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start mb-8">
         
-        {# ── 2. FORM CHÍNH (Chiếm 7 cột) ── #}
-        <div class="lg:col-span-7 space-y-6">
-            <div class="bg-white rounded-[2.5rem] p-8 md:p-12 border border-stone-50 shadow-[0_2px_15px_-3px_rgba(0,0,0,0.04)]">
-                
-                <div class="flex items-center gap-4 mb-10">
-                    <div class="w-12 h-12 bg-stone-900 text-white rounded-2xl flex items-center justify-center shadow-stone-200 shadow-lg">
-                        <i class="fa-solid fa-user-pen"></i>
+        {# ── 2. CỘT TRÁI (Form Info & Form Điểm) - Chiếm 7 cột ── #}
+        <div class="lg:col-span-7 space-y-8">
+            
+            {# BẢNG 1: THÔNG TIN ĐỊNH DANH #}
+            <div class="bg-white rounded-[2.5rem] p-8 md:p-10 border border-stone-50 shadow-[0_2px_15px_-3px_rgba(0,0,0,0.04)]">
+                <div class="flex items-center gap-4 mb-8">
+                    <div class="w-10 h-10 bg-stone-900 text-white rounded-xl flex items-center justify-center shadow-md">
+                        <i class="fa-solid fa-user-pen text-sm"></i>
                     </div>
-                    <h3 class="text-xl font-bold text-stone-900 font-serif">Thông tin định danh</h3>
+                    <h3 class="text-lg font-bold text-stone-900 font-serif">Thông tin liên hệ</h3>
                 </div>
 
-                <form action="{{ url_for('admin.edit_customer', user_id=customer.id) }}" method="POST" class="space-y-8">
+                <form action="{{ url_for('admin.edit_customer', user_id=customer.id) }}" method="POST" class="space-y-6">
                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 
-                    {# Field: Họ tên #}
-                    <div class="space-y-3">
-                        <label class="block text-[11px] font-bold text-stone-400 uppercase tracking-[0.15em] ml-1">
-                            Họ và tên khách hàng <span class="text-rose-500">*</span>
-                        </label>
-                        <input type="text" name="full_name" value="{{ customer.full_name }}" required
-                            placeholder="Nhập tên đầy đủ..."
-                            class="w-full bg-stone-50 border border-stone-100 rounded-2xl px-6 py-4 text-sm font-semibold text-stone-800 focus:outline-none focus:border-black focus:bg-white transition-all shadow-inner-sm">
-                    </div>
-
-                    {# Field: Số điện thoại #}
-                    <div class="space-y-3">
-                        <label class="block text-[11px] font-bold text-stone-400 uppercase tracking-[0.15em] ml-1">
-                            Số điện thoại liên lạc
-                        </label>
-                        <div class="relative">
-                            <i class="fa-solid fa-phone absolute left-6 top-1/2 -translate-y-1/2 text-stone-300 text-xs"></i>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="space-y-2">
+                            <label class="block text-[10px] font-bold text-stone-400 uppercase tracking-widest ml-1">Họ và tên <span class="text-rose-500">*</span></label>
+                            <input type="text" name="full_name" value="{{ customer.full_name }}" required
+                                class="w-full bg-stone-50 border border-stone-100 rounded-xl px-4 py-3 text-sm font-semibold text-stone-800 focus:outline-none focus:border-stone-400 focus:bg-white transition-all">
+                        </div>
+                        <div class="space-y-2">
+                            <label class="block text-[10px] font-bold text-stone-400 uppercase tracking-widest ml-1">Số điện thoại</label>
                             <input type="text" name="phone" value="{{ customer.phone if customer.phone else '' }}" 
-                                placeholder="Ví dụ: 0901234567"
-                                class="w-full bg-stone-50 border border-stone-100 rounded-2xl pl-12 pr-6 py-4 text-sm font-semibold text-stone-800 focus:outline-none focus:border-black focus:bg-white transition-all">
+                                class="w-full bg-stone-50 border border-stone-100 rounded-xl px-4 py-3 text-sm font-semibold text-stone-800 focus:outline-none focus:border-stone-400 focus:bg-white transition-all">
                         </div>
                     </div>
 
-                    {# Field: Email (Readonly) #}
-                    <div class="space-y-3">
-                        <label class="block text-[11px] font-bold text-stone-400 uppercase tracking-[0.15em] ml-1">
-                            Địa chỉ Email <span class="text-[9px] lowercase font-normal italic text-stone-400">(Không thể thay đổi)</span>
-                        </label>
-                        <div class="w-full bg-stone-100/50 border border-stone-100 rounded-2xl px-6 py-4 text-sm font-semibold text-stone-400 flex items-center justify-between">
-                            <div class="flex items-center gap-3">
-                                <i class="fa-solid fa-envelope text-stone-300"></i>
-                                {{ customer.email }}
-                            </div>
+                    <div class="space-y-2">
+                        <label class="block text-[10px] font-bold text-stone-400 uppercase tracking-widest ml-1">Địa chỉ Email (Cố định)</label>
+                        <div class="w-full bg-stone-100/50 border border-stone-100 rounded-xl px-4 py-3 text-sm font-medium text-stone-400 flex items-center justify-between">
+                            <span>{{ customer.email }}</span>
                             <i class="fa-solid fa-lock text-[10px]"></i>
                         </div>
                     </div>
 
-                    {# ── Cụm nút bấm ── #}
-                    <div class="pt-6 flex flex-col sm:flex-row items-center gap-4">
-                        <button type="submit" 
-                                class="w-full sm:flex-1 bg-black text-white font-bold py-5 rounded-2xl shadow-xl shadow-stone-100 hover:bg-stone-800 hover:-translate-y-0.5 transition-all active:scale-[0.98]">
-                            Lưu cập nhật hồ sơ
+                    <div class="pt-2">
+                        <button type="submit" class="px-6 py-3 bg-stone-900 text-white text-xs font-bold uppercase tracking-widest rounded-xl shadow-md hover:bg-stone-800 transition-all">
+                            Lưu thông tin
                         </button>
-                        <a href="{{ url_for('admin.customers') }}" 
-                           class="w-full sm:w-auto px-10 py-5 text-sm font-bold text-stone-400 hover:text-black transition-colors text-center">
-                            Hủy
-                        </a>
                     </div>
+                </form>
+            </div>
+
+            {# BẢNG 2: ĐIỀU CHỈNH ĐIỂM THỦ CÔNG (MANUAL ADJUSTMENT) #}
+            <div class="bg-white rounded-[2.5rem] p-8 md:p-10 border border-stone-50 shadow-[0_2px_15px_-3px_rgba(0,0,0,0.04)]">
+                <div class="flex items-center gap-4 mb-6">
+                    <div class="w-10 h-10 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center border border-blue-100 shadow-sm">
+                        <i class="fa-solid fa-wand-magic-sparkles text-sm"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-bold text-stone-900 font-serif">Điều chỉnh điểm</h3>
+                        <p class="text-[11px] text-stone-500">Tặng điểm thưởng hoặc trừ điểm do vi phạm</p>
+                    </div>
+                </div>
+
+                <form action="{{ url_for('admin.adjust_customer_points', user_id=customer.id) }}" method="POST" class="space-y-5 bg-stone-50 p-5 rounded-2xl border border-stone-100">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    
+                    <div class="flex gap-4">
+                        <div class="w-1/3 space-y-2">
+                            <label class="block text-[10px] font-bold text-stone-400 uppercase tracking-widest ml-1">Loại thao tác</label>
+                            <select name="action_type" class="w-full bg-white border border-stone-200 rounded-xl px-3 py-2.5 text-sm font-bold text-stone-800 outline-none focus:border-blue-500">
+                                <option value="add">Tặng điểm (+)</option>
+                                <option value="subtract">Trừ điểm (-)</option>
+                            </select>
+                        </div>
+                        <div class="w-2/3 space-y-2">
+                            <label class="block text-[10px] font-bold text-stone-400 uppercase tracking-widest ml-1">Số điểm</label>
+                            <input type="number" name="amount" required min="1" placeholder="Nhập số điểm..."
+                                class="w-full bg-white border border-stone-200 rounded-xl px-4 py-2.5 text-sm font-bold text-stone-800 outline-none focus:border-blue-500">
+                        </div>
+                    </div>
+                    
+                    <div class="space-y-2">
+                        <label class="block text-[10px] font-bold text-stone-400 uppercase tracking-widest ml-1">Lý do (Bắt buộc)</label>
+                        <input type="text" name="description" required placeholder="Ví dụ: Tặng quà sinh nhật, Bồi thường lỗi đơn hàng..."
+                            class="w-full bg-white border border-stone-200 rounded-xl px-4 py-2.5 text-sm font-medium text-stone-800 outline-none focus:border-blue-500">
+                    </div>
+
+                    <button type="submit" class="w-full py-3 bg-blue-600 text-white text-xs font-bold uppercase tracking-widest rounded-xl shadow-md shadow-blue-600/20 hover:bg-blue-700 transition-all">
+                        Thực hiện điều chỉnh
+                    </button>
                 </form>
             </div>
         </div>
 
-        {# ── 3. SIDEBAR LƯU Ý (Chiếm 5 cột) ── #}
+        {# ── 3. CỘT PHẢI (Stats & Ledger) - Chiếm 5 cột ── #}
         <div class="lg:col-span-5 space-y-6">
             
-            {# Box Note: Logistics #}
-            <div class="bg-blue-900 text-white rounded-[2rem] p-8 shadow-xl shadow-blue-100 relative overflow-hidden">
-                <i class="fa-solid fa-circle-info absolute -right-4 -top-4 text-8xl opacity-10"></i>
-                <div class="relative z-10">
-                    <h4 class="text-xs font-bold uppercase tracking-[0.2em] mb-4 text-blue-200">Lưu ý vận hành</h4>
-                    <p class="text-sm font-medium leading-relaxed opacity-90">
-                        Việc chỉnh sửa thông tin tại đây sẽ thay đổi <span class="underline decoration-blue-400 underline-offset-4">Hồ sơ gốc</span> của khách hàng trên toàn hệ thống.
+            {# Box: Thống kê & Điểm hiện tại #}
+            <div class="bg-stone-900 text-white rounded-[2rem] p-8 shadow-xl relative overflow-hidden">
+                <i class="fa-solid fa-gem absolute -right-6 -bottom-6 text-9xl opacity-5"></i>
+                <h4 class="text-[10px] font-bold text-stone-400 uppercase tracking-widest mb-6">Thẻ Thành Viên</h4>
+                
+                <div class="mb-8">
+                    <p class="text-sm text-stone-400 mb-1">Số dư điểm hiện tại</p>
+                    <p class="text-4xl font-black tabular-nums tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-amber-200 to-amber-500">
+                        {{ "{:,.0f}".format(pts) }} <span class="text-base text-stone-500 font-bold uppercase tracking-widest">PTS</span>
                     </p>
-                    <div class="mt-6 p-4 bg-white/10 rounded-2xl border border-white/10">
-                        <p class="text-xs italic leading-relaxed">
-                            "Nếu khách hàng yêu cầu đổi địa chỉ cho một <b>đơn hàng đang xử lý</b>, hãy sửa trong trang Chi tiết đơn hàng để không làm lệch dữ liệu lịch sử."
-                        </p>
+                </div>
+
+                <div class="space-y-4 pt-6 border-t border-white/10 relative z-10">
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs text-stone-400 font-medium">Tổng số đơn hàng</span>
+                        <span class="text-sm font-bold text-white">{{ order_count|default(0) }} đơn</span>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs text-stone-400 font-medium">Tổng mức chi tiêu</span>
+                        <span class="text-sm font-bold text-white">{{ "{:,.0f}".format(customer.total_spent|default(0)) }} ₫</span>
                     </div>
                 </div>
             </div>
 
-            {# Box: Thống kê nhanh của User này #}
-            <div class="bg-white rounded-[2rem] p-8 border border-stone-100 shadow-sm">
-                <h4 class="text-[10px] font-bold text-stone-400 uppercase tracking-widest mb-6">Hoạt động mua hàng</h4>
-                <div class="space-y-6">
-                    <div class="flex items-center justify-between">
-                        <span class="text-sm text-stone-500">Tổng đơn hàng</span>
-                        <span class="font-bold text-stone-900">12 đơn</span>
-                    </div>
-                    <div class="flex items-center justify-between">
-                        <span class="text-sm text-stone-500">Tổng chi tiêu</span>
-                        <span class="font-bold text-stone-900">4,250,000 ₫</span>
-                    </div>
-                    <div class="flex items-center justify-between">
-                        <span class="text-sm text-stone-500">Ngày tham gia</span>
-                        <span class="font-bold text-stone-900">22/01/2026</span>
-                    </div>
+            {# Box: Lịch sử Sổ cái (Ledger History) #}
+            <div class="bg-white rounded-[2rem] border border-stone-100 shadow-sm overflow-hidden flex flex-col h-[400px]">
+                <div class="p-6 border-b border-stone-100 bg-stone-50/50 shrink-0">
+                    <h4 class="text-[11px] font-bold text-stone-900 uppercase tracking-widest flex items-center gap-2">
+                        <i class="fa-solid fa-list-ul text-stone-400"></i> Lịch sử Giao dịch Điểm
+                    </h4>
+                </div>
+                
+                <div class="flex-1 overflow-y-auto custom-scrollbar p-2">
+                    {% if loyalty_history %}
+                        <div class="flex flex-col gap-1">
+                            {% for txn in loyalty_history %}
+                                <div class="flex items-center justify-between p-3 rounded-xl hover:bg-stone-50 transition-colors">
+                                    <div class="flex-1 min-w-0 pr-4">
+                                        <p class="text-xs font-bold text-stone-800 truncate" title="{{ txn.description }}">{{ txn.description }}</p>
+                                        <div class="flex gap-2 mt-1">
+                                            <span class="text-[9px] font-mono text-stone-400">{{ txn.created_at[:16].replace('T', ' ') }}</span>
+                                            <span class="text-[9px] font-bold uppercase tracking-wider {{ 'text-blue-500' if 'EARN' in txn.transaction_type else ('text-rose-500' if 'REDEEM' in txn.transaction_type or 'DEDUCT' in txn.transaction_type else 'text-amber-500') }}">{{ txn.transaction_type }}</span>
+                                        </div>
+                                    </div>
+                                    <div class="shrink-0 text-right">
+                                        {% if txn.amount > 0 %}
+                                            <span class="text-sm font-black text-emerald-600">+{{ txn.amount }}</span>
+                                        {% else %}
+                                            <span class="text-sm font-black text-rose-600">{{ txn.amount }}</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="h-full flex flex-col items-center justify-center text-stone-400">
+                            <i class="fa-solid fa-clock-rotate-left text-2xl mb-3 opacity-50"></i>
+                            <p class="text-xs font-medium">Chưa có giao dịch điểm nào.</p>
+                        </div>
+                    {% endif %}
                 </div>
             </div>
 
+        </div>
+    </div>
+
+    {# ── 4. LỊCH SỬ MUA HÀNG (FULL WIDTH) ── #}
+    <div class="bg-white rounded-[2.5rem] p-8 md:p-10 border border-stone-50 shadow-[0_2px_15px_-3px_rgba(0,0,0,0.04)] overflow-hidden">
+        <div class="flex items-center gap-4 mb-6">
+            <div class="w-10 h-10 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center border border-emerald-100 shadow-sm">
+                <i class="fa-solid fa-box-open text-sm"></i>
+            </div>
+            <div>
+                <h3 class="text-lg font-bold text-stone-900 font-serif">Lịch sử mua hàng</h3>
+                <p class="text-[11px] text-stone-500">20 đơn hàng gần nhất của thành viên</p>
+            </div>
+        </div>
+
+        <div class="overflow-x-auto custom-scrollbar border border-stone-100 rounded-2xl">
+            <table class="w-full text-left border-collapse min-w-[800px]">
+                <thead>
+                    <tr class="bg-stone-50/50 border-b border-stone-100 text-[11px] font-bold uppercase tracking-widest text-stone-500">
+                        <th class="px-5 py-4">Mã đơn</th>
+                        <th class="px-5 py-4">Kênh</th>
+                        <th class="px-5 py-4">Ngày mua</th>
+                        <th class="px-5 py-4 text-center">Tiến độ</th>
+                        <th class="px-5 py-4 text-center">Thanh toán</th>
+                        <th class="px-5 py-4 text-right">Tổng tiền</th>
+                        <th class="px-5 py-4 text-center">Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody class="text-sm divide-y divide-stone-50">
+                    {% for o in user_orders %}
+                    <tr class="hover:bg-stone-50/80 transition-colors {% if o.status in ['cancelled', 'returned'] %}opacity-60 grayscale-[30%]{% endif %}">
+                        <td class="px-5 py-4 font-bold text-stone-900">
+                            <a href="{{ url_for('admin.order_detail', order_id=o.id) }}" class="hover:text-blue-600">#{{ o.code or o.id[:8]|upper }}</a>
+                        </td>
+                        <td class="px-5 py-4">
+                            {% if o.sales_channel == 'pos' %}
+                                <span class="bg-stone-100 text-stone-600 px-2.5 py-1 text-[9px] font-bold uppercase tracking-widest rounded-lg flex items-center gap-1.5 w-fit">
+                                    <i class="fa-solid fa-store"></i> POS
+                                </span>
+                            {% else %}
+                                <span class="bg-stone-900 text-white px-2.5 py-1 text-[9px] font-bold uppercase tracking-widest rounded-lg flex items-center gap-1.5 w-fit shadow-sm">
+                                    <i class="fa-solid fa-globe"></i> WEB
+                                </span>
+                            {% endif %}
+                        </td>
+                        <td class="px-5 py-4 text-xs font-medium text-stone-500">
+                            {{ o.created_at[:16].replace('T', ' ') if o.created_at else '' }}
+                        </td>
+                        
+                        {# Trạng thái Tiến độ #}
+                        <td class="px-5 py-4 text-center">
+                            {% set s_map = {
+                                'pending': ('Chờ xác nhận', 'bg-amber-50 text-amber-700'),
+                                'confirmed': ('Đã xác nhận', 'bg-blue-50 text-blue-700'),
+                                'packed': ('Đã đóng gói', 'bg-indigo-50 text-indigo-700'),
+                                'shipped': ('Đang giao', 'bg-purple-50 text-purple-700'),
+                                'completed': ('Hoàn tất', 'bg-emerald-50 text-emerald-700'),
+                                'delivered': ('Đã giao', 'bg-emerald-50 text-emerald-700'),
+                                'cancelled': ('Đã hủy', 'bg-stone-100 text-stone-500'),
+                                'failed': ('Thất bại', 'bg-red-50 text-red-700'),
+                                'returned': ('Hoàn hàng', 'bg-rose-50 text-rose-700')
+                            } %}
+                            {% set st = s_map.get(o.status, ('N/A', 'bg-stone-50 text-stone-500')) %}
+                            <span class="inline-block px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-widest {{ st[1] }}">
+                                {{ st[0] }}
+                            </span>
+                        </td>
+
+                        {# Thanh toán #}
+                        <td class="px-5 py-4 text-center">
+                            {% if o.payment_status == 'paid' %}
+                                <span class="text-xs font-bold text-emerald-600"><i class="fa-solid fa-check"></i> Đã trả</span>
+                            {% else %}
+                                <span class="text-xs font-bold text-amber-600">Chờ thu</span>
+                            {% endif %}
+                        </td>
+
+                        <td class="px-5 py-4 text-right font-black text-stone-900 tabular-nums">
+                            {{ "{:,.0f}".format(o.total_amount) }} ₫
+                        </td>
+                        <td class="px-5 py-4 text-center">
+                            <a href="{{ url_for('admin.order_detail', order_id=o.id) }}" title="Xem đơn hàng" class="inline-flex w-8 h-8 rounded-full bg-white border border-stone-200 text-stone-500 items-center justify-center hover:bg-black hover:text-white transition-all shadow-sm">
+                                <i class="fa-solid fa-arrow-right -rotate-45 text-[10px]"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="7" class="px-6 py-16 text-center">
+                            <div class="flex flex-col items-center justify-center gap-3">
+                                <div class="w-12 h-12 rounded-full bg-stone-50 flex items-center justify-center text-stone-300">
+                                    <i class="fa-solid fa-box-open text-xl"></i>
+                                </div>
+                                <p class="text-sm font-semibold text-stone-500">Khách hàng này chưa có đơn hàng nào.</p>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
         </div>
     </div>
 </div>
 
 <style>
-    /* Bo góc đặc thù cho input để đồng bộ với trang sản phẩm */
-    input::placeholder {
-        color: #d6d3d1;
-        font-weight: 500;
-    }
-    
-    .shadow-inner-sm {
-        box-shadow: inset 0 2px 4px 0 rgba(0, 0, 0, 0.02);
-    }
+    input::placeholder { color: #d6d3d1; font-weight: 500; }
+    .custom-scrollbar::-webkit-scrollbar { width: 5px; height: 5px; }
+    .custom-scrollbar::-webkit-scrollbar-thumb { background-color: #e5e7eb; border-radius: 10px; }
 </style>
 {% endblock %}

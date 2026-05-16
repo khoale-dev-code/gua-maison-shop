@@ -1,0 +1,242 @@
+{% extends "base.html" %}
+{% block title %}Size Guide | GUA Maison{% endblock %}
+
+{% block extra_head %}
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;700&family=Lora:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #111111;
+    --paper: #ffffff;
+    --border: #e5e5e5;
+    --muted: #888888;
+  }
+
+  body {
+    background-color: var(--paper);
+    color: var(--ink);
+    font-family: 'DM Sans', sans-serif;
+  }
+  
+  .font-display { font-family: 'Bebas Neue', sans-serif; }
+  .font-serif { font-family: 'Lora', serif; }
+
+  /* Table Brutalist Style */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  th, td {
+    border: 1px solid var(--border);
+    padding: 1rem;
+    text-align: center;
+  }
+  th {
+    background-color: #fafafa;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    color: var(--muted);
+  }
+  td {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--ink);
+  }
+  tbody tr:hover { background-color: #fcfcfc; }
+
+  /* Tab switching */
+  .tab-content { display: none; animation: fadeIn 0.4s ease-out; }
+  .tab-content.active { display: block; }
+  
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="min-h-screen pt-[72px] pb-24 selection:bg-black selection:text-white">
+
+  <main class="max-w-[1000px] mx-auto px-5 md:px-12 pt-10 md:pt-16">
+    
+    {# ── HEADER NÚT BACK & TIÊU ĐỀ ── #}
+    <div class="mb-12 md:mb-16 border-b border-[#e5e5e5] pb-8">
+      <a href="javascript:history.back()" class="inline-flex items-center gap-3 text-[10px] font-bold uppercase tracking-[0.2em] text-neutral-400 hover:text-black transition-colors hover:-translate-x-1 duration-300 mb-8">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" /></svg>
+        Trở lại
+      </a>
+      
+      <p class="text-[10px] font-bold uppercase tracking-[0.3em] text-neutral-400 mb-3">GUA Maison 2026</p>
+      <h1 class="font-display text-5xl md:text-7xl uppercase tracking-tight text-black leading-none">Size Guide</h1>
+    </div>
+
+    {# ── NỘI DUNG CHÍNH (TABS) ── #}
+    <div class="flex flex-col md:flex-row gap-12 lg:gap-20 items-start">
+      
+      {# Cột trái: Hướng dẫn đo #}
+      <aside class="w-full md:w-[35%] lg:w-[30%] shrink-0 space-y-8 sticky top-[100px]">
+        <div>
+          <h3 class="text-xs font-bold uppercase tracking-widest text-black mb-4 pb-2 border-b border-black">Hướng dẫn đo</h3>
+          <ul class="space-y-4 text-[13px] text-neutral-600 leading-relaxed">
+            <li><strong class="text-black">1. Chiều cao & Cân nặng:</strong> Đây là yếu tố cơ bản nhất để chọn size vừa vặn.</li>
+            <li><strong class="text-black">2. Vòng ngực (Chest):</strong> Dùng thước dây đo quanh phần rộng nhất của ngực.</li>
+            <li><strong class="text-black">3. Vòng eo (Waist):</strong> Đo quanh phần hẹp nhất của eo, thường nằm trên rốn một chút.</li>
+            <li><strong class="text-black">4. Chiều dài (Length):</strong> Đo từ đỉnh vai (đối với áo) hoặc từ thắt lưng (đối với quần) xuống.</li>
+          </ul>
+        </div>
+        
+        <div class="bg-[#fafafa] border border-[#e5e5e5] p-6 text-center">
+          <p class="text-[10px] font-bold uppercase tracking-widest text-neutral-500 mb-2">Hỗ trợ tư vấn</p>
+          <p class="text-sm font-serif text-black italic">Nếu bạn phân vân giữa 2 size, chúng tôi khuyên bạn nên chọn size lớn hơn để có độ rủ (oversized) thoải mái nhất.</p>
+        </div>
+      </aside>
+
+      {# Cột phải: Bảng số liệu & Tabs #}
+      <section class="w-full md:w-[65%] lg:w-[70%]">
+        
+        {# Nút chuyển Tab #}
+        <div class="flex gap-4 mb-8">
+          <button class="tab-btn active flex-1 h-14 flex items-center justify-center text-[11px] font-bold uppercase tracking-widest border border-black bg-black text-white transition-all" data-target="tab-tops">
+            Áo (Tops)
+          </button>
+          <button class="tab-btn flex-1 h-14 flex items-center justify-center text-[11px] font-bold uppercase tracking-widest border border-[#e5e5e5] text-neutral-500 hover:text-black hover:border-black transition-all bg-white" data-target="tab-bottoms">
+            Quần (Bottoms)
+          </button>
+        </div>
+
+        {# Tab 1: TOPS #}
+        <div id="tab-tops" class="tab-content active">
+          <div class="overflow-x-auto no-scrollbar border border-[#e5e5e5]">
+            <table>
+              <thead>
+                <tr>
+                  <th class="w-20 text-black">Size</th>
+                  <th>Chiều cao (cm)</th>
+                  <th>Cân nặng (kg)</th>
+                  <th>Dài áo (cm)</th>
+                  <th>Rộng ngực (cm)</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td class="font-bold">S</td>
+                  <td>155 - 165</td>
+                  <td>45 - 55</td>
+                  <td>70</td>
+                  <td>54</td>
+                </tr>
+                <tr>
+                  <td class="font-bold">M</td>
+                  <td>165 - 172</td>
+                  <td>55 - 65</td>
+                  <td>72</td>
+                  <td>56</td>
+                </tr>
+                <tr>
+                  <td class="font-bold">L</td>
+                  <td>170 - 178</td>
+                  <td>65 - 75</td>
+                  <td>74</td>
+                  <td>58</td>
+                </tr>
+                <tr>
+                  <td class="font-bold">XL</td>
+                  <td>175 - 185</td>
+                  <td>75 - 85</td>
+                  <td>76</td>
+                  <td>60</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <p class="text-[10px] text-neutral-400 mt-4">* Thông số có thể xê dịch 1-2cm tùy theo chất liệu vải và kiểu dáng thiết kế (Regular / Oversized).</p>
+        </div>
+
+        {# Tab 2: BOTTOMS #}
+        <div id="tab-bottoms" class="tab-content">
+          <div class="overflow-x-auto no-scrollbar border border-[#e5e5e5]">
+            <table>
+              <thead>
+                <tr>
+                  <th class="w-20 text-black">Size</th>
+                  <th>Chiều cao (cm)</th>
+                  <th>Cân nặng (kg)</th>
+                  <th>Dài quần (cm)</th>
+                  <th>Vòng eo (cm)</th>
+                  <th>Vòng đùi (cm)</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td class="font-bold">S (28)</td>
+                  <td>155 - 165</td>
+                  <td>45 - 55</td>
+                  <td>98</td>
+                  <td>74</td>
+                  <td>58</td>
+                </tr>
+                <tr>
+                  <td class="font-bold">M (30)</td>
+                  <td>165 - 172</td>
+                  <td>55 - 65</td>
+                  <td>100</td>
+                  <td>78</td>
+                  <td>60</td>
+                </tr>
+                <tr>
+                  <td class="font-bold">L (32)</td>
+                  <td>170 - 178</td>
+                  <td>65 - 75</td>
+                  <td>102</td>
+                  <td>82</td>
+                  <td>62</td>
+                </tr>
+                <tr>
+                  <td class="font-bold">XL (34)</td>
+                  <td>175 - 185</td>
+                  <td>75 - 85</td>
+                  <td>104</td>
+                  <td>86</td>
+                  <td>64</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <p class="text-[10px] text-neutral-400 mt-4">* Cạp quần có thiết kế chun co giãn (đối với Sweatpants/Jorts) có thể linh hoạt thêm 3-5cm.</p>
+        </div>
+
+      </section>
+    </div>
+  </main>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const tabs = document.querySelectorAll('.tab-btn');
+    const contents = document.querySelectorAll('.tab-content');
+
+    tabs.forEach(tab => {
+      tab.addEventListener('click', () => {
+        // Reset nút
+        tabs.forEach(t => {
+          t.classList.remove('bg-black', 'text-white', 'border-black');
+          t.classList.add('bg-white', 'text-neutral-500', 'border-[#e5e5e5]');
+        });
+        // Active nút
+        tab.classList.add('bg-black', 'text-white', 'border-black');
+        tab.classList.remove('bg-white', 'text-neutral-500', 'border-[#e5e5e5]');
+
+        // Đổi Tab content
+        const target = tab.getAttribute('data-target');
+        contents.forEach(c => {
+          c.classList.remove('active');
+          if (c.id === target) c.classList.add('active');
+        });
+      });
+    });
+  });
+</script>
+{% endblock %}
